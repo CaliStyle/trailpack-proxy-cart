@@ -2,7 +2,7 @@
 
 const Trailpack = require('trailpack')
 
-module.exports = class CartTrailpack extends Trailpack {
+module.exports = class ProxyCartTrailpack extends Trailpack {
 
   /**
    * TODO document method
