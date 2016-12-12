@@ -13,11 +13,11 @@ The title of your product. Example: Women's Snowboard
 ## Body (Markdown or HTML)
 The description of the product in Markdown or HTML format. This can also be plain text without any formatting which default to Markdown.
 
-## SEO Title (does not require the Google Shopping App)
-The SEO Title is found on a product's details page under the Search Engines header. The SEO Title has a character (letters & numbers) limit of 70.
+## SEO Title
+The SEO Title has a character (letters & numbers) limit of 70.
 
-## SEO Description (does not require the Google Shopping App)
-The SEO Description is also found on a product's details page under the Search Engines header. The SEO Description has a character (letters & numbers) limit of 160.
+## SEO Description
+The SEO Description has a character (letters & numbers) limit of 160.
 
 ## Vendor (min. 2 characters)
 The name of the vendor for your product. For example, John's Apparel.
@@ -75,7 +75,7 @@ The number of items you have in stock of this product or variant.
 How to handle orders when inventory level for this product or variant has reached zero. Valid values are "deny", or "continue". "deny" will stop selling when inventory reaches 0, and "continue" will allow sales to continue into negative inventory levels.
 
 ## Variant Fulfillment Service
-The product or variant fulfillment service used. Valid values are: "manual", "shipwire", "webgistix", "amazon_marketplace_web”. If you use a custom fulfillment service, you can add the name of the service in this column. For the custom name, use only lowercase alphabet letters. Spaces aren't allowed—replace them with a dash (-). Periods and other special characters are removed. For example, if "Mr. Fulfiller" is your fulfillment service's name, enter "mr-fulfiller" in the CSV file.
+The product or variant fulfillment service used. Valid values are generics like: `manual`, `shipwire`, `amazon_marketplace_web`. If you use a custom fulfillment service that does not have a generic built for it, you can add the name of the service in this column. For the custom name, use only lowercase alphabet letters. Spaces aren't allowed, replace them with a dash `-` or underscore `_`. Periods and other special characters are removed. For example, if "Mr. Fulfiller" is your fulfillment service's name, enter "mr-fulfiller" in the CSV file.
 
 ### Note
 You must have a custom fulfillment service set up in your admin before you can add the name of the service in this column.
@@ -84,7 +84,7 @@ You must have a custom fulfillment service set up in your admin before you can a
 The price of the product or variant in __cents__. Don't place any currency symbol there. For example, $9.99 would be 999.
 
 ## Variant Compare at Price
-The "Compare at Price"" of the product or variant in __cents__. Don't place any currency symbol there. For example, $9.99 would be 999.
+The "Compare at Price" of the product or variant in __cents__. Don't place any currency symbol there. For example, $9.99 would be 999.
 
 ## Variant Requires Shipping (blank = FALSE)
 The option to require shipping. Valid values are "TRUE", "FALSE", or blank.
