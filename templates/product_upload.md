@@ -31,27 +31,27 @@ Comma-separated list of tags used to tag the product. Most spreadsheet applicati
 ## Published
 States whether or not a product is published on your storefront. Valid values are TRUE if the product is published on your storefront, or FALSE if the product is hidden from your storefront. Leaving the field blank will publish the product.
 
-## Option / 1 Name
+## Option / 1 Name (Default)
 If a product has an option that does not alter the SKU, enter its name. For example, Color.
 
 For products with only a single option, this should be set to "Title".
 
-## Option / 1 Value
+## Option / 1 Value (Default)
 If a product has an option, enter its value. For example, Black.
 
 For products with only a single option, this should be set to "Default Title". 
 
-## Option / * Name
+## Option / * Name (Add as Necessary)
 The `*` is a place holder for the next iteration number of the option e.g. `Option / 2 name` 
 
-## Option / * Value
+## Option / * Value (Add as Necessary)
 The `*` is a place holder for the next iteration number of the option e.g. `Option / 2 value` 
 
 ### _Note_
 Proxy-Cart Stores all Options in a JSON format allowing for the single model field `options` so it can contain unlimited options. Continue adding option fields as necessary.
 
 ### _Note_
-If you have an `Option / * Name` column, it must also have an `Option / * value` column.
+If you have an `Option / * Name` column, it must also have an `Option / * Value` column.
 
 ## Variant SKU (can be left blank)
 The SKU of the product or variant. This is used to track inventory with inventory tracking generics.
@@ -59,11 +59,14 @@ The SKU of the product or variant. This is used to track inventory with inventor
 ### _Note_
 This field can't be left blank if you're using a fulfillment generic.
 
-## Variant Grams
-The weight of the product or variant in grams. Do not add a unit of measurement, just the number.
+## Variant Weight
+The weight of the product or variant in __grams__. Do not add a unit of measurement, just the number. E.g. `200g` would be `200`. If you are using a different unit of measurement than grams, then supply it in the `Variant Weight Unit` column.
+
+## Variant Weight Unit (can be left blank)
+Convert the variant grams field to a different unit of measure by entering kg, g, oz, or lb. If this field is left blank, the weight will be uploaded as grams and then converted to your store's default weight unit.
 
 ### _Note_
-Proxy-Cart will always import and export weight in grams, even if you specify a different unit. You must use accurate weights if you intend to offer carrier-calculated shipping or use a third-party fulfillment service.
+Proxy-Cart will always import and export weight in grams, even if you specify a different unit. You must use accurate weights if you intend to offer carrier-calculated shipping or use a fulfillment generics.
 
 ## Variant Inventory Tracker (can be left blank)
 Include your inventory tracking for this variant or product. Valid values include "shipwire", "amazon_marketplace_web", or blank if inventory is not tracked.
@@ -97,9 +100,6 @@ The barcode, ISBN or UPC of the product.
 
 ## Variant Image
 Put the URL for your variant image. Shopify will download the images during the import and re-upload them into your store.
-
-## Variant Weight Unit (can be left blank)
-Convert the variant grams field to a different unit of measure by entering kg, g, oz, or lb. If this field is left blank, the weight will be uploaded as grams and then converted to your store's default weight unit.
 
 ## Variant Tax Code (can be left blank)
 ### _Note_
