@@ -53,6 +53,18 @@ Proxy-Cart Stores all Options in a JSON format allowing for the single model fie
 ### _Note_
 If you have an `Option / * Name` column, it must also have an `Option / * Value` column.
 
+## Image Sources
+Put the URLs for the product's images separated by a pipe character e.g. `|`. Proxy-Cart will download the images during the import and re-upload them into your data store. 
+
+### _Note_
+These images are not variant specific. The variant image column is where you specify variant images.
+
+### _Note_
+You won't be able to change your image filename after that image has been uploaded. Don't upload images that have _thumb, _small, or _medium suffixes in their names as these will be created automatically.
+
+## Image Alt Texts (can be left blank)
+The text that describes the images separated by a pipe character e.g. `|`. Useful if images cannot be displayed or a screenreader passes over an image—the text replaces this element.
+
 ## Variant SKU (can be left blank)
 The SKU of the product or variant. This is used to track inventory with inventory tracking generics.
 
@@ -99,27 +111,15 @@ Apply taxes to this variant. Valid values are "TRUE", "FALSE", or blank.
 The barcode, ISBN or UPC of the product.
 
 ## Variant Image
-Put the URL for your variant image. Shopify will download the images during the import and re-upload them into your store.
+Put the URL for your variant image. Proxy-Cart will download the images during the import and re-upload them into your data store.
 
 ## Variant Tax Code (can be left blank)
 ### _Note_
 This column only applies if you are using a tax service generic.
 Enter a tax code that applies to a specific variant of the product. E.g. `TX123`.
 
-## Image Sources
-Put the URLs for the product's images separated by a pipe character e.g. `|`. Proxy-Cart will download the images during the import and re-upload them into your data store. 
-
-### _Note_
-These images are not variant specific. The variant image column is where you specify variant images.
-
-### _Note_
-You won't be able to change your image filename after that image has been uploaded. Don't upload images that have _thumb, _small, or _medium suffixes in their names as these will be created automatically.
-
-## Image Alt Texts (can be left blank)
-The text that describes the images separated by a pipe character e.g. `|`. Useful if images cannot be displayed or a screenreader passes over an image—the text replaces this element.
-
 ## Gift Card
-States whether the product is a Gift Card or not. Valid values are "TRUE", or "FALSE". The addition of this column also allows you to edit other Gift Card details, such as the Body or Tags columns, and import these changes. A gift card can only be created and activated in the Shopify admin. You can't initially create a gift card through a product CSV import.
+States whether the product is a Gift Card or not. Valid values are "TRUE", or "FALSE". The addition of this column also allows you to edit other Gift Card details, such as the Body or Tags columns, and import these changes. A gift card can only be created and activated in the Proxy-Cart admin. You can't initially create a gift card through a product CSV import.
 
 ## Metadata
 JSON format of Metadata limited to __1,000 characters__. E.g.
