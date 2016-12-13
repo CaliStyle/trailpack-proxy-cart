@@ -4,7 +4,7 @@ const Controller = require('trails/controller')
 
 /**
  * @module CartController
- * @description Generated Trails.js Controller.
+ * @description Cart Controller.
  */
 module.exports = class CartController extends Controller {
 

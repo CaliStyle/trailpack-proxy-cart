@@ -71,6 +71,12 @@ module.exports = class ProductVariant extends Model {
           defaultValue: 0
         },
 
+        // The fulfillment generic that handles this request
+        fulfillment_service: {
+          type: Sequelize.STRING,
+          defaultValue: 'manual'
+        },
+
         // The order of the product variant in the list of product variants.
         position: {
           type: Sequelize.INTEGER,
@@ -114,6 +120,12 @@ module.exports = class ProductVariant extends Model {
         // Specifies whether or not customers are allowed to place an order for a product variant when it's out of stock.
         inventory_policy: {
           type: Sequelize.STRING
+        },
+
+        // Amount of variant in inventory
+        inventory_quantity: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
 
         // Weight of the variant, defaults to grams
