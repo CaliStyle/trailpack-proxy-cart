@@ -1,6 +1,10 @@
+/* eslint new-cap: [0] */
 'use strict'
 
 const Model = require('trails/model')
+const helpers = require('../utils/helpers')
+const UNITS = require('../utils/enums').UNITS
+const _ = require('lodash')
 
 /**
  * @module Product
@@ -14,6 +18,14 @@ module.exports = class Product extends Model {
       config = {
         options: {
           classMethods: {
+            /**
+             * Expose UNITS enums
+             */
+            UNITS: UNITS,
+            /**
+             * Associate the Model
+             * @param models
+             */
             associate: (models) => {
               models.Product.hasMany(models.ProductImage, {
                 as: 'images',
@@ -37,53 +49,96 @@ module.exports = class Product extends Model {
       schema = {
         //id
 
-        //
+        // Unique Name for the product
         handle: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false,
+          unique: true
         },
+
+        // Product Title
         title: {
           type: Sequelize.STRING
         },
+
+        // Body (html or markdown)
         body: {
           type: Sequelize.TEXT
         },
+
+        // SEO title
         seo_title: {
           type: Sequelize.STRING
         },
+
+        // SEO description
         seo_description: {
           type: Sequelize.STRING
         },
+
+        // Type of the product e.g. 'Snow Board'
         type: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
+
+        // tags for the product
         tags: {
           type: Sequelize.TEXT
         },
+
+        // Metadata of the page (limit 1000 characters)
+        metadata: helpers.JSONB('product', app, Sequelize, 'metadata', {
+          defaultValue: {}
+        }),
+
+        // Default price of the product in cents
         price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+
+        // The sales channels in which the product is visible.
+        published_scope: {
+          type: Sequelize.STRING,
+          defaultValue: 'global'
+        },
+
+        // Is product published
         published: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
+
+        // Date/Time the Product was published
         published_at: {
           type: Sequelize.DATE
         },
+
+        // Date/Time the Product was unpublished
         unpublished_at: {
           type: Sequelize.DATE
         },
-        options: {
-          type: Sequelize.STRING
-        },
+
+        // Options for the product (size, color, etc.)
+        options: helpers.ARRAY('product', app, Sequelize, Sequelize.STRING, 'options', {
+          defaultValue: []
+        }),
+
+        // Weight of the product, defaults to grams
         weight: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+
+        // Unit of Measurement for Weight of the product, defaults to grams
         weight_unit: {
-          type: Sequelize.STRING,
-          defaultValue: 'g'
+          type: Sequelize.ENUM(),
+          values: _.values(UNITS),
+          defaultValue: UNITS.G
         },
+
+        // Vendor of the product
         vendor: {
           type: Sequelize.STRING
         }

@@ -19,6 +19,10 @@ module.exports = class ProductImage extends Model {
                 as: 'product_id',
                 onDelete: 'CASCADE'
               })
+              models.ProductImage.belongsTo(models.ProductVariant, {
+                as: 'variant_id',
+                onDelete: 'CASCADE'
+              })
             }
           }
         }
