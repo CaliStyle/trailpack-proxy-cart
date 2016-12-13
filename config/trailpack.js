@@ -23,8 +23,8 @@ module.exports = {
       emit: []
     },
     initialize: {
-      listen: [],
-      emit: []
+      listen: ['trailpack:sequelize:initialized'],
+      emit: ['trailpack:proxycart:initialized']
     }
   }
 }
