@@ -11,5 +11,11 @@ module.exports = class CartController extends Controller {
   checkout(req, res) {
 
   }
+  addItemsToCart(req, res) {
+
+  }
+  removeItemsFromCart(req, res) {
+
+  }
 }
 
