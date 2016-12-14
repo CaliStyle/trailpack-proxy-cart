@@ -5,7 +5,8 @@
 [![Dependency Status][daviddm-image]][daviddm-url]
 [![Code Climate][codeclimate-image]][codeclimate-url]
 
-Cart - Trailpack for Proxy Engine
+## Node.js eCommerce built for speed, scalability, flexibility, and love from [Cali Style](https://cali-style.com)
+Proxy Cart is the eCommerce component for Proxy Engine. Connect your own Merchant Processor, Fulfillment, and import your products.
 
 ## Install
 
@@ -24,6 +25,28 @@ module.exports = {
   ]
 }
 ```
+
+## Usage
+
+### Controllers
+#### CartController
+
+##### CartController.checkout
+
+##### CartController.addItems
+
+##### CartController.removeItems
+
+##### CartController.clear
+
+#### ProductController
+##### ProductController.addProducts
+
+##### ProductController.updateProducts
+
+##### ProductController.removeProducts
+
+### Services
 
 [npm-image]: https://img.shields.io/npm/v/trailpack-proxy-cart.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/trailpack-proxy-cart
