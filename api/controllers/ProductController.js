@@ -66,5 +66,13 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+  /**
+   * Remove Products
+   * @param req
+   * @param res
+   */
+  uploadCSV(req, res) {
+    // const ProxyCartService = this.app.services.ProxyCartService
+  }
 }
 

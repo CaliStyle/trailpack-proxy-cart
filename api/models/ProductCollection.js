@@ -33,6 +33,11 @@ module.exports = class ProductCollection extends Model {
       schema = {
         name: {
           type: Sequelize.STRING
+        },
+        // Multi Site Support
+        host: {
+          type: Sequelize.STRING,
+          defaultValue: 'localhost'
         }
       }
     }

@@ -17,7 +17,9 @@
     "trailjs"
   ],
   "dependencies": {
-    "trailpack": "v2-latest"
+    "sharp": "^0.17.0",
+    "trailpack": "v2-latest",
+    "trailpack-proxy-generics": "0.0.0"
   },
   "devDependencies": {
     "eslint": "^2.4",

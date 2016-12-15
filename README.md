@@ -6,7 +6,18 @@
 [![Code Climate][codeclimate-image]][codeclimate-url]
 
 ## Node.js eCommerce built for speed, scalability, flexibility, and love from [Cali Style](https://cali-style.com)
-Proxy Cart is the eCommerce component for Proxy Engine. Connect your own Merchant Processor, Fulfillment, and import your products.
+Proxy Cart is the eCommerce component for Proxy Engine. Connect your own Merchant Processor, Shipping Provider, Fulfillment Service, Tax Provider, and import your products. Attach it to Proxy-Engine and start building with Proxy CMS.
+
+## Dependencies
+### Supported ORMs
+| Repo          |  Build Status (edge)                  |
+|---------------|---------------------------------------|
+| [trailpack-sequelize](https://github.com/trailsjs/trailpack-sequelize) | [![Build status][ci-sequelize-image]][ci-sequelize-url] |
+
+### Supported Webserver
+| Repo          |  Build Status (edge)                  |
+|---------------|---------------------------------------|
+| [trailpack-express](https://github.com/trailsjs/trailpack-express) | [![Build status][ci-express-image]][ci-express-url] |
 
 ## Install
 

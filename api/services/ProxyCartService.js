@@ -7,6 +7,14 @@ const Service = require('trails/service')
  * @description ProxyCart Service
  */
 module.exports = class ProxyCartService extends Service {
+  csv(csv) {
 
+  }
+  buildImages(image) {
+
+  }
+  uploadImages(images) {
+
+  }
 }
 

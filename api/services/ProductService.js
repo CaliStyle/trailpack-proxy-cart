@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Service = require('trails/service')
@@ -8,6 +9,7 @@ const Service = require('trails/service')
  */
 module.exports = class ProductService extends Service {
   addProducts(data) {
+    console.log(data)
     return Promise.resolve(data)
   }
   updateProducts(data) {

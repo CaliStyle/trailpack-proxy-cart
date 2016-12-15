@@ -49,6 +49,11 @@ module.exports = class Product extends Model {
       schema = {
         //id
 
+        // Multi-Site Support
+        host: {
+          type: Sequelize.STRING,
+          defaultValue: 'localhost'
+        },
         // Unique Name for the product
         handle: {
           type: Sequelize.STRING,

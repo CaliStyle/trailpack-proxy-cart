@@ -6,9 +6,10 @@ const fs = require('fs')
 
 const packs = [
   require('trailpack-router'),
-  require('trailpack-proxy-permissions'),
   require('trailpack-proxy-engine'),
-  require('../') // trailpack-proxy-route
+  require('trailpack-proxy-permissions'),
+  require('trailpack-proxy-generics'),
+  require('../') // trailpack-proxy-cart
 ]
 
 
@@ -80,7 +81,9 @@ const App = {
     policies: {
 
     },
-    web: web
+    web: web,
+    // Proxy Generics
+    proxyGenerics: {}
   }
 }
 const dbPath = __dirname + './test.sqlite'

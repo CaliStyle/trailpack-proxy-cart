@@ -18,7 +18,21 @@ describe('ProductController', () => {
   it('should make addProducts post request', (done) => {
     request
       .post('/product/addProducts')
-      .send([])
+      .send([
+        {
+          handle: 'snwbrd',
+          title: 'Burton Custom Freestyle 151',
+          body: '<strong>Good snowboard!</strong>',
+          vendor: 'Burton',
+          type: 'Snowboard',
+          images: [
+            {
+              src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+              alt: 'Hello World'
+            }
+          ]
+        }
+      ])
       .expect(200)
       .end((err, res) => {
         done(err)
