@@ -14,7 +14,7 @@ describe('ProductController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['ProductController'])
   })
-
+  let createdProductID
   it('should make addProducts post request', (done) => {
     request
       .post('/product/addProducts')
@@ -25,6 +25,7 @@ describe('ProductController', () => {
           body: '<strong>Good snowboard!</strong>',
           vendor: 'Burton',
           type: 'Snowboard',
+          price: '10000',
           images: [
             {
               src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
@@ -35,6 +36,29 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
+        // console.log('PRODUCT Variants',res.body[0].variants)
+        // console.log('PRODUCT Images',res.body[0].images)
+        createdProductID = res.body[0].id
+        // Product
+        assert.ok(createdProductID)
+        assert.equal(res.body[0].handle, 'snwbrd')
+        assert.equal(res.body[0].title, 'Burton Custom Freestyle 151')
+        assert.equal(res.body[0].vendor, 'Burton')
+        assert.equal(res.body[0].type, 'Snowboard')
+        // Images
+        assert.equal(res.body[0].images[0].position, 1)
+        assert.ok(res.body[0].images[0].src)
+        assert.ok(res.body[0].images[0].full)
+        assert.ok(res.body[0].images[0].thumbnail)
+        assert.ok(res.body[0].images[0].small)
+        assert.ok(res.body[0].images[0].medium)
+        assert.ok(res.body[0].images[0].large)
+        assert.equal(res.body[0].images[0].alt, 'Hello World')
+        // Variants
+        assert.equal(res.body[0].variants[0].title, res.body[0].title)
+        assert.equal(res.body[0].variants[0].price, res.body[0].price)
+        assert.equal(res.body[0].variants[0].weight, res.body[0].weight)
+        assert.equal(res.body[0].variants[0].weight_unit, res.body[0].weight_unit)
         done(err)
       })
   })

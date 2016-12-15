@@ -101,6 +101,9 @@ The price of the product or variant in __cents__. Don't place any currency symbo
 ## Variant Compare at Price
 The "Compare at Price" of the product or variant in __cents__. Don't place any currency symbol there. For example, $9.99 would be 999.
 
+## Variant Currency
+The "Currency" of the product or variant. Defaults to `USD`.
+
 ## Variant Requires Shipping (blank = FALSE)
 The option to require shipping. Valid values are "TRUE", "FALSE", or blank.
 
@@ -188,6 +191,17 @@ To organize your products into collections during the CSV upload, you can add a 
 ## Collection (must create a new column, can be left blank)
 Enter the name of the collection you want to add this product to. If the collection does not already exist, one will be created for you. You can only add a product to one collection using this method.
 
+# Subscriptions
+## Subscription 
+If this product requires a subscription, use `true`. Otherwise leave blank.
+
+## Subscription Unit
+If this product is subscribable, then the amount of days, weeks, months, this subscription is in as an integer.
+
+## Subscription Interval
+If this product is subscribable, then the unit of measurement. Valid values are `0`,`d`,`w`,`ww`,`m`,`mm`,`y`,`yy`
+
+
 # Create your product CSV file
 
 For each product, you'll need to decide if it is a simple product or one with variants:
@@ -201,3 +215,4 @@ If you are uploading a product that does not have variants, then enter all the f
 If you are uploading a product that has variants, then enter all the fields (as described above) for the product on the first line along with the URL for the first image. On the following lines, enter the handle. Then, skip the Title, Body (HTML), Vendor, and Tags. Fill out the rest of the variants details and each image URL.
 
 Once you've added all your products and images, save your CSV file in UTF-8 format using LF-style linefeeds. If you are not familiar with encodings, please see your spreadsheet or text editor program's documentation.
+

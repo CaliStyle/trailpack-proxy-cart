@@ -4,6 +4,7 @@
 const Model = require('trails/model')
 // const helpers = require('../utils/helpers')
 const UNITS = require('../utils/enums').UNITS
+const INTERVALS = require('../utils/enums').INTERVALS
 const _ = require('lodash')
 
 /**
@@ -23,12 +24,20 @@ module.exports = class ProductVariant extends Model {
              */
             UNITS: UNITS,
             /**
+             * Expose INTERVALS enums
+             */
+            INTERVALS: INTERVALS,
+            /**
              * Associate the Model
              * @param models
              */
             associate: (models) => {
               models.ProductVariant.belongsTo(models.Product, {
                 as: 'product_id',
+                onDelete: 'CASCADE'
+              })
+              models.ProductVariant.hasMany(models.ProductImage, {
+                as: 'images',
                 onDelete: 'CASCADE'
               })
             }
@@ -48,10 +57,9 @@ module.exports = class ProductVariant extends Model {
           type: Sequelize.STRING
         },
 
-        // The Unique SKU for this Variation
+        // The SKU for this Variation
         sku: {
-          type: Sequelize.STRING,
-          unique: true
+          type: Sequelize.STRING
         },
 
         // The Barcode of the Variant
@@ -65,10 +73,16 @@ module.exports = class ProductVariant extends Model {
           defaultValue: 0
         },
 
-        // Competitor price of the product in cents
+        // Competitor price of the variant in cents
         compare_at_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
+        },
+
+        // Default currency of the variant
+        currency: {
+          type: Sequelize.STRING,
+          defaultValue: 'USD'
         },
 
         // The fulfillment generic that handles this request
@@ -111,6 +125,24 @@ module.exports = class ProductVariant extends Model {
           defaultValue: false
         },
 
+        // If Variant requires a subscription
+        requires_subscription: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        // If Product has subscription, the interval of the subscription, defaults to 0 months
+        subscription_interval: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // If product has subscription, the unit of the interval
+        subscription_unit: {
+          type: Sequelize.ENUM,
+          values: _.values(INTERVALS),
+          defaultValue: INTERVALS.NONE
+        },
+
+
         // Specifies whether or not Shopify tracks the number of items in stock for this product variant.
         inventory_management: {
           type: Sequelize.BOOLEAN,
@@ -136,7 +168,7 @@ module.exports = class ProductVariant extends Model {
 
         // Unit of Measurement for Weight of the variant, defaults to grams
         weight_unit: {
-          type: Sequelize.ENUM(),
+          type: Sequelize.ENUM,
           values: _.values(UNITS),
           defaultValue: UNITS.G
         }

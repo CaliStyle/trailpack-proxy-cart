@@ -1,4 +1,5 @@
 /* eslint new-cap: [0] */
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
@@ -89,7 +90,7 @@ module.exports = class Product extends Model {
 
         // tags for the product
         tags: {
-          type: Sequelize.TEXT
+          type: Sequelize.STRING
         },
 
         // Metadata of the page (limit 1000 characters)
@@ -101,6 +102,12 @@ module.exports = class Product extends Model {
         price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
+        },
+
+        // Default currency of the product
+        currency: {
+          type: Sequelize.STRING,
+          defaultValue: 'USD'
         },
 
         // The sales channels in which the product is visible.

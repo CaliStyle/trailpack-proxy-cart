@@ -20,11 +20,11 @@ module.exports = class ProductController extends Controller {
       .then(values => {
         return ProductService.addProducts(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(products => {
+        this.app.log.silly('ProductController.addProducts created:', products)
+        return res.json(products)
       })
       .catch(err => {
-        // console.log('ProductController.addProducts', err)
         return res.serverError(err)
       })
   }
