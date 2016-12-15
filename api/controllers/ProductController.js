@@ -9,6 +9,18 @@ const lib = require('../../lib')
  * @description Product Controller.
  */
 module.exports = class ProductController extends Controller {
+  findOne(req, res){
+    const FootprintService = this.app.services.FootprintService
+    FootprintService.find('Product', req.params.id, { populate: 'all' })
+      .then(product => {
+        // console.log('ProductController.findOne', product.dataValues)
+        return res.json(product)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  find(req, res){}
   /**
    * Add Products
    * @param req

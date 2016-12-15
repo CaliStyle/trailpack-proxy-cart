@@ -26,6 +26,11 @@ describe('ProductController', () => {
           vendor: 'Burton',
           type: 'Snowboard',
           price: '10000',
+          tags: [
+            'snow',
+            'equipment',
+            'outdoor'
+          ],
           images: [
             {
               src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
@@ -62,13 +67,57 @@ describe('ProductController', () => {
         done(err)
       })
   })
+  it('should find created product', (done) => {
+    request
+      .get(`/product/${createdProductID}`)
+      .expect(200)
+      .end((err, res) => {
+        console.log(res.body)
+        assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.handle, 'snwbrd')
+        assert.equal(res.body.title, 'Burton Custom Freestyle 151')
+        assert.equal(res.body.vendor, 'Burton')
+        assert.equal(res.body.type, 'Snowboard')
+        // Images
+        assert.equal(res.body.images[0].position, 1)
+        assert.ok(res.body.images[0].src)
+        assert.ok(res.body.images[0].full)
+        assert.ok(res.body.images[0].thumbnail)
+        assert.ok(res.body.images[0].small)
+        assert.ok(res.body.images[0].medium)
+        assert.ok(res.body.images[0].large)
+        assert.equal(res.body.images[0].alt, 'Hello World')
+        // Variants
+        assert.equal(res.body.variants[0].title, res.body.title)
+        assert.equal(res.body.variants[0].price, res.body.price)
+        assert.equal(res.body.variants[0].weight, res.body.weight)
+        assert.equal(res.body.variants[0].weight_unit, res.body.weight_unit)
 
+        done(err)
+      })
+  })
   it('should make updateProducts post request', (done) => {
     request
       .post('/product/updateProducts')
-      .send([])
+      .send([
+        {
+          id: createdProductID,
+          title: 'Burton Custom Freestyle 151 Gen 2'
+        }
+      ])
       .expect(200)
       .end((err, res) => {
+        done(err)
+      })
+  })
+  it.skip('TODO should find updated product', (done) => {
+    request
+      .get(`/product/${createdProductID}`)
+      .expect(200)
+      .end((err, res) => {
+        console.log(res.body)
+        assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.title, 'Burton Custom Freestyle 151 Gen 2')
         done(err)
       })
   })

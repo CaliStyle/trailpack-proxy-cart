@@ -30,6 +30,7 @@ module.exports = class Product extends Model {
             associate: (models) => {
               models.Product.hasMany(models.ProductImage, {
                 as: 'images',
+                // foreign_key: 'product_id',
                 onDelete: 'CASCADE'
               })
               models.Product.hasMany(models.ProductVariant, {
@@ -89,9 +90,9 @@ module.exports = class Product extends Model {
         },
 
         // tags for the product
-        tags: {
-          type: Sequelize.STRING
-        },
+        tags: helpers.ARRAY('product', app, Sequelize, Sequelize.STRING, 'tags', {
+          defaultValue: []
+        }),
 
         // Metadata of the page (limit 1000 characters)
         metadata: helpers.JSONB('product', app, Sequelize, 'metadata', {

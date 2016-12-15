@@ -37,12 +37,19 @@ module.exports = class ProductImage extends Model {
           classMethods: {
             associate: (models) => {
               models.ProductImage.belongsTo(models.Product, {
-                as: 'product_id',
+                // as: 'product_id',
+                // foreignKey: 'product_id',
                 onDelete: 'CASCADE'
+                // foreignKey: {
+                //   allowNull: true
+                // }
               })
               models.ProductImage.belongsTo(models.ProductVariant, {
-                as: 'variant_id',
+                // foreignKey: 'variant_id',
                 onDelete: 'CASCADE'
+                // foreignKey: {
+                //   allowNull: true
+                // }
               })
             }
           }

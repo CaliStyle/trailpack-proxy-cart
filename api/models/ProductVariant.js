@@ -33,12 +33,18 @@ module.exports = class ProductVariant extends Model {
              */
             associate: (models) => {
               models.ProductVariant.belongsTo(models.Product, {
-                as: 'product_id',
+                // as: 'product_id',
                 onDelete: 'CASCADE'
+                // foreignKey: {
+                //   allowNull: false
+                // }
               })
               models.ProductVariant.hasMany(models.ProductImage, {
                 as: 'images',
                 onDelete: 'CASCADE'
+                // foreignKey: {
+                //   allowNull: false
+                // }
               })
             }
           }
