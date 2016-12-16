@@ -96,7 +96,16 @@ module.exports = class ProductService extends Service {
         create.published_scope = product.published_scope
       }
       // Images
-      const images = []
+      let images = []
+      // If this request came with product images
+      if (product.images) {
+        _.map(product.images, image => {
+          image.variant = 0
+        })
+        images = images.concat(product.images)
+        delete product.images
+      }
+
       // Variants
       let variants = [{
         title: product.title,
@@ -118,7 +127,12 @@ module.exports = class ProductService extends Service {
         // TODO a better way to do `position` please
         // If variant does not a have a position
         if (!variant.position) {
-          variant.position = variants[index].position + 1
+          // console.log('NO POSITION, ADD IT', variants[index - 1].position + 1)
+          variant.position = variants[index - 1].position + 1
+        }
+        // If this variant is not explicitly not pulbished set to status of parent
+        if (product.published && variant.published !== false) {
+          variant.published = true
         }
         // If this variant is published then set published_at to same as parent
         if (variant.published) {
@@ -176,19 +190,23 @@ module.exports = class ProductService extends Service {
         if (product.weight_unit && !variant.weight_unit) {
           variant.weight_unit = product.weight_unit
         }
+        if (variant.images) {
+          _.map(variant.images, image => {
+            image.variant = index
+          })
+          images = images.concat(variant.images)
+          delete variant.images
+        }
       })
 
-      // If this request came with product images
-      if (product.images) {
-        _.each(product.images, (image, index) => {
-          // TODO a better way to do `position` please
-          // If Image does not have a position
-          if (!image.position) {
-            image.position = product.images[index - 1] ? product.images[index - 1].position + 1 : 1
-          }
-          images.push(image)
-        })
-      }
+      _.map(images, (image, index) => {
+        // TODO a better way to do `position` please
+        // If Image does not have a position
+        if (!image.position) {
+          image.position = images[index - 1] ? images[index - 1].position + 1 : 1
+        }
+      })
+
       // Set the resulting Product
       let resProduct = {}
       // Create the Product
@@ -196,33 +214,8 @@ module.exports = class ProductService extends Service {
         .then(createdProduct => {
           // Set the resulting product
           resProduct = createdProduct.dataValues
-          // Create Product Images
-          return Promise.all(images.map(image => {
-            return FootprintService.createAssociation('Product', resProduct.id, 'images', image)
-          }))
-        })
-        .then(createdImages => {
-          // Set the resulting product's images
-          resProduct.images = createdImages
-
           // Create the Variants
           return Promise.all(variants.map(variant => {
-            // // If the variant has no defined weight, use parent product's
-            // if (!variant.weight){
-            //   variant.weight = resProduct.weight
-            // }
-            // // If the variant has no defined weight unit, use the parent product's
-            // if (!variant.weight_unit){
-            //   variant.weight_unit = resProduct.weight_unit
-            // }
-            // // If the variant has no defined price, use the parent product's
-            // if (!variant.price){
-            //   variant.price = resProduct.price
-            // }
-            // // If the variant has no defined currency, use the parent product's
-            // if (!variant.currency){
-            //   variant.currency = resProduct.currency
-            // }
             // Create the Association
             return FootprintService.createAssociation('Product', resProduct.id, 'variants', variant)
           }))
@@ -230,6 +223,20 @@ module.exports = class ProductService extends Service {
         .then(createdVariants => {
           // Set the resulting product's variants
           resProduct.variants = createdVariants
+          // Create Product Images
+          return Promise.all(images.map(image => {
+            image.product_id = resProduct.id
+            if (image.variant !== 'undefined') {
+              image.product_variant_id = createdVariants[image.variant].id
+              delete image.variant
+            }
+            return FootprintService.create('ProductImage', image)
+            //return FootprintService.createAssociation('Product', resProduct.id, 'images', image)
+          }))
+        })
+        .then(createdImages => {
+          // Set the resulting product's images
+          resProduct.images = createdImages
           return resolve(resProduct)
         })
         .catch(err => {

@@ -8,7 +8,24 @@ const lib = require('../../lib')
  * @description Cart Controller.
  */
 module.exports = class CartController extends Controller {
-
+  /**
+   * count the amount of carts
+   * @param req
+   * @param res
+   */
+  count(req, res){
+    const ProxyCartService = this.app.services.ProxyCartService
+    ProxyCartService.count('Cart')
+      .then(count => {
+        const counts = {
+          carts: count
+        }
+        return res.json(counts)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   checkout(req, res) {
     const CartService = this.app.services.CartService
     lib.Validator.validateCheckout(req.body)

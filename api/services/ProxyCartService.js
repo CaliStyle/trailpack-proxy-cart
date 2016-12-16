@@ -3,11 +3,30 @@
 
 const Service = require('trails/service')
 const csvParser = require('babyparse')
+const _ = require('lodash')
+const Errors = require('../../lib/errors')
 /**
  * @module ProxyCartService
  * @description ProxyCart Service
  */
 module.exports = class ProxyCartService extends Service {
+  /**
+   * Internal method to retreive model object
+   * @param modelName name of the model to retreive
+   * @returns {*} sequelize model object
+   * @private
+   */
+  _getModel(modelName) {
+    return this.app.orm[modelName] || this.app.packs.sequelize.orm[modelName]
+  }
+  count(modelName, criteria, options) {
+    const Model = this._getModel(modelName)
+    const modelOptions = _.defaultsDeep({}, options, _.get(this.app.config, 'footprints.models.options'))
+    if (!Model) {
+      return Promise.reject(new Errors.ModelError('E_NOT_FOUND', `${modelName} can't be found`))
+    }
+    return Model.count(criteria, modelOptions)
+  }
   /**
    *
    * @param file

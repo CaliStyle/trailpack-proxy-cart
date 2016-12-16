@@ -26,6 +26,7 @@ describe('ProductController', () => {
           vendor: 'Burton',
           type: 'Snowboard',
           price: '10000',
+          published: true,
           tags: [
             'snow',
             'equipment',
@@ -35,6 +36,17 @@ describe('ProductController', () => {
             {
               src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
               alt: 'Hello World'
+            }
+          ],
+          variants: [
+            {
+              title: 'Womens Burton Custom Freestyle 151',
+              images: [
+                {
+                  src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+                  alt: 'Hello World 2'
+                }
+              ]
             }
           ]
         }
@@ -52,6 +64,7 @@ describe('ProductController', () => {
         assert.equal(res.body[0].type, 'Snowboard')
         // Images
         assert.equal(res.body[0].images[0].position, 1)
+        assert.equal(res.body[0].images[0].product_id, res.body[0].id)
         assert.ok(res.body[0].images[0].src)
         assert.ok(res.body[0].images[0].full)
         assert.ok(res.body[0].images[0].thumbnail)
@@ -60,6 +73,7 @@ describe('ProductController', () => {
         assert.ok(res.body[0].images[0].large)
         assert.equal(res.body[0].images[0].alt, 'Hello World')
         // Variants
+        assert.equal(res.body[0].variants[0].product_id, res.body[0].id)
         assert.equal(res.body[0].variants[0].title, res.body[0].title)
         assert.equal(res.body[0].variants[0].price, res.body[0].price)
         assert.equal(res.body[0].variants[0].weight, res.body[0].weight)
@@ -79,6 +93,7 @@ describe('ProductController', () => {
         assert.equal(res.body.vendor, 'Burton')
         assert.equal(res.body.type, 'Snowboard')
         // Images
+        assert.equal(res.body.images[0].product_id, createdProductID)
         assert.equal(res.body.images[0].position, 1)
         assert.ok(res.body.images[0].src)
         assert.ok(res.body.images[0].full)
@@ -87,12 +102,32 @@ describe('ProductController', () => {
         assert.ok(res.body.images[0].medium)
         assert.ok(res.body.images[0].large)
         assert.equal(res.body.images[0].alt, 'Hello World')
+
+        assert.equal(res.body.images[1].product_id, createdProductID)
+        assert.equal(res.body.images[1].position, 2)
+        assert.ok(res.body.images[1].src)
+        assert.ok(res.body.images[1].full)
+        assert.ok(res.body.images[1].thumbnail)
+        assert.ok(res.body.images[1].small)
+        assert.ok(res.body.images[1].medium)
+        assert.ok(res.body.images[1].large)
+        assert.equal(res.body.images[1].alt, 'Hello World 2')
         // Variants
+        assert.equal(res.body.variants[0].product_id, createdProductID)
         assert.equal(res.body.variants[0].title, res.body.title)
         assert.equal(res.body.variants[0].price, res.body.price)
         assert.equal(res.body.variants[0].weight, res.body.weight)
         assert.equal(res.body.variants[0].weight_unit, res.body.weight_unit)
 
+        done(err)
+      })
+  })
+  it('should count products, variants, images', (done) => {
+    request
+      .get('/product/count')
+      .expect(200)
+      .end((err, res) => {
+        console.log(res.body)
         done(err)
       })
   })

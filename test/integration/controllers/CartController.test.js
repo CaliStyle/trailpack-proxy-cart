@@ -14,7 +14,14 @@ describe('CartController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['CartController'])
   })
-
+  it('should count all carts', (done) => {
+    request
+      .get('/cart/count')
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
   it('should make addItems post request', (done) => {
     request
       .post('/cart/addItems')

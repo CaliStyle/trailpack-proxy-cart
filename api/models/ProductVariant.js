@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 /* eslint new-cap: [0] */
 'use strict'
 
@@ -19,6 +20,12 @@ module.exports = class ProductVariant extends Model {
       config = {
         options: {
           underscored: true,
+          // hooks: {
+          //   beforeValidate: (values, options, fn) => {
+          //     console.log('beforeCreate',values)
+          //     fn()
+          //   }
+          // },
           classMethods: {
             /**
              * Expose UNITS enums

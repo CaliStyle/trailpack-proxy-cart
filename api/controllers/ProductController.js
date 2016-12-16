@@ -21,6 +21,33 @@ module.exports = class ProductController extends Controller {
       })
   }
   find(req, res){}
+  count(req, res){
+    const ProxyCartService = this.app.services.ProxyCartService
+    let productCount = 0
+    let variantCount = 0
+    let imageCount = 0
+    ProxyCartService.count('Product')
+      .then(count => {
+        productCount = count
+        return ProxyCartService.count('ProductVariant')
+      })
+      .then(count => {
+        variantCount = count
+        return ProxyCartService.count('ProductImage')
+      })
+      .then(count => {
+        imageCount = count
+        const counts = {
+          products: productCount,
+          variants: variantCount,
+          images: imageCount
+        }
+        return res.json(counts)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    * Add Products
    * @param req
