@@ -86,7 +86,7 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.handle, 'snwbrd')
         assert.equal(res.body.title, 'Burton Custom Freestyle 151')
@@ -127,7 +127,7 @@ describe('ProductController', () => {
       .get('/product/count')
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log(res.body)
         done(err)
       })
   })
@@ -142,15 +142,18 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
+        console.log(res.body[0].images)
+        assert.equal(res.body[0].id, createdProductID)
+        assert.equal(res.body[0].title, 'Burton Custom Freestyle 151 Gen 2')
         done(err)
       })
   })
-  it.skip('TODO should find updated product', (done) => {
+  it('TODO should find updated product', (done) => {
     request
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.title, 'Burton Custom Freestyle 151 Gen 2')
         done(err)

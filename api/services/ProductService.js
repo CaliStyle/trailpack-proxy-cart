@@ -3,6 +3,7 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
+const removeMd = require('remove-markdown')
 
 /**
  * @module ProductService
@@ -15,18 +16,9 @@ module.exports = class ProductService extends Service {
    * @returns {Promise.<*>}
    */
   addProducts(products) {
-    return new Promise((resolve, reject) => {
-      Promise.all(products.map(product => {
-        return this.addProduct(product)
-      }))
-        .then(products => {
-          // console.log('ProductService.addProducts', products)
-          return resolve(products)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+    return Promise.all(products.map(product => {
+      return this.addProduct(product)
+    }))
   }
 
   /**
@@ -95,6 +87,24 @@ module.exports = class ProductService extends Service {
       if (product.published_scope) {
         create.published_scope = product.published_scope
       }
+      if (product.seo_title) {
+        create.seo_title = product.seo_title
+      }
+      else {
+        create.seo_title = product.title
+      }
+      if (product.seo_description) {
+        create.seo_description = product.seo_description
+      }
+      if (!product.seo_description && product.body) {
+        create.seo_description = removeMd(product.body)
+      }
+
+      // TODO handle Collection
+      if (product.collection) {
+        console.log('ProductService.addProduct Collection Not Supported Yet')
+      }
+
       // Images
       let images = []
       // If this request came with product images
@@ -202,9 +212,10 @@ module.exports = class ProductService extends Service {
       _.map(images, (image, index) => {
         // TODO a better way to do `position` please
         // If Image does not have a position
-        if (!image.position) {
-          image.position = images[index - 1] ? images[index - 1].position + 1 : 1
-        }
+        // if (!image.position) {
+        //   image.position = images[index - 1] ? images[index - 1].position + 1 : 1
+        // }
+        image.position = index + 1
       })
 
       // Set the resulting Product
@@ -251,7 +262,124 @@ module.exports = class ProductService extends Service {
    * @returns {Promise.<*>}
    */
   updateProducts(products) {
-    return Promise.resolve(products)
+    return Promise.all(products.map(product => {
+      return this.updateProduct(product)
+    }))
+  }
+  updateProduct(product) {
+    return new Promise((resolve, reject) => {
+      const FootprintService = this.app.services.FootprintService
+      let resProduct
+      let variants = []
+      let images = []
+      FootprintService.find('Product', product.id, {populate: 'all'})
+        .then(oldProduct => {
+          resProduct = oldProduct
+
+          const update = {}
+          if (product.host) {
+            update.host = resProduct.host = product.host
+          }
+          if (product.handle) {
+            update.handle = resProduct.handle = resProduct.variants[0].handle = product.handle
+          }
+          if (product.title) {
+            update.title = resProduct.title = resProduct.variants[0].title = product.title
+          }
+          if (product.body) {
+            update.body = resProduct.body = product.body
+          }
+          if (product.vendor) {
+            update.vendor = resProduct.vendor = product.vendor
+          }
+          if (product.type) {
+            update.type = resProduct.type = product.type
+          }
+          if (product.tags) {
+            update.tags = resProduct.tags = product.tags
+          }
+          if (product.price) {
+            update.price = resProduct.price = resProduct.variants[0].price = product.price
+          }
+          if (product.compare_at_price) {
+            resProduct.variants[0].compare_at_price = product.compare_at_price
+          }
+          if (product.metadata) {
+            update.metadata = resProduct.metadata = product.metadata
+          }
+
+          if (product.published) {
+            update.published = resProduct.published = resProduct.variants[0].published = product.published
+            update.published_at = resProduct.published_at = resProduct.variants[0].published_at = new Date()
+          }
+          if (product.published === false) {
+            update.published = resProduct.published = resProduct.variants[0].published = product.published
+            update.unpublished_at = resProduct.unpublished_at = resProduct.variants[0].unpublished_at = new Date()
+          }
+          if (product.published_scope) {
+            update.published_scope = resProduct.published_scope = product.published_scope
+          }
+
+          // let collection
+          // TODO handle Collection
+          if (product.collection) {
+            console.log('ProductService.updateProduct Collection Not Supported Yet')
+          }
+          // if this product has variants already (it should have at least the default)
+          if (resProduct.variants) {
+            variants = variants.concat(resProduct.variants)
+          }
+          // if the request has new variants or old variants
+          if (product.variants) {
+            variants = _.unionBy(product.variants, variants, 'id')
+            delete product.variants
+          }
+
+          // If this product has images already
+          if (resProduct.images) {
+            images = images.concat(resProduct.images)
+          }
+
+          // If there are new or old images in request
+          if (product.images) {
+            images = _.unionBy(product.images, images, 'id')
+            delete product.images
+          }
+
+          // Update the position of the images by order
+          _.map(images, (image, index) => {
+            // If this is not a previous image
+            image.position = index + 1
+          })
+          return FootprintService.update('Product', product.id, update)
+        })
+        .then(updatedProduct => {
+          return Promise.all(images.map(image => {
+            if (image.id) {
+              const update = _.omit(image.dataValues, ['id', 'created_at','updated_at'])
+              // console.log('Updated Image', update)
+              return FootprintService.update('ProductImage', image.id, update)
+            }
+            else {
+              image.product_id = product.id
+              return FootprintService.create('ProductImage', image)
+            }
+          }))
+        })
+        .then(editedImages => {
+          // console.log('ProductService.updateProduct', editedImages)
+          // If any of the images are new, update the image in resProduct.
+          _.each(editedImages, (image, index) => {
+            if (_.isObject(image)) {
+              resProduct.images[index] = image
+            }
+          })
+          return resolve(resProduct)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
   }
 
   /**
