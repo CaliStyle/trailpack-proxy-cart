@@ -13,6 +13,7 @@ module.exports = class ProductCollection extends Model {
     if (app.config.database.orm === 'sequelize') {
       config = {
         options: {
+          underscored: true,
           classMethods: {
             associate: (models) => {
               models.ProductCollection.hasMany(models.Product, {

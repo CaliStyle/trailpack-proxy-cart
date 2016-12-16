@@ -18,6 +18,7 @@ module.exports = class ProductVariant extends Model {
     if (app.config.database.orm === 'sequelize') {
       config = {
         options: {
+          underscored: true,
           classMethods: {
             /**
              * Expose UNITS enums

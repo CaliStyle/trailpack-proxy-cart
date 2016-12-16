@@ -14,6 +14,7 @@ module.exports = class ProductImage extends Model {
     if (app.config.database.orm === 'sequelize') {
       config = {
         options: {
+          underscored: true,
           hooks: {
             beforeCreate: (values, options, fn) => {
               app.services.ProxyCartService.buildImages(values.dataValues.src)
