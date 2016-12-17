@@ -3,10 +3,10 @@
 const Model = require('trails/model')
 
 /**
- * @module Coupon
- * @description Coupon Model
+ * @module OrderItem
+ * @description Order Item Model
  */
-module.exports = class Coupon extends Model {
+module.exports = class OrderItem extends Model {
 
   static config (app, Sequelize) {
     let config = {}
@@ -35,31 +35,7 @@ module.exports = class Coupon extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        balance: {
-          type: Sequelize.INTEGER,
-          defaultValue: 0
-        },
-        currency: {
-          type: Sequelize.STRING
-        },
-        code: {
-          type: Sequelize.STRING
-        },
-        code_masked: {
-          type: Sequelize.STRING
-        },
-        last_characters: {
-          type: Sequelize.STRING
-        },
-        note: {
-          type: Sequelize.STRING
-        },
-        disabled_at: {
-          type: Sequelize.DATE
-        },
-        expires_on: {
-          type: Sequelize.DATE
-        }
+
       }
     }
     return schema

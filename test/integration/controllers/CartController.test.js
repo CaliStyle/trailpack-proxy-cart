@@ -5,7 +5,7 @@ const supertest = require('supertest')
 
 describe('CartController', () => {
   let request
-
+  let cartID
   before((done) => {
     request = supertest('http://localhost:3000')
     done()
