@@ -15,6 +15,8 @@ describe('ProductController', () => {
     assert(global.app.api.controllers['ProductController'])
   })
   let createdProductID
+  let defaultVariantID
+  let firstVariantID
   it('should make addProducts post request', (done) => {
     request
       .post('/product/addProducts')
@@ -40,7 +42,8 @@ describe('ProductController', () => {
           ],
           variants: [
             {
-              title: 'Womens Burton Custom Freestyle 151',
+              title: 'Women\'s Burton Custom Freestyle 151',
+              price: '10001',
               images: [
                 {
                   src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
@@ -56,6 +59,8 @@ describe('ProductController', () => {
         // console.log('PRODUCT Variants',res.body[0].variants)
         // console.log('PRODUCT Images',res.body[0].images)
         createdProductID = res.body[0].id
+        defaultVariantID = res.body[0].variants[0].id
+        firstVariantID = res.body[0].variants[1].id
         // Product
         assert.ok(createdProductID)
         assert.equal(res.body[0].handle, 'snwbrd')
@@ -64,7 +69,8 @@ describe('ProductController', () => {
         assert.equal(res.body[0].type, 'Snowboard')
         // Images
         assert.equal(res.body[0].images[0].position, 1)
-        assert.equal(res.body[0].images[0].product_id, res.body[0].id)
+        assert.equal(res.body[0].images[0].product_id, createdProductID)
+        assert.equal(res.body[0].images[0].product_variant_id, defaultVariantID)
         assert.ok(res.body[0].images[0].src)
         assert.ok(res.body[0].images[0].full)
         assert.ok(res.body[0].images[0].thumbnail)
@@ -73,11 +79,17 @@ describe('ProductController', () => {
         assert.ok(res.body[0].images[0].large)
         assert.equal(res.body[0].images[0].alt, 'Hello World')
         // Variants
-        assert.equal(res.body[0].variants[0].product_id, res.body[0].id)
+        assert.equal(res.body[0].variants[0].product_id, createdProductID)
         assert.equal(res.body[0].variants[0].title, res.body[0].title)
         assert.equal(res.body[0].variants[0].price, res.body[0].price)
         assert.equal(res.body[0].variants[0].weight, res.body[0].weight)
         assert.equal(res.body[0].variants[0].weight_unit, res.body[0].weight_unit)
+
+        assert.equal(res.body[0].variants[1].product_id, createdProductID)
+        assert.equal(res.body[0].variants[1].title, 'Women\'s Burton Custom Freestyle 151')
+        assert.equal(res.body[0].variants[1].price, '10001')
+        assert.equal(res.body[0].variants[1].weight, '0')
+        assert.equal(res.body[0].variants[1].weight_unit, 'g')
         done(err)
       })
   })
@@ -94,6 +106,7 @@ describe('ProductController', () => {
         assert.equal(res.body.type, 'Snowboard')
         // Images
         assert.equal(res.body.images[0].product_id, createdProductID)
+        assert.equal(res.body.images[0].product_variant_id, defaultVariantID)
         assert.equal(res.body.images[0].position, 1)
         assert.ok(res.body.images[0].src)
         assert.ok(res.body.images[0].full)
@@ -104,6 +117,7 @@ describe('ProductController', () => {
         assert.equal(res.body.images[0].alt, 'Hello World')
 
         assert.equal(res.body.images[1].product_id, createdProductID)
+        assert.equal(res.body.images[1].product_variant_id, firstVariantID)
         assert.equal(res.body.images[1].position, 2)
         assert.ok(res.body.images[1].src)
         assert.ok(res.body.images[1].full)
@@ -118,6 +132,12 @@ describe('ProductController', () => {
         assert.equal(res.body.variants[0].price, res.body.price)
         assert.equal(res.body.variants[0].weight, res.body.weight)
         assert.equal(res.body.variants[0].weight_unit, res.body.weight_unit)
+
+        assert.equal(res.body.variants[1].product_id, createdProductID)
+        assert.equal(res.body.variants[1].title, 'Women\'s Burton Custom Freestyle 151')
+        assert.equal(res.body.variants[1].price, '10001')
+        assert.equal(res.body.variants[1].weight, '0')
+        assert.equal(res.body.variants[1].weight_unit, 'g')
 
         done(err)
       })
@@ -137,14 +157,43 @@ describe('ProductController', () => {
       .send([
         {
           id: createdProductID,
-          title: 'Burton Custom Freestyle 151 Gen 2'
+          title: 'Burton Custom Freestyle 151 Gen 2',
+          images: [
+            {
+              id: firstVariantID,
+              alt: 'Hello World 2 Updated'
+            },
+            {
+              src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+              alt: 'Hello World 3'
+            }
+          ],
+          variants: [
+            {
+              id: firstVariantID,
+              title: 'Women\'s Burton Custom Freestyle 151 Updated'
+            },
+            {
+              title: 'Youth Burton Custom Freestyle 151',
+              images: [
+                {
+                  src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+                  alt: 'Hello World 4'
+                }
+              ]
+            }
+          ]
         }
       ])
       .expect(200)
       .end((err, res) => {
-        console.log(res.body[0].images)
+        console.log(res.body[0])
         assert.equal(res.body[0].id, createdProductID)
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151 Gen 2')
+        assert.equal(res.body[0].variants[0].title, res.body[0].title)
+
+        assert.equal(res.body[0].variants.length, 3)
+        assert.equal(res.body[0].images.length, 4)
         done(err)
       })
   })
@@ -156,6 +205,8 @@ describe('ProductController', () => {
         // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.title, 'Burton Custom Freestyle 151 Gen 2')
+        assert.equal(res.body.variants.length, 3)
+        assert.equal(res.body.images.length, 4)
         done(err)
       })
   })
