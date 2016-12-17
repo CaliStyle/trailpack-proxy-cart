@@ -29,6 +29,9 @@ module.exports = class Cart extends Model {
               models.Cart.hasMany(models.Coupon, {
                 as: 'coupons'
               })
+              models.Cart.hasMany(models.GiftCard, {
+                as: 'gift_cards'
+              })
             }
           }
         }
@@ -50,6 +53,10 @@ module.exports = class Cart extends Model {
           defaultValue: 0.0
         },
         shipping: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        amount_off: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

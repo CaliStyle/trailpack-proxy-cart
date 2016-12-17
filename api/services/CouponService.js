@@ -7,6 +7,9 @@ const Service = require('trails/service')
  * @description Coupon Service
  */
 module.exports = class CouponService extends Service {
-
+  create(data){}
+  expire(data){}
+  redeem(data){}
+  validate(data){}
 }
 

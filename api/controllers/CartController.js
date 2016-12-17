@@ -26,6 +26,12 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   checkout(req, res) {
     const CartService = this.app.services.CartService
     lib.Validator.validateCheckout(req.body)
@@ -40,6 +46,12 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   addItems(req, res) {
     const CartService = this.app.services.CartService
     lib.Validator.validateAddItemsToCart(req.body)
@@ -54,6 +66,12 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   removeItems(req, res) {
     const CartService = this.app.services.CartService
     lib.Validator.validateRemoveItemsFromCart(req.body)
@@ -68,6 +86,12 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   clear(req, res) {
     const CartService = this.app.services.CartService
     lib.Validator.validateClearCart(req.body)
