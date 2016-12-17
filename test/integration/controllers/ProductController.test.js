@@ -17,6 +17,7 @@ describe('ProductController', () => {
   let createdProductID
   let defaultVariantID
   let firstVariantID
+  let firstImageID
   it('should make addProducts post request', (done) => {
     request
       .post('/product/addProducts')
@@ -61,6 +62,7 @@ describe('ProductController', () => {
         createdProductID = res.body[0].id
         defaultVariantID = res.body[0].variants[0].id
         firstVariantID = res.body[0].variants[1].id
+        firstImageID = res.body[0].images[0].id
         // Product
         assert.ok(createdProductID)
         assert.equal(res.body[0].handle, 'snwbrd')
@@ -210,12 +212,59 @@ describe('ProductController', () => {
         done(err)
       })
   })
-
+  it('should make removeImage post request', (done) => {
+    request
+      .post(`/product/removeImage/${firstImageID}`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  it('Image should be removed', (done) => {
+    request
+      .get(`/product/${createdProductID}`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.images.length, 3)
+        done(err)
+      })
+  })
+  it('should make removeVariant post request', (done) => {
+    request
+      .post(`/product/removeVariant/${firstVariantID}`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        done(err)
+      })
+  })
+  it('Variant and it\'s images should be removed', (done) => {
+    request
+      .get(`/product/${createdProductID}`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.variants.length, 2)
+        assert.equal(res.body.images.length, 2)
+        done(err)
+      })
+  })
   it('should make removeProducts post request', (done) => {
     request
       .post('/product/removeProducts')
-      .send([])
+      .send([{
+        id: createdProductID
+      }])
       .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  it('It should not find the removed product', (done) => {
+    request
+      .get(`/product/${createdProductID}`)
+      .expect(404)
       .end((err, res) => {
         done(err)
       })

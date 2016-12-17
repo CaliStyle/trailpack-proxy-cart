@@ -3,6 +3,7 @@
 
 const Controller = require('trails/controller')
 const lib = require('../../lib')
+const Errors = require('../../lib').Errors
 
 /**
  * @module ProductController
@@ -13,6 +14,9 @@ module.exports = class ProductController extends Controller {
     const FootprintService = this.app.services.FootprintService
     FootprintService.find('Product', req.params.id, { populate: 'all' })
       .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error(`Product id ${req.params.id} not found`))
+        }
         // console.log('ProductController.findOne', product.dataValues)
         return res.json(product)
       })
@@ -105,8 +109,30 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+  removeVariant(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.removeVariant(req.params.id)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
+  removeImage(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.removeImage(req.params.id)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
   /**
-   * Remove Products
+   * upload CSV
    * @param req
    * @param res
    */

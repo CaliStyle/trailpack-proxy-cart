@@ -427,7 +427,94 @@ module.exports = class ProductService extends Service {
    * @returns {Promise.<*>}
    */
   removeProducts(products) {
-    return Promise.resolve(products)
+    return Promise.all(products.map(product => {
+      return this.removeProduct(product)
+    }))
+  }
+  removeProduct(product) {
+    return new Promise((resolve, reject) => {
+      if (!product.id) {
+        const err = new Errors.FoundError(Error('Product is missing id'))
+        return reject(err)
+      }
+
+      const FootprintService = this.app.services.FootprintService
+      FootprintService.destroy('Product', product.id)
+        .then(destroyedProduct => {
+          return resolve(destroyedProduct)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
+  }
+  removeVariant(id){
+    return new Promise((resolve, reject) => {
+      const FootprintService = this.app.services.FootprintService
+      let destroy
+      let updates
+      FootprintService.find('ProductVariant',id)
+        .then(foundVariant => {
+          destroy = foundVariant
+          return FootprintService.find('ProductVariant', {product_id: destroy.product_id})
+        })
+        .then(foundVariants => {
+          updates = _.sortBy(_.filter(foundVariants, variant => {
+            if (variant.id !== id){
+              return variant
+            }
+          }), 'position')
+          _.map(updates, (variant, index) => {
+            variant.position = index + 1
+          })
+          return Promise.all(updates.map(variant => {
+            return FootprintService.update('ProductVariant',variant.id, { position: variant.position })
+          }))
+        })
+        .then(updatedVariants => {
+          return FootprintService.destroy('ProductVariant', id)
+        })
+        .then(destroyedVariant => {
+          return resolve(destroyedVariant)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
+  }
+  removeImage(id){
+    return new Promise((resolve, reject) => {
+      const FootprintService = this.app.services.FootprintService
+      let destroy
+      let updates
+      FootprintService.find('ProductImage',id)
+        .then(foundImage => {
+          destroy = foundImage
+          return FootprintService.find('ProductImage', { product_id: destroy.product_id })
+        })
+        .then(foundImages => {
+          updates = _.sortBy(_.filter(foundImages, image => {
+            if (image.id !== id){
+              return image
+            }
+          }), 'position')
+          _.map(updates, (image, index) => {
+            image.position = index + 1
+          })
+          return Promise.all(updates.map(image => {
+            return FootprintService.update('ProductImage',image.id, { position: image.position })
+          }))
+        })
+        .then(updatedImages => {
+          return FootprintService.destroy('ProductImage', id)
+        })
+        .then(destroyedImage => {
+          return resolve(destroyedImage)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
   }
 
   /**
@@ -491,8 +578,5 @@ module.exports = class ProductService extends Service {
     }
     return variant
   }
-  // resolveImage(image, product_id, product_variant_id) {
-  //
-  // }
 }
 
