@@ -58,6 +58,26 @@ module.exports = {
 ##### ProductController.removeProducts
 
 ### Services
+#### CartService
+#### CouponService
+#### CustomerService
+#### GiftCardService
+#### OrderService
+#### ProductService
+#### ProxyCartService
+
+### Models
+#### Cart
+#### Coupon
+#### Customer
+#### Discount
+#### GiftCard
+#### Order
+#### OrderItem
+#### Product
+#### ProductCollection
+#### ProductImage
+#### ProductVariant
 
 [npm-image]: https://img.shields.io/npm/v/trailpack-proxy-cart.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/trailpack-proxy-cart
