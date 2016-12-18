@@ -81,5 +81,10 @@ module.exports = {
     FULFILLED: 'fulfilled',
     NONE: 'none',
     PARTIAL: 'partial'
+  },
+  FULFILLMENT_STATUS: {
+    FULFILLED: 'fulfilled',
+    NONE: 'none',
+    PARTIAL: 'partial'
   }
 }

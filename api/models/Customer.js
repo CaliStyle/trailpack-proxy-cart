@@ -20,7 +20,7 @@ module.exports = class Customer extends Model {
           underscored: true,
           classMethods: {
 
-            CUSTOMER_STATE: CUSTOMER_STATE,
+            CUSTOMER_STATE: CUSTOMER_STATE
             /**
              * Associate the Model
              * @param models

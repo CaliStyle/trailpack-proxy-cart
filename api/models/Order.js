@@ -1,3 +1,5 @@
+/* eslint new-cap: [0] */
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
@@ -27,7 +29,7 @@ module.exports = class Order extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Order.hasOne(models.Cart, {
+              models.Order.belongsTo(models.Cart, {
                 as: 'cart_token'
               })
               models.Order.belongsTo(models.Customer, {
@@ -35,6 +37,9 @@ module.exports = class Order extends Model {
               })
               models.Order.hasMany(models.Discount, {
                 as: 'discount_codes'
+              })
+              models.Order.hasMany(models.Fulfillment, {
+                as: 'fulfillments'
               })
             }
           }
@@ -62,9 +67,16 @@ module.exports = class Order extends Model {
         cancelled_at: {
           type: Sequelize.DATE
         },
-        client_details: {
-
-        },
+        client_details: helpers.JSONB('order', app, Sequelize, 'client_details', {
+          defaultValue: {
+            'accept_language': null,
+            'browser_height': null,
+            'browser_ip': '0.0.0.0',
+            'browser_width': null,
+            'session_hash': null,
+            'user_agent': null
+          }
+        }),
         closed_at: {
           type: Sequelize.DATE
         },
@@ -78,9 +90,6 @@ module.exports = class Order extends Model {
         financial_status: {
           type: Sequelize.ENUM,
           values: _.values(ORDER_FINANCIAL)
-        },
-        fulfillments: {
-
         },
         fulfillment_status: {
           type: Sequelize.ENUM,
@@ -102,48 +111,48 @@ module.exports = class Order extends Model {
         note: {
           type: Sequelize.STRING
         },
-        note_attributes: {
-
-        },
+        note_attributes: helpers.JSONB('order', app, Sequelize, 'note_attributes', {
+          defaultValue: {}
+        }),
         number: {
           type: Sequelize.INTEGER
         },
         order_number: {
           type: Sequelize.STRING
         },
-        payment_gateway_names: {
-
-        },
+        payment_gateway_names: helpers.JSONB('order', app, Sequelize, 'payment_gateway_names', {
+          defaultValue: {}
+        }),
         processed_at: {
           type: Sequelize.DATE
         },
         referring_site: {
           type: Sequelize.STRING
         },
-        refunds: {
-
-        },
-        billing_address: {
-
-        },
-        shipping_address: {
-
-        },
-        shipping_lines: {
-
-        },
+        refunds: helpers.JSONB('order', app, Sequelize, 'refunds', {
+          defaultValue: {}
+        }),
+        billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address: ', {
+          defaultValue: {}
+        }),
+        shipping_address: helpers.JSONB('order', app, Sequelize, 'shipping_address: ', {
+          defaultValue: {}
+        }),
+        shipping_lines: helpers.JSONB('order', app, Sequelize, 'shipping_lines: ', {
+          defaultValue: {}
+        }),
         source_name: {
-
+          type: Sequelize.STRING
         },
         subtotal_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        tax_lines: {
-
-        },
+        tax_lines: helpers.JSONB('order', app, Sequelize, 'tax_lines', {
+          defaultValue: {}
+        }),
         taxes_included: {
-
+          type: Sequelize.BOOLEAN
         },
         total_discounts: {
           type: Sequelize.INTEGER,
