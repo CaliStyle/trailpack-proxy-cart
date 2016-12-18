@@ -19,7 +19,6 @@ module.exports = class Customer extends Model {
         options: {
           underscored: true,
           classMethods: {
-
             CUSTOMER_STATE: CUSTOMER_STATE,
             /**
              * Associate the Model
@@ -31,6 +30,15 @@ module.exports = class Customer extends Model {
               })
               models.Customer.hasOne(models.CustomerAddress, {
                 as: 'default_address'
+              })
+              models.Customer.hasOne(models.Metadata, {
+                as: 'metadata'
+              })
+              models.Customer.hasMany(models.Order, {
+                as: 'orders'
+              })
+              models.Customer.hasOne(models.Order, {
+                as: 'last_order_id'
               })
             }
           }
@@ -54,10 +62,10 @@ module.exports = class Customer extends Model {
         last_name: {
           type: Sequelize.STRING
         },
-        metadata: helpers.JSONB('customer', app, Sequelize, 'metadata', {
-          defaultValue: {}
-        }),
         note: {
+          type: Sequelize.STRING
+        },
+        last_order_name: {
           type: Sequelize.STRING
         },
         orders_count: {
