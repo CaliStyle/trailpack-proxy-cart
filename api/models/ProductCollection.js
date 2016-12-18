@@ -17,8 +17,10 @@ module.exports = class ProductCollection extends Model {
           classMethods: {
             associate: (models) => {
               models.ProductCollection.hasMany(models.Product, {
-                as: 'products',
-                onDelete: 'CASCADE'
+                as: 'products'
+              })
+              models.ProductCollection.hasMany(models.ProductImage, {
+                as: 'images'
               })
             }
           }
@@ -32,13 +34,35 @@ module.exports = class ProductCollection extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        name: {
+        handle: {
           type: Sequelize.STRING
         },
         // Multi Site Support
         host: {
           type: Sequelize.STRING,
           defaultValue: 'localhost'
+        },
+        body: {
+          type: Sequelize.TEXT
+        },
+        published: {
+          type: Sequelize.BOOLEAN
+        },
+        published_at: {
+          type: Sequelize.DATE
+        },
+        published_scope: {
+          type: Sequelize.STRING
+        },
+        unpublished_at: {
+          type: Sequelize.DATE
+        },
+        title: {
+          type: Sequelize.STRING
+        },
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

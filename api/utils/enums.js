@@ -86,5 +86,37 @@ module.exports = {
     FULFILLED: 'fulfilled',
     NONE: 'none',
     PARTIAL: 'partial'
+  },
+  TRANSACTION_ERRORS: {
+    INCORRECT_NUMBER: 'incorrect_number',
+    INVALID_NUMBER: 'invalid_number',
+    INVALID_EXPIRY_DATE: 'invalid_expiry_date',
+    INVALID_CVC: 'invalid_cvc',
+    EXPIRED_CARD: 'expired_card',
+    INCORRECT_CVC: 'incorrect_cvc',
+    INCORRECT_ZIP: 'incorrect_zip',
+    INCORRECT_ADDRESS: 'incorrect_address',
+    CARD_DECLINED: 'card_declined',
+    PROCESSING_ERROR: 'processing_error',
+    CALL_ISSUER: 'call_issuer',
+    PICK_UP_CARD: 'pick_up_card'
+  },
+  TRANSACTION_STATUS: {
+    PENDING: 'pending',
+    FAILURE: 'failure',
+    SUCCESS: 'success',
+    ERROR: 'error'
+  },
+  TRANSACTION_KIND: {
+    // Money that the customer has agreed to pay. Authorization period lasts for up to 7 to 30 days (depending on your payment service) while a store awaits for a customer's capture.
+    AUTHORIZATION: 'authorization',
+    // Transfer of money that was reserved during the authorization of a shop.
+    CAPTURE: 'capture',
+    // The combination of authorization and capture, performed in one single step.
+    SALE: 'sale',
+    // The cancellation of a pending authorization or capture.
+    VOID: 'void',
+    //  The partial or full return of the captured money to the customer.
+    REFUND: 'refund'
   }
 }

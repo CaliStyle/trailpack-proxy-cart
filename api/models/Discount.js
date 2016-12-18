@@ -85,6 +85,11 @@ module.exports = class Discount extends Model {
         times_used: {
           type: Sequelize.INTEGER,
           defaultValue: 0
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

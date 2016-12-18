@@ -185,6 +185,11 @@ module.exports = class ProductVariant extends Model {
           type: Sequelize.ENUM,
           values: _.values(UNITS),
           defaultValue: UNITS.G
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

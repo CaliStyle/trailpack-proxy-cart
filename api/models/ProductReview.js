@@ -3,10 +3,10 @@
 const Model = require('trails/model')
 
 /**
- * @module Coupon
- * @description Coupon Model
+ * @module ProductReview
+ * @description Product Review Model
  */
-module.exports = class Coupon extends Model {
+module.exports = class ProductReview extends Model {
 
   static config (app, Sequelize) {
     let config = {}
@@ -19,11 +19,19 @@ module.exports = class Coupon extends Model {
              * Associate the Model
              * @param models
              */
-            // associate: (models) => {
-            //   models.Cart.hasMany(models.Product, {
-            //     as: 'products'
-            //   })
-            // }
+            associate: (models) => {
+              models.ProductReview.belongsTo(models.Customer, {
+                // as: 'customer_id'
+              })
+              models.ProductReview.belongsTo(models.Product, {
+                // as: 'product_id',
+                // foreignKey: 'product_id',
+                // onDelete: 'CASCADE'
+                // foreignKey: {
+                //   allowNull: true
+                // }
+              })
+            }
           }
         }
       }
@@ -35,32 +43,13 @@ module.exports = class Coupon extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        balance: {
+        score: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        currency: {
-          type: Sequelize.STRING
+        review: {
+          type: Sequelize.TEXT
         },
-        code: {
-          type: Sequelize.STRING
-        },
-        code_masked: {
-          type: Sequelize.STRING
-        },
-        last_characters: {
-          type: Sequelize.STRING
-        },
-        note: {
-          type: Sequelize.STRING
-        },
-        disabled_at: {
-          type: Sequelize.DATE
-        },
-        expires_on: {
-          type: Sequelize.DATE
-        },
-
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: false

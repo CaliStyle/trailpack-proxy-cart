@@ -120,6 +120,11 @@ module.exports = class OrderItem extends Model {
         // The total discount amount applied to this line item. This value is not subtracted in the line item price.
         total_discount: {
           type: Sequelize.INTEGER
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

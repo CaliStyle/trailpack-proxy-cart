@@ -23,7 +23,7 @@ module.exports = class Fulfillment extends Model {
              */
             associate: (models) => {
               models.Fulfillment.belongsTo(models.Order, {
-                // as: 'order'
+                // as: 'order_id'
               })
               models.Fulfillment.hasMany(models.OrderItem, {
                 as: 'line_items'
@@ -56,6 +56,11 @@ module.exports = class Fulfillment extends Model {
         //The shipping number, provided by the shipping company.
         tracking_number: {
           type: Sequelize.STRING
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

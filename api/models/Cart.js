@@ -1,6 +1,9 @@
+/* eslint new-cap: [0] */
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
+const helpers = require('../utils/helpers')
 
 /**
  * @module Cart
@@ -20,11 +23,17 @@ module.exports = class Cart extends Model {
              * @param models
              */
             associate: (models) => {
+              models.Cart.belongsTo(models.Customer, {
+                // as: 'customer_id'
+              })
               models.Cart.hasMany(models.Product, {
                 as: 'products'
               })
               models.Cart.hasMany(models.ProductVariant, {
                 as: 'variants'
+              })
+              models.Cart.hasMany(models.Discount, {
+                as: 'discounts'
               })
               models.Cart.hasMany(models.Coupon, {
                 as: 'coupons'
@@ -44,29 +53,40 @@ module.exports = class Cart extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        tax: {
+        subtotal_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        tax_rate: {
-          type: Sequelize.FLOAT,
-          defaultValue: 0.0
+        tax_lines: helpers.JSONB('cart', app, Sequelize, 'tax_lines', {
+          defaultValue: {}
+        }),
+        taxes_included: {
+          type: Sequelize.BOOLEAN
         },
-        shipping: {
+        total_discounts: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        amount_off: {
+        total_line_items_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        subtotal: {
+        total_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        total: {
+        total_tax: {
           type: Sequelize.INTEGER,
           defaultValue: 0
+        },
+        total_weight: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

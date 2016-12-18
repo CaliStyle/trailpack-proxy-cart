@@ -31,11 +31,18 @@ module.exports = class Product extends Model {
             associate: (models) => {
               models.Product.hasMany(models.ProductImage, {
                 as: 'images',
-                // foreign_key: 'product_id',
                 onDelete: 'CASCADE'
               })
               models.Product.hasMany(models.ProductVariant, {
                 as: 'variants',
+                onDelete: 'CASCADE'
+              })
+              models.Product.hasMany(models.ProductReview, {
+                as: 'review',
+                onDelete: 'CASCADE'
+              })
+              models.Product.hasOne(models.Metadata, {
+                // as: 'metadata_id',
                 onDelete: 'CASCADE'
               })
             }
@@ -95,11 +102,6 @@ module.exports = class Product extends Model {
           defaultValue: []
         }),
 
-        // Metadata of the page (limit 1000 characters)
-        metadata: helpers.JSONB('product', app, Sequelize, 'metadata', {
-          defaultValue: {}
-        }),
-
         // Default price of the product in cents
         price: {
           type: Sequelize.INTEGER,
@@ -155,6 +157,16 @@ module.exports = class Product extends Model {
         // Vendor of the product
         vendor: {
           type: Sequelize.STRING
+        },
+
+        review_score: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

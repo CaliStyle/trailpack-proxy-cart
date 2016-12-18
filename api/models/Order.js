@@ -41,6 +41,18 @@ module.exports = class Order extends Model {
               models.Order.hasMany(models.Fulfillment, {
                 as: 'fulfillments'
               })
+              models.Order.hasMany(models.Transaction, {
+                as: 'transactions'
+              })
+              models.Order.hasOne(models.CustomerAddress, {
+                as: 'billing_address'
+              })
+              models.Order.hasOne(models.CustomerAddress, {
+                as: 'shipping_address'
+              })
+              models.Order.hasOne(models.Refund, {
+                as: 'refunds'
+              })
             }
           }
         }
@@ -129,15 +141,15 @@ module.exports = class Order extends Model {
         referring_site: {
           type: Sequelize.STRING
         },
-        refunds: helpers.JSONB('order', app, Sequelize, 'refunds', {
-          defaultValue: {}
-        }),
-        billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address: ', {
-          defaultValue: {}
-        }),
-        shipping_address: helpers.JSONB('order', app, Sequelize, 'shipping_address: ', {
-          defaultValue: {}
-        }),
+        // refunds: helpers.JSONB('order', app, Sequelize, 'refunds', {
+        //   defaultValue: {}
+        // }),
+        // billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address: ', {
+        //   defaultValue: {}
+        // }),
+        // shipping_address: helpers.JSONB('order', app, Sequelize, 'shipping_address: ', {
+        //   defaultValue: {}
+        // }),
         shipping_lines: helpers.JSONB('order', app, Sequelize, 'shipping_lines: ', {
           defaultValue: {}
         }),
@@ -174,11 +186,13 @@ module.exports = class Order extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        transaction: {
-          type: Sequelize.STRING
-        },
         order_status_url: {
           type: Sequelize.STRING
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

@@ -96,6 +96,11 @@ module.exports = class ProductImage extends Model {
         position: {
           type: Sequelize.INTEGER,
           defaultValue: 1
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         }
       }
     }

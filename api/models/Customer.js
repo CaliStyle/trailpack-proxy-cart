@@ -20,16 +20,19 @@ module.exports = class Customer extends Model {
           underscored: true,
           classMethods: {
 
-            CUSTOMER_STATE: CUSTOMER_STATE
+            CUSTOMER_STATE: CUSTOMER_STATE,
             /**
              * Associate the Model
              * @param models
              */
-            // associate: (models) => {
-            //   models.Cart.hasMany(models.Product, {
-            //     as: 'products'
-            //   })
-            // }
+            associate: (models) => {
+              models.Customer.hasMany(models.CustomerAddress, {
+                as: 'addresses'
+              })
+              models.Customer.hasOne(models.CustomerAddress, {
+                as: 'default_address'
+              })
+            }
           }
         }
       }
@@ -45,12 +48,6 @@ module.exports = class Customer extends Model {
           type: Sequelize.BOOLEAN,
           defaultValue: true
         },
-        addresses: helpers.ARRAY('customer', app, Sequelize, Sequelize.STRING, 'addresses', {
-          defaultValue: []
-        }),
-        default_address: helpers.JSONB('customer', app, Sequelize, 'default_address', {
-          defaultValue: {}
-        }),
         first_name: {
           type: Sequelize.STRING
         },
@@ -83,6 +80,11 @@ module.exports = class Customer extends Model {
           type: Sequelize.INTEGER
         },
         verified_email: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+
+        live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         }

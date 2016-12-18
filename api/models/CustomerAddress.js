@@ -3,14 +3,10 @@
 const Model = require('trails/model')
 
 /**
- * @module GiftCard
- * @description A gift card is a an alternative payment method,
- * and has a code which is entered during checkout.
- * It has a balance which can be redeemed over multiple checkouts,
- * and can be assigned to a specific customer (optional).
- * Gift card codes cannot be retrieved once created – only a masked code or last 4 digits can be retrieved.
+ * @module CustomerAddress
+ * @description Customer Address Model
  */
-module.exports = class GiftCard extends Model {
+module.exports = class CustomerAddress extends Model {
 
   static config (app, Sequelize) {
     let config = {}
@@ -24,11 +20,8 @@ module.exports = class GiftCard extends Model {
              * @param models
              */
             associate: (models) => {
-              models.GiftCard.hasOne(models.Order, {
-                as: 'order_id'
-              })
-              models.GiftCard.hasOne(models.OrderItem, {
-                as: 'order_item_id'
+              models.CustomerAddress.belongsTo(models.Customer, {
+                // as: 'customer_id'
               })
             }
           }
@@ -42,35 +35,51 @@ module.exports = class GiftCard extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        balance: {
-          type: Sequelize.INTEGER,
-          defaultValue: 0
-        },
-        currency: {
+        address_1: {
           type: Sequelize.STRING
         },
-        code: {
+        address_2: {
           type: Sequelize.STRING
         },
-        code_masked: {
+        address_3: {
           type: Sequelize.STRING
         },
-        last_characters: {
+        city: {
           type: Sequelize.STRING
         },
-        note: {
+        company: {
           type: Sequelize.STRING
         },
-        disabled_at: {
-          type: Sequelize.DATE
-        },
-        expires_on: {
-          type: Sequelize.DATE
-        },
-        template_suffix: {
+        prefix: {
           type: Sequelize.STRING
         },
-
+        first_name: {
+          type: Sequelize.STRING
+        },
+        last_name: {
+          type: Sequelize.STRING
+        },
+        suffix: {
+          type: Sequelize.STRING
+        },
+        phone: {
+          type: Sequelize.STRING
+        },
+        province: {
+          type: Sequelize.STRING
+        },
+        country: {
+          type: Sequelize.STRING
+        },
+        country_code: {
+          type: Sequelize.STRING
+        },
+        country_name: {
+          type: Sequelize.STRING
+        },
+        postal_code: {
+          type: Sequelize.STRING
+        },
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
