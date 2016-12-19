@@ -24,6 +24,9 @@ module.exports = class CartService extends Service {
     if (cart && cart.id) {
       return Promise.resolve(cart)
     }
+    else if (cart && _.isString(cart)) {
+      return this.app.services.FootprintService.find('Cart', cart)
+    }
     else {
       return this.create(cart)
     }
@@ -46,20 +49,26 @@ module.exports = class CartService extends Service {
   removeGiftCardFromCart(data){
     return Promise.resolve(data)
   }
+
+  /**
+   *
+   * @param item
+   * @returns {*}
+   */
   resolveItem(item){
     const FootprintService = this.app.services.FootprintService
 
     if (item.product_variant_id) {
-      return FootprintService.find('ProductVariant', item.product_variant_id)
+      return FootprintService.find('ProductVariant', item.product_variant_id, { populate: 'images' })
     }
     else if (item.id) {
-      return FootprintService.find('ProductVariant', item.id)
+      return FootprintService.find('ProductVariant', item.id, { populate: 'images' })
     }
     else if (item.product_id) {
       return FootprintService.find('ProductVariant', {
         product_id: item.product_id,
         position: 1
-      })
+      }, { populate: 'images' })
         .then(products => {
           return products[0]
         })
@@ -70,17 +79,23 @@ module.exports = class CartService extends Service {
       return Promise.reject(err)
     }
   }
+
+  /**
+   *
+   * @param item
+   * @param qty
+   * @param cart
+   * @returns {*}
+   */
   addLine(item, qty, cart){
     if (!qty) {
       qty = 1
     }
     let cartItem = _.find(cart.line_items, {id: item.id})
     if (cartItem) {
-      // console.log('NOT NEW')
       cartItem.quantity = cartItem.quantity + qty
     }
     else {
-      // console.log('OMIT YO')
       cartItem = _.omit(item, [
         'position',
         'published',
@@ -98,10 +113,44 @@ module.exports = class CartService extends Service {
     // console.log('LINE ITEMS', cart.line_items, cart.line_items.length)
     return cart
   }
+
+  /**
+   *
+   * @param item
+   * @param qty
+   * @param cart
+   * @returns {*}
+   */
+  removeLine(item, qty, cart){
+    if (!qty) {
+      qty = 1
+    }
+    let itemIndex = _.findIndex(cart.line_items, {id: item.id})
+    if (itemIndex > -1) {
+      cart.line_items[itemIndex].quantity = cart.line_items[itemIndex].quantity - qty
+      if ( cart.line_items[itemIndex].quantity < 1) {
+        cart.line_items.splice(itemIndex, 1)
+      }
+    }
+    // console.log('LINE ITEMS', cart.line_items)
+    return cart
+  }
+
+  /**
+   *
+   * @param items
+   * @param cart
+   * @returns {Promise}
+   */
   addItemsToCart(items, cart){
     return new Promise((resolve, reject) => {
       this.resolve(cart)
         .then(foundCart => {
+          if (!foundCart) {
+            // TODO create proper error
+            const err = new Error('Cart Not Found')
+            return reject(err)
+          }
           cart = foundCart
           // const minimize = _.unionBy(items, 'product_id')
           return Promise.all(items.map(item => {
@@ -115,7 +164,7 @@ module.exports = class CartService extends Service {
           return cart.save()
         })
         .then(cart => {
-          console.log('CartService.addItemsToCart CART', cart)
+          // console.log('CartService.addItemsToCart CART', cart)
           return resolve(cart)
         })
         .catch(err => {
@@ -123,11 +172,62 @@ module.exports = class CartService extends Service {
         })
     })
   }
-  removeItemsFromCart(data, cart){
-    return Promise.resolve(data)
+
+  /**
+   *
+   * @param items
+   * @param cart
+   * @returns {Promise}
+   */
+  removeItemsFromCart(items, cart){
+    return new Promise((resolve, reject) => {
+      this.resolve(cart)
+        .then(foundCart => {
+          if (!foundCart) {
+            // TODO create proper error
+            const err = new Error('Cart Not Found')
+            return reject(err)
+          }
+          cart = foundCart
+          return Promise.all(items.map(item => {
+            return this.resolveItem(item)
+          }))
+        })
+        .then(resolvedItems => {
+          _.each(resolvedItems, (item, index) => {
+            cart = _.extend(cart, this.removeLine(item.get({ plain: true }), items[index].quantity, cart.get({ plain: true })))
+          })
+          return cart.save()
+        })
+        .then(cart => {
+          // console.log('CartService.removeItemsFromCart CART', cart)
+          return resolve(cart)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
   }
-  clearCart(data){
-    return Promise.resolve(data)
+  clearCart(cart){
+    return new Promise((resolve, reject) => {
+      this.resolve(cart)
+        .then(foundCart => {
+          if (!foundCart) {
+            // TODO create proper error
+            const err = new Error('Cart Not Found')
+            return reject(err)
+          }
+          cart = foundCart
+          cart = _.extend(cart, { line_items: [] })
+          return cart.save()
+        })
+        .then(cart => {
+          return resolve(cart)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
   }
 }
 

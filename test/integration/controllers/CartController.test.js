@@ -33,7 +33,18 @@ describe('CartController', () => {
   })
   it('should make addItems post request with just a product_id', (done) => {
     request
-      .post('/cart/addItems')
+      .post('/cart')
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+        cartID = res.body.id
+        done(err)
+      })
+  })
+  it('should make addItems post request with just a product_id', (done) => {
+    request
+      .post(`/cart/${cartID}/addItems`)
       .send([
         {
           product_id: storeProducts[0].id
@@ -41,13 +52,54 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
+        console.log(res.body)
+        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.line_items.length, 1)
+        assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+        done(err)
+      })
+  })
+
+  it('should make addItems post request and increment quantity', (done) => {
+    request
+      .post(`/cart/${cartID}/addItems`)
+      .send([
+        {
+          product_id: storeProducts[0].id
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        console.log(res.body)
+        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.line_items.length, 1)
+        assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+        assert.equal(res.body.line_items[0].quantity, 2)
+        done(err)
+      })
+  })
+
+  it('should make removeItems post and decrease the quantity', (done) => {
+    request
+      .post(`/cart/${cartID}/removeItems`)
+      .send([
+        {
+          product_id: storeProducts[0].id
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.line_items.length, 1)
+        assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+        assert.equal(res.body.line_items[0].quantity, 1)
         done(err)
       })
   })
 
   it('should make removeItems post request with just a product_id', (done) => {
     request
-      .post('/cart/removeItems')
+      .post(`/cart/${cartID}/removeItems`)
       .send([
         {
           product_id: storeProducts[0].id
@@ -55,13 +107,15 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.line_items.length, 0)
         done(err)
       })
   })
 
   it.skip('should make checkout post request', (done) => {
     request
-      .post('/cart/checkout')
+      .post(`/cart/${cartID}/checkout`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -71,10 +125,12 @@ describe('CartController', () => {
 
   it('should make clearCart post request', (done) => {
     request
-      .post('/cart/clear')
+      .post(`/cart/${cartID}/clear`)
       .send({})
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.line_items.length, 0)
         done(err)
       })
   })

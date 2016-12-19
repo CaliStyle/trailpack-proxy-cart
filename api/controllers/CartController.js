@@ -32,11 +32,29 @@ module.exports = class CartController extends Controller {
    * @param req
    * @param res
    */
+  create(req, res) {
+    const CartService = this.app.services.CartService
+    CartService.create(req.body)
+      .then(cart => {
+        return res.json(cart)
+      })
+      .catch(err => {
+        // console.log('ProductController.checkout', err)
+        return res.serverError(err)
+      })
+
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   checkout(req, res) {
     const CartService = this.app.services.CartService
     lib.Validator.validateCheckout(req.body)
       .then(values => {
-        return CartService.checkout(req.body)
+        return CartService.checkout(req.body, req.params.id)
       })
       .then(data => {
         return res.json(data)
@@ -56,7 +74,7 @@ module.exports = class CartController extends Controller {
     const CartService = this.app.services.CartService
     lib.Validator.validateAddItemsToCart(req.body)
       .then(values => {
-        return CartService.addItemsToCart(req.body)
+        return CartService.addItemsToCart(req.body, req.params.id)
       })
       .then(data => {
         return res.json(data)
@@ -76,7 +94,7 @@ module.exports = class CartController extends Controller {
     const CartService = this.app.services.CartService
     lib.Validator.validateRemoveItemsFromCart(req.body)
       .then(values => {
-        return CartService.removeItemsFromCart(req.body)
+        return CartService.removeItemsFromCart(req.body, req.params.id)
       })
       .then(data => {
         return res.json(data)
@@ -96,7 +114,7 @@ module.exports = class CartController extends Controller {
     const CartService = this.app.services.CartService
     lib.Validator.validateClearCart(req.body)
       .then(values => {
-        return CartService.clearCart(req.body)
+        return CartService.clearCart(req.params.id)
       })
       .then(data => {
         return res.json(data)
