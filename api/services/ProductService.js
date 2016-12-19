@@ -1,4 +1,3 @@
-/* eslint no-underscore-dangle: [0] */
 /* eslint no-console: [0] */
 'use strict'
 
@@ -81,7 +80,8 @@ module.exports = class ProductService extends Service {
         type: product.type,
         tags: product.tags,
         price: product.price,
-        // TODO FIX metadata: product.metadata,
+        // TODO FIX metadata
+        metadata: product.metadata,
         published: product.published,
         published_scope: product.published_scope,
         weight: product.weight,
@@ -226,7 +226,7 @@ module.exports = class ProductService extends Service {
       let variants = []
       let images = []
 
-      FootprintService.find('Product', product.id, {populate: 'all'})
+      FootprintService.find('Product', product.id, {populate: 'images,variants,metadata'})
         .then(oldProduct => {
 
           // Init images and map image updates if there are any

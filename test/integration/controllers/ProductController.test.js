@@ -35,6 +35,9 @@ describe('ProductController', () => {
             'equipment',
             'outdoor'
           ],
+          metadata: {
+            test: 'value'
+          },
           sku: 'board-m-123',
           weight: '20',
           weight_unit: 'lb',
@@ -71,6 +74,8 @@ describe('ProductController', () => {
         assert.ok(createdProductID)
         assert.equal(res.body[0].handle, 'snowboard')
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151')
+        assert.equal(res.body[0].seo_title, 'Burton Custom Freestyle 151')
+        assert.equal(res.body[0].seo_description, 'Good snowboard!')
         assert.equal(res.body[0].vendor, 'Burton')
         assert.equal(res.body[0].type, 'Snowboard')
         // Images
@@ -110,8 +115,11 @@ describe('ProductController', () => {
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.handle, 'snowboard')
         assert.equal(res.body.title, 'Burton Custom Freestyle 151')
+        assert.equal(res.body.seo_title, 'Burton Custom Freestyle 151')
+        assert.equal(res.body.seo_description, 'Good snowboard!')
         assert.equal(res.body.vendor, 'Burton')
         assert.equal(res.body.type, 'Snowboard')
+
         // Images
         assert.equal(res.body.images[0].product_id, createdProductID)
         assert.equal(res.body.images[0].product_variant_id, defaultVariantID)
@@ -134,6 +142,7 @@ describe('ProductController', () => {
         assert.ok(res.body.images[1].medium)
         assert.ok(res.body.images[1].large)
         assert.equal(res.body.images[1].alt, 'Hello World 2')
+
         // Variants
         assert.equal(res.body.variants[0].product_id, createdProductID)
         assert.equal(res.body.variants[0].title, res.body.title)
@@ -195,12 +204,16 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log(res.body[0])
+        // console.log(res.body[0])
         assert.equal(res.body[0].id, createdProductID)
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151 Gen 2')
-        assert.equal(res.body[0].variants[0].title, res.body[0].title)
 
+        // Variants
         assert.equal(res.body[0].variants.length, 3)
+        assert.equal(res.body[0].variants[0].title, res.body[0].title)
+        assert.equal(res.body[0].variants[2].title, 'Youth Burton Custom Freestyle 151')
+
+        // Images
         assert.equal(res.body[0].images.length, 4)
         done(err)
       })

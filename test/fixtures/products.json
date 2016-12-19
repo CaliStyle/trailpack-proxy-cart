@@ -5,7 +5,7 @@
     "body": "<strong>Good 3D Printer!</strong>",
     "vendor": "Makerbot",
     "type": "3D Printer",
-    "price": "10000",
+    "price": "100000",
     "published": true,
     "tags": [
       "equipment",
@@ -23,7 +23,7 @@
     "variants": [
       {
         "title": "Maker Bot Replicator Mini",
-        "price": "10001",
+        "price": "90000",
         "sku": "printer-w-123",
         "images": [
           {

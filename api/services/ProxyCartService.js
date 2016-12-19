@@ -85,5 +85,26 @@ module.exports = class ProxyCartService extends Service {
   uploadImage(image) {
 
   }
+  ouncesToGrams(ounces) {
+    return ounces * 28.3495231
+  }
+  poundsToGrams(pounds) {
+    return pounds * 16 * 28.3495231
+  }
+  kilogramsToGrams(kilogram) {
+    return kilogram / 1000
+  }
+  resolveConversion(weight, weightUnit){
+    switch (weightUnit) {
+    case 'kg':
+      return this.kilogramsToGrams(weight)
+    case 'oz':
+      return this.ouncesToGrams(weight)
+    case 'lb':
+      return this.poundsToGrams(weight)
+    default:
+      return weight
+    }
+  }
 }
 

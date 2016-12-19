@@ -38,12 +38,24 @@ module.exports = class Product extends Model {
                 onDelete: 'CASCADE'
               })
               models.Product.hasMany(models.ProductReview, {
-                as: 'review',
+                as: 'reviews',
                 onDelete: 'CASCADE'
               })
               models.Product.hasOne(models.Metadata, {
-                as: 'metadata_id',
+                as: 'metadata',
                 onDelete: 'CASCADE'
+              })
+              models.Product.belongsToMany(models.Cart, {
+                as: 'carts',
+                through: 'CartProduct'
+              })
+              models.Product.belongsToMany(models.ProductCollection, {
+                as: 'collections',
+                through: 'ProductCollectionProduct'
+              })
+              models.Product.belongsToMany(models.OrderItem, {
+                as: 'order_items',
+                through: 'OrderItemProduct'
               })
               // models.Product.belongsToMany(models.Cart, {
               //   through: {

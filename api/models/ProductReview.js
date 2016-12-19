@@ -24,12 +24,7 @@ module.exports = class ProductReview extends Model {
                 // as: 'customer_id'
               })
               models.ProductReview.belongsTo(models.Product, {
-                // as: 'product_id',
-                // foreignKey: 'product_id',
-                // onDelete: 'CASCADE'
-                // foreignKey: {
-                //   allowNull: true
-                // }
+                // as: 'product_id'
               })
             }
           }

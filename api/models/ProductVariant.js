@@ -130,7 +130,7 @@ module.exports = class ProductVariant extends Model {
         // If Variant needs to be shipped
         requires_shipping: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: true
         },
 
         // If Product needs to be taxed

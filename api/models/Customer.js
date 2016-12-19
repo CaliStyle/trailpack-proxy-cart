@@ -40,6 +40,12 @@ module.exports = class Customer extends Model {
               models.Customer.hasOne(models.Order, {
                 as: 'last_order_id'
               })
+              models.Customer.hasMany(models.Cart, {
+                as: 'carts'
+              })
+              models.Customer.hasOne(models.Cart, {
+                as: 'default_cart'
+              })
             }
           }
         }
