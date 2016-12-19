@@ -62,7 +62,7 @@ These images are not variant specific. The variant image column is where you spe
 ### _Note_
 You won't be able to change your image filename after that image has been uploaded. Don't upload images that have _thumb, _small, or _medium suffixes in their names as these will be created automatically.
 
-## Image Alt Texts (can be left blank)
+## Images Alt Text (can be left blank)
 The text that describes the images separated by a pipe character e.g. `|`. Useful if images cannot be displayed or a screenreader passes over an image—the text replaces this element.
 
 ## Variant SKU (can be left blank)
@@ -113,7 +113,7 @@ Apply taxes to this variant. Valid values are "TRUE", "FALSE", or blank.
 ## Variant Barcode (can be left blank)
 The barcode, ISBN or UPC of the product.
 
-## Variant Image
+## Variant Images
 Put the URL for your variant image. Proxy-Cart will download the images during the import and re-upload them into your data store.
 
 ## Variant Tax Code (can be left blank)
@@ -132,6 +132,16 @@ JSON format of Metadata limited to __1,000 characters__. E.g.
   custom_field: 'This is a Custom Field I use else where in My Application and is not related to Goolge Merchant or Amazon'
 }
 ```
+
+# Subscriptions
+## Subscribable
+If this product requires a subscription, use `true`. Otherwise leave blank.
+
+## Subscription Unit
+If this product is subscribable, then the amount of days, weeks, months, this subscription is in as an integer.
+
+## Subscription Interval
+If this product is subscribable, then the unit of measurement. Valid values are `0`,`d`,`w`,`ww`,`m`,`mm`,`y`,`yy`
 
 # Metafields
 
@@ -190,17 +200,6 @@ To organize your products into collections during the CSV upload, you can add a 
 
 ## Collection (must create a new column, can be left blank)
 Enter the name of the collection you want to add this product to. If the collection does not already exist, one will be created for you. You can only add a product to one collection using this method.
-
-# Subscriptions
-## Subscription 
-If this product requires a subscription, use `true`. Otherwise leave blank.
-
-## Subscription Unit
-If this product is subscribable, then the amount of days, weeks, months, this subscription is in as an integer.
-
-## Subscription Interval
-If this product is subscribable, then the unit of measurement. Valid values are `0`,`d`,`w`,`ww`,`m`,`mm`,`y`,`yy`
-
 
 # Create your product CSV file
 
