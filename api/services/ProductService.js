@@ -81,9 +81,11 @@ module.exports = class ProductService extends Service {
         type: product.type,
         tags: product.tags,
         price: product.price,
-        metadata: product.metadata,
+        // TODO FIX metadata: product.metadata,
         published: product.published,
-        published_scope: product.published_scope
+        published_scope: product.published_scope,
+        weight: product.weight,
+        weight_unit: product.weight_unit
       }
       if (product.published) {
         create.published_at = new Date()

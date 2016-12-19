@@ -36,6 +36,8 @@ describe('ProductController', () => {
             'outdoor'
           ],
           sku: 'board-m-123',
+          weight: '20',
+          weight_unit: 'lb',
           images: [
             {
               src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
@@ -94,8 +96,8 @@ describe('ProductController', () => {
         assert.equal(res.body[0].variants[1].sku, 'board-w-123')
         assert.equal(res.body[0].variants[1].title, 'Women\'s Burton Custom Freestyle 151')
         assert.equal(res.body[0].variants[1].price, '10001')
-        assert.equal(res.body[0].variants[1].weight, '0')
-        assert.equal(res.body[0].variants[1].weight_unit, 'g')
+        assert.equal(res.body[0].variants[1].weight, '20')
+        assert.equal(res.body[0].variants[1].weight_unit, 'lb')
         done(err)
       })
   })
@@ -142,8 +144,8 @@ describe('ProductController', () => {
         assert.equal(res.body.variants[1].product_id, createdProductID)
         assert.equal(res.body.variants[1].title, 'Women\'s Burton Custom Freestyle 151')
         assert.equal(res.body.variants[1].price, '10001')
-        assert.equal(res.body.variants[1].weight, '0')
-        assert.equal(res.body.variants[1].weight_unit, 'g')
+        assert.equal(res.body.variants[1].weight, res.body.weight)
+        assert.equal(res.body.variants[1].weight_unit, res.body.weight_unit)
 
         done(err)
       })

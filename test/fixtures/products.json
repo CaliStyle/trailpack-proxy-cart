@@ -11,6 +11,8 @@
       "equipment",
       "productivity"
     ],
+    "weight": "20",
+    "weight_unit": "lb",
     "sku": "printer-m-123",
     "images": [
       {
