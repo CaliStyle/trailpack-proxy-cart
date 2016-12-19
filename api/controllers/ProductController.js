@@ -12,7 +12,7 @@ const Errors = require('../../lib').Errors
 module.exports = class ProductController extends Controller {
   findOne(req, res){
     const FootprintService = this.app.services.FootprintService
-    FootprintService.find('Product', req.params.id, { populate: 'all' })
+    FootprintService.find('Product', req.params.id, { where: {published: true}, populate: 'all' })
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error(`Product id ${req.params.id} not found`))

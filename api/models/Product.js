@@ -45,6 +45,17 @@ module.exports = class Product extends Model {
                 // as: 'metadata_id',
                 onDelete: 'CASCADE'
               })
+              // models.Product.belongsToMany(models.Cart, {
+              //   through: {
+              //     model: CartProduct,
+              //     unique: false,
+              //     scope: {
+              //       taggable: 'post'
+              //     }
+              //   },
+              //   foreignKey: 'taggable_id',
+              //   constraints: false
+              // })
             }
           }
         }

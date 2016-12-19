@@ -120,6 +120,7 @@ module.exports = class ProductService extends Service {
 
       // Variants
       let variants = [{
+        sku: product.sku,
         title: product.title,
         price: product.price,
         weight: product.weight,
@@ -262,6 +263,10 @@ module.exports = class ProductService extends Service {
           if (product.published === false) {
             resProduct.published = resProduct.variants[0].published = product.published
             resProduct.unpublished_at = resProduct.variants[0].unpublished_at = new Date()
+          }
+          // If the SKU is changing, set the default sku
+          if (product.sku) {
+            variants[0].sku = product.sku
           }
           // if The title is changing, set the default title
           if (product.title) {

@@ -23,7 +23,7 @@ describe('ProductController', () => {
       .post('/product/addProducts')
       .send([
         {
-          handle: 'snwbrd',
+          handle: 'snowboard',
           title: 'Burton Custom Freestyle 151',
           body: '<strong>Good snowboard!</strong>',
           vendor: 'Burton',
@@ -35,6 +35,7 @@ describe('ProductController', () => {
             'equipment',
             'outdoor'
           ],
+          sku: 'board-m-123',
           images: [
             {
               src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
@@ -45,6 +46,7 @@ describe('ProductController', () => {
             {
               title: 'Women\'s Burton Custom Freestyle 151',
               price: '10001',
+              sku: 'board-w-123',
               images: [
                 {
                   src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
@@ -65,7 +67,7 @@ describe('ProductController', () => {
         firstImageID = res.body[0].images[0].id
         // Product
         assert.ok(createdProductID)
-        assert.equal(res.body[0].handle, 'snwbrd')
+        assert.equal(res.body[0].handle, 'snowboard')
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151')
         assert.equal(res.body[0].vendor, 'Burton')
         assert.equal(res.body[0].type, 'Snowboard')
@@ -82,12 +84,14 @@ describe('ProductController', () => {
         assert.equal(res.body[0].images[0].alt, 'Hello World')
         // Variants
         assert.equal(res.body[0].variants[0].product_id, createdProductID)
+        assert.equal(res.body[0].variants[0].sku, 'board-m-123')
         assert.equal(res.body[0].variants[0].title, res.body[0].title)
         assert.equal(res.body[0].variants[0].price, res.body[0].price)
         assert.equal(res.body[0].variants[0].weight, res.body[0].weight)
         assert.equal(res.body[0].variants[0].weight_unit, res.body[0].weight_unit)
 
         assert.equal(res.body[0].variants[1].product_id, createdProductID)
+        assert.equal(res.body[0].variants[1].sku, 'board-w-123')
         assert.equal(res.body[0].variants[1].title, 'Women\'s Burton Custom Freestyle 151')
         assert.equal(res.body[0].variants[1].price, '10001')
         assert.equal(res.body[0].variants[1].weight, '0')
@@ -102,7 +106,7 @@ describe('ProductController', () => {
       .end((err, res) => {
         // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
-        assert.equal(res.body.handle, 'snwbrd')
+        assert.equal(res.body.handle, 'snowboard')
         assert.equal(res.body.title, 'Burton Custom Freestyle 151')
         assert.equal(res.body.vendor, 'Burton')
         assert.equal(res.body.type, 'Snowboard')

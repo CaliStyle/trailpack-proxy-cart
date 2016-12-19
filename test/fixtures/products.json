@@ -1,0 +1,35 @@
+[
+  {
+    "handle": "makerbot-replicator",
+    "title": "Maker Bot Replicator",
+    "body": "<strong>Good 3D Printer!</strong>",
+    "vendor": "Makerbot",
+    "type": "3D Printer",
+    "price": "10000",
+    "published": true,
+    "tags": [
+      "equipment",
+      "productivity"
+    ],
+    "sku": "printer-m-123",
+    "images": [
+      {
+        "src": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150",
+        "alt": "Hello World"
+      }
+    ],
+    "variants": [
+      {
+        "title": "Maker Bot Replicator Mini",
+        "price": "10001",
+        "sku": "printer-w-123",
+        "images": [
+          {
+            "src": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150",
+            "alt": "Hello World 2"
+          }
+        ]
+      }
+    ]
+  }
+]

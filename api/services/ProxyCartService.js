@@ -81,6 +81,7 @@ module.exports = class ProxyCartService extends Service {
       })
     })
   }
+  // TODO
   uploadImage(image) {
 
   }

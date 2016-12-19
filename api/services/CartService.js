@@ -17,10 +17,19 @@ module.exports = class CartService extends Service {
   addDiscountToCart(data){
     return Promise.resolve(data)
   }
+  removeDiscountFromCart(data){
+    return Promise.resolve(data)
+  }
   addCouponToCart(data){
     return Promise.resolve(data)
   }
+  removeCouponFromCart(data){
+    return Promise.resolve(data)
+  }
   addGiftCardToCart(data){
+    return Promise.resolve(data)
+  }
+  removeGiftCardFromCart(data){
     return Promise.resolve(data)
   }
   addItemsToCart(data){

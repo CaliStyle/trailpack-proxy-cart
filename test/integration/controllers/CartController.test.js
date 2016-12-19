@@ -2,13 +2,22 @@
 /* global describe, it */
 const assert = require('assert')
 const supertest = require('supertest')
+const products = require('../../fixtures/products')
 
 describe('CartController', () => {
   let request
   let cartID
+  let storeProducts
   before((done) => {
     request = supertest('http://localhost:3000')
-    done()
+    request
+      .post('/product/addProducts')
+      .send(products)
+      .expect(200)
+      .end((err, res) => {
+        storeProducts = res.body
+        done(err)
+      })
   })
 
   it('should exist', () => {
@@ -22,20 +31,28 @@ describe('CartController', () => {
         done(err)
       })
   })
-  it('should make addItems post request', (done) => {
+  it('should make addItems post request with just a product_id', (done) => {
     request
       .post('/cart/addItems')
-      .send([])
+      .send([
+        {
+          product_id: storeProducts[0].id
+        }
+      ])
       .expect(200)
       .end((err, res) => {
         done(err)
       })
   })
 
-  it('should make removeItems post request', (done) => {
+  it('should make removeItems post request with just a product_id', (done) => {
     request
       .post('/cart/removeItems')
-      .send([])
+      .send([
+        {
+          product_id: storeProducts[0].id
+        }
+      ])
       .expect(200)
       .end((err, res) => {
         done(err)
