@@ -5,6 +5,7 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const removeMd = require('remove-markdown')
+const striptags = require('striptags')
 const Errors = require('../../lib/').Errors
 
 /**
@@ -39,20 +40,22 @@ module.exports = class ProductService extends Service {
       }
       // Search for the Product
       FootprintService.find('Product', find)
-        .then(products => {
-          // console.log('ProductService.addProduct', products)
-          if (products.length == 0){
+        .then(foundProducts => {
+          // console.log('ProductService.addProduct', foundProducts)
+          if (foundProducts.length === 0){
             // Create Product
             return this.createProduct(product)
           }
           else {
-            // TODO, check if this request has new variants and add them
-            return products[0]
+            // Set this id just in case it's missing
+            product.id = foundProducts[0].id
+            // Check if this request has new variants and add them
+            return this.updateProduct(product)
           }
         })
-        .then(product => {
+        .then(resProduct => {
           // console.log('ProductService.addProduct', product)
-          return resolve(product)
+          return resolve(resProduct)
         })
         .catch(err =>{
           return reject(err)
@@ -67,7 +70,6 @@ module.exports = class ProductService extends Service {
    */
   createProduct(product){
     return new Promise((resolve, reject) => {
-      // console.log('ProductService.createProduct', product)
       const FootprintService = this.app.services.FootprintService
       // The Default Product
       const create = {
@@ -99,7 +101,7 @@ module.exports = class ProductService extends Service {
         create.seo_description = product.seo_description
       }
       if (!product.seo_description && product.body) {
-        create.seo_description = removeMd(product.body)
+        create.seo_description = removeMd(striptags(product.body))
       }
 
       // TODO handle Collection

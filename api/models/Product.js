@@ -42,7 +42,7 @@ module.exports = class Product extends Model {
                 onDelete: 'CASCADE'
               })
               models.Product.hasOne(models.Metadata, {
-                // as: 'metadata_id',
+                as: 'metadata_id',
                 onDelete: 'CASCADE'
               })
               // models.Product.belongsToMany(models.Cart, {
