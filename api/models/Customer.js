@@ -3,7 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const helpers = require('../utils/helpers')
+const helpers = require('proxy-engine-helpers')
 const CUSTOMER_STATE = require('../utils/enums').CUSTOMER_STATE
 const _ = require('lodash')
 /**

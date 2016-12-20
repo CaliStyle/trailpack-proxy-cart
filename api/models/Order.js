@@ -3,7 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const helpers = require('../utils/helpers')
+const helpers = require('proxy-engine-helpers')
 const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
 const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT

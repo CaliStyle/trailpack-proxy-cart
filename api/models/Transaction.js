@@ -3,7 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const helpers = require('../utils/helpers')
+const helpers = require('proxy-engine-helpers')
 const TRANSACTION_ERRORS = require('../utils/enums').TRANSACTION_ERRORS
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
