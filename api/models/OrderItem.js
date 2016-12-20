@@ -124,7 +124,7 @@ module.exports = class OrderItem extends Model {
 
         live_mode: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: app.config.proxyCart.live_mode
         }
       }
     }

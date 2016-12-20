@@ -45,9 +45,10 @@ module.exports = class ProductReview extends Model {
         review: {
           type: Sequelize.TEXT
         },
+
         live_mode: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: app.config.proxyCart.live_mode
         }
       }
     }

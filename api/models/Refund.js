@@ -23,6 +23,9 @@ module.exports = class Refund extends Model {
               models.Refund.belongsTo(models.Order, {
                 // as: 'order_id'
               })
+              models.Refund.hasOne(models.Transaction, {
+                // as: 'order_id'
+              })
             }
           }
         }
@@ -37,7 +40,7 @@ module.exports = class Refund extends Model {
       schema = {
         live_mode: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: app.config.proxyCart.live_mode
         }
       }
     }

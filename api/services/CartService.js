@@ -8,18 +8,41 @@ const _ = require('lodash')
  * @description Cart Service
  */
 module.exports = class CartService extends Service {
+  /**
+   *
+   * @param data
+   * @returns {Cart}
+   */
   create(data){
     const FootprintService = this.app.services.FootprintService
     return FootprintService.create('Cart', data)
   }
+
+  /**
+   *
+   * @param cart
+   * @returns {Cart}
+   */
   update(cart){
     const FootprintService = this.app.services.FootprintService
     const update = _.omit(cart,['id','created_at','updated_at'])
     return FootprintService.update('Cart', cart.id, update)
   }
+
+  /**
+   *
+   * @param data
+   * @returns {Promise.<*>}
+   */
   checkout(data){
     return Promise.resolve(data)
   }
+
+  /**
+   *
+   * @param cart
+   * @returns {Cart}
+   */
   resolve(cart){
     if (cart && cart.id) {
       return Promise.resolve(cart)

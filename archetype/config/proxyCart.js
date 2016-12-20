@@ -3,4 +3,6 @@
  *
  * @see {@link http://
  */
-module.exports = {}
+module.exports = {
+  live_mode: false
+}

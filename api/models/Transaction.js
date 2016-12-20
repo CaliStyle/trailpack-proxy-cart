@@ -80,13 +80,14 @@ module.exports = class Transaction extends Model {
           type: Sequelize.ENUM,
           values: _.values(TRANSACTION_STATUS)
         },
-        live_mode: {
-          type: Sequelize.BOOLEAN,
-          defaultValue: false
-        },
         currency: {
           type: Sequelize.STRING,
           defaultValue: 'USD'
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: app.config.proxyCart.live_mode
         }
       }
     }

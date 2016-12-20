@@ -173,7 +173,7 @@ module.exports = class ProductService extends Service {
       FootprintService.create('Product', create)
         .then(createdProduct => {
           // Set the resulting product
-          resProduct = createdProduct.dataValues
+          resProduct = createdProduct.get({ plain: true })
           // Create the Variants
           return Promise.all(variants.map(variant => {
             // Create the Association
@@ -230,7 +230,9 @@ module.exports = class ProductService extends Service {
         .then(oldProduct => {
 
           // Init images and map image updates if there are any
-          images = _.map(oldProduct.images, 'dataValues')
+          images = _.map(oldProduct.images, image => {
+            return image.get({ plain: true })
+          })
           _.map(images, image => {
             return _.merge(image, _.find(product.images, { id: image.id }))
           })
@@ -244,7 +246,9 @@ module.exports = class ProductService extends Service {
           delete oldProduct.images
 
           // Init variants and map variant updates if there are any
-          variants = _.map(oldProduct.variants, 'dataValues')
+          variants = _.map(oldProduct.variants, variant => {
+            return variant.get({ plain: true })
+          })
           variants = _.map(variants, variant => {
             return _.merge(variant, _.find(product.variants, { id: variant.id }))
           })
@@ -258,7 +262,7 @@ module.exports = class ProductService extends Service {
           delete oldProduct.variants
 
           // Extend the new values into a new object
-          resProduct = _.extend(oldProduct.dataValues, product)
+          resProduct = _.extend(oldProduct.get({ plain: true }), product)
           // Set Publishing Status and default variant publish status
           if (product.published) {
             resProduct.published = variants[0].published = product.published
@@ -316,56 +320,6 @@ module.exports = class ProductService extends Service {
           })
           //
 
-          // _.each(resProduct._changed, (change, key) =>{
-          //   console.log('CHANGED', key, change)
-          //   // resProduct.varaints[0].dataValues[key] = resProduct[key]
-          // })
-
-          // console.log('ProductService.updateProduct', resProduct)
-          // const update = {}
-          // if (product.host) {
-          //   update.host = resProduct.host = product.host
-          // }
-          // if (product.handle) {
-          //   update.handle = resProduct.handle = resProduct.variants[0].handle = product.handle
-          // }
-          // if (product.title) {
-          //   update.title = resProduct.title = resProduct.variants[0].title = product.title
-          // }
-          // if (product.body) {
-          //   update.body = resProduct.body = product.body
-          // }
-          // if (product.vendor) {
-          //   update.vendor = resProduct.vendor = product.vendor
-          // }
-          // if (product.type) {
-          //   update.type = resProduct.type = product.type
-          // }
-          // if (product.tags) {
-          //   update.tags = resProduct.tags = product.tags
-          // }
-          // if (product.price) {
-          //   update.price = resProduct.price = resProduct.variants[0].price = product.price
-          // }
-          // if (product.compare_at_price) {
-          //   resProduct.variants[0].compare_at_price = product.compare_at_price
-          // }
-          // if (product.metadata) {
-          //   update.metadata = resProduct.metadata = product.metadata
-          // }
-          //
-          // if (product.published) {
-          //   update.published = resProduct.published = resProduct.variants[0].published = product.published
-          //   update.published_at = resProduct.published_at = resProduct.variants[0].published_at = new Date()
-          // }
-          // if (product.published === false) {
-          //   update.published = resProduct.published = resProduct.variants[0].published = product.published
-          //   update.unpublished_at = resProduct.unpublished_at = resProduct.variants[0].unpublished_at = new Date()
-          // }
-          // if (product.published_scope) {
-          //   update.published_scope = resProduct.published_scope = product.published_scope
-          // }
-          //
           // // let collection
           // // TODO handle Collection
           // if (product.collection) {
@@ -394,7 +348,7 @@ module.exports = class ProductService extends Service {
           // If any new variants, replace them on resProduct
           _.each(editedVariants, (variant, index) => {
             if (_.isObject(variant)) {
-              resProduct.variants[index] = variant.dataValues
+              resProduct.variants[index] = variant.get({ plain: true })
             }
           })
           // console.log('ProductService.updateProduct',resProduct.images)
@@ -418,7 +372,7 @@ module.exports = class ProductService extends Service {
           // If any of the images are new, replace the image in resProduct.
           _.each(editedImages, (image, index) => {
             if (_.isObject(image)) {
-              resProduct.images[index] = image.dataValues
+              resProduct.images[index] = image.get({ plain: true })
             }
           })
           // console.log('RETURNING',resProduct)

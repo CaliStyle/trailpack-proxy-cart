@@ -51,6 +51,11 @@ module.exports = class Country extends Model {
         tax_percentage: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
+        },
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: app.config.proxyCart.live_mode
         }
       }
     }

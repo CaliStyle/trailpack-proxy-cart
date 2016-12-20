@@ -52,7 +52,12 @@ module.exports = class ShippingZone extends Model {
         }),
         weight_based_shipping_rates: helpers.ARRAY('shippingzone', app, Sequelize, Sequelize.STRING, 'weight_based_shipping_rates', {
           defaultValue: []
-        })
+        }),
+
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: app.config.proxyCart.live_mode
+        }
       }
     }
     return schema

@@ -20,7 +20,12 @@ module.exports = class Subscription extends Model {
              * @param models
              */
             associate: (models) => {
+              // The customer this subscription belongs to
               models.Subscription.belongsTo(models.Customer, {
+                // as: 'customer_id'
+              })
+              // The Order that Created this Subscription
+              models.Subscription.belongsTo(models.Order, {
                 // as: 'customer_id'
               })
             }
@@ -34,7 +39,12 @@ module.exports = class Subscription extends Model {
   static schema (app, Sequelize) {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
-      schema = {}
+      schema = {
+        live_mode: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: app.config.proxyCart.live_mode
+        }
+      }
     }
     return schema
   }
