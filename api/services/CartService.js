@@ -3,6 +3,7 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
+const Errors = require('proxy-engine-errors')
 /**
  * @module CartService
  * @description Cart Service
@@ -97,8 +98,7 @@ module.exports = class CartService extends Service {
         })
     }
     else {
-      // TODO Create a proper Error
-      const err = new Error(`${item} not found`)
+      const err = new Errors.FoundError(Error(`${item} not found`))
       return Promise.reject(err)
     }
   }
@@ -170,8 +170,7 @@ module.exports = class CartService extends Service {
       this.resolve(cart)
         .then(foundCart => {
           if (!foundCart) {
-            // TODO create proper error
-            const err = new Error('Cart Not Found')
+            const err = new Errors.FoundError(Error('Cart Not Found'))
             return reject(err)
           }
           cart = foundCart
@@ -207,8 +206,7 @@ module.exports = class CartService extends Service {
       this.resolve(cart)
         .then(foundCart => {
           if (!foundCart) {
-            // TODO create proper error
-            const err = new Error('Cart Not Found')
+            const err = new Errors.FoundError(Error('Cart Not Found'))
             return reject(err)
           }
           cart = foundCart
@@ -236,8 +234,7 @@ module.exports = class CartService extends Service {
       this.resolve(cart)
         .then(foundCart => {
           if (!foundCart) {
-            // TODO create proper error
-            const err = new Error('Cart Not Found')
+            const err = new Errors.FoundError(Error('Cart Not Found'))
             return reject(err)
           }
           cart = foundCart

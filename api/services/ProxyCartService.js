@@ -4,7 +4,7 @@
 const Service = require('trails/service')
 const csvParser = require('babyparse')
 const _ = require('lodash')
-const Errors = require('../../lib/errors')
+const Errors = require('proxy-engine-errors')
 /**
  * @module ProxyCartService
  * @description ProxyCart Service

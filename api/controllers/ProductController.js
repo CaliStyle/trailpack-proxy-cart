@@ -3,7 +3,7 @@
 
 const Controller = require('trails/controller')
 const lib = require('../../lib')
-const Errors = require('../../lib').Errors
+const Errors = require('proxy-engine-errors')
 
 /**
  * @module ProductController
@@ -15,6 +15,7 @@ module.exports = class ProductController extends Controller {
     FootprintService.find('Product', req.params.id, { where: {published: true}, populate: 'all' })
       .then(product => {
         if (!product) {
+          console.log(Errors.FoundError)
           throw new Errors.FoundError(Error(`Product id ${req.params.id} not found`))
         }
         // console.log('ProductController.findOne', product.dataValues)
