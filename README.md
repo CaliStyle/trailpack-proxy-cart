@@ -88,3 +88,8 @@ module.exports = {
 [codeclimate-image]: https://img.shields.io/codeclimate/github/calistyle/trailpack-proxy-cart.svg?style=flat-square
 [codeclimate-url]: https://codeclimate.com/github/calistyle/trailpack-proxy-cart
 
+[ci-sequelize-image]: https://img.shields.io/travis/trailsjs/trailpack-sequelize/master.svg?style=flat-square
+[ci-sequelize-url]: https://travis-ci.org/trailsjs/trailpack-sequelize
+
+[ci-express-image]: https://img.shields.io/travis/trailsjs/trailpack-express/master.svg?style=flat-square
+[ci-express-url]: https://travis-ci.org/trailsjs/trailpack-express
