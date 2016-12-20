@@ -81,6 +81,9 @@ const App = {
     policies: {
 
     },
+    log: {
+      logger: new smokesignals.Logger('debug')
+    },
     web: web,
     // Proxy Generics
     proxyGenerics: {}

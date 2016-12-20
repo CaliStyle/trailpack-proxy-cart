@@ -9,7 +9,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
   /**
    * Validates Configs
    */
-  validate (app) {
+  validate () {
     if (!_.includes(_.keys(this.app.packs), 'express')) {
       return Promise.reject(new Error('This Trailpack only works for express!'))
     }
@@ -31,7 +31,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
   /**
    * Adds Routes
    */
-  configure (app) {
+  configure () {
     return Promise.all([
       lib.ProxyCart.addRoutes(this.app)
     ])
@@ -40,7 +40,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
   /**
    * TODO document method
    */
-  initialize (app) {
+  initialize () {
 
   }
 
