@@ -3,6 +3,9 @@ The first line of your customer CSV has to include the field headers described b
 
 ## First Name
 ## Last Name
+## Tags (can be left blank)
+Comma-separated list of tags used to tag the product. Most spreadsheet applications automatically add quotes around the tags for you. If you are using a plain text editor, you will need to manually add the quote. For example, `tag1, tag2, tag3`.
+
 ## Phone
 ## Billing Address 1
 ## Billing Address 1
