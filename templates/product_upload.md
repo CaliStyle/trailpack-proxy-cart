@@ -134,8 +134,8 @@ JSON format of Metadata limited to __1,000 characters__. E.g.
 ```
 
 # Subscriptions
-## Subscribable
-If this product requires a subscription, use `true`. Otherwise leave blank.
+## Subscription
+If this product *requires* a subscription, use `true`. Otherwise leave blank.
 
 ## Subscription Unit
 If this product is subscribable, then the amount of days, weeks, months, this subscription is in as an integer.
