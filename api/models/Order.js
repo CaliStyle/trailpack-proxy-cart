@@ -141,15 +141,6 @@ module.exports = class Order extends Model {
         referring_site: {
           type: Sequelize.STRING
         },
-        // refunds: helpers.JSONB('order', app, Sequelize, 'refunds', {
-        //   defaultValue: {}
-        // }),
-        // billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address: ', {
-        //   defaultValue: {}
-        // }),
-        // shipping_address: helpers.JSONB('order', app, Sequelize, 'shipping_address: ', {
-        //   defaultValue: {}
-        // }),
         shipping_lines: helpers.JSONB('order', app, Sequelize, 'shipping_lines: ', {
           defaultValue: {}
         }),

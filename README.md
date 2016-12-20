@@ -42,6 +42,8 @@ module.exports = {
 ### Controllers
 #### CartController
 
+##### CartController.create
+
 ##### CartController.checkout
 
 ##### CartController.addItems
@@ -57,27 +59,46 @@ module.exports = {
 
 ##### ProductController.removeProducts
 
+##### ProductController.removeVariant
+
+##### ProductController.removeImage
+
 ### Services
 #### CartService
 #### CouponService
 #### CustomerService
+#### DiscountService
+#### FulfillmentService
 #### GiftCardService
 #### OrderService
 #### ProductService
 #### ProxyCartService
+#### ShippingService
+#### TaxService
 
 ### Models
 #### Cart
+#### Country
 #### Coupon
 #### Customer
+#### CustomerAddress
 #### Discount
+#### Fulfillment
 #### GiftCard
+#### Metadata
 #### Order
 #### OrderItem
 #### Product
 #### ProductCollection
 #### ProductImage
+#### ProductReview
 #### ProductVariant
+#### Province
+#### Refund
+#### ShippingZone
+#### Subscription
+#### Tag
+#### Transaction
 
 [npm-image]: https://img.shields.io/npm/v/trailpack-proxy-cart.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/trailpack-proxy-cart
