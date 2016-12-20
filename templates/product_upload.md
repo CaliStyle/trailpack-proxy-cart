@@ -3,7 +3,7 @@
 The first line of your product CSV has to include the field headers described below with each separated by a comma. Subsequent lines in the file should contain data for your product using those same fields in that exact same order. Here's a description of each field:
 
 ## Handle
-Handles are unique names for each product. They can contain letters, dashes and numbers, but no spaces. A handle is used in the URL for each product. For example, the handle for a "Women's Snowboard" should be `womens-snowboard`, and the product's URL would be https://yourstore.com/product/womens-snowboard.
+Handles are unique names for each product. They can contain letters, dashes and numbers, but no spaces. A handle is used in the URL for each product. For example, the handle for a "Women's Snowboard" should be `womens-snowboard`, and the product's URL would be `https://yourstore.com/product/womens-snowboard`.
 
 Every line in the CSV starting with a different handle is treated as a new product. If you want to add multiple images to a product, or want the product to have variants, you should have multiple lines with the same handle.
 
@@ -26,7 +26,7 @@ The name of the vendor for your product. For example, John's Apparel.
 The Product type. For example, Snowboard.
 
 ## Tags (can be left blank)
-Comma-separated list of tags used to tag the product. Most spreadsheet applications automatically add quotes around the tags for you. If you are using a plain text editor, you will need to manually add the quote. For example, "tag1, tag2, tag3".
+Comma-separated list of tags used to tag the product. Most spreadsheet applications automatically add quotes around the tags for you. If you are using a plain text editor, you will need to manually add the quote. For example, `tag1, tag2, tag3`.
 
 ## Published
 States whether or not a product is published on your storefront. Valid values are TRUE if the product is published on your storefront, or FALSE if the product is hidden from your storefront. Leaving the field blank will publish the product.
