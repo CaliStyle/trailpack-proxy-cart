@@ -87,6 +87,18 @@ module.exports = {
     NONE: 'none',
     PARTIAL: 'partial'
   },
+  FULFILLMENT_EVENT_STATUS: {
+    // The shipping carrier confirms that they have received the shipment request.
+    CONFIRMED: 'confirmed',
+    // The shipment has been received by the shipping carrier and it is on its way to its destination.
+    IN_TRANSIT: 'in_transit',
+    // The shipment has been received at the facility which will deliver the mailpiece.
+    OUT_FOR_DELIVERY: 'out_for_delivery',
+    // The shipment has been scanned at the final delivery address.
+    DELIVERED: 'delivered',
+    // For whatever reason, the shipping carrier failed to deliver the shipment.
+    FAILURE: 'failure'
+  },
   TRANSACTION_ERRORS: {
     INCORRECT_NUMBER: 'incorrect_number',
     INVALID_NUMBER: 'invalid_number',

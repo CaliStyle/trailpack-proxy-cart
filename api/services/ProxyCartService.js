@@ -51,7 +51,7 @@ module.exports = class ProxyCartService extends Service {
         }
       }
       // Parse the CSV/TSV
-      csvParser(file, options)
+      csvParser.parse(file, options)
     })
   }
   // TODO

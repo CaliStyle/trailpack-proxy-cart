@@ -288,4 +288,15 @@ describe('ProductController', () => {
         done(err)
       })
   })
+  it('It should upload product_upload.csv', (done) => {
+    request
+      .post('/product/uploadCSV')
+      .field('extra_info', '{"in":"case you want to send json along with your file"}')
+      .attach('csv', 'test/fixtures/product_upload.csv')
+      .expect(200)
+      .end((err, res) => {
+        console.log(res.body)
+        done()
+      })
+  })
 })

@@ -2,6 +2,7 @@
 const _ = require('lodash')
 const smokesignals = require('smokesignals')
 const fs = require('fs')
+// const bodyParser = require('body-parser')
 // const lib = require('../lib')
 
 const packs = [
@@ -46,6 +47,7 @@ if ( SERVER == 'express' ) {
         'addMethods',
         'cookieParser',
         'session',
+        // 'multer',
         'bodyParser',
         'passportInit',
         'passportSession',
@@ -78,9 +80,7 @@ const App = {
     main: {
       packs: packs
     },
-    policies: {
-
-    },
+    policies: {},
     log: {
       logger: new smokesignals.Logger('debug')
     },

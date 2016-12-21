@@ -23,33 +23,50 @@ module.exports = class Cart extends Model {
               if (values.line_items) {
                 let subtotalPrice = 0
                 let totalDiscounts = 0
+                let totalCoupons = 0
                 let totalTax = 0
                 let totalWeight = 0
                 let totalPrice = 0
                 let totalLineItemsPrice = 0
+                let totalShipping = 0
                 const taxLines = {}
                 const shippingLines = {}
+                const discountedLines = {}
 
                 _.each(values.line_items, item => {
                   if (item.requires_tax) {
                     taxLines[item.id] = item.price * item.quantity
                   }
                   if (item.requires_shipping) {
-                    shippingLines[item.id] = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit)
+                    shippingLines[item.id] = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
                     totalWeight = totalWeight + shippingLines[item.id]
                   }
-                  totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
 
                   if (item.name !== 'shipping' && item.name !== 'tax') {
                     subtotalPrice = subtotalPrice + item.price * item.quantity
+                    totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
                   }
                   if (item.has_discount) {
+                    discountedLines[item.id] = item.discount
                     totalDiscounts = totalDiscounts + item.discount
                   }
                 })
-                totalPrice = totalTax + subtotalPrice - totalDiscounts
+
+                if (values.taxes_included) {
+                  _.each(taxLines, (amount, id) => {
+                    totalTax = totalTax + (amount * values.tax_percentage)
+                  })
+                }
+
+                if (values.shipping_included) {
+                  totalShipping = values.total_shipping
+                }
+
+                totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
+
                 values.tax_lines = taxLines
                 values.shipping_lines = shippingLines
+                values.total_shipping = totalShipping
                 values.subtotal_price = subtotalPrice
                 values.total_discounts = totalDiscounts
                 values.total_tax = totalTax
@@ -108,14 +125,30 @@ module.exports = class Cart extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        discounted_lines: helpers.JSONB('cart', app, Sequelize, 'discounted_lines', {
+          defaultValue: {}
+        }),
         shipping_lines: helpers.JSONB('cart', app, Sequelize, 'shipping_lines', {
           defaultValue: {}
         }),
+        shipping_included: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
         tax_lines: helpers.JSONB('cart', app, Sequelize, 'tax_lines', {
           defaultValue: {}
         }),
+        tax_rate: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        tax_percentage: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
         taxes_included: {
-          type: Sequelize.BOOLEAN
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         },
         total_discounts: {
           type: Sequelize.INTEGER,
@@ -126,6 +159,10 @@ module.exports = class Cart extends Model {
           defaultValue: 0
         },
         total_price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        total_shipping: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

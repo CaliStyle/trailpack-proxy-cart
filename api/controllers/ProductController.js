@@ -4,7 +4,6 @@
 const Controller = require('trails/controller')
 const lib = require('../../lib')
 const Errors = require('proxy-engine-errors')
-
 /**
  * @module ProductController
  * @description Product Controller.
@@ -137,8 +136,25 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
+  // TODO
   uploadCSV(req, res) {
-    // const ProxyCartService = this.app.services.ProxyCartService
+    const ProxyCartService = this.app.services.ProxyCartService
+    const csv = req.file
+
+    if (!csv) {
+      const err = new Error('File failed to upload')
+      return res.serverError(err)
+    }
+
+    ProxyCartService.csv(csv.path)
+      .then(result => {
+        return res.json({
+          file: req.file
+        })
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 }
 

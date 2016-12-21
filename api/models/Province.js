@@ -44,7 +44,7 @@ module.exports = class Province extends Model {
         name: {
           type: Sequelize.STRING
         },
-        tax: {
+        tax_rate: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },

@@ -33,6 +33,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
    */
   configure () {
     return Promise.all([
+      lib.ProxyCart.addPolicies(this.app),
       lib.ProxyCart.addRoutes(this.app)
     ])
   }
