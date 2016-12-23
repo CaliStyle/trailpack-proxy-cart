@@ -14,10 +14,8 @@ module.exports = class ProductController extends Controller {
     FootprintService.find('Product', req.params.id, { where: {published: true}, populate: 'all' })
       .then(product => {
         if (!product) {
-          console.log(Errors.FoundError)
           throw new Errors.FoundError(Error(`Product id ${req.params.id} not found`))
         }
-        // console.log('ProductController.findOne', product.dataValues)
         return res.json(product)
       })
       .catch(err => {
@@ -26,18 +24,18 @@ module.exports = class ProductController extends Controller {
   }
   find(req, res){}
   count(req, res){
-    const ProxyCartService = this.app.services.ProxyCartService
+    const ProxyEngineService = this.app.services.ProxyEngineService
     let productCount = 0
     let variantCount = 0
     let imageCount = 0
-    ProxyCartService.count('Product')
+    ProxyEngineService.count('Product')
       .then(count => {
         productCount = count
-        return ProxyCartService.count('ProductVariant')
+        return ProxyEngineService.count('ProductVariant')
       })
       .then(count => {
         variantCount = count
-        return ProxyCartService.count('ProductImage')
+        return ProxyEngineService.count('ProductImage')
       })
       .then(count => {
         imageCount = count
@@ -136,7 +134,6 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
-  // TODO
   uploadCSV(req, res) {
     const ProxyCartService = this.app.services.ProxyCartService
     const csv = req.file
@@ -149,8 +146,25 @@ module.exports = class ProductController extends Controller {
     ProxyCartService.csv(csv.path)
       .then(result => {
         return res.json({
-          file: req.file
+          file: req.file,
+          result: result
         })
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  processUpload(req, res) {
+    const ProxyCartService = this.app.services.ProxyCartService
+    ProxyCartService.processUpload(req.params.id)
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

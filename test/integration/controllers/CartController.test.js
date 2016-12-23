@@ -7,6 +7,7 @@ const products = require('../../fixtures/products')
 describe('CartController', () => {
   let request
   let cartID
+  let customerID
   let storeProducts
   before((done) => {
     request = supertest('http://localhost:3000')

@@ -23,6 +23,18 @@ module.exports = class CustomerAddress extends Model {
               models.CustomerAddress.belongsTo(models.Customer, {
                 // as: 'customer_id'
               })
+              models.CustomerAddress.belongsTo(models.Customer, {
+                foreignKey: 'default_address'
+                // as: 'customer_id'
+              })
+              models.CustomerAddress.belongsTo(models.Order, {
+                foreignKey: 'shipping_address'
+                // as: 'customer_id'
+              })
+              models.CustomerAddress.belongsTo(models.Order, {
+                foreignKey: 'billing_address'
+                // as: 'customer_id'
+              })
             }
           }
         }
@@ -66,6 +78,9 @@ module.exports = class CustomerAddress extends Model {
           type: Sequelize.STRING
         },
         province: {
+          type: Sequelize.STRING
+        },
+        province_code: {
           type: Sequelize.STRING
         },
         country: {

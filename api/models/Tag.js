@@ -33,6 +33,9 @@ module.exports = class Tag extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        name: {
+          type: Sequelize.STRING
+        },
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

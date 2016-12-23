@@ -170,7 +170,12 @@ module.exports = class ProductService extends Service {
       // Set the resulting Product
       let resProduct = {}
       // Create the Product
-      FootprintService.create('Product', create)
+      // const Product = this.app.services.ProxyEngineService.getModel('Product')
+      // const Metadata = this.app.services.ProxyEngineService.getModel('Product')
+      // Product.create(create, {
+      //   // include: [ Metadata ]
+      // })
+      FootprintService.create('product', create)
         .then(createdProduct => {
           // Set the resulting product
           resProduct = createdProduct.get({ plain: true })
@@ -225,8 +230,8 @@ module.exports = class ProductService extends Service {
       let resProduct
       let variants = []
       let images = []
-
-      FootprintService.find('Product', product.id, {populate: 'images,variants,metadata'})
+      // TODO Fix Metadata Fix Options
+      FootprintService.find('Product', product.id, {populate: 'images,variants'})
         .then(oldProduct => {
 
           // Init images and map image updates if there are any
@@ -328,7 +333,7 @@ module.exports = class ProductService extends Service {
 
           resProduct.variants = variants
           resProduct.images = images
-          const update = _.omit(resProduct, ['id','created_at','updated_at', 'variants', 'images'])
+          const update = _.omit(resProduct, ['id','created_at','updated_at', 'variants', 'images', 'metadata'])
           return FootprintService.update('Product', product.id, update)
         })
         .then(updatedProduct => {

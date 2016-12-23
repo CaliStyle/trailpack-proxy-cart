@@ -1,6 +1,55 @@
 'use strict'
 
 module.exports = {
+  PRODUCT_UPLOAD: {
+    handle: 'Handle',
+    title: 'Title',
+    body: 'Body',
+    seo_title: 'SEO Title',
+    seo_description: 'SEO Description',
+    vendor: 'Vendor',
+    type: 'Type',
+    tags: 'Tags',
+    published: 'Published',
+    option_name: 'Option / * Name',
+    option_value: 'Option / * Value',
+    images: 'Images Sources',
+    images_alt: 'Images Alt Text',
+    sku: 'Variant SKU',
+    weight: 'Variant Weight',
+    weight_unit: 'Variant Weight Unit',
+    inventory_tracker: 'Variant Inventory Tracker',
+    inventory_quantity: 'Variant Inventory Quantity',
+    inventory_policy: 'Variant Inventory Policy',
+    fulfillment_service: 'Variant Fulfillment Service',
+    price: 'Variant Price',
+    compare_at_price: 'Variant Compare at Price',
+    variant_currency: 'Variant Currency',
+    requires_shipping: 'Variant Requires Shipping',
+    taxable: 'Variant Taxable',
+    barcode: 'Variant Barcode',
+    variant_images: 'Variant Images',
+    tax_code: 'Variant Tax Code',
+    gift_card: 'Gift Card',
+    metadata: 'Metadata',
+    subscription: 'Subscription',
+    subscription_unit: 'Subscription Unit',
+    subscription_interval: 'Subscription Interval',
+    collection: 'Collection',
+    g_product_category: 'Google Shopping / Google Product Category',
+    g_gender: 'Google Shopping / Gender',
+    g_age_group: 'Google Shopping / Age Group',
+    g_mpn: 'Google Shopping / MPN',
+    g_adwords_grouping: 'Google Shopping / Adwords Grouping',
+    g_adwords_label: 'Google Shopping / Adwords Labels',
+    g_condition: 'Google Shopping / Condition',
+    g_custom_product: 'Google Shopping / Custom Product',
+    g_custom_label_0: 'Google Shopping / Custom Label 0',
+    g_custom_label_1: 'Google Shopping / Custom Label 1',
+    g_custom_label_2: 'Google Shopping / Custom Label 2',
+    g_custom_label_3: 'Google Shopping / Custom Label 3',
+    g_custom_label_4: 'Google Shopping / Custom Label 4'
+  },
   UNITS: {
     // Grams
     G: 'g',
@@ -27,6 +76,12 @@ module.exports = {
     YEAR: 'y',
     // Every 2 years
     BIYEAR: 'yy'
+  },
+  // deny (default): Customers are not allowed to place orders for a product variant when it's out of stock.
+  // continue: Customers are allowed to place orders for a product variant when it's out of stock.
+  INVENTORY_POLICY: {
+    DENY: 'deny',
+    CONTINUE: 'continue'
   },
 //   disabled: customers are disabled by default until they are invited. Staff accounts can disable a customer's account at any time.
 // invited: the customer has been emailed an invite to create an account that saves their customer settings.

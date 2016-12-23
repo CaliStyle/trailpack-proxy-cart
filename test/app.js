@@ -21,6 +21,12 @@ let web = {}
 const stores = {
   sqlitedev: {
     adapter: require('sails-disk')
+  },
+  productUpload: {
+    database: 'ProxyCart',
+    storage: './test/test.productUpload.sqlite',
+    host: '127.0.0.1',
+    dialect: 'sqlite'
   }
 }
 

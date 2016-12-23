@@ -23,7 +23,12 @@ module.exports = class Metadata extends Model {
              * @param models
              */
             associate: (models) => {
-
+              models.Metadata.belongsTo(models.Customer, {
+                // as: 'customer_id'
+              })
+              models.Metadata.belongsTo(models.Product, {
+                // as: 'customer_id'
+              })
             }
           }
         }

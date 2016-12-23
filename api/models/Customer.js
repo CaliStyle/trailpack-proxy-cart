@@ -28,18 +28,18 @@ module.exports = class Customer extends Model {
               models.Customer.hasMany(models.CustomerAddress, {
                 as: 'addresses'
               })
-              models.Customer.hasOne(models.CustomerAddress, {
-                as: 'default_address'
-              })
-              models.Customer.hasOne(models.Metadata, {
-                as: 'metadata'
-              })
+              // models.Customer.hasOne(models.CustomerAddress, {
+              //   as: 'default_address'
+              // })
+              // models.Customer.hasOne(models.Metadata, {
+              //   as: 'metadata'
+              // })
               models.Customer.hasMany(models.Order, {
                 as: 'orders'
               })
-              models.Customer.hasOne(models.Order, {
-                as: 'last_order_id'
-              })
+              // models.Customer.hasOne(models.Order, {
+              //   as: 'last_order_id'
+              // })
               models.Customer.hasMany(models.Cart, {
                 as: 'carts'
               })

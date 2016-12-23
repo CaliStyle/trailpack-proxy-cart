@@ -16,6 +16,9 @@ module.exports = class ProductCollection extends Model {
           underscored: true,
           classMethods: {
             associate: (models) => {
+              models.ProductCollection.hasMany(models.ProductCollection, {
+                as: 'collections'
+              })
               models.ProductCollection.hasMany(models.Product, {
                 as: 'products'
               })

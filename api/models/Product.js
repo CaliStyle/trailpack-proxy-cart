@@ -29,6 +29,10 @@ module.exports = class Product extends Model {
              * @param models
              */
             associate: (models) => {
+              // models.Product.belongsTo(models.Shop, {
+              //   // as: 'shop_id',
+              //   // foreignKey: 'shop_id'
+              // })
               models.Product.hasMany(models.ProductImage, {
                 as: 'images',
                 onDelete: 'CASCADE'
@@ -37,26 +41,26 @@ module.exports = class Product extends Model {
                 as: 'variants',
                 onDelete: 'CASCADE'
               })
-              models.Product.hasMany(models.ProductReview, {
-                as: 'reviews',
-                onDelete: 'CASCADE'
-              })
-              models.Product.hasOne(models.Metadata, {
-                as: 'metadata',
-                onDelete: 'CASCADE'
-              })
-              models.Product.belongsToMany(models.Cart, {
-                as: 'carts',
-                through: 'CartProduct'
-              })
-              models.Product.belongsToMany(models.ProductCollection, {
-                as: 'collections',
-                through: 'ProductCollectionProduct'
-              })
-              models.Product.belongsToMany(models.OrderItem, {
-                as: 'order_items',
-                through: 'OrderItemProduct'
-              })
+              // models.Product.hasMany(models.ProductReview, {
+              //   as: 'reviews',
+              //   onDelete: 'CASCADE'
+              // })
+              // models.Product.hasOne(models.Metadata, {
+              //   as: 'metadata',
+              //   onDelete: 'CASCADE'
+              // })
+              // models.Product.belongsToMany(models.Cart, {
+              //   as: 'carts',
+              //   through: 'CartProduct'
+              // })
+              // models.Product.belongsToMany(models.ProductCollection, {
+              //   as: 'collections',
+              //   through: 'ProductCollectionProduct'
+              // })
+              // models.Product.belongsToMany(models.OrderItem, {
+              //   as: 'order_items',
+              //   through: 'OrderItemProduct'
+              // })
               // models.Product.belongsToMany(models.Cart, {
               //   through: {
               //     model: CartProduct,
@@ -80,9 +84,8 @@ module.exports = class Product extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        //id
 
-        // Multi-Site Support
+        // TODO Multi-Site Support. Change to domain?
         host: {
           type: Sequelize.STRING,
           defaultValue: 'localhost'
@@ -93,100 +96,88 @@ module.exports = class Product extends Model {
           allowNull: false,
           unique: true
         },
-
         // Product Title
         title: {
           type: Sequelize.STRING
         },
-
         // Body (html or markdown)
         body: {
           type: Sequelize.TEXT
         },
-
         // SEO title
         seo_title: {
           type: Sequelize.STRING
         },
-
         // SEO description
         seo_description: {
           type: Sequelize.STRING
         },
-
         // Type of the product e.g. 'Snow Board'
         type: {
           type: Sequelize.STRING,
           allowNull: false
         },
-
-        // tags for the product
+        // TODO convert to Model tags for the product
         tags: helpers.ARRAY('product', app, Sequelize, Sequelize.STRING, 'tags', {
           defaultValue: []
         }),
-
         // Default price of the product in cents
         price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-
         // Default currency of the product
         currency: {
           type: Sequelize.STRING,
           defaultValue: 'USD'
         },
-
         // The sales channels in which the product is visible.
         published_scope: {
           type: Sequelize.STRING,
           defaultValue: 'global'
         },
-
         // Is product published
         published: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
-
         // Date/Time the Product was published
         published_at: {
           type: Sequelize.DATE
         },
-
         // Date/Time the Product was unpublished
         unpublished_at: {
           type: Sequelize.DATE
         },
-
         // Options for the product (size, color, etc.)
         options: helpers.ARRAY('product', app, Sequelize, Sequelize.STRING, 'options', {
           defaultValue: []
         }),
-
         // Weight of the product, defaults to grams
         weight: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-
         // Unit of Measurement for Weight of the product, defaults to grams
         weight_unit: {
           type: Sequelize.ENUM(),
           values: _.values(UNITS),
           defaultValue: UNITS.G
         },
-
         // Vendor of the product
         vendor: {
           type: Sequelize.STRING
         },
-
+        // The Average Score of Reviews
         review_score: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-
+        // The Total Reviews of the Product
+        total_reviews: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

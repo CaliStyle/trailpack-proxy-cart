@@ -14,8 +14,8 @@ module.exports = class CartController extends Controller {
    * @param res
    */
   count(req, res){
-    const ProxyCartService = this.app.services.ProxyCartService
-    ProxyCartService.count('Cart')
+    const ProxyEngineService = this.app.services.ProxyEngineService
+    ProxyEngineService.count('Cart')
       .then(count => {
         const counts = {
           carts: count

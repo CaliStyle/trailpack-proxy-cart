@@ -35,6 +35,9 @@ module.exports = class Order extends Model {
               models.Order.belongsTo(models.Customer, {
                 // as: 'customer_id'
               })
+              models.Order.belongsTo(models.Customer, {
+                foreignKey: 'last_order_id'
+              })
               models.Order.hasMany(models.Discount, {
                 as: 'discount_codes'
               })
@@ -44,13 +47,13 @@ module.exports = class Order extends Model {
               models.Order.hasMany(models.Transaction, {
                 as: 'transactions'
               })
-              models.Order.hasOne(models.CustomerAddress, {
-                as: 'billing_address'
-              })
-              models.Order.hasOne(models.CustomerAddress, {
-                as: 'shipping_address'
-              })
-              models.Order.hasOne(models.Refund, {
+              // models.Order.hasOne(models.CustomerAddress, {
+              //   as: 'billing_address'
+              // })
+              // models.Order.hasOne(models.CustomerAddress, {
+              //   as: 'shipping_address'
+              // })
+              models.Order.hasMany(models.Refund, {
                 as: 'refunds'
               })
             }

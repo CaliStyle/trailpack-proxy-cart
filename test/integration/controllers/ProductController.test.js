@@ -18,6 +18,7 @@ describe('ProductController', () => {
   let defaultVariantID
   let firstVariantID
   let firstImageID
+  let uploadID
   it('should make addProducts post request', (done) => {
     request
       .post('/product/addProducts')
@@ -295,7 +296,19 @@ describe('ProductController', () => {
       .attach('csv', 'test/fixtures/product_upload.csv')
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log(res.body)
+        assert.ok(res.body.result.upload_id)
+        uploadID = res.body.result.upload_id
+        assert.equal(res.body.result.products, 2)
+        done()
+      })
+  })
+  it('It should process upload', (done) => {
+    request
+      .post(`/product/processUpload/${uploadID}`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
         done()
       })
   })

@@ -19,6 +19,7 @@ module.exports = class Cart extends Model {
         options: {
           underscored: true,
           hooks: {
+            // TODO connect to Shop and Cart/Customer
             beforeUpdate: (values, options, fn) => {
               if (values.line_items) {
                 let subtotalPrice = 0
@@ -46,17 +47,21 @@ module.exports = class Cart extends Model {
                     subtotalPrice = subtotalPrice + item.price * item.quantity
                     totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
                   }
+                  if (item.name === 'shipping') {
+                    totalShipping = totalShipping + item.price
+                  }
+                  if (item.name === 'tax') {
+                    totalTax = totalTax + item.price
+                  }
                   if (item.has_discount) {
                     discountedLines[item.id] = item.discount
                     totalDiscounts = totalDiscounts + item.discount
                   }
                 })
-
-                if (values.taxes_included) {
-                  _.each(taxLines, (amount, id) => {
-                    totalTax = totalTax + (amount * values.tax_percentage)
-                  })
-                }
+                // _.each(taxLines, (amount, id) => {
+                //   totalTax = totalTax + (amount * values.tax_percentage)
+                // })
+                // if (values.taxes_included) {}
 
                 if (values.shipping_included) {
                   totalShipping = values.total_shipping
@@ -74,6 +79,7 @@ module.exports = class Cart extends Model {
                 values.total_line_items_price = totalLineItemsPrice
                 values.total_price = totalPrice
               }
+
               fn(null, values)
             }
           },
@@ -83,9 +89,16 @@ module.exports = class Cart extends Model {
              * @param models
              */
             associate: (models) => {
+              models.Cart.belongsTo(models.Shop, {
+                // as: 'shop_id'
+              })
               models.Cart.belongsTo(models.Customer, {
                 // as: 'customer_id'
               })
+              // models.Cart.belongsTo(models.Customer, {
+              //   foreignKey: 'default_cart'
+              //   // as: 'customer_id'
+              // })
               models.Cart.hasMany(models.Product, {
                 as: 'products'
                 // constraints: false
@@ -132,6 +145,10 @@ module.exports = class Cart extends Model {
           defaultValue: {}
         }),
         shipping_included: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        tax_shipping: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
