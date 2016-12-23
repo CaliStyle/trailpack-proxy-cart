@@ -29,6 +29,7 @@ module.exports = {
     taxable: 'Variant Taxable',
     barcode: 'Variant Barcode',
     variant_images: 'Variant Images',
+    variant_images_alt: 'Variant Images Alt Text',
     tax_code: 'Variant Tax Code',
     gift_card: 'Gift Card',
     metadata: 'Metadata',

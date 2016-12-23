@@ -116,6 +116,9 @@ The barcode, ISBN or UPC of the product.
 ## Variant Images
 Put the URL for your variant image. Proxy-Cart will download the images during the import and re-upload them into your data store.
 
+## Variant Images Alt Text
+The text that describes the images separated by a pipe character e.g. `|`. Useful if images cannot be displayed or a screenreader passes over an image—the text replaces this element.
+
 ## Variant Tax Code (can be left blank)
 ### _Note_
 This column only applies if you are using a tax service generic.

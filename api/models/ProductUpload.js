@@ -13,7 +13,10 @@ module.exports = class ProductUpload extends Model {
   static config (app, Sequelize) {
     const config = {
       migrate: 'drop', //override default models configurations if needed
-      store: 'productUpload'
+      store: 'productUpload',
+      options: {
+        underscored: true
+      }
     }
     return config
   }
@@ -52,25 +55,21 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Tags'
-      tags: {
-        type: Sequelize.STRING
-      },
+      tags: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'tags', {
+        defaultValue: []
+      }),
       // 'Published'
       published: {
         type: Sequelize.STRING
       },
       // { 'Option / * Name' : 'Option / * Value' }
-      options: helpers.JSON('productupload', app, Sequelize, 'options', {
-        defaultValue: {}
+      options: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'options', {
+        defaultValue: []
       }),
       // 'Images Sources'
-      images: {
-        type: Sequelize.STRING
-      },
-      // 'Images Alt Text'
-      images_alt: {
-        type: Sequelize.STRING
-      },
+      images: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'images', {
+        defaultValue: []
+      }),
       // 'Variant SKU'
       sku: {
         type: Sequelize.STRING
@@ -127,9 +126,9 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Variant Images'
-      variant_images: {
-        type: Sequelize.STRING
-      },
+      variant_images: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'variant_images', {
+        defaultValue: []
+      }),
       // 'Variant Tax Code'
       tax_code: {
         type: Sequelize.STRING

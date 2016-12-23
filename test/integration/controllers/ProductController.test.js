@@ -309,6 +309,8 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.products, 1)
+        assert.equal(res.body.variants, 2)
         done()
       })
   })
