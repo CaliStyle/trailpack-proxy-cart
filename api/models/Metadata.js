@@ -29,6 +29,9 @@ module.exports = class Metadata extends Model {
               models.Metadata.belongsTo(models.Product, {
                 // as: 'customer_id'
               })
+              models.Metadata.belongsTo(models.ProductCollection, {
+                // as: 'customer_id'
+              })
             }
           }
         }

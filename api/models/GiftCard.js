@@ -67,9 +67,6 @@ module.exports = class GiftCard extends Model {
         expires_on: {
           type: Sequelize.DATE
         },
-        template_suffix: {
-          type: Sequelize.STRING
-        },
 
         live_mode: {
           type: Sequelize.BOOLEAN,

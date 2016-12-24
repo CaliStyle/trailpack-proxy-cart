@@ -186,5 +186,23 @@ module.exports = {
     VOID: 'void',
     //  The partial or full return of the captured money to the customer.
     REFUND: 'refund'
+  },
+  COLLECTION_SORT_ORDER: {
+    // Alphabetically, in ascending order (A - Z).
+    ALPHA_ASC: 'alpha-asc',
+    // Alphabetically, in descending order (Z - A).
+    ALPHA_DESC: 'alpha-desc',
+    // By best-selling products.
+    BEST_SELLING: 'best-selling',
+    //  By date created, in ascending order (oldest - newest).
+    CREATED: 'created',
+    // By date created, in descending order (newest - oldest).
+    CREATED_DESC: 'created-desc',
+    // Order created by the shop owner.
+    MANUAL: 'manual',
+    // By price, in ascending order (lowest - highest).
+    PRICE_ASC: 'price-asc',
+    // By price, in descending order (highest - lowest).
+    PRICE_DESC: 'price-desc'
   }
 }
