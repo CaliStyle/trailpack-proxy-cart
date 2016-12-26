@@ -23,15 +23,22 @@ module.exports = class Metadata extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Metadata.belongsTo(models.Customer, {
-                // as: 'customer_id'
-              })
               models.Metadata.belongsTo(models.Product, {
-                // as: 'customer_id'
+                through: {
+                  model: models.ItemMetadata,
+                  unique: false
+                },
+                foreignKey: 'owner_id'
               })
-              models.Metadata.belongsTo(models.ProductCollection, {
-                // as: 'customer_id'
-              })
+              // models.Metadata.belongsTo(models.Customer, {
+              //   // as: 'customer_id'
+              // })
+              // models.Metadata.belongsTo(models.Product, {
+              //   // as: 'customer_id'
+              // })
+              // models.Metadata.belongsTo(models.ProductCollection, {
+              //   // as: 'customer_id'
+              // })
             }
           }
         }

@@ -7,6 +7,8 @@ const Service = require('trails/service')
  * @description Tax Service
  */
 module.exports = class TaxService extends Service {
-
+  calculate(cart){
+    return Promise.resolve(cart)
+  }
 }
 

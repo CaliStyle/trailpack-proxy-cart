@@ -20,7 +20,7 @@ module.exports = {
       /**
        * List of events emitted by the configure lifecycle method
        */
-      emit: []
+      emit: ['trailpack:proxycart:configured']
     },
     initialize: {
       listen: ['trailpack:sequelize:initialized'],

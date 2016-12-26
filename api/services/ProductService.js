@@ -5,13 +5,19 @@ const Service = require('trails/service')
 const _ = require('lodash')
 const removeMd = require('remove-markdown')
 const striptags = require('striptags')
-const Errors = require('../../lib/').Errors
+const Errors = require('proxy-engine-errors')
 
 /**
  * @module ProductService
  * @description Product Service
  */
 module.exports = class ProductService extends Service {
+  findOne(id) {
+
+  }
+  find(ids) {
+
+  }
   /**
    * Add Multiple Products
    * @param products
@@ -70,6 +76,10 @@ module.exports = class ProductService extends Service {
   createProduct(product){
     return new Promise((resolve, reject) => {
       const FootprintService = this.app.services.FootprintService
+      const Product = this.app.services.ProxyEngineService.getModel('Product')
+      const Tag = this.app.services.ProxyEngineService.getModel('Tag')
+      const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+      // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
       // The Default Product
       const create = {
         host: product.host,
@@ -78,15 +88,15 @@ module.exports = class ProductService extends Service {
         body: product.body,
         vendor: product.vendor,
         type: product.type,
-        tags: product.tags,
         price: product.price,
         // TODO FIX metadata
-        metadata: product.metadata,
+        // metadata: product.metadata,
         published: product.published,
         published_scope: product.published_scope,
         weight: product.weight,
         weight_unit: product.weight_unit
       }
+
       if (product.published) {
         create.published_at = new Date()
       }
@@ -162,6 +172,8 @@ module.exports = class ProductService extends Service {
           delete variant.images
         }
       })
+      // Assign the variants to the create model
+      create.variants = variants
 
       _.map(images, (image, index) => {
         image.position = index + 1
@@ -169,30 +181,31 @@ module.exports = class ProductService extends Service {
 
       // Set the resulting Product
       let resProduct = {}
-      // Create the Product
-      // const Product = this.app.services.ProxyEngineService.getModel('Product')
-      // const Metadata = this.app.services.ProxyEngineService.getModel('Product')
-      // Product.create(create, {
-      //   // include: [ Metadata ]
-      // })
-      FootprintService.create('product', create)
+      this.transformTags(product.tags)
+        .then(tags => {
+          // console.log('TAGS', tags)
+          create.tags = tags
+          // Create the Product
+          return Product.create(create, {
+            include: [
+              {model: Tag, as: 'tags'},
+              {model: Variant, as: 'variants'}
+            ]
+          })
+        })
         .then(createdProduct => {
+          // console.log(createdProduct)
           // Set the resulting product
           resProduct = createdProduct.get({ plain: true })
-          // Create the Variants
-          return Promise.all(variants.map(variant => {
-            // Create the Association
-            return FootprintService.createAssociation('Product', resProduct.id, 'variants', variant)
-          }))
-        })
-        .then(createdVariants => {
-          // Set the resulting product's variants
-          resProduct.variants = createdVariants
-          // Create Product Images
+          // Unwrap the tags
+          resProduct.tags = this.unwrapTags(resProduct.tags)
+
+          // console.log('createdProduct',resProduct)
+
           return Promise.all(images.map(image => {
             image.product_id = resProduct.id
             if (typeof image.variant !== 'undefined') {
-              image.product_variant_id = createdVariants[image.variant].id
+              image.product_variant_id = resProduct.variants[image.variant].id
               delete image.variant
             }
             return FootprintService.create('ProductImage', image)
@@ -227,12 +240,25 @@ module.exports = class ProductService extends Service {
       }
 
       const FootprintService = this.app.services.FootprintService
+      // const Product = this.app.services.ProxyEngineService.getModel('Product')
       let resProduct
       let variants = []
       let images = []
+      let tags = []
       // TODO Fix Metadata Fix Options
-      FootprintService.find('Product', product.id, {populate: 'images,variants'})
+      FootprintService.find('Product', product.id, {populate: 'images,variants,tags'})
         .then(oldProduct => {
+          // Init tags
+          tags = _.map(oldProduct.tags, tag => {
+            return tag.get({ plain: true })
+          })
+          product.tags = _.filter(product.tags, tag => {
+            if (typeof tags.name === 'undefined') {
+              return { name: tag }
+            }
+          })
+          delete product.tags
+          delete oldProduct.tags
 
           // Init images and map image updates if there are any
           images = _.map(oldProduct.images, image => {
@@ -335,6 +361,7 @@ module.exports = class ProductService extends Service {
           resProduct.images = images
           const update = _.omit(resProduct, ['id','created_at','updated_at', 'variants', 'images', 'metadata'])
           return FootprintService.update('Product', product.id, update)
+          // return Product.update(product.id, update)
         })
         .then(updatedProduct => {
           return Promise.all(resProduct.variants.map(variant => {
@@ -484,7 +511,32 @@ module.exports = class ProductService extends Service {
         })
     })
   }
-
+  transformTags(tags) {
+    const Tag = this.app.services.ProxyEngineService.getModel('Tag')
+    tags = _.map(tags, tag => {
+      if (_.isString(tag)) {
+        tag = { name: tag }
+      }
+      return tag
+    })
+    return Promise.all(tags.map((tag, index) => {
+      return Tag.find({where: tag, attributes: ['id','name']})
+        .then(tag => {
+          if (tag) {
+            return tag //.get({ plain: true })
+          }
+          else {
+            return tags[index]
+          }
+        })
+    }))
+  }
+  unwrapTags(tags) {
+    tags = _.map(tags, tag => {
+      return tag.name
+    })
+    return tags
+  }
   /**
    *
    * @param variant

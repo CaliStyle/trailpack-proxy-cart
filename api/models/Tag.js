@@ -19,9 +19,15 @@ module.exports = class Tag extends Model {
              * Associate the Model
              * @param models
              */
-            // associate: (models) => {
-            //
-            // }
+            associate: (models) => {
+              models.Tag.belongsToMany(models.Product, {
+                through: {
+                  model: models.ItemTag,
+                  unique: false
+                },
+                foreignKey: 'owner_id'
+              })
+            }
           }
         }
       }
@@ -34,7 +40,9 @@ module.exports = class Tag extends Model {
     if (app.config.database.orm === 'sequelize') {
       schema = {
         name: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          unique: true,
+          notNull: true
         },
         live_mode: {
           type: Sequelize.BOOLEAN,

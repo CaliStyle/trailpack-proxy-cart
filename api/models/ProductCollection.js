@@ -18,9 +18,9 @@ module.exports = class ProductCollection extends Model {
           classMethods: {
             COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
             associate: (models) => {
-              models.ProductCollection.hasMany(models.ProductCollection, {
-                as: 'collections'
-              })
+              // models.ProductCollection.hasMany(models.ProductCollection, {
+              //   as: 'collections'
+              // })
               models.ProductCollection.hasMany(models.Product, {
                 as: 'products'
               })

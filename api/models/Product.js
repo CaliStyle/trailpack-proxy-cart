@@ -53,10 +53,34 @@ module.exports = class Product extends Model {
               //   as: 'carts',
               //   through: 'CartProduct'
               // })
-              // models.Product.belongsToMany(models.ProductCollection, {
-              //   as: 'collections',
-              //   through: 'ProductCollectionProduct'
-              // })
+              models.Product.belongsToMany(models.ProductCollection, {
+                as: 'collections',
+                through: 'ProductCollectionProduct'
+              })
+              models.Product.hasOne(models.Metadata, {
+                as: 'metadata',
+                through: {
+                  model: models.ItemMetadata,
+                  unique: false,
+                  scope: {
+                    owner: 'product'
+                  },
+                  foreignKey: 'owner_id',
+                  constraints: false
+                }
+              })
+              models.Product.belongsToMany(models.Tag, {
+                as: 'tags',
+                through: {
+                  model: models.ItemTag,
+                  unique: false,
+                  scope: {
+                    owner: 'product'
+                  }
+                },
+                foreignKey: 'owner_id',
+                constraints: false
+              })
               // models.Product.belongsToMany(models.OrderItem, {
               //   as: 'order_items',
               //   through: 'OrderItemProduct'
@@ -118,9 +142,6 @@ module.exports = class Product extends Model {
           allowNull: false
         },
         // TODO convert to Model tags for the product
-        tags: helpers.ARRAY('product', app, Sequelize, Sequelize.STRING, 'tags', {
-          defaultValue: []
-        }),
         // Default price of the product in cents
         price: {
           type: Sequelize.INTEGER,

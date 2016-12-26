@@ -24,8 +24,8 @@ module.exports = class GiftCard extends Model {
              * @param models
              */
             associate: (models) => {
-              models.GiftCard.hasOne(models.Order, {
-                as: 'order_id'
+              models.GiftCard.belongsTo(models.Order, {
+                // as: 'order_id'
               })
               models.GiftCard.hasOne(models.OrderItem, {
                 as: 'order_item_id'

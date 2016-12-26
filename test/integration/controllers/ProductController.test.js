@@ -112,7 +112,7 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.handle, 'snowboard')
         assert.equal(res.body.title, 'Burton Custom Freestyle 151')
