@@ -89,19 +89,19 @@ module.exports = class ProxyCartService extends Service {
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'tags') {
-            upload[k] = data.split(',')
+            upload[k] = data.split(',').map(tag => { return tag.trim()})
           }
           else if (k == 'images') {
-            upload[k] = data.split(',')
+            upload[k] = data.split(',').map(image => { return image.trim()})
           }
           else if (k == 'images_alt') {
-            upload[k] = data.split('|')
+            upload[k] = data.split('|').map(alt => { return alt.trim()})
           }
           else if (k == 'variant_images') {
-            upload[k] = data.split(',')
+            upload[k] = data.split(',').map(image => { return image.trim()})
           }
           else if (k == 'variant_images_alt') {
-            upload[k] = data.split('|')
+            upload[k] = data.split('|').map(alt => { return alt.trim()})
           }
           else {
             upload[k] = data
@@ -118,7 +118,7 @@ module.exports = class ProxyCartService extends Service {
             if (typeof upload.options[index] === 'undefined') {
               upload.options[index] = {name: '', value: ''}
             }
-            upload.options[index][part] = data
+            upload.options[index][part] = data.trim()
           }
         }
       }

@@ -12,12 +12,6 @@ const Errors = require('proxy-engine-errors')
  * @description Product Service
  */
 module.exports = class ProductService extends Service {
-  findOne(id) {
-
-  }
-  find(ids) {
-
-  }
   /**
    * Add Multiple Products
    * @param products
@@ -75,10 +69,11 @@ module.exports = class ProductService extends Service {
    */
   createProduct(product){
     return new Promise((resolve, reject) => {
-      const FootprintService = this.app.services.FootprintService
+      // const FootprintService = this.app.services.FootprintService
       const Product = this.app.services.ProxyEngineService.getModel('Product')
       const Tag = this.app.services.ProxyEngineService.getModel('Tag')
       const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+      const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
       // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
       // The Default Product
       const create = {
@@ -181,41 +176,77 @@ module.exports = class ProductService extends Service {
 
       // Set the resulting Product
       let resProduct = {}
-      this.transformTags(product.tags)
-        .then(tags => {
-          // console.log('TAGS', tags)
-          create.tags = tags
-          // Create the Product
-          return Product.create(create, {
-            include: [
-              {model: Tag, as: 'tags'},
-              {model: Variant, as: 'variants'}
-            ]
-          })
-        })
+      // Tag.transformTags(product.tags)
+      //   .then(resTags => {
+      //     // console.log('TAGS', tags)
+      //     // create.tags = resTags
+      //     // Create the Product
+      //     return Product.create(create, {
+      //       include: [
+      //         // {
+      //         //   model: Tag,
+      //         //   as: 'tags'
+      //         // },
+      //         {
+      //           model: Variant,
+      //           as: 'variants'
+      //           // include: [
+      //           //   {
+      //           //     model: 'ProductImages',
+      //           //     as: 'images'
+      //           //   }
+      //           // ]
+      //         }
+      //       ]
+      //     })
+      //   })
+      Product.create(create, {
+        include: [
+          {
+            model: Tag,
+            as: 'tags'
+          },
+          {
+            model: Image,
+            as: 'images'
+          },
+          {
+            model: Variant,
+            as: 'variants'
+            // include: [
+            //   {
+            //     model: Image,
+            //     as: 'images'
+            //   }
+            // ]
+          }
+        ]
+      })
         .then(createdProduct => {
-          // console.log(createdProduct)
-          // Set the resulting product
-          resProduct = createdProduct.get({ plain: true })
-          // Unwrap the tags
-          resProduct.tags = this.unwrapTags(resProduct.tags)
-
-          // console.log('createdProduct',resProduct)
-
+          resProduct = createdProduct
+          return Tag.transformTags(product.tags)
+        })
+        .then(tags => {
+          // Add Tags
+          return resProduct.addTags(tags)
+        })
+        .then(tags => {
           return Promise.all(images.map(image => {
-            image.product_id = resProduct.id
+            // image.product_id = resProduct.id
             if (typeof image.variant !== 'undefined') {
               image.product_variant_id = resProduct.variants[image.variant].id
               delete image.variant
             }
-            return FootprintService.create('ProductImage', image)
-            //return FootprintService.createAssociation('Product', resProduct.id, 'images', image)
+            return resProduct.createImage(image)
           }))
         })
         .then(createdImages => {
-          // Set the resulting product's images
-          resProduct.images = createdImages
-          return resolve(resProduct)
+          // Reload
+          return Product.findOneDefault(resProduct.id)
+        })
+        .then(product => {
+          // Return
+          return resolve(product)
         })
         .catch(err => {
           return reject(err)
@@ -511,32 +542,7 @@ module.exports = class ProductService extends Service {
         })
     })
   }
-  transformTags(tags) {
-    const Tag = this.app.services.ProxyEngineService.getModel('Tag')
-    tags = _.map(tags, tag => {
-      if (_.isString(tag)) {
-        tag = { name: tag }
-      }
-      return tag
-    })
-    return Promise.all(tags.map((tag, index) => {
-      return Tag.find({where: tag, attributes: ['id','name']})
-        .then(tag => {
-          if (tag) {
-            return tag //.get({ plain: true })
-          }
-          else {
-            return tags[index]
-          }
-        })
-    }))
-  }
-  unwrapTags(tags) {
-    tags = _.map(tags, tag => {
-      return tag.name
-    })
-    return tags
-  }
+
   /**
    *
    * @param variant

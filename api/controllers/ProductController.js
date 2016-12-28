@@ -10,8 +10,9 @@ const Errors = require('proxy-engine-errors')
  */
 module.exports = class ProductController extends Controller {
   findOne(req, res){
-    const FootprintService = this.app.services.FootprintService
-    FootprintService.find('Product', req.params.id, { where: {published: true}, populate: 'all' })
+    // const FootprintService = this.app.services.FootprintService
+    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    Product.findOneDefault(req.params.id, {})
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error(`Product id ${req.params.id} not found`))

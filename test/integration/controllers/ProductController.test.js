@@ -65,6 +65,7 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
+        console.log('THESE TAGS',res.body[0].tags)
         // console.log('PRODUCT Variants',res.body[0].variants)
         // console.log('PRODUCT Images',res.body[0].images)
         createdProductID = res.body[0].id
@@ -79,6 +80,11 @@ describe('ProductController', () => {
         assert.equal(res.body[0].seo_description, 'Good snowboard!')
         assert.equal(res.body[0].vendor, 'Burton')
         assert.equal(res.body[0].type, 'Snowboard')
+        // Tags
+        assert.equal(res.body[0].tags.length, 3)
+        assert.notEqual(res.body[0].tags.indexOf('snow'), -1)
+        assert.notEqual(res.body[0].tags.indexOf('equipment'), -1)
+        assert.notEqual(res.body[0].tags.indexOf('outdoor'), -1)
         // Images
         assert.equal(res.body[0].images[0].position, 1)
         assert.equal(res.body[0].images[0].product_id, createdProductID)
@@ -112,7 +118,7 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.handle, 'snowboard')
         assert.equal(res.body.title, 'Burton Custom Freestyle 151')
@@ -120,7 +126,11 @@ describe('ProductController', () => {
         assert.equal(res.body.seo_description, 'Good snowboard!')
         assert.equal(res.body.vendor, 'Burton')
         assert.equal(res.body.type, 'Snowboard')
-
+        // Tags
+        assert.equal(res.body.tags.length, 3)
+        assert.notEqual(res.body.tags.indexOf('snow'), -1)
+        assert.notEqual(res.body.tags.indexOf('equipment'), -1)
+        assert.notEqual(res.body.tags.indexOf('outdoor'), -1)
         // Images
         assert.equal(res.body.images[0].product_id, createdProductID)
         assert.equal(res.body.images[0].product_variant_id, defaultVariantID)

@@ -1,7 +1,8 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
-
+const _ = require('lodash')
 /**
  * @module Tag
  * @description Tag Model
@@ -25,8 +26,44 @@ module.exports = class Tag extends Model {
                   model: models.ItemTag,
                   unique: false
                 },
-                foreignKey: 'owner_id'
+                foreignKey: 'tag_id'
               })
+            },
+            transformTags: (tags) => {
+              const Tag = app.orm['Tag']
+              tags = _.map(tags, tag => {
+                if (_.isString(tag)) {
+                  tag = { name: tag }
+                }
+                return _.omit(tag, ['created_at','updated_at'])
+              })
+              // console.log('TAGS', tags)
+              return Promise.all(tags.map((tag, index) => {
+                return Tag.findOne({
+                  where: tag,
+                  attributes: ['id', 'name']
+                })
+                  .then(tag => {
+
+                    if (tag) {
+                      // console.log('TAG', tag.get({ plain: true }))
+                      return tag
+                    }
+                    else {
+                      // console.log('TAG',tags[index])
+                      return Tag.create(tags[index])
+                    }
+                  })
+              }))
+            },
+            reverseTransformTags: (tags) => {
+              tags = _.map(tags, tag => {
+                if (_.isString(tag)) {
+                  return tag
+                }
+                return tag.name
+              })
+              return tags
             }
           }
         }

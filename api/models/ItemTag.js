@@ -19,15 +19,15 @@ module.exports = class ItemTag extends Model {
     const schema = {
       tag_id: {
         type: Sequelize.INTEGER,
-        unique: 'tag_owner'
+        unique: 'tag_model'
       },
-      owner: {
+      model: {
         type: Sequelize.STRING,
-        unique: 'tag_owner'
+        unique: 'tag_model'
       },
-      owner_id: {
+      model_id: {
         type: Sequelize.INTEGER,
-        unique: 'tag_owner',
+        unique: 'tag_model',
         references: null
       }
     }

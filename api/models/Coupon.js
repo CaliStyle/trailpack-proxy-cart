@@ -14,6 +14,18 @@ module.exports = class Coupon extends Model {
       config = {
         options: {
           underscored: true,
+          scope: {
+            expired: () => {
+              return {
+                where: {
+                  expires_on: {
+                    $gte: new Date()
+                  },
+                  live_mode: app.config.proxyCart.live_mode
+                }
+              }
+            }
+          },
           classMethods: {
             /**
              * Associate the Model

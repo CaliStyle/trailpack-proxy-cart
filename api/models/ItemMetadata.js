@@ -19,15 +19,15 @@ module.exports = class ItemMetadata extends Model {
     const schema = {
       metadata_id: {
         type: Sequelize.INTEGER,
-        unique: 'metadata_owner'
+        unique: 'metadata_model'
       },
-      owner: {
+      model: {
         type: Sequelize.STRING,
-        unique: 'metadata_owner'
+        unique: 'metadata_model'
       },
-      owner_id: {
+      model_id: {
         type: Sequelize.INTEGER,
-        unique: 'metadata_owner',
+        unique: 'metadata_model',
         references: null
       }
     }

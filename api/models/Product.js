@@ -63,9 +63,9 @@ module.exports = class Product extends Model {
                   model: models.ItemMetadata,
                   unique: false,
                   scope: {
-                    owner: 'product'
+                    model: 'product'
                   },
-                  foreignKey: 'owner_id',
+                  foreignKey: 'model_id',
                   constraints: false
                 }
               })
@@ -75,10 +75,10 @@ module.exports = class Product extends Model {
                   model: models.ItemTag,
                   unique: false,
                   scope: {
-                    owner: 'product'
+                    model: 'product'
                   }
                 },
-                foreignKey: 'owner_id',
+                foreignKey: 'model_id',
                 constraints: false
               })
               // models.Product.belongsToMany(models.OrderItem, {
@@ -96,6 +96,37 @@ module.exports = class Product extends Model {
               //   foreignKey: 'taggable_id',
               //   constraints: false
               // })
+            },
+            findOneDefault: (id, options) => {
+              options = _.merge(options, {
+                include: [
+                  {
+                    model: app.orm['ProductImage'],
+                    as: 'images'
+                  },
+                  {
+                    model: app.orm['Tag'],
+                    as: 'tags',
+                    attributes: ['name', 'id']
+                  },
+                  {
+                    model: app.orm['ProductVariant'],
+                    as: 'variants'
+                    // include: [
+                    //   {
+                    //     model: app.orm['ProductImage'],
+                    //     as: 'images'
+                    //   }
+                    // ]
+                  }
+                ]
+              })
+              return app.orm['Product'].findById(id, options)
+                .then(product => {
+                  const resProduct = product.get({plain: true})
+                  resProduct.tags = app.orm['Tag'].reverseTransformTags(resProduct.tags)
+                  return resProduct
+                })
             }
           }
         }
