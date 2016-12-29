@@ -97,7 +97,7 @@ module.exports = class Product extends Model {
               //   constraints: false
               // })
             },
-            findOneDefault: (id, options) => {
+            findOneDefault: function(id, options) {
               options = _.merge(options, {
                 include: [
                   {
@@ -121,12 +121,28 @@ module.exports = class Product extends Model {
                   }
                 ]
               })
-              return app.orm['Product'].findById(id, options)
-                .then(product => {
-                  const resProduct = product.get({plain: true})
-                  resProduct.tags = app.orm['Tag'].reverseTransformTags(resProduct.tags)
-                  return resProduct
+              return this.findById(id, options)
+                // .then(product => {
+                //   const resProduct = product.get({plain: true})
+                //   resProduct.tags = app.orm['Tag'].reverseTransformTags(resProduct.tags)
+                //   return resProduct
+                // })
+            }
+          },
+          instanceMethods: {
+            toJSON: function() {
+              const resp = this.get({ plain: true })
+              // Transfrom Tags to array on toJSON
+              if (resp.tags) {
+                resp.tags = resp.tags.map(tag => {
+                  if (_.isString(tag)) {
+                    return tag
+                  }
+                  return tag.name
                 })
+              }
+              // console.log('THIS TEST', resp)
+              return resp
             }
           }
         }

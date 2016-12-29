@@ -99,26 +99,26 @@ module.exports = class Cart extends Model {
               //   foreignKey: 'default_cart'
               //   // as: 'customer_id'
               // })
-              models.Cart.hasMany(models.Product, {
-                as: 'products'
-                // constraints: false
-              })
-              models.Cart.hasMany(models.ProductVariant, {
-                as: 'variants'
-                // constraints: false
-              })
-              models.Cart.hasMany(models.Discount, {
-                as: 'discounts'
-                // constraints: false
-              })
-              models.Cart.hasMany(models.Coupon, {
-                as: 'coupons'
-                // constraints: false
-              })
-              models.Cart.hasMany(models.GiftCard, {
-                as: 'gift_cards'
-                // constraints: false
-              })
+              // models.Cart.hasMany(models.Product, {
+              //   as: 'products'
+              //   // constraints: false
+              // })
+              // models.Cart.hasMany(models.ProductVariant, {
+              //   as: 'variants'
+              //   // constraints: false
+              // })
+              // models.Cart.hasMany(models.Discount, {
+              //   as: 'discounts'
+              //   // constraints: false
+              // })
+              // models.Cart.hasMany(models.Coupon, {
+              //   as: 'coupons'
+              //   // constraints: false
+              // })
+              // models.Cart.hasMany(models.GiftCard, {
+              //   as: 'gift_cards'
+              //   // constraints: false
+              // })
             }
           }
         }

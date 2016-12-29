@@ -246,6 +246,7 @@ module.exports = class ProductService extends Service {
         })
         .then(product => {
           // Return
+          // product.unwrapTags(product.tags)
           return resolve(product)
         })
         .catch(err => {

@@ -17,6 +17,7 @@ module.exports = class ProductController extends Controller {
         if (!product) {
           throw new Errors.FoundError(Error(`Product id ${req.params.id} not found`))
         }
+        // product.unwrapTags(product.tags)
         return res.json(product)
       })
       .catch(err => {
