@@ -255,196 +255,180 @@ module.exports = class ProductService extends Service {
    * @param product
    * @returns {Promise}
    */
-  // TODO Refactor
   updateProduct(product) {
     return new Promise((resolve, reject) => {
       if (!product.id) {
         const err = new Errors.FoundError(Error('Product is missing id'))
         return reject(err)
       }
-
-      const FootprintService = this.app.services.FootprintService
       const Product = this.app.services.ProxyEngineService.getModel('Product')
-      let resProduct
-      let variants = []
-      let images = []
-      let tags = []
-      // TODO Fix Metadata Fix Options
+      const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+      const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
+      const Tag = this.app.services.ProxyEngineService.getModel('Tag')
+      // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
+      // const Collection = this.app.services.ProxyEngineService.getModel('Collection')
+      // const updatedVariants = []
+      // const newVariants = []
+
+      let resProduct = {}
+      let newTags = []
       Product.findIdDefault(product.id)
-      // FootprintService.find('Product', product.id, {populate: 'images,variants,tags'})
-        .then(oldProduct => {
-          // Init tags
-          tags = _.map(oldProduct.tags, tag => {
-            return tag.get({ plain: true })
-          })
-          product.tags = _.filter(product.tags, tag => {
-            if (typeof tags.name === 'undefined') {
-              return { name: tag }
-            }
-          })
-          delete product.tags
-          delete oldProduct.tags
+        .then(foundProduct => {
+          resProduct = foundProduct
 
-          // Init images and map image updates if there are any
-          images = _.map(oldProduct.images, image => {
-            return image.get({ plain: true })
-          })
-          _.map(images, image => {
-            return _.merge(image, _.find(product.images, { id: image.id }))
-          })
-          product.images = _.filter(product.images, image => {
-            if (typeof image.id === 'undefined') {
-              return image
-            }
-          })
-          images = _.sortBy(_.concat(images, product.images), 'position')
-          delete product.images
-          delete oldProduct.images
-
-          // Init variants and map variant updates if there are any
-          variants = _.map(oldProduct.variants, variant => {
-            return variant.get({ plain: true })
-          })
-          variants = _.map(variants, variant => {
-            return _.merge(variant, _.find(product.variants, { id: variant.id }))
-          })
-          product.variants = _.filter(product.variants, variant => {
-            if (typeof variant.id === 'undefined') {
-              return variant
-            }
-          })
-          variants = _.sortBy(_.concat(variants, product.variants),'position')
-          delete product.variants
-          delete oldProduct.variants
-
-          // Extend the new values into a new object
-          resProduct = _.extend(oldProduct.get({ plain: true }), product)
-          // Set Publishing Status and default variant publish status
+          const update = {
+            host: product.host || resProduct.host,
+            handle: product.handle || resProduct.handle,
+            body: product.body || resProduct.body,
+            vendor: product.vendor || resProduct.vendor,
+            type: product.type || resProduct.type,
+            published_scope: product.published_scope || resProduct.published_scope,
+            weight: product.weight || resProduct.weight,
+            weight_unit: product.weight_unit || resProduct.weight_unit
+          }
           if (product.published) {
-            resProduct.published = variants[0].published = product.published
-            resProduct.published_at = variants[0].published_at = new Date()
+            resProduct.published = resProduct.variants[0].published = product.published
+            resProduct.published_at = resProduct.variants[0].published_at = new Date()
           }
           if (product.published === false) {
-            resProduct.published = resProduct.variants[0].published = product.published
-            resProduct.unpublished_at = resProduct.variants[0].unpublished_at = new Date()
+            update.published = resProduct.variants[0].published = product.published
+            update.unpublished_at = resProduct.variants[0].unpublished_at = new Date()
           }
           // If the SKU is changing, set the default sku
           if (product.sku) {
-            variants[0].sku = product.sku
+            resProduct.variants[0].sku = product.sku
           }
           // if The title is changing, set the default title
           if (product.title) {
-            resProduct.title = variants[0].title = product.title
+            update.title = resProduct.variants[0].title = product.title
           }
           // if the price is changing
           if (product.price) {
-            resProduct.price = variants[0].price = product.price
+            update.price = resProduct.variants[0].price = product.price
           }
           // if the compare_at_price is changing
           if (product.compare_at_price) {
-            variants[0].compare_at_price = product.compare_at_price
+            resProduct.variants[0].compare_at_price = product.compare_at_price
           }
-          // Map the variants and set defaults from product if not set
-          _.map(variants, (variant, index) => {
-            variant = this.variantDefaults(variant, resProduct)
-            variant.position = index + 1
-            // If this variant contains images
-            if (variant.images) {
-              // Let the image know the index of the variant it's attached to
-              _.map(variant.images, image => {
-                image.variant = index
-              })
-              // Update the master image if new/updated attributes are defined
-              _.map(images, image => {
-                return _.merge(image, _.find(variant.images, { id: image.id }))
-              })
-              // Remove all the images that are already created
-              variant.images = _.filter(variant.images, image => {
-                if (typeof id === 'undefined') {
-                  return image
-                }
-              })
-              // Add these variant iamges to the new array.
-              images = _.concat(images, variant.images)
-              delete variant.images
+          if (product.metadata) {
+            resProduct.metadata.data = product.metadata || {}
+          }
+          if (product.tags) {
+            const oldTags = _.map(resProduct.tags, tag => {
+              return tag.name
+            })
+            newTags = _.difference(product.tags, oldTags)
+          }
+          // console.log('THESE TAGS', resProduct.tags)
+
+          // Update Existing Variant
+          _.each(resProduct.variants, variant => {
+            return _.extend(variant, _.find(product.variants, { id: variant.id }))
+          })
+          // Create a List of new Variants
+          product.variants = _.filter(product.variants, (variant, index ) => {
+            if (typeof variant.id === 'undefined') {
+              variant = this.variantDefaults(variant, resProduct.get({plain: true}))
+              // variant.product_id = resProduct.id
+              if (variant.images ) {
+                // Update the master image if new/updated attributes are defined
+                _.map(resProduct.images, image => {
+                  return _.merge(image, _.find(variant.images, { id: image.id }))
+                })
+                // Remove all the images that are already created
+                variant.images = _.filter(variant.images, image => {
+                  if (typeof id === 'undefined') {
+                    // image.variant = index
+                    image.product_id = resProduct.id
+                    return Image.build(image)
+                  }
+                })
+                // Add these variant images to the new array.
+                resProduct.images = _.concat(resProduct.images, variant.images)
+                // delete variant.images
+              }
+              return Variant.build(variant)
             }
           })
+          // Join all the variants
+          resProduct.variants = _.sortBy(_.concat(resProduct.variants, product.variants),'position')
+          // Set the Positions
+          _.each(resProduct.variants, (variant, index) => {
+            variant.position = index + 1
+          })
 
-          // Map the images new positions
-          _.map(images, (image, index) => {
+          // Update existing Images
+          _.each(resProduct.images, image => {
+            return _.extend(image, _.find(product.images, { id: image.id }))
+          })
+          // Create a List of new Images
+          product.images = _.filter(product.images, image => {
+            if (typeof image.id === 'undefined') {
+              return Image.build(image)
+            }
+          })
+          // Join all the images
+          resProduct.images = _.sortBy(_.concat(resProduct.images, product.images),'position')
+          // Set the Positions
+          _.each(resProduct.images, (image, index) => {
             image.position = index + 1
           })
-          //
 
-          // // let collection
-          // // TODO handle Collection
-          // if (product.collection) {
-          //   console.log('ProductService.updateProduct Collection Not Supported Yet')
-          // }
-
-          resProduct.variants = variants
-          resProduct.images = images
-          const update = _.omit(resProduct, ['id','created_at','updated_at', 'variants', 'images', 'metadata'])
-          return FootprintService.update('Product', product.id, update)
-          // return Product.update(product.id, update)
+          // console.log('THESE VARIANTS', resProduct.variants)
+          return resProduct.updateAttributes(update)
         })
-        .then(updatedProduct => {
+        .then(updateProduct => {
+          // Transform any new Tags
+          return Tag.transformTags(newTags)
+        })
+        .then(tags => {
+          console.log('THESE TAGS', tags)
+          // Set Tags
+          return resProduct.addTags(tags)
+        })
+        .then(addedTags => {
+          // save the metadata
+          return resProduct.metadata.save()
+        })
+        .then(metadata => {
           return Promise.all(resProduct.variants.map(variant => {
-            if (typeof variant.id !== 'undefined') {
-              const update = _.omit(variant, ['id', 'created_at', 'updated_at'])
-              // console.log('Updated Image', update)
-              return FootprintService.update('ProductVariant', variant.id, update)
+            if (variant.id) {
+              return variant.save()
             }
             else {
-              return FootprintService.createAssociation('Product', product.id, 'variants', variant)
+              return resProduct.createVariant(variant)
             }
           }))
         })
-        .then(editedVariants => {
-          // console.log('ProductService.updateProduct Updated or Created Variants:', editedVariants.length)
-          // If any new variants, replace them on resProduct
-          _.each(editedVariants, (variant, index) => {
-            if (_.isObject(variant)) {
-              resProduct.variants[index] = variant.get({ plain: true })
-            }
-          })
-          // console.log('ProductService.updateProduct',resProduct.images)
+        .then(variants => {
+          // console.log('THESE VARIANTS', variants)
+          // return Product.findIdDefault(resProduct.id)
           return Promise.all(resProduct.images.map(image => {
             if (typeof image.variant !== 'undefined') {
               image.product_variant_id = resProduct.variants[image.variant].id
               delete image.variant
             }
             if (image.id) {
-              const update = _.omit(image, ['id', 'created_at','updated_at'])
-              return FootprintService.update('ProductImage', image.id, update)
+              return image.save()
             }
             else {
-              image.product_id = product.id
-              return FootprintService.create('ProductImage', image)
+              return resProduct.createImage(image)
             }
           }))
         })
-        .then(editedImages => {
-          // console.log('ProductService.updateProduct', editedImages.length)
-          // If any of the images are new, replace the image in resProduct.
-          _.each(editedImages, (image, index) => {
-            if (_.isObject(image)) {
-              resProduct.images[index] = image.get({ plain: true })
-            }
-          })
-          // Reload
-          return Product.findIdDefault(resProduct.id)  // oldProduct.reload() //
+        .then(images => {
+          return resProduct.reload()
         })
         .then(product => {
-          // Return Product
+          // console.log('updateProduct', product)
           return resolve(product)
         })
         .catch(err => {
           return reject(err)
         })
+
     })
   }
-
   /**
    *
    * @param products

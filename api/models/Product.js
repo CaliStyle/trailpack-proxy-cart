@@ -111,15 +111,16 @@ module.exports = class Product extends Model {
                     attributes: ['name', 'id']
                   },
                   {
+                    // association: 'variants'
                     model: app.orm['ProductVariant'],
                     as: 'variants',
-                    order: ['position', 'ASC']
-                    // include: [
-                    //   {
-                    //     model: app.orm['ProductImage'],
-                    //     as: 'images'
-                    //   }
-                    // ]
+                    order: ['position','ASC'],
+                    include: [
+                      {
+                        model: app.orm['ProductImage'],
+                        as: 'images'
+                      }
+                    ]
                   },
                   {
                     model: app.orm['Metadata'],
@@ -127,6 +128,27 @@ module.exports = class Product extends Model {
                     attributes: ['data', 'id']
                   }
                 ]
+                // order: [
+                //
+                // ]
+                // order: [
+                //   [
+                //     {
+                //       model: app.orm['ProductVariant'],
+                //       as: 'variants'
+                //     },
+                //     'position',
+                //     'ASC'
+                //   ],
+                //   [
+                //     {
+                //       model: app.orm['ProductImage'],
+                //       as: 'images'
+                //     },
+                //     'position',
+                //     'ASC'
+                //   ]
+                // ]
               })
               return this.findById(id, options)
                 // .then(product => {
