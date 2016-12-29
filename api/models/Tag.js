@@ -26,7 +26,16 @@ module.exports = class Tag extends Model {
                   model: models.ItemTag,
                   unique: false
                 },
-                foreignKey: 'tag_id'
+                foreignKey: 'tag_id',
+                constraints: false
+              })
+              models.Tag.belongsToMany(models.Customer, {
+                through: {
+                  model: models.ItemTag,
+                  unique: false
+                },
+                foreignKey: 'tag_id',
+                constraints: false
               })
             },
             transformTags: (tags) => {

@@ -224,7 +224,7 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log(res.body[0])
+        // console.log(res.body[0])
         assert.equal(res.body[0].id, createdProductID)
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151 Gen 2')
         // Metadata

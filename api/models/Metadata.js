@@ -28,7 +28,16 @@ module.exports = class Metadata extends Model {
                   model: models.ItemMetadata,
                   unique: false
                 },
-                foreignKey: 'meta_id'
+                foreignKey: 'meta_id',
+                constraints: false
+              })
+              models.Metadata.belongsTo(models.Customer, {
+                through: {
+                  model: models.ItemMetadata,
+                  unique: false
+                },
+                foreignKey: 'meta_id',
+                constraints: false
               })
               // models.Metadata.belongsTo(models.Customer, {
               //   // as: 'customer_id'

@@ -3,7 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const helpers = require('proxy-engine-helpers')
+// const helpers = require('proxy-engine-helpers')
 const CUSTOMER_STATE = require('../utils/enums').CUSTOMER_STATE
 const _ = require('lodash')
 /**
@@ -28,9 +28,9 @@ module.exports = class Customer extends Model {
               models.Customer.hasMany(models.CustomerAddress, {
                 as: 'addresses'
               })
-              // models.Customer.hasOne(models.CustomerAddress, {
-              //   as: 'default_address'
-              // })
+              models.Customer.hasOne(models.CustomerAddress, {
+                as: 'default_address'
+              })
               // models.Customer.hasOne(models.Metadata, {
               //   as: 'metadata'
               // })
@@ -45,6 +45,30 @@ module.exports = class Customer extends Model {
               })
               models.Customer.hasOne(models.Cart, {
                 as: 'default_cart'
+              })
+              models.Customer.belongsToMany(models.Tag, {
+                as: 'tags',
+                through: {
+                  model: models.ItemTag,
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
+              models.Customer.hasOne(models.Metadata, {
+                as: 'metadata',
+                through: {
+                  model: models.ItemMetadata,
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  },
+                  foreignKey: 'model_id',
+                  constraints: false
+                }
               })
             }
           }
@@ -83,9 +107,6 @@ module.exports = class Customer extends Model {
           values: _.values(CUSTOMER_STATE),
           defaultValue: CUSTOMER_STATE.ENABLED
         },
-        tags: helpers.ARRAY('customer', app, Sequelize, Sequelize.STRING, 'tags', {
-          defaultValue: []
-        }),
         tax_exempt: {
           type: Sequelize.BOOLEAN,
           defaultValue: false

@@ -53,15 +53,25 @@ module.exports = {
 ##### CartController.clear
 
 #### ProductController
+##### ProductController.addProduct
+
 ##### ProductController.addProducts
 
+##### ProductController.updateProduct
+
 ##### ProductController.updateProducts
+
+##### ProductController.removeProduct
 
 ##### ProductController.removeProducts
 
 ##### ProductController.removeVariant
 
+##### ProductController.removeVariants
+
 ##### ProductController.removeImage
+
+##### ProductController.removeImages
 
 ### Services
 #### CartService
@@ -78,6 +88,7 @@ module.exports = {
 
 ### Models
 #### Cart
+#### Collection
 #### Country
 #### Coupon
 #### Customer
@@ -89,7 +100,6 @@ module.exports = {
 #### Order
 #### OrderItem
 #### Product
-#### ProductCollection
 #### ProductImage
 #### ProductReview
 #### ProductVariant

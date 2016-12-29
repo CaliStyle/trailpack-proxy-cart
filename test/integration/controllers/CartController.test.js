@@ -114,16 +114,6 @@ describe('CartController', () => {
       })
   })
 
-  it.skip('should make checkout post request', (done) => {
-    request
-      .post(`/cart/${cartID}/checkout`)
-      .send({})
-      .expect(200)
-      .end((err, res) => {
-        done(err)
-      })
-  })
-
   it('should make clearCart post request', (done) => {
     request
       .post(`/cart/${cartID}/clear`)
@@ -132,6 +122,28 @@ describe('CartController', () => {
       .end((err, res) => {
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 0)
+        done(err)
+      })
+  })
+  it('should add cart to customer on creation',(done) => {
+    request
+      .post('/customer')
+      .send({
+        cart: cartID
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('CUSTOMER',res.body)
+        assert.equal(res.body.cart.id, cartID)
+        done(err)
+      })
+  })
+  it.skip('should make checkout post request', (done) => {
+    request
+      .post(`/cart/${cartID}/checkout`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
         done(err)
       })
   })
