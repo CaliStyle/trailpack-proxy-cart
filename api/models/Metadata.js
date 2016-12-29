@@ -28,7 +28,7 @@ module.exports = class Metadata extends Model {
                   model: models.ItemMetadata,
                   unique: false
                 },
-                foreignKey: 'owner_id'
+                foreignKey: 'meta_id'
               })
               // models.Metadata.belongsTo(models.Customer, {
               //   // as: 'customer_id'
@@ -39,6 +39,18 @@ module.exports = class Metadata extends Model {
               // models.Metadata.belongsTo(models.ProductCollection, {
               //   // as: 'customer_id'
               // })
+            },
+            transform: function (metadata) {
+              if (typeof metadata.data !== 'undefined') {
+                return metadata
+              }
+              return { data: metadata }
+            },
+            reverseTransform: function (metadata) {
+              if (typeof metadata.data !== 'undefined') {
+                return metadata.data
+              }
+              return metadata
             }
           }
         }

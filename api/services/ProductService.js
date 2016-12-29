@@ -18,6 +18,9 @@ module.exports = class ProductService extends Service {
    * @returns {Promise.<*>}
    */
   addProducts(products) {
+    if (!Array.isArray(products)) {
+      products = [products]
+    }
     return Promise.all(products.map(product => {
       return this.addProduct(product)
     }))
@@ -74,7 +77,7 @@ module.exports = class ProductService extends Service {
       const Tag = this.app.services.ProxyEngineService.getModel('Tag')
       const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
       const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
-      // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
+      const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
       // The Default Product
       const create = {
         host: product.host,
@@ -84,12 +87,11 @@ module.exports = class ProductService extends Service {
         vendor: product.vendor,
         type: product.type,
         price: product.price,
-        // TODO FIX metadata
-        // metadata: product.metadata,
         published: product.published,
         published_scope: product.published_scope,
         weight: product.weight,
-        weight_unit: product.weight_unit
+        weight_unit: product.weight_unit,
+        metadata: Metadata.transform(product.metadata || {})
       }
 
       if (product.published) {
@@ -176,30 +178,6 @@ module.exports = class ProductService extends Service {
 
       // Set the resulting Product
       let resProduct = {}
-      // Tag.transformTags(product.tags)
-      //   .then(resTags => {
-      //     // console.log('TAGS', tags)
-      //     // create.tags = resTags
-      //     // Create the Product
-      //     return Product.create(create, {
-      //       include: [
-      //         // {
-      //         //   model: Tag,
-      //         //   as: 'tags'
-      //         // },
-      //         {
-      //           model: Variant,
-      //           as: 'variants'
-      //           // include: [
-      //           //   {
-      //           //     model: 'ProductImages',
-      //           //     as: 'images'
-      //           //   }
-      //           // ]
-      //         }
-      //       ]
-      //     })
-      //   })
       Product.create(create, {
         include: [
           {
@@ -219,11 +197,16 @@ module.exports = class ProductService extends Service {
             //     as: 'images'
             //   }
             // ]
+          },
+          {
+            model: Metadata,
+            as: 'metadata'
           }
         ]
       })
         .then(createdProduct => {
           resProduct = createdProduct
+          // console.log('createdProduct',createdProduct)
           return Tag.transformTags(product.tags)
         })
         .then(tags => {
@@ -242,11 +225,10 @@ module.exports = class ProductService extends Service {
         })
         .then(createdImages => {
           // Reload
-          return Product.findOneDefault(resProduct.id)
+          return Product.findIdDefault(resProduct.id)
         })
         .then(product => {
-          // Return
-          // product.unwrapTags(product.tags)
+          // Return Product
           return resolve(product)
         })
         .catch(err => {
@@ -260,10 +242,20 @@ module.exports = class ProductService extends Service {
    * @returns {Promise.<*>}
    */
   updateProducts(products) {
+    if (!Array.isArray(products)) {
+      products = [products]
+    }
     return Promise.all(products.map(product => {
       return this.updateProduct(product)
     }))
   }
+
+  /**
+   *
+   * @param product
+   * @returns {Promise}
+   */
+  // TODO Refactor
   updateProduct(product) {
     return new Promise((resolve, reject) => {
       if (!product.id) {
@@ -272,13 +264,14 @@ module.exports = class ProductService extends Service {
       }
 
       const FootprintService = this.app.services.FootprintService
-      // const Product = this.app.services.ProxyEngineService.getModel('Product')
+      const Product = this.app.services.ProxyEngineService.getModel('Product')
       let resProduct
       let variants = []
       let images = []
       let tags = []
       // TODO Fix Metadata Fix Options
-      FootprintService.find('Product', product.id, {populate: 'images,variants,tags'})
+      Product.findIdDefault(product.id)
+      // FootprintService.find('Product', product.id, {populate: 'images,variants,tags'})
         .then(oldProduct => {
           // Init tags
           tags = _.map(oldProduct.tags, tag => {
@@ -439,8 +432,12 @@ module.exports = class ProductService extends Service {
               resProduct.images[index] = image.get({ plain: true })
             }
           })
-          // console.log('RETURNING',resProduct)
-          return resolve(resProduct)
+          // Reload
+          return Product.findIdDefault(resProduct.id)  // oldProduct.reload() //
+        })
+        .then(product => {
+          // Return Product
+          return resolve(product)
         })
         .catch(err => {
           return reject(err)
@@ -454,6 +451,9 @@ module.exports = class ProductService extends Service {
    * @returns {Promise.<*>}
    */
   removeProducts(products) {
+    if (!Array.isArray(products)) {
+      products = [products]
+    }
     return Promise.all(products.map(product => {
       return this.removeProduct(product)
     }))
@@ -474,6 +474,15 @@ module.exports = class ProductService extends Service {
           return reject(err)
         })
     })
+  }
+  removeVariants(variants){
+    if (!Array.isArray(variants)) {
+      variants = [variants]
+    }
+    return Promise.all(variants.map(variant => {
+      const id = typeof variant.id !== 'undefined' ? variant.id : variant
+      return this.removeVariant(id)
+    }))
   }
   removeVariant(id){
     return new Promise((resolve, reject) => {
@@ -508,6 +517,15 @@ module.exports = class ProductService extends Service {
           return reject(err)
         })
     })
+  }
+  removeImages(images){
+    if (!Array.isArray(images)) {
+      images = [images]
+    }
+    return Promise.all(images.map(image => {
+      const id = typeof image.id !== 'undefined' ? image.id : image
+      return this.removeImage(id)
+    }))
   }
   removeImage(id){
     return new Promise((resolve, reject) => {

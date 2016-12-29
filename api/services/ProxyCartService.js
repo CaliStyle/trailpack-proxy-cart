@@ -36,7 +36,6 @@ module.exports = class ProxyCartService extends Service {
           parser.pause()
           this.csvRow(results.data[0], uploadID)
             .then(row => {
-              // console.log(row)
               parser.resume()
             })
             .catch(err => {

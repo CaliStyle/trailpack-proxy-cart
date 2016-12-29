@@ -12,7 +12,7 @@ module.exports = class ProductController extends Controller {
   findOne(req, res){
     // const FootprintService = this.app.services.FootprintService
     const Product = this.app.services.ProxyEngineService.getModel('Product')
-    Product.findOneDefault(req.params.id, {})
+    Product.findIdDefault(req.params.id, {})
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error(`Product id ${req.params.id} not found`))
@@ -71,6 +71,20 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+  addProduct(req, res){
+    const ProductService = this.app.services.ProductService
+    lib.Validator.validateAddProduct(req.body)
+      .then(values => {
+        return ProductService.addProduct(req.body)
+      })
+      .then(product => {
+        this.app.log.silly('ProductController.addProduct created:', product)
+        return res.json(product)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    * Update Products
    * @param req
@@ -109,6 +123,20 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+  removeVariants(req, res){
+    const ProductService = this.app.services.ProductService
+    lib.Validator.validateRemoveVariants(req.body)
+      .then(values => {
+        return ProductService.removeVariants(req.body)
+      })
+      .then(products => {
+        return res.json(products)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
   removeVariant(req, res){
     const ProductService = this.app.services.ProductService
     ProductService.removeVariant(req.params.id)
@@ -120,6 +148,22 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+  removeImages(req, res){
+    const ProductService = this.app.services.ProductService
+    lib.Validator.validateRemoveImages(req.body)
+      .then(values => {
+        return ProductService.removeImages(req.body)
+      })
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
+
   removeImage(req, res){
     const ProductService = this.app.services.ProductService
     ProductService.removeImage(req.params.id)

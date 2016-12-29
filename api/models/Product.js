@@ -97,12 +97,13 @@ module.exports = class Product extends Model {
               //   constraints: false
               // })
             },
-            findOneDefault: function(id, options) {
+            findIdDefault: function(id, options) {
               options = _.merge(options, {
                 include: [
                   {
                     model: app.orm['ProductImage'],
-                    as: 'images'
+                    as: 'images',
+                    order: ['position', 'ASC']
                   },
                   {
                     model: app.orm['Tag'],
@@ -111,13 +112,19 @@ module.exports = class Product extends Model {
                   },
                   {
                     model: app.orm['ProductVariant'],
-                    as: 'variants'
+                    as: 'variants',
+                    order: ['position', 'ASC']
                     // include: [
                     //   {
                     //     model: app.orm['ProductImage'],
                     //     as: 'images'
                     //   }
                     // ]
+                  },
+                  {
+                    model: app.orm['Metadata'],
+                    as: 'metadata',
+                    attributes: ['data', 'id']
                   }
                 ]
               })
@@ -141,7 +148,12 @@ module.exports = class Product extends Model {
                   return tag.name
                 })
               }
-              // console.log('THIS TEST', resp)
+              // Transfrom Metadata
+              if (resp.metadata) {
+                if (typeof resp.metadata.data !== 'undefined') {
+                  resp.metadata = resp.metadata.data
+                }
+              }
               return resp
             }
           }
