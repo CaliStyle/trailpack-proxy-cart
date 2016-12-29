@@ -7,7 +7,7 @@ const COLLECTION_SORT_ORDER = require('../utils/enums').COLLECTION_SORT_ORDER
  * @module ProductCollection
  * @description Product Collection Model
  */
-module.exports = class ProductCollection extends Model {
+module.exports = class Collection extends Model {
 
   static config (app, Sequelize) {
     let config = {}
@@ -18,15 +18,22 @@ module.exports = class ProductCollection extends Model {
           classMethods: {
             COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
             associate: (models) => {
+              models.Collection.belongsToMany(models.Product, {
+                through: {
+                  model: models.ItemCollection,
+                  unique: false
+                },
+                foreignKey: 'collection_id'
+              })
               // models.ProductCollection.hasMany(models.ProductCollection, {
               //   as: 'collections'
               // })
-              models.ProductCollection.hasMany(models.Product, {
-                as: 'products'
-              })
-              models.ProductCollection.hasMany(models.ProductImage, {
-                as: 'images'
-              })
+              // models.ProductCollection.hasMany(models.Product, {
+              //   as: 'products'
+              // })
+              // models.ProductCollection.hasMany(models.ProductImage, {
+              //   as: 'images'
+              // })
             }
           }
         }

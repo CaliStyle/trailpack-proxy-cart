@@ -53,9 +53,17 @@ module.exports = class Product extends Model {
               //   as: 'carts',
               //   through: 'CartProduct'
               // })
-              models.Product.belongsToMany(models.ProductCollection, {
+              models.Product.belongsToMany(models.Collection, {
                 as: 'collections',
-                through: 'ProductCollectionProduct'
+                through: {
+                  model: models.ItemCollection,
+                  unique: false,
+                  scope: {
+                    model: 'product'
+                  },
+                  foreignKey: 'model_id',
+                  constraints: false
+                }
               })
               models.Product.hasOne(models.Metadata, {
                 as: 'metadata',
