@@ -20,20 +20,29 @@ module.exports = class CustomerAddress extends Model {
              * @param models
              */
             associate: (models) => {
+              // models.CustomerAddress.belongsTo(models.Customer, {
+              //   // as: 'customer_id'
+              // })
+              // models.CustomerAddress.belongsTo(models.Customer, {
+              //   foreignKey: 'default_address'
+              //   // as: 'customer_id'
+              // })
+              // models.CustomerAddress.belongsTo(models.Order, {
+              //   foreignKey: 'shipping_address'
+              //   // as: 'customer_id'
+              // })
+              // models.CustomerAddress.belongsTo(models.Order, {
+              //   foreignKey: 'billing_address'
+              //   // as: 'customer_id'
+              // })
+
               models.CustomerAddress.belongsTo(models.Customer, {
-                // as: 'customer_id'
-              })
-              models.CustomerAddress.belongsTo(models.Customer, {
-                foreignKey: 'default_address'
-                // as: 'customer_id'
-              })
-              models.CustomerAddress.belongsTo(models.Order, {
-                foreignKey: 'shipping_address'
-                // as: 'customer_id'
-              })
-              models.CustomerAddress.belongsTo(models.Order, {
-                foreignKey: 'billing_address'
-                // as: 'customer_id'
+                through: {
+                  model: models.ItemAddress,
+                  unique: false
+                },
+                foreignKey: 'address_id',
+                constraints: false
               })
             }
           }
@@ -56,10 +65,10 @@ module.exports = class CustomerAddress extends Model {
         address_3: {
           type: Sequelize.STRING
         },
-        city: {
+        company: {
           type: Sequelize.STRING
         },
-        company: {
+        city: {
           type: Sequelize.STRING
         },
         prefix: {

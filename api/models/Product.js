@@ -169,7 +169,7 @@ module.exports = class Product extends Model {
           instanceMethods: {
             toJSON: function() {
               const resp = this.get({ plain: true })
-              // Transfrom Tags to array on toJSON
+              // Transform Tags to array on toJSON
               if (resp.tags) {
                 resp.tags = resp.tags.map(tag => {
                   if (_.isString(tag)) {
@@ -178,7 +178,7 @@ module.exports = class Product extends Model {
                   return tag.name
                 })
               }
-              // Transfrom Metadata
+              // Transform Metadata to plain on toJSON
               if (resp.metadata) {
                 if (typeof resp.metadata.data !== 'undefined') {
                   resp.metadata = resp.metadata.data

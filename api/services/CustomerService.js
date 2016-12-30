@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Service = require('trails/service')
@@ -14,15 +15,20 @@ module.exports = class CustomerService extends Service {
       const Tag = this.app.services.ProxyEngineService.getModel('Tag')
       const Cart = this.app.services.ProxyEngineService.getModel('Cart')
       const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
-      const Address = this.app.services.ProxyEngineService.getModel('CustomerAddress')
+      // const Address = this.app.services.ProxyEngineService.getModel('CustomerAddress')
 
       if (customer.cart) {
-        // customer.default_cart = customer.cart
-        delete customer.cart
+        customer.default_cart = customer.cart.id ? customer.cart.id : customer.cart
+        // delete customer.cart
+      }
+
+      if (customer.metadata) {
+        customer.metadata = Metadata.transform(customer.metadata || {})
       }
 
       let resCustomer = {}
-      Customer.create(customer, {
+      const create = _.omit(customer, 'tags')
+      Customer.create(create, {
         include: [
           {
             model: Cart,
@@ -32,14 +38,22 @@ module.exports = class CustomerService extends Service {
             model: Cart,
             as: 'carts'
           },
-          {
-            model: Address,
-            as: 'default_address'
-          },
-          {
-            model: Address,
-            as: 'addresses'
-          },
+          // {
+          //   model: Address,
+          //   as: 'default_address'
+          // },
+          // {
+          //   model: Address,
+          //   as: 'shipping_address'
+          // },
+          // {
+          //   model: Address,
+          //   as: 'billing_address'
+          // },
+          // {
+          //   model: Address,
+          //   as: 'addresses'
+          // },
           {
             model: Tag,
             as: 'tags'
@@ -52,6 +66,17 @@ module.exports = class CustomerService extends Service {
       })
         .then(createdCustomer => {
           resCustomer = createdCustomer
+          // console.log(resCustomer.$options)
+        //   return resCustomer.setDefault_cart(defaultCart)
+        // })
+        // .then(cart => {
+          return Tag.transformTags(customer.tags)
+        })
+        .then(tags => {
+          // Add Tags
+          return resCustomer.addTags(tags)
+        })
+        .then(tags => {
           return resolve(resCustomer)
         })
         .catch(err => {

@@ -3,6 +3,7 @@
 const assert = require('assert')
 const supertest = require('supertest')
 const products = require('../../fixtures/products')
+const customers = require('../../fixtures/customers')
 
 describe('CartController', () => {
   let request
@@ -126,11 +127,12 @@ describe('CartController', () => {
       })
   })
   it('should add cart to customer on creation',(done) => {
+    const customer = customers[0]
+    customer.cart = cartID
+
     request
       .post('/customer')
-      .send({
-        cart: cartID
-      })
+      .send(customer)
       .expect(200)
       .end((err, res) => {
         console.log('CUSTOMER',res.body)

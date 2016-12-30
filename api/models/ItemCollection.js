@@ -17,15 +17,15 @@ module.exports = class ItemCollection extends Model {
     const schema = {
       collection_id: {
         type: Sequelize.INTEGER,
-        unique: 'collection_owner'
+        unique: 'collection_model'
       },
-      owner: {
+      model: {
         type: Sequelize.STRING,
-        unique: 'collection_owner'
+        unique: 'collection_model'
       },
-      owner_id: {
+      model_id: {
         type: Sequelize.INTEGER,
-        unique: 'collection_owner',
+        unique: 'collection_model',
         references: null
       }
     }

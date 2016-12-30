@@ -25,12 +25,60 @@ module.exports = class Customer extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Customer.hasMany(models.CustomerAddress, {
-                as: 'addresses'
+              models.Customer.hasOne(models.CustomerAddress, {
+                as: 'default_address',
+                through: {
+                  model: models.ItemAddress,
+                  unique: false,
+                  scope: {
+                    model: 'default_address'
+                  },
+                  foreignKey: 'customer_id',
+                  constraints: false
+                }
               })
               models.Customer.hasOne(models.CustomerAddress, {
-                as: 'default_address'
+                as: 'shipping_address',
+                through: {
+                  model: models.ItemAddress,
+                  unique: false,
+                  scope: {
+                    type: 'shipping_address'
+                  },
+                  foreignKey: 'customer_id',
+                  constraints: false
+                }
               })
+              models.Customer.hasOne(models.CustomerAddress, {
+                as: 'billing_address',
+                through: {
+                  model: models.ItemAddress,
+                  unique: false,
+                  scope: {
+                    type: 'billing_address'
+                  },
+                  foreignKey: 'customer_id',
+                  constraints: false
+                }
+              })
+              // models.Customer.hasMany(models.CustomerAddress, {
+              //   as: 'addresses',
+              //   through: {
+              //     model: models.ItemAddress,
+              //     unique: false,
+              //     scope: {
+              //       type: 'customer'
+              //     },
+              //     foreignKey: 'customer_id',
+              //     constraints: false
+              //   }
+              // })
+              // models.Customer.hasMany(models.CustomerAddress, {
+              //   as: 'addresses'
+              // })
+              // models.Customer.hasOne(models.CustomerAddress, {
+              //   as: 'default_address'
+              // })
               // models.Customer.hasOne(models.Metadata, {
               //   as: 'metadata'
               // })
@@ -70,6 +118,27 @@ module.exports = class Customer extends Model {
                   constraints: false
                 }
               })
+            }
+          },
+          instanceMethods: {
+            toJSON: function() {
+              const resp = this.get({ plain: true })
+              // Transform Tags to array on toJSON
+              if (resp.tags) {
+                resp.tags = resp.tags.map(tag => {
+                  if (_.isString(tag)) {
+                    return tag
+                  }
+                  return tag.name
+                })
+              }
+              // Transform Metadata to plain on toJSON
+              if (resp.metadata) {
+                if (typeof resp.metadata.data !== 'undefined') {
+                  resp.metadata = resp.metadata.data
+                }
+              }
+              return resp
             }
           }
         }

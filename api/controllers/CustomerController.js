@@ -1,6 +1,7 @@
 'use strict'
 
 const Controller = require('trails/controller')
+const lib = require('../../lib')
 
 /**
  * @module CustomerController
@@ -14,7 +15,10 @@ module.exports = class CustomerController extends Controller {
    */
   create(req, res) {
     const CustomerService = this.app.services.CustomerService
-    CustomerService.create(req.body)
+    lib.Validator.validateCustomer(req.body)
+      .then(values => {
+        return CustomerService.create(req.body)
+      })
       .then(customer => {
         return res.json(customer)
       })
