@@ -2,12 +2,25 @@
 
 const Controller = require('trails/controller')
 const lib = require('../../lib')
-
+const Errors = require('proxy-engine-errors')
 /**
  * @module CustomerController
  * @description Customer Controller.
  */
 module.exports = class CustomerController extends Controller {
+  findOne(req, res){
+    const Customer = this.app.services.ProxyEngineService.getModel('Customer')
+    Customer.findIdDefault(req.params.id, {})
+      .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error(`Customer id ${req.params.id} not found`))
+        }
+        return res.json(customer)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    *
    * @param req

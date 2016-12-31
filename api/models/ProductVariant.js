@@ -27,6 +27,12 @@ module.exports = class ProductVariant extends Model {
           //     fn()
           //   }
           // },
+          defaultScope: {
+            where: {
+              live_mode: app.config.proxyCart.live_mode
+            }
+            // ,order: ['position']
+          },
           classMethods: {
             /**
              * Expose UNITS enums

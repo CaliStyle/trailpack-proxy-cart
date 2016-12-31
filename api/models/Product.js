@@ -19,6 +19,11 @@ module.exports = class Product extends Model {
       config = {
         options: {
           underscored: true,
+          defaultScope: {
+            where: {
+              live_mode: app.config.proxyCart.live_mode
+            }
+          },
           classMethods: {
             /**
              * Expose UNITS enums
@@ -105,7 +110,7 @@ module.exports = class Product extends Model {
               //   constraints: false
               // })
             },
-            findIdDefault: function(id, options) {
+            findIdDefault: function(criteria, options) {
               options = _.merge(options, {
                 include: [
                   {
@@ -158,12 +163,7 @@ module.exports = class Product extends Model {
                 //   ]
                 // ]
               })
-              return this.findById(id, options)
-                // .then(product => {
-                //   const resProduct = product.get({plain: true})
-                //   resProduct.tags = app.orm['Tag'].reverseTransformTags(resProduct.tags)
-                //   return resProduct
-                // })
+              return this.findById(criteria, options)
             }
           },
           instanceMethods: {

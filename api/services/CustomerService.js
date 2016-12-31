@@ -15,19 +15,38 @@ module.exports = class CustomerService extends Service {
       const Tag = this.app.services.ProxyEngineService.getModel('Tag')
       const Cart = this.app.services.ProxyEngineService.getModel('Cart')
       const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
-      // const Address = this.app.services.ProxyEngineService.getModel('CustomerAddress')
+      const Address = this.app.services.ProxyEngineService.getModel('Address')
 
       if (customer.cart) {
-        customer.default_cart = customer.cart.id ? customer.cart.id : customer.cart
+        // customer.default_cart = customer.cart.id ? customer.cart.id : customer.cart
         // delete customer.cart
       }
 
-      if (customer.metadata) {
-        customer.metadata = Metadata.transform(customer.metadata || {})
+      // Resolve all Address if any are provided
+      if (!customer.default_address && customer.shipping_address) {
+        customer.default_address = customer.shipping_address
+      }
+      if (!customer.shipping_address && customer.default_address) {
+        customer.shipping_address = customer.default_address
+      }
+      if (!customer.billing_address && customer.default_address) {
+        customer.billing_address = customer.default_address
       }
 
       let resCustomer = {}
-      const create = _.omit(customer, 'tags')
+      const create = {
+        first_name: customer.first_name,
+        last_name: customer.last_name,
+        note: customer.note,
+        accepts_marketing: customer.accepts_marketing,
+        state: customer.state,
+        tax_exempt: customer.tax_exempt,
+        verified_email: customer.verified_email,
+        metadata: Metadata.transform(customer.metadata || {}),
+        shipping_address: customer.shipping_address,
+        billing_address: customer.billing_address,
+        default_address: customer.default_address
+      }
       Customer.create(create, {
         include: [
           {
@@ -38,22 +57,18 @@ module.exports = class CustomerService extends Service {
             model: Cart,
             as: 'carts'
           },
-          // {
-          //   model: Address,
-          //   as: 'default_address'
-          // },
-          // {
-          //   model: Address,
-          //   as: 'shipping_address'
-          // },
-          // {
-          //   model: Address,
-          //   as: 'billing_address'
-          // },
-          // {
-          //   model: Address,
-          //   as: 'addresses'
-          // },
+          {
+            model: Address,
+            as: 'default_address'
+          },
+          {
+            model: Address,
+            as: 'shipping_address'
+          },
+          {
+            model: Address,
+            as: 'billing_address'
+          },
           {
             model: Tag,
             as: 'tags'
@@ -66,10 +81,6 @@ module.exports = class CustomerService extends Service {
       })
         .then(createdCustomer => {
           resCustomer = createdCustomer
-          // console.log(resCustomer.$options)
-        //   return resCustomer.setDefault_cart(defaultCart)
-        // })
-        // .then(cart => {
           return Tag.transformTags(customer.tags)
         })
         .then(tags => {
@@ -77,7 +88,10 @@ module.exports = class CustomerService extends Service {
           return resCustomer.addTags(tags)
         })
         .then(tags => {
-          return resolve(resCustomer)
+          return resCustomer.reload()
+        })
+        .then(customer => {
+          return resolve(customer)
         })
         .catch(err => {
           return reject(err)

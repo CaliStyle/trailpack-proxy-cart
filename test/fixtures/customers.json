@@ -2,10 +2,17 @@
   {
     "first_name": "Scott",
     "last_name": "Wyatt",
+    "tags": ["new"],
+    "metadata": {
+      "test": "value"
+    },
+    "accepts_marketing": true,
     "shipping_address": {
+      "first_name": "Scott",
+      "last_name": "Wyatt",
       "address_1": "1600 Pennsylvania Ave NW",
       "address_2": "",
-      "company": "",
+      "company": "Shipping Department",
       "city": "Washington",
       "phone": "",
       "province": "District of Columbia",
@@ -15,6 +22,44 @@
       "country_name": "United States of America",
       "postal_code": "20500"
     },
-    "billing_address": {}
+    "billing_address": {
+      "first_name": "Scott",
+      "last_name": "Wyatt",
+      "address_1": "1600 Pennsylvania Ave NW",
+      "address_2": "",
+      "company": "Billing Department",
+      "city": "Washington",
+      "phone": "",
+      "province": "District of Columbia",
+      "province_code": "DC",
+      "country": "United States",
+      "country_code": "US",
+      "country_name": "United States of America",
+      "postal_code": "20500"
+    }
+  },
+  {
+    "first_name": "Scottie",
+    "last_name": "Wyatt",
+    "tags": ["amazing"],
+    "metadata": {
+      "test": "value"
+    },
+    "accepts_marketing": true,
+    "default_address": {
+      "first_name": "Scott",
+      "last_name": "Wyatt",
+      "address_1": "1600 Pennsylvania Ave NW",
+      "address_2": "",
+      "company": "Shipping Department",
+      "city": "Washington",
+      "phone": "",
+      "province": "District of Columbia",
+      "province_code": "DC",
+      "country": "United States",
+      "country_code": "US",
+      "country_name": "United States of America",
+      "postal_code": "20500"
+    }
   }
 ]

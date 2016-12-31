@@ -9,7 +9,14 @@ const Model = require('trails/model')
 module.exports = class ItemCollection extends Model {
 
   static config (app,Sequelize) {
-    const config = {}
+    let config = {}
+    if (app.config.database.orm === 'sequelize') {
+      config = {
+        options: {
+          underscored: true
+        }
+      }
+    }
     return config
   }
 

@@ -9,8 +9,13 @@ const Model = require('trails/model')
 module.exports = class ItemMetadata extends Model {
 
   static config (app, Sequelize) {
-    const config = {
-
+    let config = {}
+    if (app.config.database.orm === 'sequelize') {
+      config = {
+        options: {
+          underscored: true
+        }
+      }
     }
     return config
   }
