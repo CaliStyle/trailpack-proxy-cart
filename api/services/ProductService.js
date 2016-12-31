@@ -271,7 +271,7 @@ module.exports = class ProductService extends Service {
       // const newVariants = []
 
       let resProduct = {}
-      let newTags = []
+      // let newTags = []
       Product.findIdDefault(product.id)
         .then(foundProduct => {
           resProduct = foundProduct
@@ -313,13 +313,6 @@ module.exports = class ProductService extends Service {
           if (product.metadata) {
             resProduct.metadata.data = product.metadata || {}
           }
-          if (product.tags) {
-            const oldTags = _.map(resProduct.tags, tag => {
-              return tag.name
-            })
-            newTags = _.difference(product.tags, oldTags)
-          }
-          // console.log('THESE TAGS', resProduct.tags)
 
           // Update Existing Variant
           _.each(resProduct.variants, variant => {
@@ -379,14 +372,20 @@ module.exports = class ProductService extends Service {
         })
         .then(updateProduct => {
           // Transform any new Tags
-          return Tag.transformTags(newTags)
+          if (product.tags) {
+            return Tag.transformTags(product.tags)
+          }
+          return
         })
         .then(tags => {
-          console.log('THESE TAGS', tags)
+          // console.log('THESE TAGS', tags)
           // Set Tags
-          return resProduct.addTags(tags)
+          if (tags) {
+            return resProduct.setTags(tags)
+          }
+          return
         })
-        .then(addedTags => {
+        .then(tags => {
           // save the metadata
           return resProduct.metadata.save()
         })
@@ -544,6 +543,14 @@ module.exports = class ProductService extends Service {
           return reject(err)
         })
     })
+  }
+  // TODO addTag
+  addTag(product, tag){
+
+  }
+  // TODO removeTag
+  removeTag(product, tag){
+
   }
 
   /**

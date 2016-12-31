@@ -38,4 +38,35 @@ describe('CustomerController', () => {
         done(err)
       })
   })
+  it('should update customer', (done) => {
+    request
+      .post(`/customer/${customerID}`)
+      .send({
+        first_name: 'Scotty',
+        last_name: 'W',
+        tags: ['edited'],
+        metadata: {
+          test: 'new value'
+        },
+        shipping_address: {
+          first_name: 'Scotty',
+          last_name: 'W'
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('CUSTOMER',res.body)
+        assert.equal(res.body.first_name, 'Scotty')
+        assert.equal(res.body.last_name, 'W')
+        // Tags
+        assert.equal(res.body.tags.length, 1)
+        assert.notEqual(res.body.tags.indexOf('edited'), -1)
+        // Metadata
+        assert.equal(res.body.metadata.test, 'new value')
+        // Address
+        assert.equal(res.body.shipping_address.first_name, 'Scotty')
+        assert.equal(res.body.shipping_address.last_name, 'W')
+        done(err)
+      })
+  })
 })

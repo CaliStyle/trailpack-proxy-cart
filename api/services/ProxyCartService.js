@@ -18,7 +18,7 @@ module.exports = class ProxyCartService extends Service {
    * @param file
    * @returns {Promise}
    */
-  csv(file) {
+  productCsv(file) {
     // TODO validate csv
     console.time('csv')
     const uploadID = shortid.generate()
@@ -151,18 +151,18 @@ module.exports = class ProxyCartService extends Service {
    * @param uploadId
    * @returns {Promise}
    */
-  processUpload(uploadId) {
+  processProductUpload(uploadId) {
     return new Promise((resolve, reject) => {
       const ProductUpload = this.app.services.ProxyEngineService.getModel('ProductUpload')
       let productsTotal = 0
-      let vartiantsTotal = 0
+      let variantsTotal = 0
       ProductUpload.findAll({
         attributes: ['handle'],
         group: ['handle']
       })
         .then(products => {
           return Promise.all(products.map(product => {
-            return this.processGroup(product.handle)
+            return this.processProductGroup(product.handle)
           }))
         })
         .then(results => {
@@ -170,12 +170,13 @@ module.exports = class ProxyCartService extends Service {
           _.each(results, result => {
             // console.log(result)
             productsTotal = productsTotal + result.products
-            vartiantsTotal = vartiantsTotal + result.variants
+            variantsTotal = variantsTotal + result.variants
           })
           return ProductUpload.destroy({where: {upload_id: uploadId }})
         })
         .then(destroyed => {
-          resolve({products: productsTotal, variants: vartiantsTotal })
+
+          resolve({products: productsTotal, variants: variantsTotal })
         })
         .catch(err => {
           return reject(err)
@@ -183,9 +184,9 @@ module.exports = class ProxyCartService extends Service {
     })
   }
   // TODO
-  processGroup(handle) {
+  processProductGroup(handle) {
     return new Promise((resolve, reject) => {
-      this.app.log.debug('ProxyCartService.processGroup', handle)
+      this.app.log.debug('ProxyCartService.processProductGroup', handle)
       const ProductUpload = this.app.services.ProxyEngineService.getModel('ProductUpload')
       ProductUpload.findAll({where: {handle: handle}})
         .then(products => {

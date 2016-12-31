@@ -189,7 +189,7 @@ module.exports = class ProductController extends Controller {
       return res.serverError(err)
     }
 
-    ProxyCartService.csv(csv.path)
+    ProxyCartService.productCsv(csv.path)
       .then(result => {
         return res.json({
           file: req.file,
@@ -208,7 +208,7 @@ module.exports = class ProductController extends Controller {
    */
   processUpload(req, res) {
     const ProxyCartService = this.app.services.ProxyCartService
-    ProxyCartService.processUpload(req.params.id)
+    ProxyCartService.processProductUpload(req.params.id)
       .then(result => {
         return res.json(result)
       })

@@ -1,14 +1,35 @@
 /* eslint no-console: [0] */
+/* eslint camelcase: [0] */
 'use strict'
 
 const Service = require('trails/service')
 const _ = require('lodash')
-// const Errors = require('proxy-engine-errors')
+const Errors = require('proxy-engine-errors')
 /**
  * @module CustomerService
  * @description Customer Service
  */
 module.exports = class CustomerService extends Service {
+  /**
+   *
+   * @param customer
+   * @returns {Customer} // An instance of the Customer
+   */
+  resolve(customer){
+    const Customer =  this.app.services.ProxyEngineService.getModel('Customer')
+    if (customer instanceof Customer.Instance){
+      return Promise.resolve(customer)
+    }
+    else if (customer && _.isString(customer)) {
+      return Customer.findById(customer)
+    }
+    else if (customer && _.isObject(customer) && customer.id) {
+      return Customer.findById(customer.id)
+    }
+    else {
+      return this.create(customer)
+    }
+  }
   create(customer) {
     return new Promise((resolve, reject) => {
       const Customer = this.app.services.ProxyEngineService.getModel('Customer')
@@ -98,9 +119,77 @@ module.exports = class CustomerService extends Service {
         })
     })
   }
-  addCartToCustomer(customer, cart) {
+  update(customer) {
     return new Promise((resolve, reject) => {
-      const FootprintService = this.app.services.FootprintService
+      if (!customer.id) {
+        const err = new Errors.FoundError(Error('Customer is missing id'))
+        return reject(err)
+      }
+      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
+      const Tag = this.app.services.ProxyEngineService.getModel('Tag')
+      let resCustomer = {}
+      Customer.findIdDefault(customer.id)
+        .then(foundCustomer => {
+          resCustomer = foundCustomer
+          // console.log('resCustomer',resCustomer)
+          // Update Metadata
+          if (customer.metadata) {
+            resCustomer.metadata.data = customer.metadata || {}
+          }
+          // Update Shipping Address
+          if (customer.shipping_address){
+            customer.shipping_address = _.extend(resCustomer.shipping_address.dataValues, customer.shipping_address)
+          }
+          // Update Billing Address
+          if (customer.billing_address){
+            customer.billing_address = _.extend(resCustomer.billing_address.dataValues, customer.billing_address)
+          }
+          // Update Default Address
+          if (customer.default_address){
+            customer.default_address = _.extend(resCustomer.default_address.dataValues, customer.default_address)
+          }
+
+          const update = _.omit(customer,['tags','metadata'])
+          return resCustomer.update(update)
+        })
+        .then(updatedCustomer => {
+          if (customer.tags) {
+            return Tag.transformTags(customer.tags)
+          }
+          return
+        })
+        .then(tags => {
+          if (tags) {
+            return resCustomer.setTags(tags)
+          }
+          return
+        })
+        .then(tags => {
+          // Save Changes to metadata
+          return resCustomer.metadata.save()
+        })
+        .then(metadata => {
+          return Promise.all([
+            resCustomer.shipping_address.save(),
+            resCustomer.billing_address.save(),
+            resCustomer.default_address.save()
+          ])
+        })
+        .then(addresses => {
+          return resCustomer.reload()
+        })
+        .then(customer => {
+          return resolve(customer)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
+  }
+  addCart(customer, cart) {
+    return new Promise((resolve, reject) => {
+      // const FootprintService = this.app.services.FootprintService
+      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
       const customerId = _.isObject(customer) ? customer.id : customer
       const cartId = _.isObject(cart) ? cart.id : cart
 
@@ -109,17 +198,62 @@ module.exports = class CustomerService extends Service {
         const err = new Error(`Can not Associate ${customerId} with ${cartId} because it is invalid`)
         return reject(err)
       }
-      FootprintService.find('Customer', customerId)
+      Customer.findById(customerId)
         .then(customer => {
           return customer.addCart(cartId)
         })
         .then(updatedCustomer => {
-          return updatedCustomer
+          return resolve(updatedCustomer)
         })
         .catch(err => {
           return reject(err)
         })
     })
+  }
+  // TODO removeCart
+  removeCart(customer, cart){
+
+  }
+  // TODO setDefaultCartForCustomer
+  setDefaultCartForCustomer(customer, cart){
+    return new Promise((resolve, reject) => {
+      // const FootprintService = this.app.services.FootprintService
+      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
+      const customerId = _.isObject(customer) ? customer.id : customer
+      const cartId = _.isObject(cart) ? cart.id : cart
+
+      if (!customerId || !cartId) {
+        // TODO Create Proper Error
+        const err = new Error(`Can not Associate ${customerId} with ${cartId} because it is invalid`)
+        return reject(err)
+      }
+      Customer.findById(customerId)
+        .then(customer => {
+          return customer.setDefault_cart(cartId)
+        })
+        .then(updatedCustomer => {
+          return resolve(updatedCustomer)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
+  }
+  // TODO addAddress
+  addAddress(customer, address){
+
+  }
+  // TODO removeAddress
+  removeAddress(customer, address){
+
+  }
+  // TODO addTag
+  addTag(customer, tag){
+
+  }
+  // TODO removeTag
+  removeTag(customer, tag){
+
   }
 }
 

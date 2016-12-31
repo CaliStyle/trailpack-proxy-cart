@@ -41,5 +41,20 @@ module.exports = class CustomerController extends Controller {
       })
 
   }
+  update(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    lib.Validator.validateCustomer(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return CustomerService.update(req.body)
+      })
+      .then(customer => {
+        return res.json(customer)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+  }
 }
 
