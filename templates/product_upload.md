@@ -201,8 +201,8 @@ If you use an app that manipulates CSV files, reference all columns by name, not
 
 To organize your products into collections during the CSV upload, you can add a new column anywhere in your CSV file with the header name Collection. This is and the additional option values are the only columns you can add to the CSV that will not break the format. Therefore:
 
-## Collection (must create a new column, can be left blank)
-Enter the name of the collection you want to add this product to. If the collection does not already exist, one will be created for you. You can only add a product to one collection using this method.
+## Collections (must create a new column, can be left blank)
+Enter the name of the collections you want to add this product to. If the collection(s) does not already exist, one will be created for you.
 
 # Create your product CSV file
 

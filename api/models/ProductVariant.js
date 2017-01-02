@@ -66,6 +66,18 @@ module.exports = class ProductVariant extends Model {
                 //   allowNull: false
                 // }
               })
+              // models.Product.belongsToMany(models.Collection, {
+              //   as: 'collections',
+              //   through: {
+              //     model: models.ItemCollection,
+              //     unique: false,
+              //     scope: {
+              //       model: 'product_variant'
+              //     }
+              //   },
+              //   foreignKey: 'model_id',
+              //   constraints: false
+              // })
             }
           }
         }

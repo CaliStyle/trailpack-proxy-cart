@@ -36,7 +36,7 @@ module.exports = {
     subscription: 'Subscription',
     subscription_unit: 'Subscription Unit',
     subscription_interval: 'Subscription Interval',
-    collection: 'Collection',
+    collections: 'Collections',
     g_product_category: 'Google Shopping / Google Product Category',
     g_gender: 'Google Shopping / Gender',
     g_age_group: 'Google Shopping / Age Group',

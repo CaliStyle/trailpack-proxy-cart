@@ -70,6 +70,7 @@ module.exports = class ProductService extends Service {
    * @param product
    * @returns {Promise}
    */
+  // TODO Create Images and Variant Images in one command
   createProduct(product){
     return new Promise((resolve, reject) => {
       // const FootprintService = this.app.services.FootprintService
@@ -78,6 +79,7 @@ module.exports = class ProductService extends Service {
       const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
       const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
       const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
+      const Collection = this.app.services.ProxyEngineService.getModel('Collection')
       // The Default Product
       const create = {
         host: product.host,
@@ -113,10 +115,10 @@ module.exports = class ProductService extends Service {
         create.seo_description = removeMd(striptags(product.body))
       }
 
-      // TODO handle Collection
-      if (product.collection) {
-        console.log('ProductService.addProduct Collection Not Supported Yet')
-      }
+      // // TODO handle Collection
+      // if (product.collections) {
+      //   console.log('ProductService.addProduct Collection Not Supported Yet')
+      // }
 
       // Images
       let images = []
@@ -201,19 +203,46 @@ module.exports = class ProductService extends Service {
           {
             model: Metadata,
             as: 'metadata'
+          },
+          {
+            model: Collection,
+            as: 'collections'
           }
         ]
       })
         .then(createdProduct => {
           resProduct = createdProduct
           // console.log('createdProduct',createdProduct)
-          return Tag.transformTags(product.tags)
+          if (product.tags) {
+            return Tag.transformTags(product.tags)
+          }
+          return
         })
         .then(tags => {
-          // Add Tags
-          return resProduct.addTags(tags)
+          if (tags) {
+            // Add Tags
+            return resProduct.setTags(tags)
+          }
+          return
         })
         .then(tags => {
+          if (product.collections) {
+            // Resolve the collections
+            console.log('THESE COLLECTIONS', product.collections)
+            return Promise.all(product.collections.map(collection => {
+              return this.app.services.CollectionService.resolve(collection)
+            }))
+          }
+          return
+        })
+        .then(collections => {
+          console.log('THESE COLLECTIONS', collections)
+          if (collections) {
+            return resProduct.setCollections(collections)
+          }
+          return
+        })
+        .then(collections => {
           return Promise.all(images.map(image => {
             // image.product_id = resProduct.id
             if (typeof image.variant !== 'undefined') {
@@ -255,6 +284,8 @@ module.exports = class ProductService extends Service {
    * @param product
    * @returns {Promise}
    */
+  // TODO Create/Update Images and Variant Images in one command
+  // TODO resolve collection if posted
   updateProduct(product) {
     return new Promise((resolve, reject) => {
       if (!product.id) {
@@ -267,8 +298,6 @@ module.exports = class ProductService extends Service {
       const Tag = this.app.services.ProxyEngineService.getModel('Tag')
       // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
       // const Collection = this.app.services.ProxyEngineService.getModel('Collection')
-      // const updatedVariants = []
-      // const newVariants = []
 
       let resProduct = {}
       // let newTags = []
@@ -386,6 +415,23 @@ module.exports = class ProductService extends Service {
           return
         })
         .then(tags => {
+          if (product.collections) {
+            // Resolve the collections
+            console.log('THESE COLLECTIONS', product.collections)
+            return Promise.all(product.collections.map(collection => {
+              return this.app.services.CollectionService.resolve(collection)
+            }))
+          }
+          return
+        })
+        .then(collections => {
+          console.log('THESE COLLECTIONS', collections)
+          if (collections) {
+            return resProduct.setCollections(collections)
+          }
+          return
+        })
+        .then(collections => {
           // save the metadata
           return resProduct.metadata.save()
         })
@@ -550,6 +596,15 @@ module.exports = class ProductService extends Service {
   }
   // TODO removeTag
   removeTag(product, tag){
+
+  }
+
+  // TODO addToCollection
+  addToCollection(product, collection){
+
+  }
+  // TODO removeFromCollection
+  removeFromCollection(product, collection){
 
   }
 

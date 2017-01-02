@@ -24,6 +24,17 @@ module.exports = class Product extends Model {
               live_mode: app.config.proxyCart.live_mode
             }
           },
+          hooks: {
+            beforeValidate(values, options, fn) {
+              if (values.handle) {
+                values.handle = app.services.ProxyCartService.slug(values.handle)
+              }
+              if (!values.handle && values.title) {
+                values.handle = app.services.ProxyCartService.slug(values.title)
+              }
+              fn()
+            }
+          },
           classMethods: {
             /**
              * Expose UNITS enums
@@ -94,6 +105,18 @@ module.exports = class Product extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Product.belongsToMany(models.Collection, {
+                as: 'collections',
+                through: {
+                  model: models.ItemCollection,
+                  unique: false,
+                  scope: {
+                    model: 'product'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
               // models.Product.belongsToMany(models.OrderItem, {
               //   as: 'order_items',
               //   through: 'OrderItemProduct'
@@ -139,6 +162,11 @@ module.exports = class Product extends Model {
                     model: app.orm['Metadata'],
                     as: 'metadata',
                     attributes: ['data', 'id']
+                  },
+                  {
+                    model: app.orm['Collection'],
+                    as: 'collections',
+                    attributes: ['id', 'title', 'handle']
                   }
                 ]
                 // order: [

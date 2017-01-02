@@ -36,6 +36,9 @@ describe('ProductController', () => {
             'equipment',
             'outdoor'
           ],
+          collections: [
+            'fire sale'
+          ],
           metadata: {
             test: 'value'
           },

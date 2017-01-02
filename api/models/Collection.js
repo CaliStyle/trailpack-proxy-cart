@@ -15,6 +15,17 @@ module.exports = class Collection extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            beforeValidate(values, options, fn) {
+              if (values.handle) {
+                values.handle = app.services.ProxyCartService.slug(values.handle)
+              }
+              if (!values.handle && values.title) {
+                values.handle = app.services.ProxyCartService.slug(values.title)
+              }
+              fn()
+            }
+          },
           classMethods: {
             COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
             associate: (models) => {
@@ -25,6 +36,13 @@ module.exports = class Collection extends Model {
                 },
                 foreignKey: 'collection_id'
               })
+              // models.Collection.belongsToMany(models.ProductVariant, {
+              //   through: {
+              //     model: models.ItemCollection,
+              //     unique: false
+              //   },
+              //   foreignKey: 'collection_id'
+              // })
               // models.ProductCollection.hasMany(models.ProductCollection, {
               //   as: 'collections'
               // })
@@ -47,9 +65,11 @@ module.exports = class Collection extends Model {
     if (app.config.database.orm === 'sequelize') {
       schema = {
         handle: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          unique: true
         },
         // Multi Site Support
+        // TODO possibly switch to store_id for multi tenant support?
         host: {
           type: Sequelize.STRING,
           defaultValue: 'localhost'
@@ -70,7 +90,8 @@ module.exports = class Collection extends Model {
           type: Sequelize.DATE
         },
         title: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          unique: true
         },
         sort_order: {
           type: Sequelize.ENUM,

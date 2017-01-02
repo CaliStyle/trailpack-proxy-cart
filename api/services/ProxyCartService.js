@@ -102,6 +102,9 @@ module.exports = class ProxyCartService extends Service {
           else if (k == 'variant_images_alt') {
             upload[k] = data.split('|').map(alt => { return alt.trim()})
           }
+          else if (k == 'collections') {
+            upload[k] = data.split(',').map(collection => { return collection.trim()})
+          }
           else {
             upload[k] = data
           }
@@ -235,6 +238,13 @@ module.exports = class ProxyCartService extends Service {
   // TODO
   uploadImage(image) {
 
+  }
+  slug(text) {
+    return text.toString().toLowerCase().trim()
+      .replace(/\s+/g, '-')           // Replace spaces with -
+      .replace(/&/g, '-and-')         // Replace & with 'and'
+      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+      .replace(/\-\-+/g, '-')
   }
   ouncesToGrams(ounces) {
     return ounces * 28.3495231
