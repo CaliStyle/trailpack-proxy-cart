@@ -196,28 +196,6 @@ module.exports = class Product extends Model {
                     'position'
                   ]
                 ]
-                // order: [[app.orm['ProductVariant'], 'position', 'ASC']]
-                // order: [
-                //
-                // ]
-                // order: [
-                //   [
-                //     {
-                //       model: app.orm['ProductVariant'],
-                //       as: 'variants'
-                //     },
-                //     'position',
-                //     'ASC'
-                //   ],
-                //   [
-                //     {
-                //       model: app.orm['ProductImage'],
-                //       as: 'images'
-                //     },
-                //     'position',
-                //     'ASC'
-                //   ]
-                // ]
               })
               return this.findById(criteria, options)
             }

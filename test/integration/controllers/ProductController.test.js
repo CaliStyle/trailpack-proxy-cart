@@ -106,6 +106,10 @@ describe('ProductController', () => {
         assert.ok(res.body[0].images[0].large)
         assert.equal(res.body[0].images[0].alt, 'Hello World')
         // Variants
+        assert.equal(res.body[0].variants.length, 2)
+        assert.equal(res.body[0].variants[0].position, 1)
+        assert.equal(res.body[0].variants[1].position, 2)
+
         assert.equal(res.body[0].variants[0].product_id, createdProductID)
         assert.equal(res.body[0].variants[0].sku, 'board-m-123')
         assert.equal(res.body[0].variants[0].title, res.body[0].title)
@@ -171,6 +175,10 @@ describe('ProductController', () => {
         assert.equal(res.body.images[1].alt, 'Hello World 2')
 
         // Variants
+        assert.equal(res.body.variants.length, 2)
+        assert.equal(res.body.variants[0].position, 1)
+        assert.equal(res.body.variants[1].position, 2)
+
         assert.equal(res.body.variants[0].product_id, createdProductID)
         assert.equal(res.body.variants[0].title, res.body.title)
         assert.equal(res.body.variants[0].price, res.body.price)
@@ -373,5 +381,9 @@ describe('ProductController', () => {
         assert.equal(res.body.variants, 2)
         done()
       })
+  })
+  it.skip('It should get products by tag', (done) => {
+  })
+  it.skip('It should get products by collection', (done) => {
   })
 })

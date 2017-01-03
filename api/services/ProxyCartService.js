@@ -254,7 +254,7 @@ module.exports = class ProxyCartService extends Service {
           results.upload_id = uploadID
           ProxyEngineService.count('CustomerUpload', { where: { upload_id: uploadID }})
             .then(count => {
-              results.products = count
+              results.customers = count
               resolve(results)
             })
             // TODO handle this more gracefully

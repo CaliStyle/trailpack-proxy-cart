@@ -7,6 +7,7 @@ const customers = require('../../fixtures/customers')
 describe('CustomerController', () => {
   let request
   let customerID
+  let uploadID
   before((done) => {
     request = supertest('http://localhost:3000')
     done()
@@ -67,6 +68,30 @@ describe('CustomerController', () => {
         assert.equal(res.body.shipping_address.first_name, 'Scotty')
         assert.equal(res.body.shipping_address.last_name, 'W')
         done(err)
+      })
+  })
+
+  it('It should upload customer_upload.csv', (done) => {
+    request
+      .post('/customer/uploadCSV')
+      .attach('csv', 'test/fixtures/customer_upload.csv')
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        assert.ok(res.body.result.upload_id)
+        uploadID = res.body.result.upload_id
+        assert.equal(res.body.result.customers, 0)
+        done()
+      })
+  })
+  it.skip('It should process upload', (done) => {
+    request
+      .post(`/customer/processUpload/${uploadID}`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.customers, 0)
+        done()
       })
   })
 })

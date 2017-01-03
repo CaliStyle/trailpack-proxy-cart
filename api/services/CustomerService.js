@@ -255,5 +255,13 @@ module.exports = class CustomerService extends Service {
   removeTag(customer, tag){
 
   }
+  // TODO addCollection
+  addCollection(customer, tag){
+
+  }
+  // TODO removeCollection
+  removeCollection(customer, tag){
+
+  }
 }
 
