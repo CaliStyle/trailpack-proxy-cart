@@ -1,6 +1,27 @@
 'use strict'
 
 module.exports = {
+  CUSTOMER_UPLOAD: {
+    first_name: 'First Name',
+    last_name: 'Last Name',
+    phone: 'Phone',
+    billing_address_1: 'Billing Address 1',
+    billing_address_2: 'Billing Address 2',
+    billing_address_3: 'Billing Address 3',
+    billing_company: 'Billing Company',
+    billing_city: 'Billing City',
+    billing_province: 'Billing Province',
+    billing_postal_code: 'Billing Postal Code',
+    billing_country_code: 'Billing Country Code',
+    shipping_address_1: 'Shipping Address 1',
+    shipping_address_2: 'Shipping Address 2',
+    shipping_address_3: 'Shipping Address 3',
+    shipping_company: 'Shipping Company',
+    shipping_city: 'Shipping City',
+    shipping_province: 'Shipping Province',
+    shipping_postal_code: 'Shipping Postal Code',
+    shipping_country_code: 'Shipping Country Code'
+  },
   PRODUCT_UPLOAD: {
     handle: 'Handle',
     title: 'Title',

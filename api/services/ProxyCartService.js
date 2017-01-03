@@ -6,6 +6,7 @@ const csvParser = require('babyparse')
 const _ = require('lodash')
 // const Errors = require('proxy-engine-errors')
 const PRODUCT_UPLOAD = require('../utils/enums').PRODUCT_UPLOAD
+const CUSTOMER_UPLOAD = require('../utils/enums').CUSTOMER_UPLOAD
 const fs = require('fs')
 const shortid = require('shortid')
 /**
@@ -34,7 +35,7 @@ module.exports = class ProxyCartService extends Service {
           // TODO handle errors
           // console.log('Row errors:', results.errors)
           parser.pause()
-          this.csvRow(results.data[0], uploadID)
+          this.csvProductRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
@@ -72,7 +73,7 @@ module.exports = class ProxyCartService extends Service {
    * @param row
    * @param uploadID
    */
-  csvRow(row, uploadID) {
+  csvProductRow(row, uploadID) {
     // console.log(row)
     const ProductUpload = this.app.services.ProxyEngineService.getModel('ProductUpload')
     const values = _.values(PRODUCT_UPLOAD)
@@ -160,6 +161,9 @@ module.exports = class ProxyCartService extends Service {
       let productsTotal = 0
       let variantsTotal = 0
       ProductUpload.findAll({
+        where: {
+          upload_id: uploadId
+        },
         attributes: ['handle'],
         group: ['handle']
       })
@@ -213,6 +217,124 @@ module.exports = class ProxyCartService extends Service {
         })
     })
   }
+
+  /**
+   *
+   * @param file
+   * @returns {Promise}
+   */
+  customerCsv(file) {
+    // TODO validate csv
+    console.time('csv')
+    const uploadID = shortid.generate()
+    const ProxyEngineService = this.app.services.ProxyEngineService
+
+    return new Promise((resolve, reject)=>{
+      const options = {
+        header: true,
+        dynamicTyping: true,
+        step: (results, parser) => {
+          // console.log(parser)
+          // console.log('Row data:', results.data)
+          // TODO handle errors
+          // console.log('Row errors:', results.errors)
+          parser.pause()
+          this.csvCustomerRow(results.data[0], uploadID)
+            .then(row => {
+              parser.resume()
+            })
+            .catch(err => {
+              console.log(err)
+              parser.resume()
+            })
+        },
+        complete: (results, file) => {
+          console.timeEnd('csv')
+          // console.log('Parsing complete:', results, file)
+          results.upload_id = uploadID
+          ProxyEngineService.count('CustomerUpload', { where: { upload_id: uploadID }})
+            .then(count => {
+              results.products = count
+              resolve(results)
+            })
+            // TODO handle this more gracefully
+            .catch(err => {
+              reject(err)
+            })
+        },
+        error: (err, file) => {
+          reject(err)
+        }
+      }
+      const fileString = fs.readFileSync(file, 'utf8')
+      // Parse the CSV/TSV
+      csvParser.parse(fileString, options)
+    })
+  }
+
+  /**
+   *
+   * @param row
+   * @param uploadID
+   */
+  csvCustomerRow(row, uploadID) {
+    // console.log(row)
+    const CustomerUpload = this.app.services.ProxyEngineService.getModel('CustomerUpload')
+    const values = _.values(CUSTOMER_UPLOAD)
+    const keys = _.keys(CUSTOMER_UPLOAD)
+    const upload = {
+      upload_id: uploadID,
+      options: {}
+    }
+
+    _.each(row, (data, key) => {
+      if (data !== '') {
+        const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
+        const k = keys[i]
+        if (i > -1 && k) {
+          upload[k] = data
+        }
+      }
+    })
+    const newCustomer = CustomerUpload.build(upload)
+    return newCustomer.save()
+  }
+
+  /**
+   *
+   * @param uploadId
+   * @returns {Promise}
+   */
+  // TODO
+  processCustomerUpload(uploadId) {
+    return new Promise((resolve, reject) => {
+      const CustomerUpload = this.app.services.ProxyEngineService.getModel('CustomerUpload')
+      let customersTotal = 0
+      CustomerUpload.findAll({
+        where: {
+          upload_id: uploadId
+        }
+      })
+        .then(customers => {
+          return Promise.all(customers.map(customer => {
+            // TODO change addresses to objects
+            return this.app.services.CustomerService.create(customer)
+          }))
+        })
+        .then(results => {
+          customersTotal = results.length
+          return CustomerUpload.destroy({where: {upload_id: uploadId }})
+        })
+        .then(destroyed => {
+
+          return resolve({customers: customersTotal})
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
+  }
+
   // TODO
   downloadImage(url) {
 
