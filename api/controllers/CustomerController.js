@@ -56,5 +56,47 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   * upload CSV
+   * @param req
+   * @param res
+   */
+  uploadCSV(req, res) {
+    const ProxyCartService = this.app.services.ProxyCartService
+    const csv = req.file
+
+    if (!csv) {
+      const err = new Error('File failed to upload')
+      return res.serverError(err)
+    }
+
+    ProxyCartService.customerCsv(csv.path)
+      .then(result => {
+        return res.json({
+          file: req.file,
+          result: result
+        })
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  processUpload(req, res) {
+    const ProxyCartService = this.app.services.ProxyCartService
+    ProxyCartService.processCustomerUpload(req.params.id)
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

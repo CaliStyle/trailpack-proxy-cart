@@ -128,7 +128,7 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log('THESE COLLECTIONS',res.body.collections)
-        console.log(res.body)
+        // console.log(res.body)
         // Product
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.handle, 'snowboard')
@@ -237,7 +237,7 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log(res.body[0])
+        // console.log(res.body[0])
         assert.equal(res.body[0].id, createdProductID)
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151 Gen 2')
         // Metadata
@@ -263,7 +263,7 @@ describe('ProductController', () => {
         done(err)
       })
   })
-  it('TODO should find updated product', (done) => {
+  it('should find updated product', (done) => {
     request
       .get(`/product/${createdProductID}`)
       .expect(200)
@@ -284,6 +284,14 @@ describe('ProductController', () => {
         assert.equal(res.body.images[3].position, 4)
         done(err)
       })
+  })
+  it.skip('should add tag to product', (done) => {
+  })
+  it.skip('should remove tag to product', (done) => {
+  })
+  it.skip('should add collection to product', (done) => {
+  })
+  it.skip('should add remove to product', (done) => {
   })
   it('should make removeImage post request', (done) => {
     request
