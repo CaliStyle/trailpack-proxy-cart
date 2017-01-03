@@ -18,6 +18,11 @@ module.exports = class Customer extends Model {
       config = {
         options: {
           underscored: true,
+          getterMethods: {
+            full_name: function()  {
+              return `${this.first_name} ${this.last_name}`
+            }
+          },
           classMethods: {
             CUSTOMER_STATE: CUSTOMER_STATE,
             /**

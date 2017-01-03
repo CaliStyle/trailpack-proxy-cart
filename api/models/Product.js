@@ -6,6 +6,8 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const UNITS = require('../utils/enums').UNITS
 const _ = require('lodash')
+const removeMd = require('remove-markdown')
+const striptags = require('striptags')
 
 /**
  * @module Product
@@ -26,12 +28,18 @@ module.exports = class Product extends Model {
           },
           hooks: {
             beforeValidate(values, options, fn) {
-              if (values.handle) {
-                values.handle = app.services.ProxyCartService.slug(values.handle)
-              }
+              // if (values.handle) {
+              //   values.handle = app.services.ProxyCartService.slug(values.handle)
+              // }
               if (!values.handle && values.title) {
-                values.handle = app.services.ProxyCartService.slug(values.title)
+                values.handle = values.title
               }
+              // if (values.seo_title) {
+              //   values.seo_title = removeMd(striptags(values.seo_title))
+              // }
+              // if (values.seo_description) {
+              //   values.seo_description = removeMd(striptags(values.seo_description))
+              // }
               fn()
             }
           },
@@ -51,10 +59,14 @@ module.exports = class Product extends Model {
               // })
               models.Product.hasMany(models.ProductImage, {
                 as: 'images',
+                foreignKey: 'product_id',
+                through: null,
                 onDelete: 'CASCADE'
               })
               models.Product.hasMany(models.ProductVariant, {
                 as: 'variants',
+                foreignKey: 'product_id',
+                through: null,
                 onDelete: 'CASCADE'
               })
               // models.Product.hasMany(models.ProductReview, {
@@ -147,10 +159,8 @@ module.exports = class Product extends Model {
                     attributes: ['name', 'id']
                   },
                   {
-                    // association: 'variants'
                     model: app.orm['ProductVariant'],
                     as: 'variants',
-                    order: ['position','ASC'],
                     include: [
                       {
                         model: app.orm['ProductImage'],
@@ -168,7 +178,25 @@ module.exports = class Product extends Model {
                     as: 'collections',
                     attributes: ['id', 'title', 'handle']
                   }
+                  // app.orm['ProductVariant'].associations.variants
+                ],
+                order: [
+                  [
+                    {
+                      model: app.orm['ProductVariant'],
+                      as: 'variants'
+                    },
+                    'position'
+                  ],
+                  [
+                    {
+                      model: app.orm['ProductImage'],
+                      as: 'images'
+                    },
+                    'position'
+                  ]
                 ]
+                // order: [[app.orm['ProductVariant'], 'position', 'ASC']]
                 // order: [
                 //
                 // ]
@@ -235,7 +263,10 @@ module.exports = class Product extends Model {
         handle: {
           type: Sequelize.STRING,
           allowNull: false,
-          unique: true
+          unique: true,
+          set: function(val) {
+            this.setDataValue('handle', app.services.ProxyCartService.slug(val))
+          }
         },
         // Product Title
         title: {
@@ -247,11 +278,17 @@ module.exports = class Product extends Model {
         },
         // SEO title
         seo_title: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          set: function(val) {
+            this.setDataValue('seo_title', removeMd(striptags(val)))
+          }
         },
         // SEO description
         seo_description: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          set: function(val) {
+            this.setDataValue('seo_description', removeMd(striptags(val)))
+          }
         },
         // Type of the product e.g. 'Snow Board'
         type: {

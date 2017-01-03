@@ -17,12 +17,15 @@ module.exports = class Collection extends Model {
           underscored: true,
           hooks: {
             beforeValidate(values, options, fn) {
-              if (values.handle) {
-                values.handle = app.services.ProxyCartService.slug(values.handle)
-              }
               if (!values.handle && values.title) {
-                values.handle = app.services.ProxyCartService.slug(values.title)
+                values.handle = values.title
               }
+              // if (values.handle) {
+              //   values.handle = app.services.ProxyCartService.slug(values.handle)
+              // }
+              // if (!values.handle && values.title) {
+              //   values.handle = app.services.ProxyCartService.slug(values.title)
+              // }
               fn()
             }
           },
@@ -66,7 +69,11 @@ module.exports = class Collection extends Model {
       schema = {
         handle: {
           type: Sequelize.STRING,
-          unique: true
+          allowNull: false,
+          unique: true,
+          set: function(val) {
+            this.setDataValue('handle', app.services.ProxyCartService.slug(val))
+          }
         },
         // Multi Site Support
         // TODO possibly switch to store_id for multi tenant support?
@@ -91,6 +98,7 @@ module.exports = class Collection extends Model {
         },
         title: {
           type: Sequelize.STRING,
+          allowNull: false,
           unique: true
         },
         sort_order: {

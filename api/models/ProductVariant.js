@@ -30,8 +30,8 @@ module.exports = class ProductVariant extends Model {
           defaultScope: {
             where: {
               live_mode: app.config.proxyCart.live_mode
-            }
-            // ,order: ['position']
+            },
+            order: [['position','ASC']]
           },
           classMethods: {
             /**
@@ -51,6 +51,9 @@ module.exports = class ProductVariant extends Model {
              * @param models
              */
             associate: (models) => {
+              models.ProductVariant.belongsTo(models.Product, {
+                // onDelete: 'CASCADE'
+              })
               // models.ProductVariant.belongsTo(models.Product, {
               //   // foreignKey: 'variant_id',
               //   // as: 'product_id',
@@ -61,6 +64,8 @@ module.exports = class ProductVariant extends Model {
               // })
               models.ProductVariant.hasMany(models.ProductImage, {
                 as: 'images',
+                foreignKey: 'product_variant_id',
+                through: null,
                 onDelete: 'CASCADE'
                 // foreignKey: {
                 //   allowNull: false

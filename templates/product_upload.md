@@ -1,6 +1,6 @@
 # Product CSV file format
 
-The first line of your product CSV has to include the field headers described below with each separated by a comma. Subsequent lines in the file should contain data for your product using those same fields in that exact same order. Here's a description of each field:
+The first line of your product CSV has to include the field headers described below with each separated by a comma character `,`. Subsequent lines in the file should contain data for your product using those same fields in that exact same order. Here's a description of each field:
 
 ## Handle
 Handles are unique names for each product. They can contain letters, dashes and numbers, but no spaces. A handle is used in the URL for each product. For example, the handle for a "Women's Snowboard" should be `womens-snowboard`, and the product's URL would be `https://yourstore.com/product/womens-snowboard`.
@@ -54,7 +54,7 @@ Proxy-Cart Stores all Options in a JSON format allowing for the single model fie
 If you have an `Option / * Name` column, it must also have an `Option / * Value` column.
 
 ## Image Sources
-Put the URLs for the product's images separated by a pipe character e.g. `|`. Proxy-Cart will download the images during the import and re-upload them into your data store. 
+Put the URLs for the product's images separated by a comma character e.g. `,`. Proxy-Cart will download the images during the import and re-upload them into your data store. 
 
 ### _Note_
 These images are not variant specific. The variant image column is where you specify variant images.
@@ -202,7 +202,7 @@ If you use an app that manipulates CSV files, reference all columns by name, not
 To organize your products into collections during the CSV upload, you can add a new column anywhere in your CSV file with the header name Collection. This is and the additional option values are the only columns you can add to the CSV that will not break the format. Therefore:
 
 ## Collections (must create a new column, can be left blank)
-Enter the name of the collections you want to add this product to. If the collection(s) does not already exist, one will be created for you.
+Enter the name of the collections separated by a comma character `,` you want to add this product to. If the collection(s) does not already exist, one will be created for you.
 
 # Create your product CSV file
 

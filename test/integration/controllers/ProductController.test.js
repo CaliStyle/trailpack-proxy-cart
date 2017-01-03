@@ -68,8 +68,8 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log('THESE TAGS',res.body[0].tags)
-        console.log('THIS METADATA',res.body[0].metadata)
+        // console.log('THESE COLLECTIONS',res.body[0].collections)
+        // console.log('THIS METADATA',res.body[0].metadata)
         // console.log('PRODUCT Variants',res.body[0].variants)
         // console.log('PRODUCT Images',res.body[0].images)
         createdProductID = res.body[0].id
@@ -86,6 +86,9 @@ describe('ProductController', () => {
         assert.equal(res.body[0].type, 'Snowboard')
         // Metadata
         assert.equal(res.body[0].metadata.test, 'value')
+        // Collections
+        assert.equal(res.body[0].collections.length, 1)
+        assert.equal(res.body[0].collections[0].handle, 'fire-sale')
         // Tags
         assert.equal(res.body[0].tags.length, 3)
         assert.notEqual(res.body[0].tags.indexOf('snow'), -1)
@@ -124,7 +127,8 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        // console.log('THESE COLLECTIONS',res.body.collections)
+        console.log(res.body)
         // Product
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.handle, 'snowboard')
@@ -135,6 +139,9 @@ describe('ProductController', () => {
         assert.equal(res.body.type, 'Snowboard')
         // Metadata
         assert.equal(res.body.metadata.test, 'value')
+        // Collections
+        assert.equal(res.body.collections.length, 1)
+        assert.equal(res.body.collections[0].handle, 'fire-sale')
         // Tags
         assert.equal(res.body.tags.length, 3)
         assert.notEqual(res.body.tags.indexOf('snow'), -1)
@@ -198,6 +205,9 @@ describe('ProductController', () => {
           metadata: {
             test: 'new value'
           },
+          collections: [
+            'free-shipping'
+          ],
           images: [
             {
               id: firstVariantID,
@@ -227,20 +237,29 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body[0])
+        console.log(res.body[0])
         assert.equal(res.body[0].id, createdProductID)
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151 Gen 2')
         // Metadata
         assert.equal(res.body[0].metadata.test, 'new value')
-
+        // Collections
+        assert.equal(res.body[0].collections.length, 1)
+        assert.equal(res.body[0].collections[0].title, 'free-shipping')
+        assert.equal(res.body[0].collections[0].handle, 'free-shipping')
         // Variants
         assert.equal(res.body[0].variants.length, 3)
-        // TODO ORDER BY POSITION
-        // assert.equal(res.body[0].variants[0].title, res.body[0].title)
-        // assert.equal(res.body[0].variants[2].title, 'Youth Burton Custom Freestyle 151')
+        assert.equal(res.body[0].variants[0].position, 1)
+        assert.equal(res.body[0].variants[1].position, 2)
+        assert.equal(res.body[0].variants[2].position, 3)
+        assert.equal(res.body[0].variants[0].title, res.body[0].title)
+        assert.equal(res.body[0].variants[2].title, 'Youth Burton Custom Freestyle 151')
 
         // Images
         assert.equal(res.body[0].images.length, 4)
+        assert.equal(res.body[0].images[0].position, 1)
+        assert.equal(res.body[0].images[1].position, 2)
+        assert.equal(res.body[0].images[2].position, 3)
+        assert.equal(res.body[0].images[3].position, 4)
         done(err)
       })
   })
@@ -252,8 +271,17 @@ describe('ProductController', () => {
         // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.title, 'Burton Custom Freestyle 151 Gen 2')
+        // Variants
         assert.equal(res.body.variants.length, 3)
+        assert.equal(res.body.variants[0].position, 1)
+        assert.equal(res.body.variants[1].position, 2)
+        assert.equal(res.body.variants[2].position, 3)
+        // Images
         assert.equal(res.body.images.length, 4)
+        assert.equal(res.body.images[0].position, 1)
+        assert.equal(res.body.images[1].position, 2)
+        assert.equal(res.body.images[2].position, 3)
+        assert.equal(res.body.images[3].position, 4)
         done(err)
       })
   })

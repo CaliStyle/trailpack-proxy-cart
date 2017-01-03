@@ -26,6 +26,9 @@ module.exports = class CollectionService extends Service {
         },
         default: collection
       })
+        .spread((collection, created) => {
+          return collection
+        })
     }
     else if (collection && _.isString(collection)) {
       return Collection.create({title: collection})
@@ -42,6 +45,13 @@ module.exports = class CollectionService extends Service {
       //     title: collection
       //   }
       // })
+      //   .spread((collection, created) => {
+      //     this.app.log.debug(`${collection.handle} created ${created}`)
+      //     return Promise.resolve(collection)
+      //   })
+      //   .catch(err => {
+      //     return Promise.reject(err)
+      //   })
     }
   }
 }

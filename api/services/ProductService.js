@@ -3,8 +3,6 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
-const removeMd = require('remove-markdown')
-const striptags = require('striptags')
 const Errors = require('proxy-engine-errors')
 
 /**
@@ -111,14 +109,9 @@ module.exports = class ProductService extends Service {
       if (product.seo_description) {
         create.seo_description = product.seo_description
       }
-      if (!product.seo_description && product.body) {
-        create.seo_description = removeMd(striptags(product.body))
+      else {
+        create.seo_description = product.body
       }
-
-      // // TODO handle Collection
-      // if (product.collections) {
-      //   console.log('ProductService.addProduct Collection Not Supported Yet')
-      // }
 
       // Images
       let images = []
@@ -236,7 +229,7 @@ module.exports = class ProductService extends Service {
           return
         })
         .then(collections => {
-          console.log('THESE COLLECTIONS', collections)
+          // console.log('THESE COLLECTIONS', collections)
           if (collections) {
             return resProduct.setCollections(collections)
           }
@@ -343,6 +336,21 @@ module.exports = class ProductService extends Service {
             resProduct.metadata.data = product.metadata || {}
           }
 
+          // Update seo_title if provided, else update it if a new product title
+          if (product.seo_title) {
+            resProduct.seo_title = product.seo_title
+          }
+          else if (product.title) {
+            resProduct.seo_title = product.title
+          }
+          // Update seo_description if provided, else update it if a new product body
+          if (product.seo_description) {
+            resProduct.seo_description = product.seo_description
+          }
+          else if (product.body) {
+            resProduct.seo_description = product.body
+          }
+
           // Update Existing Variant
           _.each(resProduct.variants, variant => {
             return _.extend(variant, _.find(product.variants, { id: variant.id }))
@@ -417,7 +425,7 @@ module.exports = class ProductService extends Service {
         .then(tags => {
           if (product.collections) {
             // Resolve the collections
-            console.log('THESE COLLECTIONS', product.collections)
+            // console.log('THESE COLLECTIONS', product.collections)
             return Promise.all(product.collections.map(collection => {
               return this.app.services.CollectionService.resolve(collection)
             }))
@@ -462,7 +470,7 @@ module.exports = class ProductService extends Service {
           }))
         })
         .then(images => {
-          return resProduct.reload()
+          return Product.findIdDefault(resProduct.id)
         })
         .then(product => {
           // console.log('updateProduct', product)
