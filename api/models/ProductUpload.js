@@ -153,10 +153,10 @@ module.exports = class ProductUpload extends Model {
       subscription_interval: {
         type: Sequelize.STRING
       },
-      // 'Collection'
-      collection: {
-        type: Sequelize.STRING
-      },
+      // 'Collections'
+      collections: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'collections', {
+        defaultValue: []
+      }),
       // 'Google Shopping / Google Product Category'
       g_product_category: {
         type: Sequelize.STRING

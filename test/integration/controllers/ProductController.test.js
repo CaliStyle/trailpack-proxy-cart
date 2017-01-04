@@ -382,8 +382,40 @@ describe('ProductController', () => {
         done()
       })
   })
-  it.skip('It should get products by tag', (done) => {
+  it('It should get products', (done) => {
+    request
+      .get('/product')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.count)
+        assert.ok(res.body.rows)
+        done()
+      })
   })
-  it.skip('It should get products by collection', (done) => {
+  it('It should get products by tag', (done) => {
+    request
+      .get('/product/tag/flask')
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        assert.ok(res.body.count)
+        assert.ok(res.body.rows)
+        // assert.equal(res.body.count, 1)
+        // assert.equal(res.body.rows.length, 1)
+        done()
+      })
+  })
+  it('It should get products by collection', (done) => {
+    request
+      .get('/product/collection/bottles')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.count)
+        assert.ok(res.body.rows)
+        // TODO FIX THIS!
+        //assert.equal(res.body.count, 1)
+        assert.equal(res.body.rows.length, 1)
+        done()
+      })
   })
 })

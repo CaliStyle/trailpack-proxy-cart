@@ -221,7 +221,6 @@ module.exports = class ProductService extends Service {
         .then(tags => {
           if (product.collections) {
             // Resolve the collections
-            console.log('THESE COLLECTIONS', product.collections)
             return Promise.all(product.collections.map(collection => {
               return this.app.services.CollectionService.resolve(collection)
             }))

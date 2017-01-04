@@ -326,7 +326,6 @@ module.exports = class ProxyCartService extends Service {
           return CustomerUpload.destroy({where: {upload_id: uploadId }})
         })
         .then(destroyed => {
-
           return resolve({customers: customersTotal})
         })
         .catch(err => {

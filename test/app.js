@@ -53,7 +53,6 @@ if ( SERVER == 'express' ) {
         'addMethods',
         'cookieParser',
         'session',
-        // 'multer',
         'bodyParser',
         'passportInit',
         'passportSession',
@@ -95,9 +94,14 @@ const App = {
     proxyGenerics: {}
   }
 }
+
 const dbPath = __dirname + './test.sqlite'
 if (fs.existsSync(dbPath)) {
   fs.unlinkSync(dbPath)
+}
+const uploadPath = __dirname + './test.uploads.sqlite'
+if (fs.existsSync(uploadPath)) {
+  fs.unlinkSync(uploadPath)
 }
 
 _.defaultsDeep(App, smokesignals.FailsafeConfig)

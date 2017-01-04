@@ -40,6 +40,18 @@ module.exports = {
 ## Usage
 
 ### Controllers
+#### CustomerController
+
+##### CustomerController.create
+
+##### CustomerController.update
+
+##### CustomerController.findOne
+
+##### CustomerController.uploadCSV
+
+##### CustomerController.processUpload
+
 #### CartController
 
 ##### CartController.create
@@ -53,6 +65,8 @@ module.exports = {
 ##### CartController.clear
 
 #### ProductController
+##### ProductController.findOne
+
 ##### ProductController.addProduct
 
 ##### ProductController.addProducts
@@ -73,6 +87,10 @@ module.exports = {
 
 ##### ProductController.removeImages
 
+##### ProductController.uploadCSV
+
+##### ProductController.processUpload
+
 ### Services
 #### CartService
 #### CouponService
@@ -87,15 +105,21 @@ module.exports = {
 #### TaxService
 
 ### Models
+#### Address
 #### Cart
 #### Collection
 #### Country
 #### Coupon
 #### Customer
 #### CustomerAddress
+#### CustomerUpload
 #### Discount
 #### Fulfillment
+#### FulfillmentEvent
 #### GiftCard
+#### ItemCollection
+#### ItemMetadata
+#### ItemTag
 #### Metadata
 #### Order
 #### OrderItem
@@ -103,6 +127,7 @@ module.exports = {
 #### ProductImage
 #### ProductReview
 #### ProductVariant
+#### ProductUpload
 #### Province
 #### Refund
 #### ShippingZone

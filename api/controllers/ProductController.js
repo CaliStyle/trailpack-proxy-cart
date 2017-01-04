@@ -24,7 +24,93 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
-  find(req, res){}
+  findByTag(req, res) {
+    const orm = this.app.services.ProxyEngineService.getModel
+    const Product = orm('Product')
+    const Collection = orm('Collection')
+    const Tag = orm('Tag')
+    Product.findAndCount({
+      offset: req.query.offset || 0,
+      limit: req.query.limit || 10,
+      include: [
+        {
+          model: Tag,
+          as: 'tags',
+          where: {
+            'name': req.params.tag
+          }
+        },
+        {
+          model: Collection,
+          as: 'collections'
+        }
+      ]
+    })
+      .then(products => {
+        // product.unwrapTags(product.tags)
+        return res.json(products)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  findByCollection(req, res) {
+    const orm = this.app.services.ProxyEngineService.getModel
+    const Product = orm('Product')
+    const Collection = orm('Collection')
+    const Tag = orm('Tag')
+    // console.log('PARAMS', req.params, 'Query', req.query)
+    Product.findAndCount({
+      offset: req.query.offset || 0,
+      limit: req.query.limit || 10,
+      include: [
+        {
+          model: Tag,
+          as: 'tags'
+        },
+        {
+          model: Collection,
+          as: 'collections',
+          where: {
+            'handle': req.params.handle
+          }
+        }
+      ]
+    })
+      .then(products => {
+        return res.json(products)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  findAll(req, res){
+    const orm = this.app.services.ProxyEngineService.getModel
+    const Product = orm('Product')
+    const Collection = orm('Collection')
+    const Tag = orm('Tag')
+    Product.findAndCount({
+      offset: req.query.offset || 0,
+      limit: req.query.limit || 10,
+      include: [
+        {
+          model: Tag,
+          as: 'tags'
+        },
+        {
+          model: Collection,
+          as: 'collections'
+        }
+      ]
+    })
+      .then(products => {
+        // product.unwrapTags(product.tags)
+        return res.json(products)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   count(req, res){
     const ProxyEngineService = this.app.services.ProxyEngineService
     let productCount = 0
