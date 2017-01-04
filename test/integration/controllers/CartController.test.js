@@ -44,6 +44,33 @@ describe('CartController', () => {
         done(err)
       })
   })
+  it('should add cart to customer on creation',(done) => {
+    const customer = customers[0]
+    customer.cart = cartID
+    request
+      .post('/customer')
+      .send(customer)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS CUSTOMER',res.body)
+        customerID = res.body.id
+        assert.equal(res.body.default_cart.id, cartID)
+        assert.equal(res.body.carts.length, 1)
+        done(err)
+      })
+  })
+  it('should should get the created customer with cart',(done) => {
+    request
+      .get(`/customer/${customerID}`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS CUSTOMER', res.body)
+        assert.equal(res.body.id, customerID)
+        assert.equal(res.body.default_cart.id, cartID)
+        assert.equal(res.body.carts.length, 1)
+        done(err)
+      })
+  })
   it('should make addItems post request with just a product_id', (done) => {
     request
       .post(`/cart/${cartID}/addItems`)
@@ -126,34 +153,7 @@ describe('CartController', () => {
         done(err)
       })
   })
-  it('should add cart to customer on creation',(done) => {
-    const customer = customers[0]
-    customer.cart = cartID
 
-    request
-      .post('/customer')
-      .send(customer)
-      .expect(200)
-      .end((err, res) => {
-        // console.log('CUSTOMER',res.body)
-        customerID = res.body.id
-        assert.equal(res.body.default_cart.id, cartID)
-        assert.equal(res.body.carts.length, 1)
-        done(err)
-      })
-  })
-  it('should should get the created customer with cart',(done) => {
-    request
-      .get(`/customer/${customerID}`)
-      .expect(200)
-      .end((err, res) => {
-        console.log('THIS CUSTOMER', res.body)
-        assert.equal(res.body.id, customerID)
-        assert.equal(res.body.default_cart.id, cartID)
-        assert.equal(res.body.carts.length, 1)
-        done(err)
-      })
-  })
   it.skip('should make checkout post request', (done) => {
     request
       .post(`/cart/${cartID}/checkout`)

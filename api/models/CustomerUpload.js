@@ -1,6 +1,9 @@
+/* eslint new-cap: [0] */
+
 'use strict'
 
 const Model = require('trails/model')
+const helpers = require('proxy-engine-helpers')
 
 /**
  * @module CustomerUpload
@@ -101,7 +104,15 @@ module.exports = class CustomerUpload extends Model {
       // Postal/Zip Code
       billing_postal_code: {
         type: Sequelize.STRING
-      }
+      },
+      // 'Collections'
+      collections: helpers.ARRAY('customerupload', app, Sequelize, Sequelize.STRING, 'collections', {
+        defaultValue: []
+      }),
+      // 'Tags'
+      tags: helpers.ARRAY('customerupload', app, Sequelize, Sequelize.STRING, 'tags', {
+        defaultValue: []
+      })
     }
     return schema
   }

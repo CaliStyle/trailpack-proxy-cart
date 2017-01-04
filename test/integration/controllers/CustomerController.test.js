@@ -80,17 +80,17 @@ describe('CustomerController', () => {
         // console.log(res.body)
         assert.ok(res.body.result.upload_id)
         uploadID = res.body.result.upload_id
-        assert.equal(res.body.result.customers, 0)
+        assert.equal(res.body.result.customers, 1)
         done()
       })
   })
-  it.skip('It should process upload', (done) => {
+  it('It should process upload', (done) => {
     request
       .post(`/customer/processUpload/${uploadID}`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.customers, 0)
+        assert.equal(res.body.customers, 1)
         done()
       })
   })

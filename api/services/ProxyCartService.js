@@ -299,10 +299,25 @@ module.exports = class ProxyCartService extends Service {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
-          upload[k] = data
+          if (k == 'tags') {
+            upload[k] = data.split(',').map(tag => { return tag.trim()})
+          }
+          else if (k == 'collections') {
+            upload[k] = data.split(',').map(collection => { return collection.trim()})
+          }
+          else {
+            upload[k] = data
+          }
         }
       }
     })
+
+    upload.collections = _.map(upload.collections, (collection, index) => {
+      return {
+        title: collection
+      }
+    })
+
     const newCustomer = CustomerUpload.build(upload)
     return newCustomer.save()
   }
@@ -325,7 +340,26 @@ module.exports = class ProxyCartService extends Service {
         .then(customers => {
           return Promise.all(customers.map(customer => {
             // TODO change addresses to objects
-            return this.app.services.CustomerService.create(customer)
+            const create = {
+              first_name: customer.first_name,
+              last_name: customer.last_name,
+              phone: customer.phone,
+              shipping_address: {},
+              billing_address: {},
+              collections: customer.collections,
+              tags: customer.tags
+            }
+            _.each(customer, (value, key) => {
+              if (key.indexOf('shipping_')) {
+                const newKey = key.replace('shipping_')
+                create.shipping_address[newKey] = value
+              }
+              if (key.indexOf('billing_')) {
+                const newKey = key.replace('billing_')
+                create.shipping_address[newKey] = value
+              }
+            })
+            return this.app.services.CustomerService.create(create)
           }))
         })
         .then(results => {

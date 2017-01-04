@@ -20,7 +20,9 @@ module.exports = {
     shipping_city: 'Shipping City',
     shipping_province: 'Shipping Province',
     shipping_postal_code: 'Shipping Postal Code',
-    shipping_country_code: 'Shipping Country Code'
+    shipping_country_code: 'Shipping Country Code',
+    tags: 'Tags',
+    collections: 'Collections'
   },
   PRODUCT_UPLOAD: {
     handle: 'Handle',
