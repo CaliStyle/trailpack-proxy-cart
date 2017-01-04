@@ -10,15 +10,19 @@ const Errors = require('proxy-engine-errors')
  */
 module.exports = class CartService extends Service {
   resolve(cart){
+    console.log('TYPEOF cart',typeof cart)
     const Cart =  this.app.services.ProxyEngineService.getModel('Cart')
     if (cart instanceof Cart.Instance){
       return Promise.resolve(cart)
     }
+    else if (cart && _.isObject(cart) && cart.id) {
+      return Cart.findById(cart.id)
+    }
     else if (cart && _.isString(cart)) {
       return Cart.findById(cart)
     }
-    else if (cart && _.isObject(cart) && cart.id) {
-      return Cart.findById(cart.id)
+    else if (cart && _.isNumber(cart)) {
+      return Cart.findById(cart)
     }
     else {
       return this.create(cart)

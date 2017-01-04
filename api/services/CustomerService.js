@@ -39,8 +39,8 @@ module.exports = class CustomerService extends Service {
       const Address = this.app.services.ProxyEngineService.getModel('Address')
 
       if (customer.cart) {
-        // customer.default_cart = customer.cart.id ? customer.cart.id : customer.cart
-        // delete customer.cart
+        customer.default_cart = customer.cart
+        delete customer.cart
       }
 
       // Resolve all Address if any are provided
@@ -106,9 +106,23 @@ module.exports = class CustomerService extends Service {
         })
         .then(tags => {
           // Add Tags
-          return resCustomer.addTags(tags)
+          return resCustomer.setTags(tags)
         })
         .then(tags => {
+          if (customer.default_cart) {
+            // Resolve the Cart
+            console.log('DEFAULT CART', customer.default_cart)
+            return this.app.services.CartService.resolve(customer.default_cart)
+          }
+          return
+        })
+        .then(cart => {
+          if (cart) {
+            // Set this cart as the default cart
+            return resCustomer.setDefault_cart(cart)
+          }
+        })
+        .then(cart => {
           return resCustomer.reload()
         })
         .then(customer => {

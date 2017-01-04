@@ -126,7 +126,7 @@ describe('CartController', () => {
         done(err)
       })
   })
-  it.skip('should add cart to customer on creation',(done) => {
+  it('should add cart to customer on creation',(done) => {
     const customer = customers[0]
     customer.cart = cartID
 
@@ -135,20 +135,22 @@ describe('CartController', () => {
       .send(customer)
       .expect(200)
       .end((err, res) => {
-        console.log('CUSTOMER',res.body)
+        // console.log('CUSTOMER',res.body)
         customerID = res.body.id
         assert.equal(res.body.default_cart.id, cartID)
+        assert.equal(res.body.carts.length, 1)
         done(err)
       })
   })
-  it.skip('should should get the created customer with cart',(done) => {
+  it('should should get the created customer with cart',(done) => {
     request
       .get(`/customer/${customerID}`)
       .expect(200)
       .end((err, res) => {
-        console.log('CUSTOMER', res.body)
+        console.log('THIS CUSTOMER', res.body)
         assert.equal(res.body.id, customerID)
         assert.equal(res.body.default_cart.id, cartID)
+        assert.equal(res.body.carts.length, 1)
         done(err)
       })
   })

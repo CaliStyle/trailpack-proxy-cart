@@ -164,6 +164,14 @@ module.exports = class Customer extends Model {
                     model: app.orm['Metadata'],
                     as: 'metadata',
                     attributes: ['data', 'id']
+                  },
+                  {
+                    model: app.orm['Cart'],
+                    as: 'carts'
+                  },
+                  {
+                    model: app.orm['Cart'],
+                    as: 'default_cart'
                   }
                 ]
               })
