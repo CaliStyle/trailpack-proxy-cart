@@ -146,6 +146,13 @@ module.exports = class ProxyCartService extends Service {
       }
     })
     delete upload.variant_images_alt
+
+    upload.collections = _.map(upload.collections, (collection, index) => {
+      return {
+        title: collection
+      }
+    })
+
     const newProduct = ProductUpload.build(upload)
     return newProduct.save()
   }

@@ -9,16 +9,21 @@ const Errors = require('proxy-engine-errors')
  * @description Cart Service
  */
 module.exports = class CartService extends Service {
-  // resolve(cart) {
-  //   return new Promise((resolve, reject) => {
-  //     // if (typeof cart.dataValues !== 'undefined') {
-  //     //
-  //     // }
-  //     // else {
-  //     //
-  //     // }
-  //   })
-  // }
+  resolve(cart){
+    const Cart =  this.app.services.ProxyEngineService.getModel('Cart')
+    if (cart instanceof Cart.Instance){
+      return Promise.resolve(cart)
+    }
+    else if (cart && _.isString(cart)) {
+      return Cart.findById(cart)
+    }
+    else if (cart && _.isObject(cart) && cart.id) {
+      return Cart.findById(cart.id)
+    }
+    else {
+      return this.create(cart)
+    }
+  }
   /**
    *
    * @param data
@@ -54,21 +59,6 @@ module.exports = class CartService extends Service {
    * @param cart
    * @returns {Cart} // An instance of the Cart
    */
-  resolve(cart){
-    const Cart =  this.app.services.ProxyEngineService.getModel('Cart')
-    if (cart instanceof Cart.Instance){
-      return Promise.resolve(cart)
-    }
-    else if (cart && _.isString(cart)) {
-      return Cart.findById(cart)
-    }
-    else if (cart && _.isObject(cart) && cart.id) {
-      return Cart.findById(cart.id)
-    }
-    else {
-      return this.create(cart)
-    }
-  }
   addDiscountToCart(data){
     return Promise.resolve(data)
   }

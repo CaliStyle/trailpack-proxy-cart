@@ -3,56 +3,93 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
+
 /**
  * @module CollectionService
  * @description Collection Service
  */
 module.exports = class CollectionService extends Service {
   resolve(collection){
-    // console.log('THIS COLLECTION TERM', collection)
-    const Collection =  this.app.services.ProxyEngineService.getModel('Collection')
-    if (collection instanceof Collection.Instance){
-      // console.log('INSTANCE OF COLLECTION')
-      return Promise.resolve(collection)
-    }
-    else if (collection && _.isObject(collection) && collection.id) {
-      return Collection.findById(collection.id)
-    }
-    else if (collection && _.isObject(collection) && collection.handle) {
-      // console.log('FIND OR CREATE 1 COLLECTION', collection)
-      return Collection.findOrCreate({
-        where: {
-          handle: collection.handle
-        },
-        default: collection
-      })
-        .spread((collection, created) => {
-          return collection
+    return new Promise((resolve, reject) => {
+
+      const Collection =  this.app.services.ProxyEngineService.getModel('Collection')
+      const Sequelize = Collection.sequelize
+
+      if (collection instanceof Collection.Instance){
+        return resolve(collection)
+      }
+      else if (collection && _.isObject(collection) && collection.id) {
+        Collection.findById(collection.id)
+          .then(foundCollection => {
+            if (!foundCollection) {
+              // TODO create proper error
+              const err = new Error(`Collection with ${collection.id} not found`)
+              return reject(err)
+            }
+            return resolve(foundCollection)
+          })
+          .catch(err => {
+            return reject(err)
+          })
+      }
+      else if (collection && _.isObject(collection) && (collection.handle || collection.title)) {
+        Sequelize.transaction(t => {
+          return Collection.find({
+            where: {
+              $or: {
+                handle: collection.handle,
+                title: collection.title
+              }
+            }
+          })
+            .then(resCollection => {
+              if (resCollection) {
+                return resCollection
+              }
+              return Collection.create(collection)
+            })
         })
-    }
-    else if (collection && _.isString(collection)) {
-      return Collection.create({title: collection})
-      // console.log('FIND OR CREATE 2 COLLECTION', collection)
-      // return Collection.findOrCreate({
-      //   where: {
-      //     $or: {
-      //       handle: collection,
-      //       title: collection,
-      //       id: collection
-      //     }
-      //   },
-      //   default: {
-      //     title: collection
-      //   }
-      // })
-      //   .spread((collection, created) => {
-      //     this.app.log.debug(`${collection.handle} created ${created}`)
-      //     return Promise.resolve(collection)
-      //   })
-      //   .catch(err => {
-      //     return Promise.reject(err)
-      //   })
-    }
+          .then(result => {
+            // console.log(result)
+            return resolve(result)
+          })
+          .catch(err => {
+            return reject(err)
+          })
+      }
+      else if (collection && _.isString(collection)) {
+        // return Collection.create({title: collection})
+        // Make this a transaction
+        Sequelize.transaction(t => {
+          return Collection.find({
+            where: {
+              $or: {
+                handle: collection,
+                title: collection,
+                id: collection
+              }
+            }
+          })
+            .then(resCollection => {
+              if (resCollection) {
+                return resCollection
+              }
+              return Collection.create({title: collection})
+            })
+        })
+          .then(result => {
+            return resolve(result)
+          })
+          .catch(err => {
+            return reject(err)
+          })
+      }
+      else {
+        // TODO make Proper Error
+        const err = new Error('Not able to handle resolve of collection')
+        return reject(err)
+      }
+    })
   }
 }
 

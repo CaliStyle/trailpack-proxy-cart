@@ -78,6 +78,7 @@ module.exports = class ProductService extends Service {
       const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
       const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
       const Collection = this.app.services.ProxyEngineService.getModel('Collection')
+
       // The Default Product
       const create = {
         host: product.host,
@@ -288,8 +289,9 @@ module.exports = class ProductService extends Service {
       const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
       const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
       const Tag = this.app.services.ProxyEngineService.getModel('Tag')
-      // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
       // const Collection = this.app.services.ProxyEngineService.getModel('Collection')
+      // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
+
 
       let resProduct = {}
       // let newTags = []
@@ -432,7 +434,7 @@ module.exports = class ProductService extends Service {
           return
         })
         .then(collections => {
-          console.log('THESE COLLECTIONS', collections)
+          // console.log('THESE COLLECTIONS', collections)
           if (collections) {
             return resProduct.setCollections(collections)
           }

@@ -47,23 +47,23 @@ module.exports = class Tag extends Model {
                 return _.omit(tag, ['created_at','updated_at'])
               })
               // console.log('TAGS', tags)
-              return Promise.all(tags.map((tag, index) => {
-                return Tag.findOne({
-                  where: tag,
-                  attributes: ['id', 'name']
-                })
-                  .then(tag => {
+              return Tag.sequelize.transaction(t => {
+                return Promise.all(tags.map((tag, index) => {
+                  return Tag.findOne({
+                    where: tag,
+                    attributes: ['id', 'name']
+                  })
+                    .then(tag => {
 
-                    if (tag) {
-                      // console.log('TAG', tag.get({ plain: true }))
-                      return tag
-                    }
-                    else {
+                      if (tag) {
+                        // console.log('TAG', tag.get({ plain: true }))
+                        return tag
+                      }
                       // console.log('TAG',tags[index])
                       return Tag.create(tags[index])
-                    }
-                  })
-              }))
+                    })
+                }))
+              })
             },
             reverseTransformTags: (tags) => {
               tags = _.map(tags, tag => {

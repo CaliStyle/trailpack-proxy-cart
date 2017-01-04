@@ -31,6 +31,10 @@ module.exports = class Collection extends Model {
           },
           classMethods: {
             COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
+            /**
+             *
+             * @param models
+             */
             associate: (models) => {
               models.Collection.belongsToMany(models.Product, {
                 through: {
