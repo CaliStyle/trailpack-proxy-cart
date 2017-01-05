@@ -54,7 +54,8 @@ module.exports = class CartController extends Controller {
     const CartService = this.app.services.CartService
     lib.Validator.validateCheckout(req.body)
       .then(values => {
-        return CartService.checkout(req.body, req.params.id)
+        req.body.id = req.params.id
+        return CartService.checkout(req.body)
       })
       .then(data => {
         return res.json(data)

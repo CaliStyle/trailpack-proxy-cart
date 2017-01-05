@@ -33,5 +33,27 @@
         ]
       }
     ]
+  },
+  {
+    "handle": "flashforge-finder",
+    "title": "Flashforge Finder 3D Printer",
+    "body": "<strong>Good 3D Printer!</strong>",
+    "vendor": "Flashforge",
+    "type": "3D Printer",
+    "price": "100000",
+    "published": true,
+    "tags": [
+      "equipment",
+      "productivity"
+    ],
+    "weight": "20",
+    "weight_unit": "lb",
+    "sku": "printer-f-123",
+    "images": [
+      {
+        "src": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150",
+        "alt": "Flashforge 3D Printer"
+      }
+    ]
   }
 ]

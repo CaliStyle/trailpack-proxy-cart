@@ -23,8 +23,9 @@ module.exports = class Province extends Model {
               models.Province.belongsTo(models.Country, {
                 // as: 'country_id'
               })
-              models.Province.belongsTo(models.ShippingZone, {
+              models.Province.belongsToMany(models.ShippingZone, {
                 // as: 'country_id'
+                through: 'ShippingZoneProvince'
               })
             }
           }

@@ -15,19 +15,19 @@ module.exports = class CustomerService extends Service {
    * @param customer
    * @returns {Customer} // An instance of the Customer
    */
-  resolve(customer){
+  resolve(customer, options){
     const Customer =  this.app.services.ProxyEngineService.getModel('Customer')
     if (customer instanceof Customer.Instance){
       return Promise.resolve(customer)
     }
-    else if (customer && _.isString(customer)) {
-      return Customer.findById(customer)
-    }
     else if (customer && _.isObject(customer) && customer.id) {
-      return Customer.findById(customer.id)
+      return Customer.findById(customer.id, options)
+    }
+    else if (customer && (_.isString(customer) || _.isNumber(customer))) {
+      return Customer.findById(customer, options)
     }
     else {
-      return this.create(customer)
+      return this.create(customer, options)
     }
   }
   create(customer) {

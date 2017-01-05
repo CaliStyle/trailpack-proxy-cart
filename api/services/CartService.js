@@ -9,23 +9,20 @@ const Errors = require('proxy-engine-errors')
  * @description Cart Service
  */
 module.exports = class CartService extends Service {
-  resolve(cart){
-    console.log('TYPEOF cart',typeof cart)
+  resolve(cart, options){
+    // console.log('TYPEOF cart',typeof cart)
     const Cart =  this.app.services.ProxyEngineService.getModel('Cart')
     if (cart instanceof Cart.Instance){
-      return Promise.resolve(cart)
+      return Promise.resolve(cart, options)
     }
     else if (cart && _.isObject(cart) && cart.id) {
-      return Cart.findById(cart.id)
+      return Cart.findById(cart.id, options)
     }
-    else if (cart && _.isString(cart)) {
-      return Cart.findById(cart)
-    }
-    else if (cart && _.isNumber(cart)) {
-      return Cart.findById(cart)
+    else if (cart && (_.isString(cart) || _.isNumber(cart))) {
+      return Cart.findById(cart, options)
     }
     else {
-      return this.create(cart)
+      return this.create(cart, options)
     }
   }
   /**
@@ -54,8 +51,25 @@ module.exports = class CartService extends Service {
    * @param data
    * @returns {Promise.<*>}
    */
-  checkout(data){
-    return Promise.resolve(data)
+  checkout(cart){
+    if (!cart.id) {
+      const err = new Errors.FoundError(Error('Cart is missing id'))
+      return Promise.reject(err)
+    }
+    let resCart = {}
+    // let resCustomer = {}
+
+    return this.resolve(cart.id, {
+      include: [
+        this.app.services.ProxyEngineService.getModel('Customer')
+      ]
+    })
+      .then(cart => {
+        resCart = cart
+        if (!resCart.customer_id) {
+          throw new Errors.FoundError(Error('Cart is missing customer_id'))
+        }
+      })
   }
 
   /**

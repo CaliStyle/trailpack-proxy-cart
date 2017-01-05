@@ -191,6 +191,13 @@ module.exports = class Cart extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // IP addresses
+        create_ip: {
+          type: Sequelize.STRING
+        },
+        update_ip: {
+          type: Sequelize.STRING
+        },
 
         live_mode: {
           type: Sequelize.BOOLEAN,

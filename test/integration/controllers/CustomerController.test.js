@@ -70,6 +70,14 @@ describe('CustomerController', () => {
         done(err)
       })
   })
+  it.skip('should add tag to customer', (done) => {
+  })
+  it.skip('should remove tag from customer', (done) => {
+  })
+  it.skip('should add customer to collection', (done) => {
+  })
+  it.skip('should should remove customer from collection', (done) => {
+  })
 
   it('It should upload customer_upload.csv', (done) => {
     request

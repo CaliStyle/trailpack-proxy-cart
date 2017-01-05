@@ -20,11 +20,12 @@ module.exports = class Country extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Country.belongsTo(models.ShippingZone, {
-                // as: 'shipping_zone_id'
-              })
               models.Country.hasMany(models.Province, {
                 as: 'provinces'
+              })
+              models.Country.belongsToMany(models.ShippingZone, {
+                // as: 'shipping_zone_id'
+                through: 'ShippingZoneCountry'
               })
             }
           }

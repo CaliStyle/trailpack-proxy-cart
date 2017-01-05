@@ -81,7 +81,7 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log(res.body)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 1)
         assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
@@ -99,7 +99,7 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log(res.body)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 1)
         assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
@@ -153,13 +153,40 @@ describe('CartController', () => {
         done(err)
       })
   })
-
-  it.skip('should make checkout post request', (done) => {
+  it('should make addItems post for multiple items', (done) => {
+    request
+      .post(`/cart/${cartID}/addItems`)
+      .send([
+        {
+          product_id: storeProducts[0].id
+        },
+        {
+          product_id: storeProducts[1].id
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        console.log(res.body)
+        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.line_items.length, 2)
+        assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+        assert.equal(res.body.line_items[0].quantity, 1)
+        assert.equal(res.body.line_items[1].product_id, storeProducts[1].id)
+        assert.equal(res.body.line_items[1].quantity, 1)
+        done(err)
+      })
+  })
+  it.skip('should make addCoupon request', (done) => {
+  })
+  it.skip('should make addDiscount request', (done) => {
+  })
+  it('should make checkout post request', (done) => {
     request
       .post(`/cart/${cartID}/checkout`)
       .send({})
       .expect(200)
       .end((err, res) => {
+        console.log('CHECKOUT', res.body)
         done(err)
       })
   })

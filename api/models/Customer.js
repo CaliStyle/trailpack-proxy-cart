@@ -262,6 +262,14 @@ module.exports = class Customer extends Model {
           defaultValue: false
         },
 
+        // IP addresses
+        create_ip: {
+          type: Sequelize.STRING
+        },
+        update_ip: {
+          type: Sequelize.STRING
+        },
+
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

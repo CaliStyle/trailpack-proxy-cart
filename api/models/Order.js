@@ -184,6 +184,14 @@ module.exports = class Order extends Model {
           type: Sequelize.STRING
         },
 
+        // IP addresses
+        create_ip: {
+          type: Sequelize.STRING
+        },
+        update_ip: {
+          type: Sequelize.STRING
+        },
+
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

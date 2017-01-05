@@ -28,18 +28,9 @@ module.exports = class Product extends Model {
           },
           hooks: {
             beforeValidate(values, options, fn) {
-              // if (values.handle) {
-              //   values.handle = app.services.ProxyCartService.slug(values.handle)
-              // }
               if (!values.handle && values.title) {
                 values.handle = values.title
               }
-              // if (values.seo_title) {
-              //   values.seo_title = removeMd(striptags(values.seo_title))
-              // }
-              // if (values.seo_description) {
-              //   values.seo_description = removeMd(striptags(values.seo_description))
-              // }
               fn()
             }
           },
@@ -439,6 +430,7 @@ module.exports = class Product extends Model {
           type: Sequelize.STRING
         },
 
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

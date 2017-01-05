@@ -23,12 +23,12 @@ module.exports = class ShippingZone extends Model {
              * @param models
              */
             associate: (models) => {
-              models.ShippingZone.hasMany(models.Province, {
-                as: 'provinces'
-              })
-              models.ShippingZone.hasMany(models.Country, {
-                as: 'country'
-              })
+              // models.ShippingZone.hasMany(models.Province, {
+              //   as: 'provinces'
+              // })
+              // models.ShippingZone.hasMany(models.Country, {
+              //   as: 'country'
+              // })
             }
           }
         }
@@ -42,7 +42,8 @@ module.exports = class ShippingZone extends Model {
     if (app.config.database.orm === 'sequelize') {
       schema = {
         name: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          notNull: true
         },
         carrier_shipping_rate_providers: helpers.ARRAY('shippingzone', app, Sequelize, Sequelize.STRING, 'carrier_shipping_rate_providers', {
           defaultValue: []
