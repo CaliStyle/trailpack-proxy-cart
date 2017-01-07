@@ -69,6 +69,7 @@ module.exports = class CartService extends Service {
         if (!resCart.customer_id) {
           throw new Errors.FoundError(Error('Cart is missing customer_id'))
         }
+        return resCart
       })
   }
 

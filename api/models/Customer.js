@@ -30,25 +30,27 @@ module.exports = class Customer extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Customer.hasMany(models.Cart, {
-                as: 'carts'
-              })
-              models.Customer.hasOne(models.Cart, {
-                as: 'default_cart'
-              })
-
-              // models.Customer.hasOne(models.Address, {
-              //   as: 'default_address',
-              //   foreignKey: 'customer_id',
+              // models.Customer.belongsToMany(models.Cart, {
+              //   as: 'carts',
               //   through: {
-              //     model: models.ItemAddress,
-              //     unique: false,
-              //     scope: {
-              //       type: 'default_address'
-              //     },
+              //     model: models.CustomerCart,
+              //     foreignKey: 'customer_id',
+              //     unique: true,
               //     constraints: false
               //   }
               // })
+              models.Customer.hasOne(models.Cart, {
+                as: 'default_cart',
+                through: {
+                  model: models.CustomerCart,
+                  foreignKey: 'customer_id',
+                  unique: true,
+                  scope: {
+                    cart: 'default_cart'
+                  },
+                  constraints: false
+                }
+              })
               models.Customer.belongsTo(models.Address, {
                 as: 'shipping_address',
                 through: {
@@ -127,29 +129,14 @@ module.exports = class Customer extends Model {
                   {
                     model: app.orm['Address'],
                     as: 'default_address'
-                    // through: {
-                    //   where: {
-                    //     address: 'shipping_address'
-                    //   }
-                    // }
                   },
                   {
                     model: app.orm['Address'],
                     as: 'shipping_address'
-                    // through: {
-                    //   where: {
-                    //     address: 'shipping_address'
-                    //   }
-                    // }
                   },
                   {
                     model: app.orm['Address'],
                     as: 'billing_address'
-                    // through: {
-                    //   where: {
-                    //     address: 'billing_address'
-                    //   }
-                    // }
                   },
                   // {
                   //   model: app.orm['CustomerAddress'],
@@ -167,12 +154,13 @@ module.exports = class Customer extends Model {
                   },
                   {
                     model: app.orm['Cart'],
-                    as: 'carts'
-                  },
-                  {
-                    model: app.orm['Cart'],
                     as: 'default_cart'
                   }
+                  // ,
+                  // {
+                  //   model: app.orm['Cart'],
+                  //   as: 'carts'
+                  // }
                 ]
               })
               return this.findById(id, options)

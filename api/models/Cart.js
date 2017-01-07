@@ -93,6 +93,7 @@ module.exports = class Cart extends Model {
                 // as: 'shop_id'
               })
               models.Cart.belongsTo(models.Customer, {
+                // as: 'customer'
                 // as: 'customer_id'
               })
               // models.Cart.belongsTo(models.Customer, {

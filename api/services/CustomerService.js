@@ -74,10 +74,10 @@ module.exports = class CustomerService extends Service {
             model: Cart,
             as: 'default_cart'
           },
-          {
-            model: Cart,
-            as: 'carts'
-          },
+          // {
+          //   model: Cart,
+          //   as: 'carts'
+          // },
           {
             model: Address,
             as: 'default_address'
@@ -111,7 +111,7 @@ module.exports = class CustomerService extends Service {
         .then(tags => {
           if (customer.default_cart) {
             // Resolve the Cart
-            console.log('DEFAULT CART', customer.default_cart)
+            // console.log('DEFAULT CART', customer.default_cart)
             return this.app.services.CartService.resolve(customer.default_cart)
           }
           return
