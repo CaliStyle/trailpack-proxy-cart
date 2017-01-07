@@ -67,6 +67,7 @@ describe('CartController', () => {
         // console.log('THIS CUSTOMER', res.body)
         assert.equal(res.body.id, customerID)
         assert.equal(res.body.default_cart.id, cartID)
+        // TODO add back in Carts
         // assert.equal(res.body.carts.length, 1)
         done(err)
       })
@@ -81,7 +82,7 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        // console.log('THIS CART',res.body)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 1)
         assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
@@ -166,7 +167,7 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log('THIS CART', res.body)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 2)
         assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)

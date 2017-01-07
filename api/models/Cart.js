@@ -5,6 +5,7 @@
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
+const CART_STATUS = require('../utils/enums').CART_STATUS
 
 /**
  * @module Cart
@@ -34,13 +35,14 @@ module.exports = class Cart extends Model {
                 const shippingLines = {}
                 const discountedLines = {}
 
-                _.each(values.line_items, item => {
+                values.line_items = _.map(values.line_items, item => {
                   if (item.requires_tax) {
                     taxLines[item.id] = item.price * item.quantity
                   }
                   if (item.requires_shipping) {
-                    shippingLines[item.id] = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
-                    totalWeight = totalWeight + shippingLines[item.id]
+                    item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
+                    shippingLines[item.id] = item.grams
+                    totalWeight = totalWeight + item.grams
                   }
 
                   if (item.name !== 'shipping' && item.name !== 'tax') {
@@ -83,7 +85,13 @@ module.exports = class Cart extends Model {
               fn(null, values)
             }
           },
+          instanceMethods: {
+            close: function(status) {
+              this.status = status
+            }
+          },
           classMethods: {
+            CART_STATUS: CART_STATUS,
             /**
              * Associate the Model
              * @param models
@@ -132,6 +140,11 @@ module.exports = class Cart extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        status: {
+          type: Sequelize.ENUM,
+          values: _.values(CART_STATUS),
+          defaultValue: CART_STATUS.OPEN
+        },
         line_items: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'line_items', {
           defaultValue: []
         }),

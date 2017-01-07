@@ -167,6 +167,11 @@ module.exports = class Customer extends Model {
             }
           },
           instanceMethods: {
+            setLastOrder: function(order){
+              this.last_order_name = order.name
+              this.last_order_id = order.id
+              return
+            },
             toJSON: function() {
               const resp = this.get({ plain: true })
               // Transform Tags to array on toJSON
@@ -220,15 +225,22 @@ module.exports = class Customer extends Model {
         note: {
           type: Sequelize.STRING
         },
-        //
+        // The name of the Last order this Customer Placed
+        last_order_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Order',
+            key: 'id'
+          }
+        },
         last_order_name: {
           type: Sequelize.STRING
         },
-        //
-        orders_count: {
-          type: Sequelize.INTEGER,
-          defaultValue: 0
-        },
+        // TODO make this part of the Default Query
+        // orders_count: {
+        //   type: Sequelize.INTEGER,
+        //   defaultValue: 0
+        // },
         // The standing state of the customer: enabled, disabled, invited, declined
         state: {
           type: Sequelize.ENUM,

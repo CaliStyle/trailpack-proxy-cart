@@ -58,6 +58,7 @@ module.exports = class CartController extends Controller {
         return CartService.checkout(req.body)
       })
       .then(data => {
+        // console.log('CartController.checkout Order', data)
         return res.json(data)
       })
       .catch(err => {

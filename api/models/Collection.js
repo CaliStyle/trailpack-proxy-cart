@@ -111,6 +111,8 @@ module.exports = class Collection extends Model {
           defaultValue: COLLECTION_SORT_ORDER.ALPHA_DESC
         },
 
+        // TODO Tax Percentage Override
+
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

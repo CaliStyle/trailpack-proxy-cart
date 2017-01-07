@@ -9,6 +9,7 @@ const Errors = require('proxy-engine-errors')
  * @description Product Controller.
  */
 module.exports = class ProductController extends Controller {
+  // TODO add Customer Attributes to Product (Previously Purchased, Selected Options, etc)
   findOne(req, res){
     // const FootprintService = this.app.services.FootprintService
     const Product = this.app.services.ProxyEngineService.getModel('Product')

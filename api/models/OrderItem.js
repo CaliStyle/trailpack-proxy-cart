@@ -88,7 +88,6 @@ module.exports = class OrderItem extends Model {
         title: {
           type: Sequelize.STRING
         },
-        // The id of the product variant.
         // The title of the product variant.
         variant_title: {
           type: Sequelize.STRING
@@ -106,7 +105,7 @@ module.exports = class OrderItem extends Model {
           type: Sequelize.BOOLEAN
         },
         // An array of custom information for an item that has been added to the cart. Often used to provide product customization options. For more information, see the documentation on collecting customization information on the product page.
-        properties: helpers.ARRAY('customer', app, Sequelize, Sequelize.STRING, 'tags', {
+        properties: helpers.ARRAY('orderitem', app, Sequelize, Sequelize.STRING, 'properties', {
           defaultValue: []
         }),
         // States whether or not the product was taxable. Values are: true or false.

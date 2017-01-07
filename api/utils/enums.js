@@ -117,6 +117,16 @@ module.exports = {
     ENABLED: 'enabled',
     DECLINED: 'declined'
   },
+  // open: Cart is open for transactions
+  // closed: Cart was closed by
+  // abandoned: Cart was abandoned
+  // ordered: Cart resulted in an Order
+  CART_STATUS: {
+    OPEN: 'open',
+    CLOSED: 'closed',
+    ABANDONED: 'abandoned',
+    ORDERED: 'ordered'
+  },
   DISCOUNT_TYPES: {
     PERCENTAGE: 'percentage',
     FIXED_AMOUNT: 'fixed_amount',

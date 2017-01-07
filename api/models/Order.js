@@ -20,6 +20,17 @@ module.exports = class Order extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            afterCreate(values, options, fn) {
+              if (!values.name && values.id) {
+                values.name = `#${values.id}`
+              }
+              values.save(options)
+                .then(values => {
+                  fn()
+                })
+            }
+          },
           classMethods: {
             ORDER_CANCEL: ORDER_CANCEL,
             ORDER_FINANCIAL: ORDER_FINANCIAL,
@@ -29,14 +40,23 @@ module.exports = class Order extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Order.belongsTo(models.Cart, {
-                as: 'cart_token'
-              })
-              models.Order.belongsTo(models.Customer, {
-                // as: 'customer_id'
-              })
-              models.Order.belongsTo(models.Customer, {
-                foreignKey: 'last_order_id'
+              // models.Order.belongsTo(models.Cart, {
+              //   as: 'cart_token'
+              // })
+              // models.Order.belongsTo(models.Customer, {
+              //   // as: 'customer_id'
+              // })
+              // models.Order.hasOne(models.CustomerAddress, {
+              //   as: 'billing_address'
+              // })
+              // models.Order.hasOne(models.CustomerAddress, {
+              //   as: 'shipping_address'
+              // })
+              // models.Order.belongsTo(models.Customer, {
+              //   foreignKey: 'last_order_id'
+              // })
+              models.Order.hasMany(models.OrderItem, {
+                as: 'order_items'
               })
               models.Order.hasMany(models.Discount, {
                 as: 'discount_codes'
@@ -47,14 +67,20 @@ module.exports = class Order extends Model {
               models.Order.hasMany(models.Transaction, {
                 as: 'transactions'
               })
-              // models.Order.hasOne(models.CustomerAddress, {
-              //   as: 'billing_address'
-              // })
-              // models.Order.hasOne(models.CustomerAddress, {
-              //   as: 'shipping_address'
-              // })
               models.Order.hasMany(models.Refund, {
                 as: 'refunds'
+              })
+              models.Order.belongsToMany(models.Tag, {
+                as: 'tags',
+                through: {
+                  model: models.ItemTag,
+                  unique: false,
+                  scope: {
+                    model: 'order'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
               })
             }
           }
@@ -68,6 +94,21 @@ module.exports = class Order extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        cart_token: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Cart',
+            key: 'id'
+          }
+        },
+        customer_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Customer',
+            key: 'id'
+          }
+        },
+        // IP of the browser that placed this order
         browser_ip: {
           type: Sequelize.STRING
         },
@@ -111,9 +152,6 @@ module.exports = class Order extends Model {
           values: _.values(ORDER_FULFILLMENT),
           defaultValue: ORDER_FULFILLMENT.NONE
         },
-        tags: helpers.ARRAY('customer', app, Sequelize, Sequelize.STRING, 'tags', {
-          defaultValue: []
-        }),
         gateway: {
           type: Sequelize.STRING
         },
@@ -144,7 +182,7 @@ module.exports = class Order extends Model {
         referring_site: {
           type: Sequelize.STRING
         },
-        shipping_lines: helpers.JSONB('order', app, Sequelize, 'shipping_lines: ', {
+        shipping_lines: helpers.JSONB('order', app, Sequelize, 'shipping_lines', {
           defaultValue: {}
         }),
         source_name: {

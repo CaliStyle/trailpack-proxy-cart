@@ -30,9 +30,9 @@ module.exports = class CartService extends Service {
    * @param data
    * @returns {Cart}
    */
-  create(data){
+  create(data, options){
     const Cart = this.app.services.ProxyEngineService.getModel('Cart')
-    return Cart.create(data)
+    return Cart.create(data, options)
   }
 
   /**
@@ -40,7 +40,7 @@ module.exports = class CartService extends Service {
    * @param cart
    * @returns {Cart}
    */
-  update(cart){
+  update(cart, options){
     const FootprintService = this.app.services.FootprintService
     const update = _.omit(cart,['id','created_at','updated_at'])
     return FootprintService.update('Cart', cart.id, update)
@@ -56,21 +56,41 @@ module.exports = class CartService extends Service {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
-    let resCart = {}
-    // let resCustomer = {}
-
-    return this.resolve(cart.id, {
-      include: [
-        this.app.services.ProxyEngineService.getModel('Customer')
-      ]
-    })
+    return this.resolve(cart)
       .then(cart => {
-        resCart = cart
-        if (!resCart.customer_id) {
+        if (!cart.customer_id) {
           throw new Errors.FoundError(Error('Cart is missing customer_id'))
         }
-        return resCart
+        const newOrder = {
+          cart_token: cart.id,
+          customer_id: cart.customer_id
+        }
+        return this.app.services.OrderService.create(newOrder)
       })
+    // let resCart = {}
+    // let resCustomer = {}
+
+    // const Customer = this.app.services.ProxyEngineService.getModel('Customer')
+    // const Cart = this.app.services.ProxyEngineService.getModel('Cart')
+
+    // return this.resolve(cart.id, {
+    //   include: [
+    //     Customer
+    //   ]
+    // })
+    //   .then(cart => {
+    //     resCart = cart
+    //     const newOrder = {
+    //       customer_id: resCart.customer_id,
+    //       customer: resCart.Customer,
+    //       cart_id: resCart.id,
+    //       cart: _.omit(resCart, ['customer'])
+    //     }
+    //     return this.app.services.OrderService.placeOrder(newOrder)
+    //   })
+    //   .then(order => {
+    //     return order
+    //   })
   }
 
   /**
