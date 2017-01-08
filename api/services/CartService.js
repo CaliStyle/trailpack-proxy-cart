@@ -122,84 +122,64 @@ module.exports = class CartService extends Service {
    * @param item
    * @returns {*}
    */
+  // TODO refactor to sequelize
   resolveItem(item){
-    const FootprintService = this.app.services.FootprintService
+    // const FootprintService = this.app.services.FootprintService
+    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    const ProductVariant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+    const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
 
-    if (item.product_variant_id) {
-      return FootprintService.find('ProductVariant', item.product_variant_id, { populate: 'images' })
-    }
-    else if (item.id) {
-      return FootprintService.find('ProductVariant', item.id, { populate: 'images' })
+    if (item.id || item.product_variant_id) {
+      const id = item.id ? item.id : item.product_variant_id
+      return ProductVariant.findById(id, {
+        include: [
+          {
+            model: Product,
+            include: [
+              {
+                model: Image,
+                as: 'images',
+                attributes: ['src','full','thumbnail','small','medium','large','alt','position']
+              }
+            ]
+          },
+          {
+            model: Image,
+            as: 'images',
+            attributes: ['src','full','thumbnail','small','medium','large','alt','position']
+          }
+        ]
+      })
     }
     else if (item.product_id) {
-      return FootprintService.find('ProductVariant', {
-        product_id: item.product_id,
-        position: 1
-      }, { populate: 'images' })
-        .then(products => {
-          return products[0]
-        })
+      return ProductVariant.find({
+        where: {
+          product_id: item.product_id,
+          position: 1
+        },
+        include: [
+          {
+            model: Product,
+            include: [
+              {
+                model: Image,
+                as: 'images',
+                attributes: ['src','full','thumbnail','small','medium','large','alt','position']
+              }
+            ]
+          },
+          {
+            model: Image,
+            as: 'images',
+            attributes: ['src','full','thumbnail','small','medium','large','alt','position']
+          }
+        ]
+      })
     }
     else {
       const err = new Errors.FoundError(Error(`${item} not found`))
       return Promise.reject(err)
     }
-  }
-
-  /**
-   *
-   * @param item
-   * @param qty
-   * @param cart
-   * @returns {*}
-   */
-  addLine(item, qty, cart){
-    if (!qty) {
-      qty = 1
-    }
-    let cartItem = _.find(cart.line_items, {id: item.id})
-    if (cartItem) {
-      cartItem.quantity = cartItem.quantity + qty
-    }
-    else {
-      cartItem = _.omit(item, [
-        'position',
-        'published',
-        'published_at',
-        'unpublished_at',
-        'inventory_management',
-        'inventory_policy',
-        'inventory_quantity',
-        'created_at',
-        'updated_at'
-      ])
-      cartItem.quantity = qty
-      cart.line_items.push(cartItem)
-    }
-    // console.log('LINE ITEMS', cart.line_items, cart.line_items.length)
-    return cart
-  }
-
-  /**
-   *
-   * @param item
-   * @param qty
-   * @param cart
-   * @returns {*}
-   */
-  removeLine(item, qty, cart){
-    if (!qty) {
-      qty = 1
-    }
-    let itemIndex = _.findIndex(cart.line_items, {id: item.id})
-    if (itemIndex > -1) {
-      cart.line_items[itemIndex].quantity = cart.line_items[itemIndex].quantity - qty
-      if ( cart.line_items[itemIndex].quantity < 1) {
-        cart.line_items.splice(itemIndex, 1)
-      }
-    }
-    // console.log('LINE ITEMS', cart.line_items)
-    return cart
   }
 
   /**
@@ -224,7 +204,7 @@ module.exports = class CartService extends Service {
         })
         .then(resolvedItems => {
           _.each(resolvedItems, (item, index) => {
-            cart = _.extend(cart, this.addLine(item.get({ plain: true }), items[index].quantity, cart.get({ plain: true })))
+            cart.addLine(item, items[index].quantity)
           })
           return cart.save()
         })
@@ -259,7 +239,7 @@ module.exports = class CartService extends Service {
         })
         .then(resolvedItems => {
           _.each(resolvedItems, (item, index) => {
-            cart = _.extend(cart, this.removeLine(item.get({ plain: true }), items[index].quantity, cart.get({ plain: true })))
+            cart.removeLine(item, items[index].quantity)
           })
           return cart.save()
         })

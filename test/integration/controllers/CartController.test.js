@@ -33,14 +33,18 @@ describe('CartController', () => {
         done(err)
       })
   })
-  it('should make addItems post request with just a product_id', (done) => {
+  // TODO support cart with default items
+  it('should create a cart', (done) => {
     request
       .post('/cart')
-      .send({})
+      .send({
+
+      })
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.id)
         cartID = res.body.id
+        // console.log('THIS CART', res.body)
         done(err)
       })
   })
@@ -82,10 +86,14 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CART',res.body)
+        console.log('THIS CART',res.body)
         assert.equal(res.body.id, cartID)
+        assert.equal(res.body.status, 'open')
         assert.equal(res.body.line_items.length, 1)
         assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+
+        // Line Items
+        assert.equal(res.body.line_items[0].grams, 9071.847392)
         done(err)
       })
   })

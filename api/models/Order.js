@@ -20,6 +20,11 @@ module.exports = class Order extends Model {
       config = {
         options: {
           underscored: true,
+          defaultScope: {
+            where: {
+              live_mode: app.config.proxyCart.live_mode
+            }
+          },
           hooks: {
             afterCreate(values, options, fn) {
               if (!values.name && values.id) {
@@ -108,6 +113,12 @@ module.exports = class Order extends Model {
             key: 'id'
           }
         },
+        billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address', {
+          defaultValue: {}
+        }),
+        shipping_address: helpers.JSONB('order', app, Sequelize, 'shipping_address', {
+          defaultValue: {}
+        }),
         // IP of the browser that placed this order
         browser_ip: {
           type: Sequelize.STRING

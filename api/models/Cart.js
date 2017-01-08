@@ -19,6 +19,11 @@ module.exports = class Cart extends Model {
       config = {
         options: {
           underscored: true,
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyCart.live_mode
+          //   }
+          // },
           hooks: {
             // TODO connect to Shop and Cart/Customer
             beforeUpdate: (values, options, fn) => {
@@ -35,12 +40,12 @@ module.exports = class Cart extends Model {
                 const shippingLines = {}
                 const discountedLines = {}
 
-                values.line_items = _.map(values.line_items, item => {
+                _.each(values.line_items, item => {
                   if (item.requires_tax) {
                     taxLines[item.id] = item.price * item.quantity
                   }
                   if (item.requires_shipping) {
-                    item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
+                    // item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
                     shippingLines[item.id] = item.grams
                     totalWeight = totalWeight + item.grams
                   }
@@ -86,6 +91,71 @@ module.exports = class Cart extends Model {
             }
           },
           instanceMethods: {
+            line: function(data){
+              const line = {
+                product_id: data.product_id,
+                variant_id: data.id || data.variant_id,
+                sku: data.sku,
+                title: data.Product.title,
+                variant_title: data.title,
+                name: data.title, // TODO add options Attributes
+                barcode: data.barcode,
+                price: data.price,
+                compare_at_price: data.compare_at_price,
+                currency: data.currency,
+                fulfillment_service: data.fulfillment_service,
+                requires_shipping: data.requires_shipping,
+                requires_tax: data.requires_tax,
+                requires_subscription: data.requires_subscription,
+                subscription_interval: data.subscription_interval,
+                subscription_unit: data.subscription_unit,
+                weight: data.weight,
+                weight_unit: data.weight_unit,
+                images: data.images.length > 0 ? data.images : data.Product.images,
+                quantity: data.quantity,
+                grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
+                live_mode: data.live_mode
+              }
+              return line
+            },
+            addLine: function(item, qty) {
+              const lineItems = this.line_items
+              if (!qty || !_.isNumber(qty)) {
+                qty = 1
+              }
+              if (typeof item.get == 'function') {
+                item = item.get({plain: true})
+              }
+              let itemIndex = _.findIndex(lineItems, {variant_id: item.id})
+              if (itemIndex > -1) {
+                app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
+                lineItems[itemIndex].quantity = lineItems[itemIndex].quantity + qty
+                this.line_items = lineItems
+              }
+              else {
+                item.quantity = qty
+                const line = this.line(item)
+                app.log.silly('Cart.addLine NEW LINE', line)
+                lineItems.push(line)
+                this.line_items = lineItems
+              }
+            },
+            removeLine: function(item, qty) {
+              const lineItems = this.line_items
+              if (!qty || !_.isNumber(qty)) {
+                qty = 1
+              }
+              let itemIndex = _.findIndex(lineItems, {variant_id: item.id})
+              if (itemIndex > -1) {
+                lineItems[itemIndex].quantity = lineItems[itemIndex].quantity - qty
+                // Resolve Grams
+                if ( lineItems[itemIndex].quantity < 1) {
+                  app.log.silly(`Cart.removeLine removing '${lineItems[itemIndex].variant_id}' line completely`)
+                  lineItems.splice(itemIndex, 1)
+                }
+                this.line_items = lineItems
+              }
+            },
             close: function(status) {
               this.status = status
             }

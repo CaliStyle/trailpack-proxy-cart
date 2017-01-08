@@ -12,6 +12,12 @@ module.exports = class OrderService extends Service {
 
   }
 
+  /**
+   *
+   * @param obj
+   * @returns {Promise}
+   */
+  // TODO handle taxes, shipping, subscriptions, start transactions/fulfillment
   create(obj) {
     const Customer = this.app.services.ProxyEngineService.getModel('Customer')
     const Cart = this.app.services.ProxyEngineService.getModel('Cart')
