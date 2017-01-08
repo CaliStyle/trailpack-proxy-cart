@@ -26,6 +26,19 @@ module.exports = class Order extends Model {
             }
           },
           hooks: {
+            beforeCreate: (values, options, fn) => {
+              if (values.ip) {
+                values.create_ip = values.ip
+              }
+              fn()
+            },
+            // TODO connect to Shop
+            beforeUpdate: (values, options, fn) => {
+              if (values.ip) {
+                values.update_ip = values.ip
+              }
+              fn()
+            },
             afterCreate(values, options, fn) {
               if (!values.name && values.id) {
                 values.name = `#${values.id}`
@@ -119,10 +132,6 @@ module.exports = class Order extends Model {
         shipping_address: helpers.JSONB('order', app, Sequelize, 'shipping_address', {
           defaultValue: {}
         }),
-        // IP of the browser that placed this order
-        browser_ip: {
-          type: Sequelize.STRING
-        },
         buyer_accepts_marketing: {
           type: Sequelize.BOOLEAN,
           defaultValue: true
@@ -234,6 +243,9 @@ module.exports = class Order extends Model {
         },
 
         // IP addresses
+        ip: {
+          type: Sequelize.STRING
+        },
         create_ip: {
           type: Sequelize.STRING
         },

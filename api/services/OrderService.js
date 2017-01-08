@@ -86,7 +86,9 @@ module.exports = class OrderService extends Service {
           // Cart Info
           cart_token: resCart.id,
           currency: resCart.currency,
-          order_items: resCart.line_items
+          order_items: resCart.line_items,
+          // Client Info
+          client_details: obj.client_details
         }
         return Order.create(order, {
           include: [

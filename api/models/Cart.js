@@ -25,8 +25,17 @@ module.exports = class Cart extends Model {
           //   }
           // },
           hooks: {
+            beforeCreate: (values, options, fn) => {
+              if (values.ip) {
+                values.create_ip = values.ip
+              }
+              fn()
+            },
             // TODO connect to Shop and Cart/Customer
             beforeUpdate: (values, options, fn) => {
+              if (values.ip) {
+                values.update_ip = values.ip
+              }
               if (values.line_items) {
                 let subtotalPrice = 0
                 let totalDiscounts = 0
@@ -42,11 +51,11 @@ module.exports = class Cart extends Model {
 
                 _.each(values.line_items, item => {
                   if (item.requires_tax) {
-                    taxLines[item.id] = item.price * item.quantity
+                    taxLines[item.variant_id] = item.price * item.quantity
                   }
                   if (item.requires_shipping) {
                     // item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
-                    shippingLines[item.id] = item.grams
+                    shippingLines[item.variant_id] = item.grams
                     totalWeight = totalWeight + item.grams
                   }
 
@@ -61,7 +70,7 @@ module.exports = class Cart extends Model {
                     totalTax = totalTax + item.price
                   }
                   if (item.has_discount) {
-                    discountedLines[item.id] = item.discount
+                    discountedLines[item.variant_id] = item.discount
                     totalDiscounts = totalDiscounts + item.discount
                   }
                 })
@@ -99,6 +108,7 @@ module.exports = class Cart extends Model {
                 title: data.Product.title,
                 variant_title: data.title,
                 name: data.title, // TODO add options Attributes
+                properties: data.properties,
                 barcode: data.barcode,
                 price: data.price,
                 compare_at_price: data.compare_at_price,
@@ -118,13 +128,11 @@ module.exports = class Cart extends Model {
               }
               return line
             },
+            // TODO handle deny adding product if restricted by fulfillment policy
             addLine: function(item, qty) {
               const lineItems = this.line_items
               if (!qty || !_.isNumber(qty)) {
                 qty = 1
-              }
-              if (typeof item.get == 'function') {
-                item = item.get({plain: true})
               }
               let itemIndex = _.findIndex(lineItems, {variant_id: item.id})
               if (itemIndex > -1) {
@@ -276,13 +284,25 @@ module.exports = class Cart extends Model {
           defaultValue: 0
         },
         // IP addresses
+        ip: {
+          type: Sequelize.STRING
+        },
         create_ip: {
           type: Sequelize.STRING
         },
         update_ip: {
           type: Sequelize.STRING
         },
-
+        client_details: helpers.JSONB('cart', app, Sequelize, 'client_details', {
+          defaultValue: {
+            'accept_language': null,
+            'browser_height': null,
+            'browser_ip': '0.0.0.0',
+            'browser_width': null,
+            'session_hash': null,
+            'user_agent': null
+          }
+        }),
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

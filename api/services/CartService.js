@@ -51,19 +51,20 @@ module.exports = class CartService extends Service {
    * @param data
    * @returns {Promise.<*>}
    */
-  checkout(cart){
-    if (!cart.id) {
+  checkout(data){
+    if (!data.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
-    return this.resolve(cart)
-      .then(cart => {
-        if (!cart.customer_id) {
+    return this.resolve(data)
+      .then(resCart => {
+        if (!resCart.customer_id) {
           throw new Errors.FoundError(Error('Cart is missing customer_id'))
         }
         const newOrder = {
-          cart_token: cart.id,
-          customer_id: cart.customer_id
+          cart_token: resCart.id,
+          customer_id: resCart.customer_id,
+          client_details: data.client_details
         }
         return this.app.services.OrderService.create(newOrder)
       })
@@ -204,6 +205,10 @@ module.exports = class CartService extends Service {
         })
         .then(resolvedItems => {
           _.each(resolvedItems, (item, index) => {
+            // Make item plain so we can set new attributes before adding it to line_items
+            item = item.get({plain: true})
+            // Support Item Properties
+            item.properties = items[index].properties
             cart.addLine(item, items[index].quantity)
           })
           return cart.save()

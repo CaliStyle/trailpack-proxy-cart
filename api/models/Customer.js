@@ -18,6 +18,21 @@ module.exports = class Customer extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            beforeCreate: (values, options, fn) => {
+              if (values.ip) {
+                values.create_ip = values.ip
+              }
+              fn()
+            },
+            // TODO connect to Shop
+            beforeUpdate: (values, options, fn) => {
+              if (values.ip) {
+                values.update_ip = values.ip
+              }
+              fn()
+            }
+          },
           getterMethods: {
             full_name: function()  {
               return `${this.first_name} ${this.last_name}`
@@ -263,6 +278,9 @@ module.exports = class Customer extends Model {
         },
 
         // IP addresses
+        ip: {
+          type: Sequelize.STRING
+        },
         create_ip: {
           type: Sequelize.STRING
         },
