@@ -18,7 +18,7 @@ module.exports = class ProxyCartPolicy extends Policy {
       browser_width: '',
       session_hash: '',
       latitude: '',
-      longitude: '',
+      longitude: ''
     }
     // Attach values to the request body
     req.body.ip = clientDetails.browser_ip

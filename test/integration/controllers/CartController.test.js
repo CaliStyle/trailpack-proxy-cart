@@ -9,6 +9,7 @@ describe('CartController', () => {
   let request
   let cartID
   let customerID
+  let orderID
   let storeProducts
   before((done) => {
     request = supertest('http://localhost:3000')
@@ -188,7 +189,10 @@ describe('CartController', () => {
         assert.equal(res.body.line_items[0].variant_title, 'Mini')
         assert.equal(res.body.line_items[0].name, 'Maker Bot Replicator - Mini')
         assert.equal(res.body.line_items[0].price, 90000)
+        assert.equal(res.body.line_items[0].weight, 20)
+        assert.equal(res.body.line_items[0].weight_unit, 'lb')
         assert.equal(res.body.line_items[0].grams, 9071.847392)
+        assert.equal(res.body.line_items[0].images.length, 1)
 
         assert.equal(res.body.line_items[1].product_id, storeProducts[1].id)
         assert.equal(res.body.line_items[1].variant_id, storeProducts[1].variants[0].id)
@@ -208,6 +212,9 @@ describe('CartController', () => {
       .expect(200)
       .end((err, res) => {
         console.log('CHECKOUT', res.body)
+        assert.ok(res.body.id)
+        orderID = res.body.id
+
         done(err)
       })
   })

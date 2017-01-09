@@ -171,7 +171,7 @@ module.exports = class ProductVariant extends Model {
           values: _.values(INTERVALS),
           defaultValue: INTERVALS.NONE
         },
-        // Specifies whether or not Shopify tracks the number of items in stock for this product variant.
+        // Specifies whether or not Proxy Cart tracks the number of items in stock for this product variant.
         inventory_management: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
@@ -184,6 +184,11 @@ module.exports = class ProductVariant extends Model {
         },
         // Amount of variant in inventory
         inventory_quantity: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The average amount of days to come in stock if out of stock
+        inventory_lead_time: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
