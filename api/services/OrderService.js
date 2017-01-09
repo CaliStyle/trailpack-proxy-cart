@@ -18,6 +18,7 @@ module.exports = class OrderService extends Service {
    * @returns {Promise}
    */
   // TODO handle taxes, shipping, subscriptions, start transactions/fulfillment
+  // TODO handle inventory policy
   create(obj) {
     const Customer = this.app.services.ProxyEngineService.getModel('Customer')
     const Cart = this.app.services.ProxyEngineService.getModel('Cart')

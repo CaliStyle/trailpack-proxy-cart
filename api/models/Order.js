@@ -167,7 +167,9 @@ module.exports = class Order extends Model {
             'browser_ip': '0.0.0.0',
             'browser_width': null,
             'session_hash': null,
-            'user_agent': null
+            'user_agent': null,
+            'latitude': null,
+            'longitude': null
           }
         }),
         closed_at: {

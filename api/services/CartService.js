@@ -58,10 +58,19 @@ module.exports = class CartService extends Service {
     }
     return this.resolve(data)
       .then(resCart => {
+        // Recalculate the Cart
+        return resCart.recalculate()
+      })
+      .then(resCart => {
+        // Save the Cart
+        return resCart.save()
+      })
+      .then(resCart => {
         // TODO make this not required for POS
         if (!resCart.customer_id) {
           throw new Errors.FoundError(Error('Cart is missing customer_id'))
         }
+        // Create new Order constraints
         const newOrder = {
           cart_token: resCart.token,
           customer_id: resCart.customer_id,
@@ -189,6 +198,9 @@ module.exports = class CartService extends Service {
             item.properties = items[index].properties
             cart.addLine(item, items[index].quantity)
           })
+          return cart.recalculate()
+        })
+        .then(cart => {
           return cart.save()
         })
         .then(cart => {
@@ -224,6 +236,9 @@ module.exports = class CartService extends Service {
           _.each(resolvedItems, (item, index) => {
             cart.removeLine(item, items[index].quantity)
           })
+          return cart.recalculate()
+        })
+        .then(cart => {
           return cart.save()
         })
         .then(cart => {
@@ -245,6 +260,9 @@ module.exports = class CartService extends Service {
           }
           cart = foundCart
           cart = _.extend(cart, { line_items: [] })
+          return cart.recalculate()
+        })
+        .then(cart => {
           return cart.save()
         })
         .then(cart => {

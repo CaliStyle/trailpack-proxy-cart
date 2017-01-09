@@ -39,65 +39,71 @@ module.exports = class Cart extends Model {
               if (values.ip) {
                 values.update_ip = values.ip
               }
-              if (values.line_items) {
-                let subtotalPrice = 0
-                let totalDiscounts = 0
-                let totalCoupons = 0
-                let totalTax = 0
-                let totalWeight = 0
-                let totalPrice = 0
-                let totalLineItemsPrice = 0
-                let totalShipping = 0
-                const taxLines = {}
-                const shippingLines = {}
-                const discountedLines = {}
-
-                _.each(values.line_items, item => {
-                  if (item.requires_tax) {
-                    taxLines[item.variant_id] = item.price * item.quantity
-                  }
-                  if (item.requires_shipping) {
-                    // item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
-                    shippingLines[item.variant_id] = item.grams
-                    totalWeight = totalWeight + item.grams
-                  }
-
-                  if (item.name !== 'shipping' && item.name !== 'tax') {
-                    subtotalPrice = subtotalPrice + item.price * item.quantity
-                    totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
-                  }
-                  if (item.name === 'shipping') {
-                    totalShipping = totalShipping + item.price
-                  }
-                  if (item.name === 'tax') {
-                    totalTax = totalTax + item.price
-                  }
-                  if (item.has_discount) {
-                    discountedLines[item.variant_id] = item.discount
-                    totalDiscounts = totalDiscounts + item.discount
-                  }
-                })
-                // _.each(taxLines, (amount, id) => {
-                //   totalTax = totalTax + (amount * values.tax_percentage)
-                // })
-                // if (values.taxes_included) {}
-
-                if (values.shipping_included) {
-                  totalShipping = values.total_shipping
-                }
-
-                totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
-
-                values.tax_lines = taxLines
-                values.shipping_lines = shippingLines
-                values.total_shipping = totalShipping
-                values.subtotal_price = subtotalPrice
-                values.total_discounts = totalDiscounts
-                values.total_tax = totalTax
-                values.total_weight = totalWeight
-                values.total_line_items_price = totalLineItemsPrice
-                values.total_price = totalPrice
-              }
+              // if (values.line_items) {
+              //   let subtotalPrice = 0
+              //   let totalDiscounts = 0
+              //   let totalCoupons = 0
+              //   let totalTax = 0
+              //   let totalWeight = 0
+              //   let totalPrice = 0
+              //   let totalLineItemsPrice = 0
+              //   let totalShipping = 0
+              //   const taxLines = []
+              //   const shippingLines = []
+              //   // const discountedLines = []
+              //
+              //   _.each(values.line_items, item => {
+              //     // if (item.requires_tax) {
+              //     //   // taxLines[item.variant_id] = item.price * item.quantity
+              //     // }
+              //     if (item.tax_lines.length > 0) {
+              //       taxLines.concat(item.tax_lines)
+              //     }
+              //     if (item.requires_shipping) {
+              //       // item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
+              //       // shippingLines[item.variant_id] = item.grams
+              //       totalWeight = totalWeight + item.grams
+              //     }
+              //
+              //     // if (item.name !== 'shipping' && item.name !== 'tax') {
+              //     subtotalPrice = subtotalPrice + item.price * item.quantity
+              //     totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
+              //     // }
+              //     // if (item.name === 'shipping') {
+              //     //   totalShipping = totalShipping + item.price
+              //     // }
+              //     // if (item.name === 'tax') {
+              //     //   totalTax = totalTax + item.price
+              //     // }
+              //     // if (item.has_discount) {
+              //       // discountedLines[item.variant_id] = item.discount
+              //     totalDiscounts = totalDiscounts + item.total_discounts
+              //     // }
+              //   })
+              //   _.each(taxLines, line => {
+              //     totalTax = totalTax + line.price
+              //   })
+              //   _.each(shippingLines, line => {
+              //     totalShipping = totalShipping + line.price
+              //   })
+              //   // if (values.taxes_included) {}
+              //   //
+              //   // if (values.shipping_included) {
+              //   //   totalShipping = values.total_shipping
+              //   // }
+              //
+              //   totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
+              //
+              //   values.tax_lines = taxLines
+              //   values.shipping_lines = shippingLines
+              //   values.total_shipping = totalShipping
+              //   values.subtotal_price = subtotalPrice
+              //   values.total_discounts = totalDiscounts
+              //   values.total_tax = totalTax
+              //   values.total_weight = totalWeight
+              //   values.total_line_items_price = totalLineItemsPrice
+              //   values.total_price = totalPrice
+              // }
 
               fn(null, values)
             }
@@ -110,7 +116,7 @@ module.exports = class Cart extends Model {
                 sku: data.sku,
                 title: data.Product.title,
                 variant_title: data.title,
-                name: data.title, // TODO add options Attributes
+                name: data.title == data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
                 properties: data.properties,
                 barcode: data.barcode,
                 price: data.price,
@@ -174,6 +180,74 @@ module.exports = class Cart extends Model {
             },
             close: function(status) {
               this.status = status
+            },
+            recalculate: function() {
+              let subtotalPrice = 0
+              let totalDiscounts = 0
+              let totalCoupons = 0
+              let totalTax = 0
+              let totalWeight = 0
+              let totalPrice = 0
+              let totalLineItemsPrice = 0
+              let totalShipping = 0
+              const taxLines = []
+              const shippingLines = []
+
+              // const discountedLines = []
+
+              _.each(this.line_items, item => {
+                // if (item.requires_tax) {
+                //   // taxLines[item.variant_id] = item.price * item.quantity
+                // }
+                if (item.tax_lines.length > 0) {
+                  taxLines.concat(item.tax_lines)
+                }
+                if (item.requires_shipping) {
+                  // item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
+                  // shippingLines[item.variant_id] = item.grams
+                  totalWeight = totalWeight + item.grams
+                }
+
+                // if (item.name !== 'shipping' && item.name !== 'tax') {
+                subtotalPrice = subtotalPrice + item.price * item.quantity
+                totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
+                // }
+                // if (item.name === 'shipping') {
+                //   totalShipping = totalShipping + item.price
+                // }
+                // if (item.name === 'tax') {
+                //   totalTax = totalTax + item.price
+                // }
+                // if (item.has_discount) {
+                // discountedLines[item.variant_id] = item.discount
+                totalDiscounts = totalDiscounts + item.total_discounts
+                // }
+              })
+              _.each(taxLines, line => {
+                totalTax = totalTax + line.price
+              })
+              _.each(shippingLines, line => {
+                totalShipping = totalShipping + line.price
+              })
+              // if (values.taxes_included) {}
+              //
+              // if (values.shipping_included) {
+              //   totalShipping = values.total_shipping
+              // }
+
+              totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
+
+              this.tax_lines = taxLines
+              this.shipping_lines = shippingLines
+              this.total_shipping = totalShipping
+              this.subtotal_price = subtotalPrice
+              this.total_discounts = totalDiscounts
+              this.total_tax = totalTax
+              this.total_weight = totalWeight
+              this.total_line_items_price = totalLineItemsPrice
+              this.total_price = totalPrice
+
+              return Promise.resolve(this)
             }
           },
           classMethods: {
@@ -248,8 +322,8 @@ module.exports = class Cart extends Model {
         discounted_lines: helpers.JSONB('cart', app, Sequelize, 'discounted_lines', {
           defaultValue: {}
         }),
-        shipping_lines: helpers.JSONB('cart', app, Sequelize, 'shipping_lines', {
-          defaultValue: {}
+        shipping_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
+          defaultValue: []
         }),
         shipping_included: {
           type: Sequelize.BOOLEAN,
@@ -259,8 +333,8 @@ module.exports = class Cart extends Model {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
-        tax_lines: helpers.JSONB('cart', app, Sequelize, 'tax_lines', {
-          defaultValue: {}
+        tax_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'tax_lines', {
+          defaultValue: []
         }),
         tax_rate: {
           type: Sequelize.FLOAT,

@@ -86,7 +86,7 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log('THIS CART',res.body)
+        // console.log('THIS CART',res.body)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.status, 'open')
         assert.equal(res.body.line_items.length, 1)
@@ -167,21 +167,33 @@ describe('CartController', () => {
       .post(`/cart/${cartID}/addItems`)
       .send([
         {
-          product_id: storeProducts[0].id
+          product_variant_id: storeProducts[0].variants[1].id
         },
         {
-          product_id: storeProducts[1].id
+          product_id: storeProducts[1].id,
+          quantity: 2
         }
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CART', res.body)
+        console.log('THIS CART', res.body)
         assert.equal(res.body.id, cartID)
+
         assert.equal(res.body.line_items.length, 2)
         assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+        assert.equal(res.body.line_items[0].variant_id, storeProducts[0].variants[1].id)
         assert.equal(res.body.line_items[0].quantity, 1)
+        assert.equal(res.body.line_items[0].sku, 'printer-w-123')
+        assert.equal(res.body.line_items[0].title, 'Maker Bot Replicator')
+        assert.equal(res.body.line_items[0].variant_title, 'Mini')
+        assert.equal(res.body.line_items[0].name, 'Maker Bot Replicator - Mini')
+        assert.equal(res.body.line_items[0].price, 90000)
+        assert.equal(res.body.line_items[0].grams, 9071.847392)
+
         assert.equal(res.body.line_items[1].product_id, storeProducts[1].id)
-        assert.equal(res.body.line_items[1].quantity, 1)
+        assert.equal(res.body.line_items[1].variant_id, storeProducts[1].variants[0].id)
+        assert.equal(res.body.line_items[1].quantity, 2)
+        assert.equal(res.body.line_items[1].grams, 18143.694784)
         done(err)
       })
   })
