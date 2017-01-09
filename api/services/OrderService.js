@@ -41,7 +41,7 @@ module.exports = class OrderService extends Service {
     let resBillingAddress = {}
     let resShippingAddress = {}
 
-    return Cart.findById(obj.cart_token)
+    return Cart.find({where: { token: obj.cart_token }})
       .then(cart => {
         if (!cart) {
           throw new Errors.FoundError(Error(`Could not find cart by token '${obj.cart_token}'`))
@@ -64,6 +64,7 @@ module.exports = class OrderService extends Service {
         })
       })
       .then(customer => {
+        // TODO, make this not required for POS
         if (!customer) {
           throw new Errors.FoundError(Error(`Could not find customer by id '${obj.customer_id}'`))
         }
@@ -78,17 +79,19 @@ module.exports = class OrderService extends Service {
         resShippingAddress = customer.shipping_address
 
         const order = {
-          // Customer Info
-          customer_id: resCustomer.id,
-          buyer_accepts_marketing: resCustomer.accepts_marketing,
-          billing_address: resBillingAddress,
-          shipping_address: resShippingAddress,
           // Cart Info
-          cart_token: resCart.id,
+          cart_token: resCart.token,
           currency: resCart.currency,
           order_items: resCart.line_items,
           // Client Info
-          client_details: obj.client_details
+          client_details: obj.client_details,
+          ip: obj.ip,
+
+          // Customer Info (May Be Blank)
+          customer_id: resCustomer.id,
+          buyer_accepts_marketing: resCustomer.accepts_marketing,
+          billing_address: resBillingAddress,
+          shipping_address: resShippingAddress
         }
         return Order.create(order, {
           include: [

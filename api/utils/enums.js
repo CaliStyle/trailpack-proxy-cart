@@ -188,6 +188,13 @@ module.exports = {
     // For whatever reason, the shipping carrier failed to deliver the shipment.
     FAILURE: 'failure'
   },
+  PAYMENT_PROCESSING_METHOD: {
+    CHECKOUT: 'checkout',
+    DIRECT: 'direct',
+    MANUAL: 'manual',
+    OFFSITE: 'offsite',
+    EXPRESS: 'express'
+  },
   TRANSACTION_ERRORS: {
     INCORRECT_NUMBER: 'incorrect_number',
     INVALID_NUMBER: 'invalid_number',

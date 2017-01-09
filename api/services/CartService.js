@@ -58,40 +58,18 @@ module.exports = class CartService extends Service {
     }
     return this.resolve(data)
       .then(resCart => {
+        // TODO make this not required for POS
         if (!resCart.customer_id) {
           throw new Errors.FoundError(Error('Cart is missing customer_id'))
         }
         const newOrder = {
-          cart_token: resCart.id,
+          cart_token: resCart.token,
           customer_id: resCart.customer_id,
-          client_details: data.client_details
+          client_details: data.client_details,
+          ip: data.ip
         }
         return this.app.services.OrderService.create(newOrder)
       })
-    // let resCart = {}
-    // let resCustomer = {}
-
-    // const Customer = this.app.services.ProxyEngineService.getModel('Customer')
-    // const Cart = this.app.services.ProxyEngineService.getModel('Cart')
-
-    // return this.resolve(cart.id, {
-    //   include: [
-    //     Customer
-    //   ]
-    // })
-    //   .then(cart => {
-    //     resCart = cart
-    //     const newOrder = {
-    //       customer_id: resCart.customer_id,
-    //       customer: resCart.Customer,
-    //       cart_id: resCart.id,
-    //       cart: _.omit(resCart, ['customer'])
-    //     }
-    //     return this.app.services.OrderService.placeOrder(newOrder)
-    //   })
-    //   .then(order => {
-    //     return order
-    //   })
   }
 
   /**

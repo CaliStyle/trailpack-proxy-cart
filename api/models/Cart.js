@@ -6,7 +6,7 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const CART_STATUS = require('../utils/enums').CART_STATUS
-
+const shortid = require('shortid')
 /**
  * @module Cart
  * @description Cart Model
@@ -28,6 +28,9 @@ module.exports = class Cart extends Model {
             beforeCreate: (values, options, fn) => {
               if (values.ip) {
                 values.create_ip = values.ip
+              }
+              if (!values.token) {
+                values.token = shortid.generate()
               }
               fn()
             },
@@ -116,6 +119,8 @@ module.exports = class Cart extends Model {
                 fulfillment_service: data.fulfillment_service,
                 requires_shipping: data.requires_shipping,
                 requires_tax: data.requires_tax,
+                taxable: data.requires_tax, // TODO resolve which of these to keep
+                tax_lines: [{}],
                 requires_subscription: data.requires_subscription,
                 subscription_interval: data.subscription_interval,
                 subscription_unit: data.subscription_unit,
@@ -124,6 +129,9 @@ module.exports = class Cart extends Model {
                 images: data.images.length > 0 ? data.images : data.Product.images,
                 quantity: data.quantity,
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
+                // TODO handle discounts
+                total_discounts: 0,
+                vendor: data.Product.vendor,
                 live_mode: data.live_mode
               }
               return line
@@ -218,6 +226,13 @@ module.exports = class Cart extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // Unique identifier for a particular cart.
+        token: {
+          type: Sequelize.STRING,
+          // primaryKey: true
+          unique: true
+        },
+        // The status of the cart defaults to 'open'
         status: {
           type: Sequelize.ENUM,
           values: _.values(CART_STATUS),
