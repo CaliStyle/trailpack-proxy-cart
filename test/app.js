@@ -10,6 +10,7 @@ const packs = [
   require('trailpack-proxy-engine'),
   require('trailpack-proxy-permissions'),
   require('trailpack-proxy-generics'),
+  require('trailpack-proxy-cart-countries'),
   require('../') // trailpack-proxy-cart
 ]
 

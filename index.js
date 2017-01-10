@@ -18,6 +18,10 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
       return Promise.reject(new Error('This Trailpack only works for Sequelize!'))
     }
 
+    if (!_.includes(_.keys(this.app.packs), 'proxy-cart-countries')) {
+      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-cart-countries!'))
+    }
+
     if (!this.app.config.proxyCart) {
       return Promise.reject(new Error('No configuration found at config.proxyCart!'))
     }
