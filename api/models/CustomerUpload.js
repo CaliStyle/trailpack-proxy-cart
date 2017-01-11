@@ -61,11 +61,11 @@ module.exports = class CustomerUpload extends Model {
         type: Sequelize.STRING
       },
       // Province/State abbr
-      shipping_province_code: {
+      shipping_province: {
         type: Sequelize.STRING
       },
       // Country Code iso-alpha-2
-      shipping_country_code: {
+      shipping_country: {
         type: Sequelize.STRING
       },
       // Postal/Zip Code
@@ -94,11 +94,11 @@ module.exports = class CustomerUpload extends Model {
         type: Sequelize.STRING
       },
       // Province/State abbr
-      billing_province_code: {
+      billing_province: {
         type: Sequelize.STRING
       },
       // Country Code iso-alpha-2
-      billing_country_code: {
+      billing_country: {
         type: Sequelize.STRING
       },
       // Postal/Zip Code

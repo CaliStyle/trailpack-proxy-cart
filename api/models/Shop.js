@@ -151,6 +151,7 @@ module.exports = class Shop extends Model {
           type: Sequelize.STRING,
           defaultValue: 'America/New_York'
         },
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

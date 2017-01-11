@@ -12,7 +12,7 @@ module.exports = {
     billing_city: 'Billing City',
     billing_province: 'Billing Province',
     billing_postal_code: 'Billing Postal Code',
-    billing_country_code: 'Billing Country Code',
+    billing_country: 'Billing Country',
     shipping_address_1: 'Shipping Address 1',
     shipping_address_2: 'Shipping Address 2',
     shipping_address_3: 'Shipping Address 3',
@@ -20,7 +20,7 @@ module.exports = {
     shipping_city: 'Shipping City',
     shipping_province: 'Shipping Province',
     shipping_postal_code: 'Shipping Postal Code',
-    shipping_country_code: 'Shipping Country Code',
+    shipping_country: 'Shipping Country',
     tags: 'Tags',
     collections: 'Collections'
   },

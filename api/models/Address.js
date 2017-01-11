@@ -14,6 +14,17 @@ module.exports = class Address extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            beforeCreate: (values, options, fn) => {
+              try {
+                values = app.services.ProxyCartService.normalizeAddress(values)
+                return fn(null, values)
+              }
+              catch (err) {
+                return fn(err, values)
+              }
+            }
+          },
           classMethods: {
             /**
              * Associate the Model

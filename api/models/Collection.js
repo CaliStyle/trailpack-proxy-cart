@@ -112,6 +112,20 @@ module.exports = class Collection extends Model {
         },
 
         // TODO Tax Percentage Override
+        tax_rate: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        tax_percentage: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        tax_type: {
+          type: Sequelize.STRING
+        },
+        tax_name: {
+          type: Sequelize.STRING
+        },
 
         live_mode: {
           type: Sequelize.BOOLEAN,

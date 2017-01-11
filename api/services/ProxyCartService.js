@@ -349,16 +349,23 @@ module.exports = class ProxyCartService extends Service {
               collections: customer.collections,
               tags: customer.tags
             }
-            _.each(customer, (value, key) => {
-              if (key.indexOf('shipping_')) {
-                const newKey = key.replace('shipping_')
+            _.each(customer.get({plain: true}), (value, key) => {
+              if (key.indexOf('shipping_') > -1) {
+                const newKey = key.replace('shipping_', '')
                 create.shipping_address[newKey] = value
               }
-              if (key.indexOf('billing_')) {
-                const newKey = key.replace('billing_')
-                create.shipping_address[newKey] = value
+              if (key.indexOf('billing_') > -1) {
+                const newKey = key.replace('billing_', '')
+                create.billing_address[newKey] = value
               }
             })
+            if (create.shipping_address.length == 0) {
+              delete create.shipping_address
+            }
+            if (create.billing_address.length == 0) {
+              delete create.billing_address
+            }
+            // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
             return this.app.services.CustomerService.create(create)
           }))
         })
@@ -428,6 +435,24 @@ module.exports = class ProxyCartService extends Service {
     default:
       return weight
     }
+  }
+  normalizeAddress(address){
+    const CountryService = this.app.services.CountryService
+    const provinceNorm = address.province_code || address.province
+    const countryNorm = address.country_code || address.country || address.country_name
+
+    const normalizedProvince  = CountryService.province(countryNorm, provinceNorm)
+    if (!normalizedProvince) {
+      throw new Error(`Unable to normalize ${provinceNorm}, ${countryNorm}`)
+    }
+    const ext = {
+      country: normalizedProvince.country.name,
+      country_name: normalizedProvince.country.name,
+      country_code: normalizedProvince.country.ISO.alpha2,
+      province: normalizedProvince.name,
+      province_code: normalizedProvince.code
+    }
+    return _.extend(address, ext)
   }
 }
 
