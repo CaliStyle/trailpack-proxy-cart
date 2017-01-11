@@ -131,11 +131,13 @@ module.exports = class Shop extends Model {
         },
         // Specifies whether or not taxes were charged for shipping. Valid values are: "true" or "false."
         tax_shipping: {
-          type: Sequelize.BOOLEAN
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         },
         // The setting for whether applicable taxes are included in product prices. Valid values are: "true" or "null."
         taxes_included: {
-          type: Sequelize.BOOLEAN
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         },
         // The setting for whether the shop is applying taxes on a per-county basis or not (US-only). Valid values are: "true" or "null."
         county_taxes: {
