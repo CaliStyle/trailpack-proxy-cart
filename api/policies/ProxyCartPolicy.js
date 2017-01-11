@@ -10,6 +10,7 @@ module.exports = class ProxyCartPolicy extends Policy {
   clientDetails(req, res, next) {
     // Init Client Details
     const clientDetails = {
+      host: req.headers.host,
       browser_ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
       accept_language: req.headers['accept-language'],
       user_agent: req.headers['user-agent'],
@@ -22,6 +23,7 @@ module.exports = class ProxyCartPolicy extends Policy {
     // Attach values to the request body
     req.body.ip = clientDetails.browser_ip
     req.body.client_details = clientDetails
+    req.body.shop_id = req.params.shop_id
     this.app.log.silly('ProxyCartPolicy.clientDetails', clientDetails)
     next()
   }

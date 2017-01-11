@@ -441,10 +441,16 @@ module.exports = class ProxyCartService extends Service {
     const provinceNorm = address.province_code || address.province
     const countryNorm = address.country_code || address.country || address.country_name
 
+    if (!provinceNorm && !countryNorm) {
+      return address
+    }
+
     const normalizedProvince  = CountryService.province(countryNorm, provinceNorm)
+
     if (!normalizedProvince) {
       throw new Error(`Unable to normalize ${provinceNorm}, ${countryNorm}`)
     }
+
     const ext = {
       country: normalizedProvince.country.name,
       country_name: normalizedProvince.country.name,

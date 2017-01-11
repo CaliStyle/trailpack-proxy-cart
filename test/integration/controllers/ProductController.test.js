@@ -199,7 +199,10 @@ describe('ProductController', () => {
       .get('/product/count')
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        // console.log('PRODUCTS COUNT',res.body)
+        assert.ok(res.body.products)
+        assert.ok(res.body.variants)
+        assert.ok(res.body.images)
         done(err)
       })
   })

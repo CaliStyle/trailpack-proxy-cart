@@ -18,6 +18,11 @@ module.exports = class Customer extends Model {
       config = {
         options: {
           underscored: true,
+          defaultScope: {
+            where: {
+              live_mode: app.config.proxyCart.live_mode
+            }
+          },
           hooks: {
             beforeCreate: (values, options, fn) => {
               if (values.ip) {

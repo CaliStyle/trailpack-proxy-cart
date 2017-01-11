@@ -15,7 +15,7 @@ module.exports = class Address extends Model {
         options: {
           underscored: true,
           hooks: {
-            beforeCreate: (values, options, fn) => {
+            beforeValidate: (values, options, fn) => {
               try {
                 values = app.services.ProxyCartService.normalizeAddress(values)
                 return fn(null, values)
@@ -46,7 +46,8 @@ module.exports = class Address extends Model {
       schema = {
         // Line 1
         address_1: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
         // Line 2
         address_2: {
@@ -62,7 +63,8 @@ module.exports = class Address extends Model {
         },
         // City
         city: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
         // Name Prefix eg. Dr.
         prefix: {
@@ -86,29 +88,35 @@ module.exports = class Address extends Model {
         },
         // Province/State
         province: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
         // Province/State abbr
         province_code: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
         // Country
         country: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
         // Country Code iso-alpha-2
         country_code: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
         // Country Name
         country_name: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
         // Postal/Zip Code
         postal_code: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
-        //
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.live_mode

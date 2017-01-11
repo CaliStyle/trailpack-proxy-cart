@@ -204,7 +204,7 @@ module.exports = class CartService extends Service {
           return cart.save()
         })
         .then(cart => {
-          // console.log('CartService.addItemsToCart CART', cart)
+          this.app.log.silly('CartService.addItemsToCart Result', cart)
           return resolve(cart)
         })
         .catch(err => {

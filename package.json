@@ -29,7 +29,7 @@
     "striptags": "^2.1.1",
     "trailpack": "v2-latest",
     "trailpack-proxy-cart-countries": "^0.0.2",
-    "trailpack-proxy-generics": "^0.0.0"
+    "trailpack-proxy-generics": "^0.0.1"
   },
   "devDependencies": {
     "eslint": "^2.4",
@@ -41,7 +41,7 @@
     "smokesignals": "v2-latest",
     "supertest": "^2.0.1",
     "trailpack-express": "^2.0.0-rc1",
-    "trailpack-proxy-engine": "^0.0.3",
+    "trailpack-proxy-engine": "^0.0.4",
     "trailpack-sequelize": "^2.0.0",
     "trailpack-router": "v2-latest",
     "trailpack-proxy-permissions": "^0.0.1",

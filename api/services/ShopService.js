@@ -8,7 +8,8 @@ const Service = require('trails/service')
  */
 module.exports = class ShopService extends Service {
   create(data) {
-
+    const Shop = this.app.services.ProxyEngineService.getModel('Shop')
+    return Shop.create(data)
   }
 }
 

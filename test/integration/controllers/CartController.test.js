@@ -26,14 +26,6 @@ describe('CartController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['CartController'])
   })
-  it('should count all carts', (done) => {
-    request
-      .get('/cart/count')
-      .expect(200)
-      .end((err, res) => {
-        done(err)
-      })
-  })
   // TODO support cart with default items
   it('should create a cart', (done) => {
     request
@@ -215,6 +207,15 @@ describe('CartController', () => {
         assert.ok(res.body.id)
         orderID = res.body.id
 
+        done(err)
+      })
+  })
+  it('should count all carts', (done) => {
+    request
+      .get('/cart/count')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.carts)
         done(err)
       })
   })

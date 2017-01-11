@@ -34,7 +34,7 @@ module.exports = class Order extends Model {
                 values.create_ip = values.ip
               }
               if (!values.token) {
-                values.token = shortid.generate()
+                values.token = `order_${shortid.generate()}`
               }
               fn()
             },
@@ -45,9 +45,11 @@ module.exports = class Order extends Model {
               }
               fn()
             },
-            afterCreate(values, options, fn) {
-              if (!values.name && values.id) {
-                values.name = `#${values.id}`
+            // TODO, send receipt, other webhooks stuff
+            afterCreate: (values, options, fn) => {
+              values.number = `${values.shop_id}-${values.id}`
+              if (!values.name && values.number) {
+                values.name = `#${values.number}`
               }
               values.save(options)
                 .then(values => {
@@ -83,6 +85,9 @@ module.exports = class Order extends Model {
               // models.Order.belongsTo(models.Customer, {
               //   foreignKey: 'last_order_id'
               // })
+              models.Order.belongsTo(models.Shop, {
+                // as: 'shop_id'
+              })
               models.Order.hasMany(models.OrderItem, {
                 as: 'order_items'
               })
@@ -114,6 +119,11 @@ module.exports = class Order extends Model {
               })
             }
           }
+          // instanceMethods: {
+          //   calculate: function(){
+          //
+          //   }
+          // }
         }
       }
     }
@@ -162,6 +172,7 @@ module.exports = class Order extends Model {
         },
         client_details: helpers.JSONB('order', app, Sequelize, 'client_details', {
           defaultValue: {
+            'host': null,
             'accept_language': null,
             'browser_height': null,
             'browser_ip': '0.0.0.0',
@@ -182,7 +193,10 @@ module.exports = class Order extends Model {
         },
         // The customer's email address. Is required when a billing address is present.
         email: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          validate: {
+            isEmail: true
+          }
         },
         financial_status: {
           type: Sequelize.ENUM,

@@ -44,10 +44,9 @@ module.exports = class Product extends Model {
              * @param models
              */
             associate: (models) => {
-              // models.Product.belongsTo(models.Shop, {
-              //   // as: 'shop_id',
-              //   // foreignKey: 'shop_id'
-              // })
+              models.Product.belongsTo(models.Shop, {
+                // as: 'shop_id'
+              })
               models.Product.hasMany(models.ProductImage, {
                 as: 'images',
                 foreignKey: 'product_id',
@@ -318,6 +317,11 @@ module.exports = class Product extends Model {
           type: Sequelize.STRING,
           allowNull: false
         },
+        // The tax code of the product, defaults to physical good.
+        tax_code: {
+          type: Sequelize.STRING,
+          defaultValue: 'P000000' // Physical Good
+        },
         // TODO convert to Model tags for the product
         // Default price of the product in cents
         price: {
@@ -358,7 +362,7 @@ module.exports = class Product extends Model {
         },
         // Unit of Measurement for Weight of the product, defaults to grams
         weight_unit: {
-          type: Sequelize.ENUM(),
+          type: Sequelize.ENUM,
           values: _.values(UNITS),
           defaultValue: UNITS.G
         },

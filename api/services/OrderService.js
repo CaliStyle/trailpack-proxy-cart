@@ -76,14 +76,24 @@ module.exports = class OrderService extends Service {
           throw new Errors.FoundError(Error(`Could not find customer shipping address for id '${obj.customer_id}'`))
         }
         resCustomer = customer
-        resBillingAddress = customer.billing_address
-        resShippingAddress = customer.shipping_address
+        resBillingAddress = customer.billing_address || obj.billing_address
+        resShippingAddress = customer.shipping_address || obj.shipping_address
 
         const order = {
           // Cart Info
           cart_token: resCart.token,
           currency: resCart.currency,
           order_items: resCart.line_items,
+          tax_lines: resCart.tax_lines,
+          shipping_lines: resCart.shipping_lines,
+          subtotal_price: resCart.subtotal_price,
+          taxes_included: resCart.taxes_included,
+          total_discounts: resCart.total_discounts,
+          total_line_items_price: resCart.total_line_items_price,
+          total_price: resCart.total_price,
+          total_tax: resCart.total_tax,
+          total_weight: resCart.total_weight,
+
           // Client Info
           client_details: obj.client_details,
           ip: obj.ip,
@@ -91,9 +101,11 @@ module.exports = class OrderService extends Service {
           // Customer Info (May Be Blank)
           customer_id: resCustomer.id,
           buyer_accepts_marketing: resCustomer.accepts_marketing,
+          email: resCustomer.email,
           billing_address: resBillingAddress,
           shipping_address: resShippingAddress
         }
+
         return Order.create(order, {
           include: [
             {
@@ -111,6 +123,8 @@ module.exports = class OrderService extends Service {
       })
       .then(cart => {
         resCustomer.setLastOrder(resOrder)
+        // TODO create a blank new cart for customer
+        // resCustomer.newCart()
         return resCustomer.save()
       })
       .then(customer => {

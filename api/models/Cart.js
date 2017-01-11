@@ -30,7 +30,7 @@ module.exports = class Cart extends Model {
                 values.create_ip = values.ip
               }
               if (!values.token) {
-                values.token = shortid.generate()
+                values.token = `cart_${shortid.generate()}`
               }
               fn()
             },
@@ -247,7 +247,15 @@ module.exports = class Cart extends Model {
               this.total_line_items_price = totalLineItemsPrice
               this.total_price = totalPrice
 
-              return Promise.resolve(this)
+              return app.services.TaxService.calculate(this)
+                .then(taxes => {
+                  // TODO do something with taxes
+                  return app.services.ShippingService.calculate(this)
+                })
+                .then(shipping => {
+                  // TODO do something with shipping
+                  return this
+                })
             }
           },
           classMethods: {
