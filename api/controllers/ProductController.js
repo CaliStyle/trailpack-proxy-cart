@@ -354,5 +354,46 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+  /**
+   * upload uploadMetaCSV
+   * @param req
+   * @param res
+   */
+  uploadMetaCSV(req, res) {
+    const ProxyCartService = this.app.services.ProxyCartService
+    const csv = req.file
+
+    if (!csv) {
+      const err = new Error('File failed to upload')
+      return res.serverError(err)
+    }
+
+    ProxyCartService.productMetaCsv(csv.path)
+      .then(result => {
+        return res.json({
+          file: req.file,
+          result: result
+        })
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  processMetaUpload(req, res) {
+    const ProxyCartService = this.app.services.ProxyCartService
+    ProxyCartService.processProductMetaUpload(req.params.id)
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

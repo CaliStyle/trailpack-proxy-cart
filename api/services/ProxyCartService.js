@@ -5,10 +5,15 @@ const Service = require('trails/service')
 const csvParser = require('babyparse')
 const _ = require('lodash')
 // const Errors = require('proxy-engine-errors')
-const PRODUCT_UPLOAD = require('../utils/enums').PRODUCT_UPLOAD
-const CUSTOMER_UPLOAD = require('../utils/enums').CUSTOMER_UPLOAD
+const joi = require('joi')
 const fs = require('fs')
 const shortid = require('shortid')
+
+const PRODUCT_UPLOAD = require('../utils/enums').PRODUCT_UPLOAD
+const PRODUCT_META_UPLOAD = require('../utils/enums').PRODUCT_META_UPLOAD
+const CUSTOMER_UPLOAD = require('../utils/enums').CUSTOMER_UPLOAD
+const lib = require('../../lib')
+
 /**
  * @module ProxyCartService
  * @description ProxyCart Service
@@ -327,7 +332,6 @@ module.exports = class ProxyCartService extends Service {
    * @param uploadId
    * @returns {Promise}
    */
-  // TODO
   processCustomerUpload(uploadId) {
     return new Promise((resolve, reject) => {
       const CustomerUpload = this.app.services.ProxyEngineService.getModel('CustomerUpload')
@@ -375,6 +379,139 @@ module.exports = class ProxyCartService extends Service {
         })
         .then(destroyed => {
           return resolve({customers: customersTotal})
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
+  }
+
+  /**
+   *
+   * @param file
+   * @returns {Promise}
+   */
+  productMetaCsv(file) {
+    // TODO validate csv
+    console.time('csv')
+    const uploadID = shortid.generate()
+    const ProxyEngineService = this.app.services.ProxyEngineService
+
+    return new Promise((resolve, reject)=>{
+      const options = {
+        header: true,
+        dynamicTyping: true,
+        step: (results, parser) => {
+          // console.log(parser)
+          // console.log('Row data:', results.data)
+          // TODO handle errors
+          // console.log('Row errors:', results.errors)
+          parser.pause()
+          this.csvProductMetaRow(results.data[0], uploadID)
+            .then(row => {
+              parser.resume()
+            })
+            .catch(err => {
+              console.log(err)
+              parser.resume()
+            })
+        },
+        complete: (results, file) => {
+          console.timeEnd('csv')
+          // console.log('Parsing complete:', results, file)
+          results.upload_id = uploadID
+          ProxyEngineService.count('ProductMetaUpload', { where: { upload_id: uploadID }})
+            .then(count => {
+              results.products = count
+              resolve(results)
+            })
+            // TODO handle this more gracefully
+            .catch(err => {
+              reject(err)
+            })
+        },
+        error: (err, file) => {
+          reject(err)
+        }
+      }
+      const fileString = fs.readFileSync(file, 'utf8')
+      // Parse the CSV/TSV
+      csvParser.parse(fileString, options)
+    })
+  }
+
+  /**
+   *
+   * @param row
+   * @param uploadID
+   */
+  csvProductMetaRow(row, uploadID) {
+    // console.log(row)
+    const ProductMetaUpload = this.app.services.ProxyEngineService.getModel('ProductMetaUpload')
+    const values = _.values(PRODUCT_META_UPLOAD)
+    const keys = _.keys(PRODUCT_META_UPLOAD)
+    const upload = {
+      upload_id: uploadID,
+      data: {}
+    }
+
+    _.each(row, (data, key) => {
+      if (data !== '') {
+        const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
+        const k = keys[i]
+        if (i > -1 && k) {
+          upload[k] = data
+        }
+        else {
+          upload.data[key] = data
+        }
+      }
+    })
+
+    const newMeta = ProductMetaUpload.build(upload)
+    return newMeta.save()
+  }
+
+  /**
+   *
+   * @param uploadId
+   * @returns {Promise}
+   */
+  processProductMetaUpload(uploadId) {
+    return new Promise((resolve, reject) => {
+      const ProductMetaUpload = this.app.services.ProxyEngineService.getModel('ProductMetaUpload')
+      const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
+      const Product = this.app.services.ProxyEngineService.getModel('Product')
+      let productsTotal = 0
+      ProductMetaUpload.findAll({
+        where: {
+          upload_id: uploadId
+        }
+      })
+        .then(metadatums => {
+          return Promise.all(metadatums.map(metadata => {
+            // TODO change addresses to objects
+            const create = {
+              data: metadata.data
+            }
+            return Metadata.create(create, {
+              include: [
+                {
+                  model: Product,
+                  where: {
+                    handle: metadata.handle
+                  }
+                }
+              ]
+            })
+          }))
+        })
+        .then(results => {
+          productsTotal = results.length
+          return ProductMetaUpload.destroy({where: {upload_id: uploadId }})
+        })
+        .then(destroyed => {
+          return resolve({products: productsTotal})
         })
         .catch(err => {
           return reject(err)
@@ -436,6 +573,32 @@ module.exports = class ProxyCartService extends Service {
       return weight
     }
   }
+
+  /**
+   *
+   * @param address
+   * @returns {*}
+   */
+  validateAddress(address) {
+    joi.validate(address, lib.Schemas.address.address, (err, value) => {
+      if (err) {
+        throw new Error(err)
+      }
+      try {
+        address = this.normalizeAddress(address)
+      }
+      catch (err) {
+        throw new Error(err)
+      }
+      return address
+    })
+  }
+
+  /**
+   *
+   * @param address
+   * @returns {*}
+   */
   normalizeAddress(address){
     const CountryService = this.app.services.CountryService
     const provinceNorm = address.province_code || address.province

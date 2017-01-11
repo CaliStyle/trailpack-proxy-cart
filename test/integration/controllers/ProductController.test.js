@@ -19,6 +19,7 @@ describe('ProductController', () => {
   let firstVariantID
   let firstImageID
   let uploadID
+  let uploadMetaID
   it('should make addProducts post request', (done) => {
     request
       .post('/product/addProducts')
@@ -385,6 +386,31 @@ describe('ProductController', () => {
         done()
       })
   })
+
+  it('It should upload product_meta_upload.csv', (done) => {
+    request
+      .post('/product/uploadMetaCSV')
+      .attach('csv', 'test/fixtures/product_meta_upload.csv')
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        assert.ok(res.body.result.upload_id)
+        uploadMetaID = res.body.result.upload_id
+        assert.equal(res.body.result.products, 1)
+        done()
+      })
+  })
+  it('It should process meta upload', (done) => {
+    request
+      .post(`/product/processMetaUpload/${uploadMetaID}`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.products, 1)
+        done()
+      })
+  })
+
   it('It should get products', (done) => {
     request
       .get('/product')

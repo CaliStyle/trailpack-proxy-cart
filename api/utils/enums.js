@@ -74,6 +74,9 @@ module.exports = {
     g_custom_label_3: 'Google Shopping / Custom Label 3',
     g_custom_label_4: 'Google Shopping / Custom Label 4'
   },
+  PRODUCT_META_UPLOAD: {
+    handle: 'Handle'
+  },
   UNITS: {
     // Grams
     G: 'g',

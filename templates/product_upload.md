@@ -135,6 +135,7 @@ JSON format of Metadata limited to __1,000 characters__. E.g.
   custom_field: 'This is a Custom Field I use else where in My Application and is not related to Goolge Merchant or Amazon'
 }
 ```
+Optionally, you can upload similar metadata structures using a different CSV named `product_meta_upload.csv`
 
 # Subscriptions
 ## Subscription
