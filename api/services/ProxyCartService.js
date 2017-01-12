@@ -8,6 +8,7 @@ const _ = require('lodash')
 const joi = require('joi')
 const fs = require('fs')
 const shortid = require('shortid')
+const sharp = require('sharp')
 
 const PRODUCT_UPLOAD = require('../utils/enums').PRODUCT_UPLOAD
 const PRODUCT_META_UPLOAD = require('../utils/enums').PRODUCT_META_UPLOAD
@@ -491,24 +492,34 @@ module.exports = class ProxyCartService extends Service {
         .then(metadatums => {
           return Promise.all(metadatums.map(metadata => {
             // TODO change addresses to objects
-            const create = {
-              data: metadata.data
-            }
-            return Metadata.create(create, {
-              include: [
-                {
-                  model: Product,
-                  where: {
-                    handle: metadata.handle
+            return Product.find(
+              {
+                where: {
+                  handle: metadata.handle
+                },
+                attributes: ['id'],
+                include: [
+                  {
+                    model: Metadata,
+                    as: 'metadata',
+                    attributes: ['data', 'id']
                   }
+                ]
+              })
+              .then(product => {
+                if (!product) {
+                  return
                 }
-              ]
-            })
+                product.metadata.data = metadata.data
+                return product.metadata.save()
+              })
           }))
         })
         .then(results => {
           productsTotal = results.length
-          return ProductMetaUpload.destroy({where: {upload_id: uploadId }})
+          return ProductMetaUpload.destroy({
+            where: {upload_id: uploadId }
+          })
         })
         .then(destroyed => {
           return resolve({products: productsTotal})
@@ -521,30 +532,91 @@ module.exports = class ProxyCartService extends Service {
 
   // TODO
   downloadImage(url) {
+    return new Promise((resolve, reject) => {
+      const request = require('request').defaults({ encoding: null })
+      request.get(url, function (err, res, body) {
+        if (err) {
+          return reject(err)
+        }
+        return resolve(body)
+      })
 
+    })
   }
-  // TODO
+
+  /**
+   *
+   * @param imageUrl
+   * @returns {Promise}
+   */
   buildImages(imageUrl) {
     return new Promise((resolve, reject) =>{
-      let full = imageUrl
-      let thumbnail = imageUrl
-      let small = imageUrl
-      let medium = imageUrl
-      let large = imageUrl
+      const images = {
+        full: imageUrl,
+        thumbnail: imageUrl,
+        small: imageUrl,
+        medium: imageUrl,
+        large: imageUrl
+      }
+      let buffer
 
-      return resolve({
-        full: full,
-        thumbnail: thumbnail,
-        small: small,
-        medium: medium,
-        large: large
-      })
+      this.downloadImage(imageUrl)
+        .then(resBuffer => {
+          buffer = resBuffer
+          return sharp(buffer)
+            .resize(200)
+            .toBuffer()
+        })
+        .then(thumbnailBuffer => {
+          return this.uploadImage(thumbnailBuffer, images.thumbnail)
+        })
+        .then(thumbnail => {
+          images.thumbnail = thumbnail.url
+          return sharp(buffer)
+            .resize(300)
+            .toBuffer()
+        })
+        .then(smallBuffer => {
+          return this.uploadImage(smallBuffer, images.small)
+        })
+        .then(small => {
+          images.small = small.url
+          return sharp(buffer)
+            .resize(400)
+            .toBuffer()
+        })
+        .then(mediumBuffer => {
+          return this.uploadImage(mediumBuffer, images.medium)
+        })
+        .then(medium => {
+          images.medium = medium.url
+          return sharp(buffer)
+            .resize(500)
+            .toBuffer()
+        })
+        .then(largeBuffer => {
+          return this.uploadImage(largeBuffer, images.large)
+        })
+        .then((large) => {
+          images.large = large.url
+          return resolve(images)
+        })
+        .catch((err) => {
+          this.app.log.error(err)
+          return resolve(images)
+        })
     })
   }
   // TODO
-  uploadImage(image) {
-
+  uploadImage(image, orgUrl) {
+    return Promise.resolve({ url: orgUrl })
   }
+
+  /**
+   *
+   * @param text
+   * @returns {string}
+   */
   slug(text) {
     return text.toString().toLowerCase().trim()
       .replace(/\s+/g, '-')           // Replace spaces with -
@@ -552,15 +624,40 @@ module.exports = class ProxyCartService extends Service {
       .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
       .replace(/\-\-+/g, '-')
   }
+
+  /**
+   *
+   * @param ounces
+   * @returns {number}
+   */
   ouncesToGrams(ounces) {
     return ounces * 28.3495231
   }
+
+  /**
+   *
+   * @param pounds
+   * @returns {number}
+   */
   poundsToGrams(pounds) {
     return pounds * 16 * 28.3495231
   }
+
+  /**
+   *
+   * @param kilogram
+   * @returns {number}
+   */
   kilogramsToGrams(kilogram) {
     return kilogram / 1000
   }
+
+  /**
+   *
+   * @param weight
+   * @param weightUnit
+   * @returns {*}
+   */
   resolveConversion(weight, weightUnit){
     switch (weightUnit) {
     case 'kg':
@@ -621,7 +718,7 @@ module.exports = class ProxyCartService extends Service {
       province: normalizedProvince.name,
       province_code: normalizedProvince.code
     }
-    return _.extend(address, ext)
+    return _.merge(address, ext)
   }
 }
 
