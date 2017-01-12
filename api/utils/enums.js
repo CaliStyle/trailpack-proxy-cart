@@ -150,6 +150,16 @@ module.exports = {
     INVENTORY: 'inventory',
     OTHER: 'other'
   },
+  // customer: The customer changed or cancelled the order.
+  // fraud: The order was fraudulent.
+  // inventory: Items in the order were not in inventory.
+  // other: The order was cancelled for a reason not in the list above.
+  SUBSCRIPTION_CANCEL: {
+    CUSTOMER: 'customer',
+    FRAUD: 'fraud',
+    INVENTORY: 'inventory',
+    OTHER: 'other'
+  },
   // pending: The finances are pending.
   // authorized: The finances have been authorized.
   // partially_paid: The finances have been partially paid.
