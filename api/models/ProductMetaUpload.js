@@ -12,7 +12,9 @@ module.exports = class ProductMetaUpload extends Model {
 
   static config (app, Sequelize) {
     const config = {
-
+      options: {
+        underscored: true
+      }
     }
     return config
   }
