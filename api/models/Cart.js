@@ -29,6 +29,7 @@ module.exports = class Cart extends Model {
               if (values.ip) {
                 values.create_ip = values.ip
               }
+              // If not token was already created, create it
               if (!values.token) {
                 values.token = `cart_${shortid.generate()}`
               }
@@ -39,72 +40,6 @@ module.exports = class Cart extends Model {
               if (values.ip) {
                 values.update_ip = values.ip
               }
-              // if (values.line_items) {
-              //   let subtotalPrice = 0
-              //   let totalDiscounts = 0
-              //   let totalCoupons = 0
-              //   let totalTax = 0
-              //   let totalWeight = 0
-              //   let totalPrice = 0
-              //   let totalLineItemsPrice = 0
-              //   let totalShipping = 0
-              //   const taxLines = []
-              //   const shippingLines = []
-              //   // const discountedLines = []
-              //
-              //   _.each(values.line_items, item => {
-              //     // if (item.requires_tax) {
-              //     //   // taxLines[item.variant_id] = item.price * item.quantity
-              //     // }
-              //     if (item.tax_lines.length > 0) {
-              //       taxLines.concat(item.tax_lines)
-              //     }
-              //     if (item.requires_shipping) {
-              //       // item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
-              //       // shippingLines[item.variant_id] = item.grams
-              //       totalWeight = totalWeight + item.grams
-              //     }
-              //
-              //     // if (item.name !== 'shipping' && item.name !== 'tax') {
-              //     subtotalPrice = subtotalPrice + item.price * item.quantity
-              //     totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
-              //     // }
-              //     // if (item.name === 'shipping') {
-              //     //   totalShipping = totalShipping + item.price
-              //     // }
-              //     // if (item.name === 'tax') {
-              //     //   totalTax = totalTax + item.price
-              //     // }
-              //     // if (item.has_discount) {
-              //       // discountedLines[item.variant_id] = item.discount
-              //     totalDiscounts = totalDiscounts + item.total_discounts
-              //     // }
-              //   })
-              //   _.each(taxLines, line => {
-              //     totalTax = totalTax + line.price
-              //   })
-              //   _.each(shippingLines, line => {
-              //     totalShipping = totalShipping + line.price
-              //   })
-              //   // if (values.taxes_included) {}
-              //   //
-              //   // if (values.shipping_included) {
-              //   //   totalShipping = values.total_shipping
-              //   // }
-              //
-              //   totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
-              //
-              //   values.tax_lines = taxLines
-              //   values.shipping_lines = shippingLines
-              //   values.total_shipping = totalShipping
-              //   values.subtotal_price = subtotalPrice
-              //   values.total_discounts = totalDiscounts
-              //   values.total_tax = totalTax
-              //   values.total_weight = totalWeight
-              //   values.total_line_items_price = totalLineItemsPrice
-              //   values.total_price = totalPrice
-              // }
-
               fn(null, values)
             }
           },
@@ -296,7 +231,6 @@ module.exports = class Cart extends Model {
         // Unique identifier for a particular cart.
         token: {
           type: Sequelize.STRING,
-          // primaryKey: true
           unique: true
         },
         // The status of the cart defaults to 'open'

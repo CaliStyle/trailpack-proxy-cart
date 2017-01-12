@@ -281,7 +281,6 @@ module.exports = class Order extends Model {
         // Unique identifier for a particular order.
         token: {
           type: Sequelize.STRING,
-          // primaryKey: true
           unique: true
         },
         // The total amount of the discounts to be applied to the price of the order.
@@ -313,7 +312,7 @@ module.exports = class Order extends Model {
         order_status_url: {
           type: Sequelize.STRING
         },
-        // TODO Enable User
+        // TODO Enable User or Owner
         // Only present on orders processed at point of sale. The unique numerical identifier for the user logged into the terminal at the time the order was processed at.
         // user_id: {
         //   type: Sequelize.INTEGER,
