@@ -1,15 +1,28 @@
 'use strict'
 
 const Service = require('trails/service')
-// const _ = require('lodash')
+const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 /**
  * @module OrderService
  * @description Order Service
  */
 module.exports = class OrderService extends Service {
-  resolve() {
-
+  resolve(order, options) {
+    const Order =  this.app.services.ProxyEngineService.getModel('Order')
+    if (order instanceof Order.Instance){
+      return Promise.resolve(order)
+    }
+    else if (order && _.isObject(order) && order.id) {
+      return Order.findById(order.id, options)
+    }
+    else if (order && (_.isString(order) || _.isNumber(order))) {
+      return Order.findById(order, options)
+    }
+    else {
+      const err = new Error('Unable to resolve Order')
+      Promise.reject(err)
+    }
   }
 
   /**
@@ -25,6 +38,7 @@ module.exports = class OrderService extends Service {
     const Address = this.app.services.ProxyEngineService.getModel('Address')
     const Order = this.app.services.ProxyEngineService.getModel('Order')
     const OrderItem = this.app.services.ProxyEngineService.getModel('OrderItem')
+    const PaymentService = this.app.services.PaymentService
 
     // Validate obj cart and customer
     if (!obj.cart_token) {
@@ -128,7 +142,45 @@ module.exports = class OrderService extends Service {
         return resCustomer.save()
       })
       .then(customer => {
+        const orderPayment = obj.payment || this.app.config.proxyCart.order_payment
+        if (!orderPayment) {
+          throw new Error('Order Failed to have a payment function')
+        }
+        return PaymentService[orderPayment](obj.source, resOrder.total_price)
+          .then(payment => {
+            resOrder.financial_status = payment.status
+            return resOrder.save()
+          })
+      })
+      .then(order => {
         return resOrder.reload()
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @returns {*|Promise.<TResult>}
+   */
+  payOrder(order, method) {
+    return this.resolve(order)
+      .then(order => {
+        if (order.financial_status !== ('authorized' || 'partially_paid')) {
+          throw new Error(`Order status is ${order.financial_status} not 'authorized or partially_paid'`)
+        }
+        return
+      })
+  }
+  /**
+   *
+   * @param order
+   * @returns {*|Promise.<TResult>}
+   */
+  refundOrder(order, refund) {
+    return this.resolve(order)
+      .then(order => {
+
+        return
       })
   }
 }

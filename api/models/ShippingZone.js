@@ -61,7 +61,7 @@ module.exports = class ShippingZone extends Model {
         // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
-          defaultValue: app.config.proxyCart.live_mode
+          defaultValue: app.config.proxyEngine.live_mode
         }
       }
     }

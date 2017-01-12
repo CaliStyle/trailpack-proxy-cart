@@ -70,7 +70,7 @@ module.exports = class GiftCard extends Model {
 
         live_mode: {
           type: Sequelize.BOOLEAN,
-          defaultValue: app.config.proxyCart.live_mode
+          defaultValue: app.config.proxyEngine.live_mode
         }
       }
     }

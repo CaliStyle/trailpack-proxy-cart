@@ -52,11 +52,11 @@ module.exports = class CartService extends Service {
    * @returns {Promise.<*>}
    */
   checkout(data){
-    if (!data.id) {
+    if (!data.cart.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
-    return this.resolve(data)
+    return this.resolve(data.cart)
       .then(resCart => {
         // Recalculate the Cart
         return resCart.recalculate()
@@ -75,7 +75,9 @@ module.exports = class CartService extends Service {
           cart_token: resCart.token,
           customer_id: resCart.customer_id,
           client_details: data.client_details,
-          ip: data.ip
+          ip: data.ip,
+          source: data.source,
+          payment: data.payment
         }
         return this.app.services.OrderService.create(newOrder)
       })

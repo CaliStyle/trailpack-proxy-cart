@@ -92,7 +92,10 @@ const App = {
     },
     web: web,
     // Proxy Generics
-    proxyGenerics: {}
+    proxyGenerics: {},
+    proxyEngine: {
+      live_mode: false
+    }
   }
 }
 

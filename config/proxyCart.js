@@ -4,5 +4,6 @@
  * @see {@link http://
  */
 module.exports = {
-  live_mode: false
+  // manual, authorize, sale
+  order_payment: 'authorize'
 }

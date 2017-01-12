@@ -20,7 +20,7 @@ module.exports = class Customer extends Model {
           underscored: true,
           defaultScope: {
             where: {
-              live_mode: app.config.proxyCart.live_mode
+              live_mode: app.config.proxyEngine.live_mode
             }
           },
           hooks: {
@@ -295,7 +295,7 @@ module.exports = class Customer extends Model {
 
         live_mode: {
           type: Sequelize.BOOLEAN,
-          defaultValue: app.config.proxyCart.live_mode
+          defaultValue: app.config.proxyEngine.live_mode
         }
       }
     }
