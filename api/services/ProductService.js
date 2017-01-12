@@ -524,13 +524,17 @@ module.exports = class ProductService extends Service {
   }
   removeVariant(id){
     return new Promise((resolve, reject) => {
-      const FootprintService = this.app.services.FootprintService
+      const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
       let destroy
       let updates
-      FootprintService.find('ProductVariant',id)
+      Variant.findById(id)
         .then(foundVariant => {
           destroy = foundVariant
-          return FootprintService.find('ProductVariant', {product_id: destroy.product_id})
+          return Variant.findAll({
+            where: {
+              product_id: destroy.product_id
+            }
+          })
         })
         .then(foundVariants => {
           updates = _.sortBy(_.filter(foundVariants, variant => {
@@ -542,11 +546,15 @@ module.exports = class ProductService extends Service {
             variant.position = index + 1
           })
           return Promise.all(updates.map(variant => {
-            return FootprintService.update('ProductVariant',variant.id, { position: variant.position })
+            return variant.save()
           }))
         })
         .then(updatedVariants => {
-          return FootprintService.destroy('ProductVariant', id)
+          return Variant.destroy({
+            where: {
+              id: id
+            }
+          })
         })
         .then(destroyedVariant => {
           return resolve(destroyedVariant)
@@ -567,13 +575,17 @@ module.exports = class ProductService extends Service {
   }
   removeImage(id){
     return new Promise((resolve, reject) => {
-      const FootprintService = this.app.services.FootprintService
+      const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
       let destroy
       let updates
-      FootprintService.find('ProductImage',id)
+      Image.findById(id)
         .then(foundImage => {
           destroy = foundImage
-          return FootprintService.find('ProductImage', { product_id: destroy.product_id })
+          return Image.findAll({
+            where: {
+              product_id: destroy.product_id
+            }
+          })
         })
         .then(foundImages => {
           updates = _.sortBy(_.filter(foundImages, image => {
@@ -585,11 +597,16 @@ module.exports = class ProductService extends Service {
             image.position = index + 1
           })
           return Promise.all(updates.map(image => {
-            return FootprintService.update('ProductImage',image.id, { position: image.position })
+            return image.save()
+            // return FootprintService.update('ProductImage',image.id, { position: image.position })
           }))
         })
         .then(updatedImages => {
-          return FootprintService.destroy('ProductImage', id)
+          return Image.destroy({
+            where: {
+              id: id
+            }
+          })
         })
         .then(destroyedImage => {
           return resolve(destroyedImage)

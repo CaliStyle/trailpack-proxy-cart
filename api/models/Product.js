@@ -151,10 +151,16 @@ module.exports = class Product extends Model {
                   {
                     model: app.orm['ProductVariant'],
                     as: 'variants',
+                    attributes: {
+                      exclude: ['updated_at','created_at']
+                    },
                     include: [
                       {
                         model: app.orm['ProductImage'],
-                        as: 'images'
+                        as: 'images',
+                        attributes: {
+                          exclude: ['src','updated_at','created_at']
+                        }
                       }
                     ]
                   },

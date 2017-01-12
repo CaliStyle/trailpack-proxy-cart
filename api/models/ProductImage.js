@@ -17,14 +17,14 @@ module.exports = class ProductImage extends Model {
           underscored: true,
           hooks: {
             beforeCreate: (values, options, fn) => {
-              app.services.ProxyCartService.buildImages(values.dataValues.src)
+              app.services.ProxyCartService.buildImages(values.src)
                 .then(sizes => {
                   // console.log(sizes)
-                  values.dataValues.full = sizes.full
-                  values.dataValues.thumbnail = sizes.thumbnail
-                  values.dataValues.small = sizes.small
-                  values.dataValues.medium = sizes.medium
-                  values.dataValues.large = sizes.large
+                  values.full = sizes.full
+                  values.thumbnail = sizes.thumbnail
+                  values.small = sizes.small
+                  values.medium = sizes.medium
+                  values.large = sizes.large
 
                   // console.log('ProducImage.beforeCreate',values.dataValues)
                   return fn(null, values)
