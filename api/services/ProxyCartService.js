@@ -720,5 +720,84 @@ module.exports = class ProxyCartService extends Service {
     }
     return _.merge(address, ext)
   }
+
+  /**
+   *
+   * @param cart
+   * @param shippingAddress
+   * @returns {Promise}
+   */
+  resolveSendFromTo(cart, shippingAddress) {
+    return new Promise((resolve, reject) => {
+      const Cart = this.app.services.ProxyEngineService.getModel('Cart')
+      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
+      const Shop = this.app.services.ProxyEngineService.getModel('Shop')
+      const Address = this.app.services.ProxyEngineService.getModel('Address')
+
+      if (!(cart instanceof Cart.Instance)) {
+        const err = new Error('Cart must be an instance!')
+        return reject(err)
+      }
+      Shop.findById(cart.shop_id)
+        .then(shop => {
+          if (!shop) {
+            return resolve(null)
+          }
+          const from = {
+            name: shop.name,
+            address_1: shop.address_1,
+            address_2: shop.address_2,
+            address_3: shop.address_3,
+            company: shop.company,
+            city: shop.city,
+            province: shop.province,
+            province_code: shop.province_code,
+            country: shop.country,
+            country_name: shop.country_name,
+            country_code: shop.country_code
+          }
+          // If this function was provided a
+          if (this.app.services.ProxyCartService.validateAddress(shippingAddress)) {
+            const res = {
+              to: shippingAddress,
+              from: from
+            }
+            return resolve(res)
+          }
+          else if (cart.customer_id) {
+            Customer.findById(cart.customer_id, {
+              attributes: ['id'],
+              include: [
+                {
+                  model: Address,
+                  as: 'default_address'
+                },
+                {
+                  model: Address,
+                  as: 'shipping_address'
+                }
+              ]
+            })
+              .then(customer => {
+                const to = customer.shipping_address ? customer.shipping_address.get({plain: true}) : customer.default_address.get({plain: true})
+                const res = {
+                  to: to,
+                  from: from
+                }
+                return resolve(res)
+              })
+              .catch(err => {
+                return reject(err)
+              })
+          }
+          else {
+            return resolve(null)
+          }
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
+  }
 }
 

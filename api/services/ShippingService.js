@@ -10,14 +10,20 @@ module.exports = class ShippingService extends Service {
   calculate(cart, shippingAddress){
     return this.app.services.CartService.resolve(cart)
       .then(cart => {
-        if (cart.customer_id && cart.shop_id) {
-          return {}
-        }
-        else {
-          // Still Unknown
-          return {}
-        }
+        return this.app.services.ProxyCartService.resolveSendFromTo(cart, shippingAddress)
       })
+      .then(sendFromTo => {
+        if (!sendFromTo) {
+          return []
+        }
+        return this.getShipping(sendFromTo)
+      })
+      .then(taxLines => {
+        return taxLines
+      })
+  }
+  getShipping(sendFromTo) {
+    Promise.resolve([])
   }
 }
 

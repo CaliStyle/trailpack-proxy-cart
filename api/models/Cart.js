@@ -190,70 +190,55 @@ module.exports = class Cart extends Model {
               let totalPrice = 0
               let totalLineItemsPrice = 0
               let totalShipping = 0
-              const taxLines = []
-              const shippingLines = []
-
-              // const discountedLines = []
+              let taxLines = []
+              let shippingLines = []
+              // let discountedLines = []
 
               _.each(this.line_items, item => {
-                // if (item.requires_tax) {
-                //   // taxLines[item.variant_id] = item.price * item.quantity
+                // if (item.tax_lines.length > 0) {
+                //   taxLines.concat(item.tax_lines)
                 // }
-                if (item.tax_lines.length > 0) {
-                  taxLines.concat(item.tax_lines)
-                }
                 if (item.requires_shipping) {
-                  // item.grams = app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * item.quantity
-                  // shippingLines[item.variant_id] = item.grams
                   totalWeight = totalWeight + item.grams
                 }
-
-                // if (item.name !== 'shipping' && item.name !== 'tax') {
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
-                // }
-                // if (item.name === 'shipping') {
-                //   totalShipping = totalShipping + item.price
-                // }
-                // if (item.name === 'tax') {
-                //   totalTax = totalTax + item.price
-                // }
-                // if (item.has_discount) {
-                // discountedLines[item.variant_id] = item.discount
                 totalDiscounts = totalDiscounts + item.total_discounts
-                // }
               })
-              _.each(taxLines, line => {
-                totalTax = totalTax + line.price
-              })
-              _.each(shippingLines, line => {
-                totalShipping = totalShipping + line.price
-              })
-              // if (values.taxes_included) {}
-              //
-              // if (values.shipping_included) {
-              //   totalShipping = values.total_shipping
-              // }
-
-              totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
-
-              this.tax_lines = taxLines
-              this.shipping_lines = shippingLines
-              this.total_shipping = totalShipping
-              this.subtotal_price = subtotalPrice
-              this.total_discounts = totalDiscounts
-              this.total_tax = totalTax
-              this.total_weight = totalWeight
-              this.total_line_items_price = totalLineItemsPrice
-              this.total_price = totalPrice
-
+              // Resolve taxes
               return app.services.TaxService.calculate(this)
-                .then(taxes => {
-                  // TODO do something with taxes
+                .then(tax => {
+                  // Add tax lines
+                  taxLines = tax
+                  // Calculate tax costs
+                  _.each(taxLines, line => {
+                    totalTax = totalTax + line.price
+                  })
+                  // Resolve Shipping
                   return app.services.ShippingService.calculate(this)
                 })
                 .then(shipping => {
-                  // TODO do something with shipping
+                  // Add shipping lines
+                  shippingLines = shipping
+                  // Calculate shipping costs
+                  _.each(shippingLines, line => {
+                    totalShipping = totalShipping + line.price
+                  })
+
+                  // Finalize Total
+                  totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
+
+                  // Set Cart valeus
+                  this.tax_lines = taxLines
+                  this.shipping_lines = shippingLines
+                  this.total_shipping = totalShipping
+                  this.subtotal_price = subtotalPrice
+                  this.total_discounts = totalDiscounts
+                  this.total_tax = totalTax
+                  this.total_weight = totalWeight
+                  this.total_line_items_price = totalLineItemsPrice
+                  this.total_price = totalPrice
+
                   return this
                 })
             }
