@@ -63,7 +63,7 @@ module.exports = class CustomerController extends Controller {
    * @param res
    */
   uploadCSV(req, res) {
-    const ProxyCartService = this.app.services.ProxyCartService
+    const CustomerCsvService = this.app.services.CustomerCsvService
     const csv = req.file
 
     if (!csv) {
@@ -71,7 +71,7 @@ module.exports = class CustomerController extends Controller {
       return res.serverError(err)
     }
 
-    ProxyCartService.customerCsv(csv.path)
+    CustomerCsvService.customerCsv(csv.path)
       .then(result => {
         return res.json({
           file: req.file,
@@ -89,8 +89,8 @@ module.exports = class CustomerController extends Controller {
    * @param res
    */
   processUpload(req, res) {
-    const ProxyCartService = this.app.services.ProxyCartService
-    ProxyCartService.processCustomerUpload(req.params.id)
+    const CustomerCsvService = this.app.services.CustomerCsvService
+    CustomerCsvService.processCustomerUpload(req.params.id)
       .then(result => {
         return res.json(result)
       })

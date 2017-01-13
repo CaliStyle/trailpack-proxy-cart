@@ -319,7 +319,7 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   uploadCSV(req, res) {
-    const ProxyCartService = this.app.services.ProxyCartService
+    const ProductCsvService = this.app.services.ProductCsvService
     const csv = req.file
 
     if (!csv) {
@@ -327,7 +327,7 @@ module.exports = class ProductController extends Controller {
       return res.serverError(err)
     }
 
-    ProxyCartService.productCsv(csv.path)
+    ProductCsvService.productCsv(csv.path)
       .then(result => {
         return res.json({
           file: req.file,
@@ -345,8 +345,8 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   processUpload(req, res) {
-    const ProxyCartService = this.app.services.ProxyCartService
-    ProxyCartService.processProductUpload(req.params.id)
+    const ProductCsvService = this.app.services.ProductCsvService
+    ProductCsvService.processProductUpload(req.params.id)
       .then(result => {
         return res.json(result)
       })
@@ -360,7 +360,7 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   uploadMetaCSV(req, res) {
-    const ProxyCartService = this.app.services.ProxyCartService
+    const ProductCsvService = this.app.services.ProductCsvService
     const csv = req.file
 
     if (!csv) {
@@ -368,7 +368,7 @@ module.exports = class ProductController extends Controller {
       return res.serverError(err)
     }
 
-    ProxyCartService.productMetaCsv(csv.path)
+    ProductCsvService.productMetaCsv(csv.path)
       .then(result => {
         return res.json({
           file: req.file,
@@ -386,8 +386,8 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   processMetaUpload(req, res) {
-    const ProxyCartService = this.app.services.ProxyCartService
-    ProxyCartService.processProductMetaUpload(req.params.id)
+    const ProductCsvService = this.app.services.ProductCsvService
+    ProductCsvService.processProductMetaUpload(req.params.id)
       .then(result => {
         return res.json(result)
       })
