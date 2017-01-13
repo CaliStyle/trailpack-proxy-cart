@@ -4,12 +4,13 @@
 
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
+const _ = require('lodash')
+const shortid = require('shortid')
 const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
 const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
-const _ = require('lodash')
-const shortid = require('shortid')
+
 
 /**
  * @module Order

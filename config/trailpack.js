@@ -23,7 +23,7 @@ module.exports = {
       emit: ['trailpack:proxycart:configured']
     },
     initialize: {
-      listen: ['trailpack:sequelize:initialized'],
+      listen: ['trailpack:sequelize:initialized', 'trailpack:proxy-engine:initialized'],
       emit: ['trailpack:proxycart:initialized']
     }
   }

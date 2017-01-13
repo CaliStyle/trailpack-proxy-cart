@@ -41,10 +41,10 @@
     "smokesignals": "v2-latest",
     "supertest": "^2.0.1",
     "trailpack-express": "^2.0.0-rc1",
-    "trailpack-proxy-engine": "^0.0.4",
+    "trailpack-proxy-engine": "^0.0.7",
     "trailpack-sequelize": "^2.0.0",
     "trailpack-router": "v2-latest",
-    "trailpack-proxy-permissions": "^0.0.2",
+    "trailpack-proxy-permissions": "^0.0.3",
     "trails": "v2-latest"
   },
   "scripts": {

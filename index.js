@@ -48,7 +48,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
    * TODO document method
    */
   initialize () {
-
+    lib.ProxyCart.init(this.app)
   }
 
   constructor (app) {
