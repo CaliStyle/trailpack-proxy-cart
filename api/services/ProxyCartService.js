@@ -164,7 +164,7 @@ module.exports = class ProxyCartService extends Service {
    * @returns {*}
    */
   validateAddress(address) {
-    joi.validate(address, lib.Schemas.address.address, (err, value) => {
+    joi.validate(address, lib.Schemas.customer.address, (err, value) => {
       if (err) {
         throw new Error(err)
       }

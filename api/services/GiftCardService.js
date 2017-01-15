@@ -7,6 +7,6 @@ const Service = require('trails/service')
  * @description Gift Card Service
  */
 module.exports = class GiftCardService extends Service {
-
+  resolve(giftCard){}
 }
 

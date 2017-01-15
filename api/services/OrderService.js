@@ -94,6 +94,9 @@ module.exports = class OrderService extends Service {
         resShippingAddress = customer.shipping_address || obj.shipping_address
 
         const order = {
+          // Order Info
+          processing_method: obj.processing_method,
+
           // Cart Info
           cart_token: resCart.token,
           currency: resCart.currency,
@@ -112,12 +115,12 @@ module.exports = class OrderService extends Service {
           client_details: obj.client_details,
           ip: obj.ip,
 
-          // Customer Info (May Be Blank)
-          customer_id: resCustomer.id,
-          buyer_accepts_marketing: resCustomer.accepts_marketing,
-          email: resCustomer.email,
-          billing_address: resBillingAddress,
-          shipping_address: resShippingAddress
+          // Customer Info
+          customer_id: resCustomer.id, // (May Be Null)
+          buyer_accepts_marketing: resCustomer.accepts_marketing || obj.buyer_accepts_marketing,
+          email: resCustomer.email || obj.email,
+          billing_address: resBillingAddress || obj.billing_address,
+          shipping_address: resShippingAddress || obj.shipping_address
         }
 
         return Order.create(order, {
@@ -142,19 +145,24 @@ module.exports = class OrderService extends Service {
         return resCustomer.save()
       })
       .then(customer => {
-        let orderPayment = obj.payment || this.app.config.proxyCart.order_payment
+        let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment
         if (!orderPayment) {
-          this.app.log.error('Order does not have a payment function, defaulting to manual')
+          this.app.log.debug('Order does not have a payment function, defaulting to manual')
           orderPayment = 'manual'
         }
-        return PaymentService[orderPayment](obj.source, resOrder.total_price)
-          .then(payment => {
-            resOrder.financial_status = payment.status
+        const transaction = {
+          order_id: resOrder.id,
+          source: obj.source,
+          amount: resOrder.total_price
+        }
+        return PaymentService[orderPayment](transaction)
+          .then(transaction => {
+            resOrder.financial_status = transaction.status
             return resOrder.save()
           })
       })
       .then(order => {
-        return resOrder.reload()
+        return Order.findIdDefault(resOrder.id)
       })
   }
 

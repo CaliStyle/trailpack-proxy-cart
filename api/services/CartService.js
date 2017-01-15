@@ -77,7 +77,8 @@ module.exports = class CartService extends Service {
           client_details: data.client_details,
           ip: data.ip,
           source: data.source,
-          payment: data.payment
+          payment_kind: data.payment,
+          processing_method: 'checkout'
         }
         return this.app.services.OrderService.create(newOrder)
       })

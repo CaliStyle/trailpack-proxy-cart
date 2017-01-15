@@ -50,6 +50,8 @@ module.exports = class CustomerCsvService extends Service {
           ProxyEngineService.count('CustomerUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.customers = count
+              // Publish the event
+              ProxyEngineService.publish('customer_upload.complete', results)
               resolve(results)
             })
             // TODO handle this more gracefully

@@ -7,6 +7,6 @@ const Service = require('trails/service')
  * @description Discount Service
  */
 module.exports = class DiscountService extends Service {
-
+  resolve(discount){}
 }
 

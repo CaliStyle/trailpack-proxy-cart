@@ -21,10 +21,12 @@ module.exports = class Product extends Model {
       config = {
         options: {
           underscored: true,
+          // paranoid: !app.config.proxyCart.allow.destroy_product,
           defaultScope: {
             where: {
               live_mode: app.config.proxyEngine.live_mode
             }
+            // paranoid: false
           },
           hooks: {
             beforeValidate(values, options, fn) {
@@ -137,6 +139,7 @@ module.exports = class Product extends Model {
             },
             findIdDefault: function(criteria, options) {
               options = _.merge(options, {
+                // paranoid: false,
                 include: [
                   {
                     model: app.orm['ProductImage'],
@@ -197,6 +200,7 @@ module.exports = class Product extends Model {
             },
             findAndCountDefault: function(options) {
               options = _.merge(options, {
+                // paranoid: false,
                 include: [
                   {
                     model: app.orm['ProductImage'],

@@ -118,6 +118,21 @@ module.exports = class Order extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+            },
+            findIdDefault: function(criteria, options) {
+              options = _.merge(options, {
+                include: [
+                  {
+                    model: app.orm['OrderItem'],
+                    as: 'order_items'
+                  },
+                  {
+                    model: app.orm['Transaction'],
+                    as: 'transactions'
+                  }
+                ]
+              })
+              return this.findById(criteria, options)
             }
           }
           // instanceMethods: {

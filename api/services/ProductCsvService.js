@@ -51,6 +51,8 @@ module.exports = class ProductCsvService extends Service {
           ProxyEngineService.count('ProductUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.products = count
+              // Publish the event
+              ProxyEngineService.publish('product_upload.complete', results)
               resolve(results)
             })
             // TODO handle this more gracefully
@@ -262,6 +264,8 @@ module.exports = class ProductCsvService extends Service {
           ProxyEngineService.count('ProductMetaUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.products = count
+              // Publish the event
+              ProxyEngineService.publish('product_meta_upload.complete', results)
               resolve(results)
             })
             // TODO handle this more gracefully

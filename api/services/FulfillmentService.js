@@ -7,6 +7,6 @@ const Service = require('trails/service')
  * @description Fulfillment Service
  */
 module.exports = class FulfillmentService extends Service {
-
+  resolve(fulfillment){}
 }
 

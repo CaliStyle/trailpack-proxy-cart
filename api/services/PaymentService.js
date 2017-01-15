@@ -1,7 +1,7 @@
 'use strict'
 
 const Service = require('trails/service')
-const _ = require('lodash')
+// const _ = require('lodash')
 /**
  * @module PaymentService
  * @description Payment Service
@@ -14,15 +14,20 @@ module.exports = class PaymentService extends Service {
    * @param amount
    * @returns {Promise}
    */
-  authorize(source, amount){
-    const paymentProcessor = this.app.config.proxyGenerics.payment_processor
-    if (paymentProcessor && paymentProcessor.adapter) {
-      source = _.merge(source, {amount: amount})
-      return this.app.service.PaymentGenericService.authorize(source)
-    }
-    else {
-      return Promise.resolve({status: 'pending'})
-    }
+  authorize(transaction){
+    const TransactionService = this.app.services.TransactionService
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
+    // Defaults for this method
+    transaction.kind = 'authorize'
+    return TransactionService.create(transaction)
+      .then(transaction => {
+        if (paymentProcessor && paymentProcessor.adapter) {
+          return this.app.service.PaymentGenericService.authorize(transaction, paymentProcessor)
+        }
+        else {
+          return transaction
+        }
+      })
   }
 
   /**
@@ -31,11 +36,10 @@ module.exports = class PaymentService extends Service {
    * @param amount
    * @returns {Promise}
    */
-  capture(source, amount){
-    const paymentProcessor = this.app.config.proxyGenerics.payment_processor
+  capture(transaction){
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (paymentProcessor && paymentProcessor.adapter) {
-      source = _.merge(source, { amount: amount })
-      return this.app.service.PaymentGenericService.capture(source)
+      return this.app.service.PaymentGenericService.capture(transaction, paymentProcessor)
     }
     else {
       return Promise.resolve({status: 'pending'})
@@ -48,11 +52,10 @@ module.exports = class PaymentService extends Service {
    * @param amount
    * @returns {Promise}
    */
-  sale(source, amount){
-    const paymentProcessor = this.app.config.proxyGenerics.payment_processor
+  sale(transaction){
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (paymentProcessor && paymentProcessor.adapter) {
-      source = _.merge(source, { amount: amount })
-      return this.app.service.PaymentGenericService.sale(source)
+      return this.app.service.PaymentGenericService.sale(transaction, paymentProcessor)
     }
     else {
       return Promise.resolve({status: 'pending'})
@@ -69,21 +72,19 @@ module.exports = class PaymentService extends Service {
     return Promise.resolve({status: 'pending'})
   }
 
-  void(source, amount){
-    const paymentProcessor = this.app.config.proxyGenerics.payment_processor
+  void(transaction){
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (paymentProcessor && paymentProcessor.adapter) {
-      source = _.merge(source, { amount: amount })
-      return this.app.service.PaymentGenericService.void(source)
+      return this.app.service.PaymentGenericService.void(transaction, paymentProcessor)
     }
     else {
       return Promise.resolve({status: 'pending'})
     }
   }
-  refund(source, amount){
-    const paymentProcessor = this.app.config.proxyGenerics.payment_processor
+  refund(transaction){
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (paymentProcessor && paymentProcessor.adapter) {
-      source = _.merge(source, { amount: amount })
-      return this.app.service.PaymentGenericService.refund(source)
+      return this.app.service.PaymentGenericService.refund(transaction, paymentProcessor)
     }
     else {
       return Promise.resolve({status: 'pending'})

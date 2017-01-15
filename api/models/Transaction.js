@@ -68,6 +68,11 @@ module.exports = class Transaction extends Model {
           defaultValue: 'web'
         },
         // An object containing information about the credit card used for this transaction. It has the following properties:
+        // avs_result_code: The Response code from AVS the address verification system. The code is a single letter; see this chart for the codes and their definitions.
+        // credit_card_bin: The issuer identification number (IIN), formerly known as bank identification number (BIN) ] of the customer's credit card. This is made up of the first few digits of the credit card number.
+        // credit_card_company: The name of the company who issued the customer's credit card.
+        // credit_card_number: The customer's credit card number, with most of the leading digits redacted with Xs.
+        // cvv_result_code: The Response code from the credit card company indicating whether the customer entered the card security code, a.k.a. card verification value, correctly. The code is a single letter or empty string; see this chart for the codes and their definitions.
         payment_details: helpers.ARRAY('transaction', app, Sequelize, Sequelize.STRING, 'payment_details', {
           defaultValue: []
         }),
@@ -88,7 +93,8 @@ module.exports = class Transaction extends Model {
         // The status of the transaction. Valid values are: pending, failure, success or error.
         status: {
           type: Sequelize.ENUM,
-          values: _.values(TRANSACTION_STATUS)
+          values: _.values(TRANSACTION_STATUS),
+          defaultValue: TRANSACTION_STATUS.PENDING
         },
         // The three letter code (ISO 4217) for the currency used for the payment.
         currency: {
