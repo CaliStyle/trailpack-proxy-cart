@@ -5,7 +5,7 @@
  */
 module.exports = {
   // The default function for an automatic order payment: manual, authorize, sale
-  order_payment: 'authorize',
+  order_payment_kind: 'authorize',
   allow: {
     // Allows a product to be destroyed Recommended false
     destroy_product: false,

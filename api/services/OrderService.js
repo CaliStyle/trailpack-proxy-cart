@@ -145,14 +145,16 @@ module.exports = class OrderService extends Service {
         return resCustomer.save()
       })
       .then(customer => {
-        let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment
+        let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment_kind
         if (!orderPayment) {
           this.app.log.debug('Order does not have a payment function, defaulting to manual')
           orderPayment = 'manual'
         }
         const transaction = {
           order_id: resOrder.id,
-          source: obj.source,
+          currency: resOrder.currency,
+          payment_details: obj.payment_details,
+          device_id: obj.device_id,
           amount: resOrder.total_price
         }
         return PaymentService[orderPayment](transaction)

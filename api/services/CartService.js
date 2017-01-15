@@ -76,7 +76,8 @@ module.exports = class CartService extends Service {
           customer_id: resCart.customer_id,
           client_details: data.client_details,
           ip: data.ip,
-          source: data.source,
+          payment_details: data.payment_details,
+          gateway: data.gateway,
           payment_kind: data.payment,
           processing_method: 'checkout'
         }

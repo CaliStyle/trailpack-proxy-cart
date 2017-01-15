@@ -66,4 +66,13 @@ describe('ProxyCartService', () => {
 
     done()
   })
+  it.skip('should build images', done => {
+    done()
+  })
+  it.skip('should upload images', done => {
+    done()
+  })
+  it.skip('should download image', done => {
+    done()
+  })
 })

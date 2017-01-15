@@ -37,13 +37,19 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   capture(transaction){
+    const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    if (paymentProcessor && paymentProcessor.adapter) {
-      return this.app.service.PaymentGenericService.capture(transaction, paymentProcessor)
-    }
-    else {
-      return Promise.resolve({status: 'pending'})
-    }
+    // Defaults for this method
+    transaction.kind = 'capture'
+    return TransactionService.create(transaction)
+      .then(transaction => {
+        if (paymentProcessor && paymentProcessor.adapter) {
+          return this.app.service.PaymentGenericService.capture(transaction, paymentProcessor)
+        }
+        else {
+          return transaction
+        }
+      })
   }
 
   /**
@@ -53,17 +59,23 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   sale(transaction){
+    const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    if (paymentProcessor && paymentProcessor.adapter) {
-      return this.app.service.PaymentGenericService.sale(transaction, paymentProcessor)
-    }
-    else {
-      return Promise.resolve({status: 'pending'})
-    }
+    // Defaults for this method
+    transaction.kind = 'sale'
+    return TransactionService.create(transaction)
+      .then(transaction => {
+        if (paymentProcessor && paymentProcessor.adapter) {
+          return this.app.service.PaymentGenericService.sale(transaction, paymentProcessor)
+        }
+        else {
+          return transaction
+        }
+      })
   }
 
   /**
-   * Returns a pending promise
+   * Returns a pending promise (No Transaction Created)
    * @param source
    * @param amount
    * @returns {Promise}
@@ -73,22 +85,34 @@ module.exports = class PaymentService extends Service {
   }
 
   void(transaction){
+    const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    if (paymentProcessor && paymentProcessor.adapter) {
-      return this.app.service.PaymentGenericService.void(transaction, paymentProcessor)
-    }
-    else {
-      return Promise.resolve({status: 'pending'})
-    }
+    // Defaults for this method
+    transaction.kind = 'void'
+    return TransactionService.create(transaction)
+      .then(transaction => {
+        if (paymentProcessor && paymentProcessor.adapter) {
+          return this.app.service.PaymentGenericService.void(transaction, paymentProcessor)
+        }
+        else {
+          return transaction
+        }
+      })
   }
   refund(transaction){
+    const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    if (paymentProcessor && paymentProcessor.adapter) {
-      return this.app.service.PaymentGenericService.refund(transaction, paymentProcessor)
-    }
-    else {
-      return Promise.resolve({status: 'pending'})
-    }
+    // Defaults for this method
+    transaction.kind = 'refund'
+    return TransactionService.create(transaction)
+      .then(transaction => {
+        if (paymentProcessor && paymentProcessor.adapter) {
+          return this.app.service.PaymentGenericService.refund(transaction, paymentProcessor)
+        }
+        else {
+          return transaction
+        }
+      })
   }
 }
 
