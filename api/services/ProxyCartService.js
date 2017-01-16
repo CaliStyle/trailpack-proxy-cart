@@ -94,9 +94,15 @@ module.exports = class ProxyCartService extends Service {
         })
     })
   }
-  // TODO
+
+  /**
+   *
+   * @param image
+   * @param orgUrl
+   * @returns {*}
+   */
   uploadImage(image, orgUrl) {
-    return Promise.resolve({ url: orgUrl })
+    return this.app.services.DataStoreGenericService.upload(image)
   }
 
   /**

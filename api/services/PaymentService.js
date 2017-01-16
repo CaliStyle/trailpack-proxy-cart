@@ -1,7 +1,8 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Service = require('trails/service')
-// const _ = require('lodash')
+const _ = require('lodash')
 /**
  * @module PaymentService
  * @description Payment Service
@@ -22,11 +23,18 @@ module.exports = class PaymentService extends Service {
     return TransactionService.create(transaction)
       .then(transaction => {
         if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.service.PaymentGenericService.authorize(transaction, paymentProcessor)
+          return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
+            .then(resTransaction => {
+              return _.extend(transaction, resTransaction)
+            })
         }
         else {
+          // TODO handle this
           return transaction
         }
+      })
+      .then(transaction => {
+        return transaction.save()
       })
   }
 
@@ -44,11 +52,15 @@ module.exports = class PaymentService extends Service {
     return TransactionService.create(transaction)
       .then(transaction => {
         if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.service.PaymentGenericService.capture(transaction, paymentProcessor)
+          return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
         }
         else {
+          // TODO handle this
           return transaction
         }
+      })
+      .then(transaction => {
+        return transaction.save()
       })
   }
 
@@ -66,11 +78,15 @@ module.exports = class PaymentService extends Service {
     return TransactionService.create(transaction)
       .then(transaction => {
         if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.service.PaymentGenericService.sale(transaction, paymentProcessor)
+          return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
         }
         else {
+          // TODO handle this
           return transaction
         }
+      })
+      .then(transaction => {
+        return transaction.save()
       })
   }
 
@@ -92,11 +108,15 @@ module.exports = class PaymentService extends Service {
     return TransactionService.create(transaction)
       .then(transaction => {
         if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.service.PaymentGenericService.void(transaction, paymentProcessor)
+          return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
         }
         else {
+          // TODO handle this
           return transaction
         }
+      })
+      .then(transaction => {
+        return transaction.save()
       })
   }
   refund(transaction){
@@ -107,11 +127,15 @@ module.exports = class PaymentService extends Service {
     return TransactionService.create(transaction)
       .then(transaction => {
         if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.service.PaymentGenericService.refund(transaction, paymentProcessor)
+          return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
         }
         else {
+          // TODO handle this
           return transaction
         }
+      })
+      .then(transaction => {
+        return transaction.save()
       })
   }
 }

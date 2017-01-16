@@ -69,10 +69,10 @@ module.exports = class Transaction extends Model {
         },
         // An object containing information about the credit card used for this transaction. Normally It has the following properties:
         // avs_result_code: The Response code from AVS the address verification system. The code is a single letter; see this chart for the codes and their definitions.
-        // credit_card_bin: The issuer identification number (IIN), formerly known as bank identification number (BIN) ] of the customer's credit card. This is made up of the first few digits of the credit card number.
+        // credit_card_iin: The issuer identification number (IIN), formerly known as bank identification number (BIN) ] of the customer's credit card. This is made up of the first few digits of the credit card number.
         // credit_card_company: The name of the company who issued the customer's credit card.
         // credit_card_number: The customer's credit card number, with most of the leading digits redacted with Xs.
-        // cvv_result_code: The Response code from the credit card company indicating whether the customer entered the card security code, a.k.a. card verification value, correctly. The code is a single letter or empty string; see this chart for the codes and their definitions.
+        // cvv_result_code: The Response code from the credit card company indicating whether the customer entered the card security code, a.k.a. card verification value, correctly. The code is a single letter or empty string; see this chart http://www.emsecommerce.net/avs_cvv2_response_codes.htm for the codes and their definitions.
         // token: The card token from the Gateway
         payment_details: helpers.ARRAY('transaction', app, Sequelize, Sequelize.STRING, 'payment_details', {
           defaultValue: []

@@ -200,7 +200,13 @@ describe('CartController', () => {
   it('should make checkout post request', (done) => {
     request
       .post(`/cart/${cartID}/checkout`)
-      .send({})
+      .send({
+        payment_details: [
+          {
+            token: '123'
+          }
+        ]
+      })
       .expect(200)
       .end((err, res) => {
         console.log('CHECKOUT', res.body)
