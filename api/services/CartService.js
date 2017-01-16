@@ -17,14 +17,32 @@ module.exports = class CartService extends Service {
     }
     else if (cart && _.isObject(cart) && cart.id) {
       return Cart.findById(cart.id, options)
+        .then(resCart => {
+          if (!resCart) {
+            throw new Errors.FoundError(Error(`Cart ${cart.id} not found`))
+          }
+          return resCart
+        })
+    }
+    else if (cart && _.isObject(cart)) {
+      return this.create(cart, options)
     }
     else if (cart && (_.isString(cart) || _.isNumber(cart))) {
       return Cart.findById(cart, options)
+        .then(resCart => {
+          if (!resCart) {
+            throw new Errors.FoundError(Error(`Cart ${cart} not found`))
+          }
+          return resCart
+        })
     }
     else {
-      return this.create(cart, options)
+      // TODO create proper error
+      const err = new Error(`Unable to resolve Cart ${cart}`)
+      Promise.reject(err)
     }
   }
+
   /**
    *
    * @param data

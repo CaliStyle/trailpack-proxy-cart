@@ -1,6 +1,8 @@
 'use strict'
 
 const Controller = require('trails/controller')
+const lib = require('../../lib')
+// const Errors = require('proxy-engine-errors')
 
 /**
  * @module OrderController
@@ -20,6 +22,25 @@ module.exports = class OrderController extends Controller {
           orders: count
         }
         return res.json(counts)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  create(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.create(req.body)
+      .then(values => {
+        return OrderService.create(req.body)
+      })
+      .then(order => {
+        return res.json(order)
       })
       .catch(err => {
         return res.serverError(err)

@@ -9,7 +9,7 @@ const _ = require('lodash')
  * @description Collection Service
  */
 module.exports = class CollectionService extends Service {
-  resolve(collection){
+  resolve(collection, options){
     return new Promise((resolve, reject) => {
 
       const Collection =  this.app.services.ProxyEngineService.getModel('Collection')
@@ -19,7 +19,7 @@ module.exports = class CollectionService extends Service {
         return resolve(collection)
       }
       else if (collection && _.isObject(collection) && collection.id) {
-        Collection.findById(collection.id)
+        Collection.findById(collection.id, options)
           .then(foundCollection => {
             if (!foundCollection) {
               // TODO create proper error
@@ -41,12 +41,12 @@ module.exports = class CollectionService extends Service {
                 title: collection.title
               }
             }
-          })
+          }, options)
             .then(resCollection => {
               if (resCollection) {
                 return resCollection
               }
-              return Collection.create(collection)
+              return Collection.create(collection, options)
             })
         })
           .then(result => {
@@ -69,7 +69,7 @@ module.exports = class CollectionService extends Service {
                 id: collection
               }
             }
-          })
+          }, options)
             .then(resCollection => {
               if (resCollection) {
                 return resCollection
@@ -86,7 +86,7 @@ module.exports = class CollectionService extends Service {
       }
       else {
         // TODO make Proper Error
-        const err = new Error('Not able to handle resolve of collection')
+        const err = new Error(`Not able to resolve collection ${collection}`)
         return reject(err)
       }
     })

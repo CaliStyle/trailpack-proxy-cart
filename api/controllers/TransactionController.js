@@ -9,46 +9,100 @@ const lib = require('../../lib')
  * @description Transaction Controller.
  */
 module.exports = class TransactionController extends Controller {
+  /**
+   *
+   * @param req
+   * @param res
+   */
   authorize(req, res) {
+    const TransactionService = this.app.services.TransactionService
     lib.Validator.validateTransaction.authorize(req.body)
       .then(values => {
-        return res.json()
+        req.body.id = req.params.id
+        return TransactionService.authorize(req.body)
+      })
+      .then(transaction => {
+        return res.json(transaction)
       })
       .catch(err => {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   capture(req, res) {
+    const TransactionService = this.app.services.TransactionService
     lib.Validator.validateTransaction.capture(req.body)
       .then(values => {
-        return res.json()
+        req.body.id = req.params.id
+        return TransactionService.capture(req.body)
+      })
+      .then(transaction => {
+        return res.json(transaction)
       })
       .catch(err => {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   sale(req, res) {
+    const TransactionService = this.app.services.TransactionService
     lib.Validator.validateTransaction.sale(req.body)
       .then(values => {
-        return res.json()
+        req.body.id = req.params.id
+        return TransactionService.sale(req.body)
+      })
+      .then(transaction => {
+        return res.json(transaction)
       })
       .catch(err => {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   void(req, res) {
+    const TransactionService = this.app.services.TransactionService
     lib.Validator.validateTransaction.void(req.body)
       .then(values => {
-        return res.json()
+        req.body.id = req.params.id
+        return TransactionService.void(req.body)
+      })
+      .then(transaction => {
+        return res.json(transaction)
       })
       .catch(err => {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   refund(req, res) {
+    const TransactionService = this.app.services.TransactionService
     lib.Validator.validateTransaction.refund(req.body)
       .then(values => {
-        return res.json()
+        req.body.id = req.params.id
+        return TransactionService.refund(req.body)
+      })
+      .then(transaction => {
+        return res.json(transaction)
       })
       .catch(err => {
         return res.serverError(err)

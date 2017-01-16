@@ -27,8 +27,8 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
     }
 
     return Promise.all([
-      lib.Validator.validateDatabaseConfig(this.app.config.database),
-      lib.Validator.validateProxyCartConfig(this.app.config.proxyCart)
+      lib.Validator.validateDatabase.config(this.app.config.database),
+      lib.Validator.validateProxyCart.config(this.app.config.proxyCart)
     ])
   }
 

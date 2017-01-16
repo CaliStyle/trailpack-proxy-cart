@@ -8,6 +8,12 @@ const Errors = require('proxy-engine-errors')
  * @description Order Service
  */
 module.exports = class OrderService extends Service {
+  /**
+   *
+   * @param order
+   * @param options
+   * @returns {Promise}
+   */
   resolve(order, options) {
     const Order =  this.app.services.ProxyEngineService.getModel('Order')
     if (order instanceof Order.Instance){
@@ -15,9 +21,21 @@ module.exports = class OrderService extends Service {
     }
     else if (order && _.isObject(order) && order.id) {
       return Order.findById(order.id, options)
+        .then(resOrder => {
+          if (!resOrder) {
+            throw new Errors.FoundError(Error(`Order ${order.id} not found`))
+          }
+          return resOrder
+        })
     }
     else if (order && (_.isString(order) || _.isNumber(order))) {
       return Order.findById(order, options)
+        .then(resOrder => {
+          if (!resOrder) {
+            throw new Errors.FoundError(Error(`Order ${order} not found`))
+          }
+          return resOrder
+        })
     }
     else {
       const err = new Error('Unable to resolve Order')
@@ -159,6 +177,7 @@ module.exports = class OrderService extends Service {
         }
         return PaymentService[orderPayment](transaction)
           .then(transaction => {
+            // TODO resolve Mark as paid
             resOrder.financial_status = transaction.status
             return resOrder.save()
           })
@@ -173,13 +192,13 @@ module.exports = class OrderService extends Service {
    * @param order
    * @returns {*|Promise.<TResult>}
    */
-  payOrder(order, method) {
+  payOrder(order, gateway) {
     return this.resolve(order)
       .then(order => {
         if (order.financial_status !== ('authorized' || 'partially_paid')) {
           throw new Error(`Order status is ${order.financial_status} not 'authorized or partially_paid'`)
         }
-        return
+        return order
       })
   }
   /**
@@ -191,7 +210,7 @@ module.exports = class OrderService extends Service {
     return this.resolve(order)
       .then(order => {
 
-        return
+        return order
       })
   }
 }
