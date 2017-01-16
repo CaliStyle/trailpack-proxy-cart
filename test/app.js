@@ -97,6 +97,10 @@ const App = {
         adapter: require('./fixtures/FakePayment'),
         options: {}
       },
+      email_provider: {
+        adapter: require('./fixtures/FakeEmail'),
+        options: {}
+      },
       data_store_provider: {
         adapter: require('./fixtures/FakeDataStore'),
         options: {}
