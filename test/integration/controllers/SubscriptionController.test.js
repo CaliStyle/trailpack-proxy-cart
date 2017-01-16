@@ -2,6 +2,7 @@
 /* global describe, it */
 const assert = require('assert')
 const supertest = require('supertest')
+const _ = require('lodash')
 
 describe('SubscriptionController', () => {
   let request
@@ -17,7 +18,7 @@ describe('SubscriptionController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log('SUBSCRIPTIONS COUNT', res.body)
-        // assert.ok(res.body.subscriptions)
+        assert.ok(_.isNumber(res.body.subscriptions))
         done(err)
       })
   })

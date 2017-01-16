@@ -2,6 +2,7 @@
 /* global describe, it */
 const assert = require('assert')
 const supertest = require('supertest')
+const _ = require('lodash')
 
 describe('ProductController', () => {
   let request
@@ -201,9 +202,9 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log('PRODUCTS COUNT',res.body)
-        assert.ok(res.body.products)
-        assert.ok(res.body.variants)
-        assert.ok(res.body.images)
+        assert.ok(_.isNumber(res.body.products))
+        assert.ok(_.isNumber(res.body.variants))
+        assert.ok(_.isNumber(res.body.images))
         done(err)
       })
   })

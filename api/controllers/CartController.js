@@ -52,7 +52,7 @@ module.exports = class CartController extends Controller {
    */
   checkout(req, res) {
     const CartService = this.app.services.CartService
-    lib.Validator.validateCheckout(req.body)
+    lib.Validator.validateCart.checkout(req.body)
       .then(values => {
         if (!req.body.cart) {
           req.body.cart = {}
@@ -77,7 +77,7 @@ module.exports = class CartController extends Controller {
    */
   addItems(req, res) {
     const CartService = this.app.services.CartService
-    lib.Validator.validateAddItemsToCart(req.body)
+    lib.Validator.validateCart.addItems(req.body)
       .then(values => {
         return CartService.addItemsToCart(req.body, req.params.id)
       })
@@ -97,7 +97,7 @@ module.exports = class CartController extends Controller {
    */
   removeItems(req, res) {
     const CartService = this.app.services.CartService
-    lib.Validator.validateRemoveItemsFromCart(req.body)
+    lib.Validator.validateCart.removeItems(req.body)
       .then(values => {
         return CartService.removeItemsFromCart(req.body, req.params.id)
       })
@@ -117,7 +117,7 @@ module.exports = class CartController extends Controller {
    */
   clear(req, res) {
     const CartService = this.app.services.CartService
-    lib.Validator.validateClearCart(req.body)
+    lib.Validator.validateCart.clear(req.body)
       .then(values => {
         return CartService.clearCart(req.params.id)
       })
