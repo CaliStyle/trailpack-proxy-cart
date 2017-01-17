@@ -58,7 +58,7 @@ A Product Image is an image that is associated directly with a product and somet
 A Product Review is input from a customer with a history of purchasing a product.
 
 ## Metadata
-A Metadata is additional information about a product or customer that is not constrained by the parent model.
+A Metadata is additional information about a product, customer, or review that is not constrained by the parent model.
 
 ## Collections
 A Collection is a grouping of like items, such as products, customers, and shipping zones.

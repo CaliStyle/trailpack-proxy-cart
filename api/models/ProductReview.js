@@ -26,6 +26,18 @@ module.exports = class ProductReview extends Model {
               models.ProductReview.belongsTo(models.Product, {
                 // as: 'product_id'
               })
+              models.ProductReview.hasOne(models.Metadata, {
+                as: 'metadata',
+                through: {
+                  model: models.ItemMetadata,
+                  unique: false,
+                  scope: {
+                    model: 'review'
+                  },
+                  foreignKey: 'model_id',
+                  constraints: false
+                }
+              })
             }
           }
         }

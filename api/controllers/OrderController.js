@@ -46,5 +46,18 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+  update(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.update(req.body)
+      .then(values => {
+        return OrderService.update(req.body)
+      })
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 
