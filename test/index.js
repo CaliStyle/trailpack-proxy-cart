@@ -23,7 +23,18 @@ before(() => {
     })
     .then(shop => {
       global.app.shopID = shop.id
-      // console.log('GLOBAL SHOP', shop)
+      let products = require('./fixtures/products')
+      products = products.map( product => {
+        product.shops = [{id: shop.id}]
+        return product
+      })
+      return global.app.services.ProductService.addProducts(products)
+    })
+    .then(products => {
+      products = products.map(product => {
+        return product.get({plain: true})
+      })
+      global.app.shopProducts = products
     })
     .catch(global.app.stop)
 })

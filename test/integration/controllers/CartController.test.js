@@ -2,7 +2,7 @@
 /* global describe, it */
 const assert = require('assert')
 const supertest = require('supertest')
-const products = require('../../fixtures/products')
+// const products = require('../../fixtures/products')
 const customers = require('../../fixtures/customers')
 
 describe('CartController', () => {
@@ -10,17 +10,14 @@ describe('CartController', () => {
   let cartID
   let customerID
   let orderID
-  let storeProducts
+  let shopID
+  let shopProducts
+
   before((done) => {
+    shopID = global.app.shopID
+    shopProducts = global.app.shopProducts
     request = supertest('http://localhost:3000')
-    request
-      .post('/product/addProducts')
-      .send(products)
-      .expect(200)
-      .end((err, res) => {
-        storeProducts = res.body
-        done(err)
-      })
+    done()
   })
 
   it('should exist', () => {
@@ -74,7 +71,7 @@ describe('CartController', () => {
       .post(`/cart/${cartID}/addItems`)
       .send([
         {
-          product_id: storeProducts[0].id
+          product_id: shopProducts[0].id
         }
       ])
       .expect(200)
@@ -83,7 +80,7 @@ describe('CartController', () => {
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.status, 'open')
         assert.equal(res.body.line_items.length, 1)
-        assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+        assert.equal(res.body.line_items[0].product_id, shopProducts[0].id)
 
         // Line Items
         assert.equal(res.body.line_items[0].grams, 9071.847392)
@@ -96,7 +93,7 @@ describe('CartController', () => {
       .post(`/cart/${cartID}/addItems`)
       .send([
         {
-          product_id: storeProducts[0].id
+          product_id: shopProducts[0].id
         }
       ])
       .expect(200)
@@ -104,7 +101,7 @@ describe('CartController', () => {
         // console.log(res.body)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 1)
-        assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+        assert.equal(res.body.line_items[0].product_id, shopProducts[0].id)
         assert.equal(res.body.line_items[0].quantity, 2)
         done(err)
       })
@@ -115,14 +112,14 @@ describe('CartController', () => {
       .post(`/cart/${cartID}/removeItems`)
       .send([
         {
-          product_id: storeProducts[0].id
+          product_id: shopProducts[0].id
         }
       ])
       .expect(200)
       .end((err, res) => {
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 1)
-        assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
+        assert.equal(res.body.line_items[0].product_id, shopProducts[0].id)
         assert.equal(res.body.line_items[0].quantity, 1)
         done(err)
       })
@@ -133,7 +130,7 @@ describe('CartController', () => {
       .post(`/cart/${cartID}/removeItems`)
       .send([
         {
-          product_id: storeProducts[0].id
+          product_id: shopProducts[0].id
         }
       ])
       .expect(200)
@@ -160,10 +157,10 @@ describe('CartController', () => {
       .post(`/cart/${cartID}/addItems`)
       .send([
         {
-          product_variant_id: storeProducts[0].variants[1].id
+          product_variant_id: shopProducts[0].variants[1].id
         },
         {
-          product_id: storeProducts[1].id,
+          product_id: shopProducts[1].id,
           quantity: 2
         }
       ])
@@ -173,8 +170,8 @@ describe('CartController', () => {
         assert.equal(res.body.id, cartID)
 
         assert.equal(res.body.line_items.length, 2)
-        assert.equal(res.body.line_items[0].product_id, storeProducts[0].id)
-        assert.equal(res.body.line_items[0].variant_id, storeProducts[0].variants[1].id)
+        assert.equal(res.body.line_items[0].product_id, shopProducts[0].id)
+        assert.equal(res.body.line_items[0].variant_id, shopProducts[0].variants[1].id)
         assert.equal(res.body.line_items[0].quantity, 1)
         assert.equal(res.body.line_items[0].sku, 'printer-w-123')
         assert.equal(res.body.line_items[0].title, 'Maker Bot Replicator')
@@ -186,8 +183,8 @@ describe('CartController', () => {
         assert.equal(res.body.line_items[0].grams, 9071.847392)
         assert.equal(res.body.line_items[0].images.length, 1)
 
-        assert.equal(res.body.line_items[1].product_id, storeProducts[1].id)
-        assert.equal(res.body.line_items[1].variant_id, storeProducts[1].variants[0].id)
+        assert.equal(res.body.line_items[1].product_id, shopProducts[1].id)
+        assert.equal(res.body.line_items[1].variant_id, shopProducts[1].variants[0].id)
         assert.equal(res.body.line_items[1].quantity, 2)
         assert.equal(res.body.line_items[1].grams, 18143.694784)
         done(err)
