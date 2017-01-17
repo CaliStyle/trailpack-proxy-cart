@@ -28,13 +28,12 @@ describe('CartController', () => {
     request
       .post('/cart')
       .send({
-
       })
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.id)
         cartID = res.body.id
-        // console.log('THIS CART', res.body)
+        console.log('THIS CART', res.body)
         done(err)
       })
   })

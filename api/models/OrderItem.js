@@ -88,7 +88,8 @@ module.exports = class OrderItem extends Model {
         },
         // States whether or not the fulfillment requires shipping. Values are: true or false.
         requires_shipping: {
-          type: Sequelize.BOOLEAN
+          type: Sequelize.BOOLEAN,
+          defaultValue: true
         },
         // A unique identifier of the item in the fulfillment.
         sku: {

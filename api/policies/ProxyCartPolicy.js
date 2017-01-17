@@ -23,7 +23,8 @@ module.exports = class ProxyCartPolicy extends Policy {
     // Attach values to the request body
     req.body.ip = clientDetails.browser_ip
     req.body.client_details = clientDetails
-    req.body.shop_id = req.params.shop_id
+    // TODO enable Multi Tenant
+    // req.body.host = req.params.host
     this.app.log.silly('ProxyCartPolicy.clientDetails', clientDetails)
     next()
   }

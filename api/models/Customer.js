@@ -30,7 +30,6 @@ module.exports = class Customer extends Model {
               }
               fn()
             },
-            // TODO connect to Shop
             beforeUpdate: (values, options, fn) => {
               if (values.ip) {
                 values.update_ip = values.ip

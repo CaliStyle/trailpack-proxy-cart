@@ -58,8 +58,9 @@ module.exports = class Cart extends Model {
                 compare_at_price: data.compare_at_price,
                 currency: data.currency,
                 fulfillment_service: data.fulfillment_service,
+                gift_card: data.gift_card,
                 requires_shipping: data.requires_shipping,
-                requires_tax: data.requires_tax,
+                // requires_tax: data.requires_tax, // TODO resolve which of these to keep
                 taxable: data.requires_tax, // TODO resolve which of these to keep
                 tax_lines: [{}],
                 requires_subscription: data.requires_subscription,
@@ -201,9 +202,6 @@ module.exports = class Cart extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Cart.belongsTo(models.Shop, {
-                // as: 'shop_id'
-              })
               models.Cart.belongsTo(models.Customer, {
                 // as: 'customer'
                 // as: 'customer_id'

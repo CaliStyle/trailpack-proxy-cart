@@ -34,7 +34,10 @@ module.exports = class CartController extends Controller {
    */
   create(req, res) {
     const CartService = this.app.services.CartService
-    CartService.create(req.body)
+    lib.Validator.validateCart.create(req.body)
+      .then(values => {
+        return CartService.create(req.body)
+      })
       .then(cart => {
         return res.json(cart)
       })
