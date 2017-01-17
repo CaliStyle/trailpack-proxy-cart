@@ -16,26 +16,34 @@ module.exports = class Shop extends Model {
       config = {
         options: {
           underscored: true,
-          hooks: {
-            beforeValidate: (values, options, fn) => {
-              try {
-                values = app.services.ProxyCartService.normalizeAddress(values)
-                return fn(null, values)
-              }
-              catch (err) {
-                return fn(err, values)
-              }
+          defaultScope: {
+            where: {
+              live_mode: app.config.proxyEngine.live_mode
             }
           },
+          hooks: {
+            //
+          },
           classMethods: {
-            UNITS: UNITS
+            UNITS: UNITS,
             /**
              * Associate the Model
              * @param models
              */
-            // associate: (models) => {
-            //
-            // }
+            associate: (models) => {
+              models.Shop.belongsTo(models.Shop, {
+                as: 'address',
+                through: {
+                  model: models.ShopAddress,
+                  foreignKey: 'shop_id',
+                  unique: true,
+                  scope: {
+                    address: 'address'
+                  },
+                  constraints: false
+                }
+              })
+            }
           }
         }
       }
@@ -52,61 +60,9 @@ module.exports = class Shop extends Model {
           type: Sequelize.STRING,
           allowNull: false
         },
-        // The shop's street address.
-        address_1: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        // The shop's additional street address (apt, suite, etc.).
-        address_2: {
-          type: Sequelize.STRING
-        },
-        // The shop's optional additional street address (apt, suite, etc.).
-        address_3: {
-          type: Sequelize.STRING
-        },
-        // The city in which the shop is located.
-        city: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        // The company address field in which the shop is located.
-        company: {
-          type: Sequelize.STRING
-        },
         // The contact phone number for the shop.
         phone: {
           type: Sequelize.STRING
-        },
-        // The shop's normalized province or state name.
-        province: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        // The two-letter code for the shop's province or state.
-        province_code: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        // The shop's country (by default equal to the two-letter country code).
-        country: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        // The two-letter country code corresponding to the shop's country.
-        country_code: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        // The shop's normalized country name.
-        country_name: {
-          type: Sequelize.STRING,
-          allowNull: false
-        },
-        // The zip or postal code of the shop's address.
-        postal_code: {
-          type: Sequelize.STRING,
-          allowNull: false
         },
         // The shop's primary language locale
         primary_locale: {
@@ -120,11 +76,6 @@ module.exports = class Shop extends Model {
           defaultValue: 'USD',
           allowNull: false
         },
-        // // If Shop is the Default Shop
-        // default: {
-        //   type: Sequelize.BOOLEAN,
-        //   defaultValue: true
-        // },
         // TODO Host? used to be domain: host is more congruent with ProxyRouter
         host: {
           type: Sequelize.STRING,
@@ -136,26 +87,6 @@ module.exports = class Shop extends Model {
           type: Sequelize.STRING,
           validate: {
             isEmail: true
-          }
-        },
-        // Geographic coordinate specifying the north/south location of a shop.
-        latitude: {
-          type: Sequelize.FLOAT,
-          allowNull: true,
-          defaultValue: null,
-          validate: {
-            min: -90,
-            max: 90
-          }
-        },
-        // Geographic coordinate specifying the east/west location of a shop.
-        longitude: {
-          type: Sequelize.FLOAT,
-          allowNull: true,
-          defaultValue: null,
-          validate: {
-            min: -180,
-            max: 180
           }
         },
         // A string representing the way currency is formatted when the currency isn't specified.

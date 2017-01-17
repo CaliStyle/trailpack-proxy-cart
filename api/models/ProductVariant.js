@@ -86,6 +86,12 @@ module.exports = class ProductVariant extends Model {
               //   constraints: false
               // })
             }
+          },
+          instanceMethods: {
+            // TODO Resolve customer address and see if product is allowed to be sent there
+            checkRestrictions: function(customer, shippingAddress){
+              return Promise.resolve(false)
+            }
           }
         }
       }

@@ -11,6 +11,5 @@ module.exports = {
     destroy_product: false,
     // Allows a product variant to be destroyed Recommended false
     destroy_variant: false
-  },
-  subscribers: []
+  }
 }

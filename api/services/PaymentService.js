@@ -18,8 +18,6 @@ module.exports = class PaymentService extends Service {
   authorize(transaction){
     const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    // Defaults for this method
-    transaction.kind = 'authorize'
     return TransactionService.create(transaction)
       .then(transaction => {
         if (paymentProcessor && paymentProcessor.adapter) {
@@ -47,17 +45,13 @@ module.exports = class PaymentService extends Service {
   capture(transaction){
     const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    // Defaults for this method
-    transaction.kind = 'capture'
+    if (!paymentProcessor || !paymentProcessor.adapter) {
+      const err = new Error('Payment Processor is unspecified')
+      return Promise.reject(err)
+    }
     return TransactionService.create(transaction)
       .then(transaction => {
-        if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
-        }
-        else {
-          // TODO handle this
-          return transaction
-        }
+        return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
       })
       .then(transaction => {
         return transaction.save()
@@ -73,17 +67,13 @@ module.exports = class PaymentService extends Service {
   sale(transaction){
     const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    // Defaults for this method
-    transaction.kind = 'sale'
+    if (!paymentProcessor || !paymentProcessor.adapter) {
+      const err = new Error('Payment Processor is unspecified')
+      return Promise.reject(err)
+    }
     return TransactionService.create(transaction)
       .then(transaction => {
-        if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
-        }
-        else {
-          // TODO handle this
-          return transaction
-        }
+        return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
       })
       .then(transaction => {
         return transaction.save()
@@ -103,17 +93,13 @@ module.exports = class PaymentService extends Service {
   void(transaction){
     const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    // Defaults for this method
-    transaction.kind = 'void'
+    if (!paymentProcessor || !paymentProcessor.adapter) {
+      const err = new Error('Payment Processor is unspecified')
+      return Promise.reject(err)
+    }
     return TransactionService.create(transaction)
       .then(transaction => {
-        if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
-        }
-        else {
-          // TODO handle this
-          return transaction
-        }
+        return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
       })
       .then(transaction => {
         return transaction.save()
@@ -122,17 +108,13 @@ module.exports = class PaymentService extends Service {
   refund(transaction){
     const TransactionService = this.app.services.TransactionService
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    // Defaults for this method
-    transaction.kind = 'refund'
+    if (!paymentProcessor || !paymentProcessor.adapter) {
+      const err = new Error('Payment Processor is unspecified')
+      return Promise.reject(err)
+    }
     return TransactionService.create(transaction)
       .then(transaction => {
-        if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
-        }
-        else {
-          // TODO handle this
-          return transaction
-        }
+        return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
       })
       .then(transaction => {
         return transaction.save()

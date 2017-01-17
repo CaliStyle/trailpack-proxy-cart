@@ -8,6 +8,8 @@ const _ = require('lodash')
 const shortid = require('shortid')
 const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
 const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
+const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
+const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 
@@ -66,6 +68,8 @@ module.exports = class Order extends Model {
             ORDER_FINANCIAL: ORDER_FINANCIAL,
             ORDER_FULFILLMENT: ORDER_FULFILLMENT,
             PAYMENT_PROCESSING_METHOD: PAYMENT_PROCESSING_METHOD,
+            TRANSACTION_STATUS: TRANSACTION_STATUS,
+            TRANSACTION_KIND: TRANSACTION_KIND,
             /**
              * Associate the Model
              * @param models
@@ -134,12 +138,106 @@ module.exports = class Order extends Model {
               })
               return this.findById(criteria, options)
             }
+          },
+          instanceMethods: {
+            resolveFinancialStatus: function(options) {
+              const Transaction = app.orm['Transaction']
+              return Transaction.findAll({
+                where: {
+                  order_id: this.id
+                }
+              }, options)
+                .then(transactions => {
+                  this.setFinancialStatus(transactions)
+                  return this.save()
+                })
+            },
+            resolveFulfillmentStatus: function(options) {
+              const Fulfillment = app.orm['Fulfillment']
+              return Fulfillment.findAll({
+                where: {
+                  order_id: this.id
+                }
+              }, options)
+                .then(fulfillments => {
+                  this.setFulfillmentStatus(fulfillments)
+                  return this.save()
+                })
+            },
+            setFinancialStatus: function(transactions){
+
+              let financialStatus = ORDER_FINANCIAL.PENDING
+              // TRANSACTION STATUS pending, failure, success or error
+              // TRANSACTION KIND authorize, capture, sale, refund, void
+
+              let totalAuthorized = 0
+              let totalVoided  = 0
+              let totalSale = 0
+              let totalRefund = 0
+
+              // Calculate the totals of the transactions
+              _.each(transactions, transaction => {
+                if (transaction.kind == TRANSACTION_KIND.AUTHORIZE && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                  totalAuthorized = totalAuthorized + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.VOID && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                  totalVoided = totalVoided + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.CAPTURE && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                  totalSale = totalSale + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.SALE && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                  totalSale = totalSale + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                  totalRefund = totalRefund + transaction.amount
+                }
+              })
+              // Total Authorized is the Price of the Order and there are no Capture/Sale transactions and 0 voided
+              if (totalAuthorized == this.total_price && totalSale == 0 && totalVoided == 0) {
+                // console.log('SHOULD BE: authorized')
+                financialStatus = ORDER_FINANCIAL.AUTHORIZED
+              }
+              // Total Authorized is the Price of the Order and there are no Capture/Sale transactions
+              else if (totalAuthorized == totalVoided && totalVoided > 0) {
+                // console.log('SHOULD BE: voided')
+                financialStatus = ORDER_FINANCIAL.VOIDED
+              }
+              // Total Sale is the Price of the order and there are no refunds
+              else if (totalSale == this.total_price && totalRefund == 0) {
+                // console.log('SHOULD BE: paid')
+                financialStatus = ORDER_FINANCIAL.PAID
+              }
+              // Total Sale is not yet the Price of the order and there are no refunds
+              else if (totalSale < this.total_price && totalSale > 0 && totalRefund == 0) {
+                // console.log('SHOULD BE: partially_paid')
+                financialStatus = ORDER_FINANCIAL.PARTIALLY_PAID
+              }
+              // Total Sale is the Total Price and Total Refund is Total Price
+              else if (totalSale == this.total_price && totalRefund == this.total_price) {
+                // console.log('SHOULD BE: refunded')
+                financialStatus = ORDER_FINANCIAL.REFUNDED
+              }
+              // Total Sale is the Total Price but Total Refund is less than the Total Price
+              else if (totalSale == this.total_price && totalRefund < this.total_price) {
+                // console.log('SHOULD BE: partially_refunded')
+                financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
+              }
+              app.log.debug(`FINANCIAL Status: ${financialStatus} Sales: ${totalSale} Authorized: ${totalAuthorized} Refunded: ${totalRefund}`)
+              // pending: The finances are pending. (This is the default value.)
+              // authorized: The finances have been authorized.
+              // partially_paid: The finances have been partially paid.
+              // paid: The finances have been paid.
+              // partially_refunded: The finances have been partially refunded.
+              // refunded: The finances have been refunded.
+              // voided: The finances have been voided.
+              this.financial_status = financialStatus
+              return this
+            },
+            setFulfillmentStatus: function(fulfillments){
+              return this
+            }
           }
-          // instanceMethods: {
-          //   calculate: function(){
-          //
-          //   }
-          // }
         }
       }
     }
@@ -214,6 +312,13 @@ module.exports = class Order extends Model {
             isEmail: true
           }
         },
+        // pending: The finances are pending.
+        // authorized: The finances have been authorized.
+        // partially_paid: The finances have been partially paid.
+        // paid: The finances have been paid. (This is the default value.)
+        // partially_refunded: The finances have been partially refunded.
+        // refunded: The finances have been refunded.
+        // voided: The finances have been voided.
         financial_status: {
           type: Sequelize.ENUM,
           values: _.values(ORDER_FINANCIAL)

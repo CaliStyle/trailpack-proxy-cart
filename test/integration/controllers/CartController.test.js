@@ -201,6 +201,7 @@ describe('CartController', () => {
     request
       .post(`/cart/${cartID}/checkout`)
       .send({
+        payment_kind: 'sale',
         payment_details: [
           {
             token: '123'
@@ -210,8 +211,24 @@ describe('CartController', () => {
       .expect(200)
       .end((err, res) => {
         console.log('CHECKOUT', res.body)
-        assert.ok(res.body.id)
         orderID = res.body.id
+        assert.ok(res.body.id)
+        assert.ok(res.body.token)
+
+        assert.equal(res.body.financial_status, 'paid')
+        assert.equal(res.body.currency, 'USD')
+        assert.equal(res.body.source_name, 'api')
+        assert.equal(res.body.processing_method, 'checkout')
+        assert.ok(res.body.subtotal_price)
+        // Order Items
+        assert.equal(res.body.order_items.length, 2)
+        assert.equal(res.body.order_items[0].order_id, orderID)
+        // Transactions
+        assert.equal(res.body.transactions.length, 1)
+        assert.equal(res.body.transactions[0].kind, 'sale')
+        assert.equal(res.body.transactions[0].status, 'success')
+        assert.equal(res.body.transactions[0].source_name, 'web')
+        assert.equal(res.body.transactions[0].order_id, orderID)
 
         done(err)
       })

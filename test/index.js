@@ -12,11 +12,13 @@ before(() => {
       return global.app.services.ShopService.create({
         name: 'Test Shop',
         host: 'localhost',
-        address_1: '1 Infinite Loop',
-        city: 'Cupertino',
-        province: 'California',
-        country: 'United States',
-        postal_code: '95014'
+        address: {
+          address_1: '1 Infinite Loop',
+          city: 'Cupertino',
+          province: 'California',
+          country: 'United States',
+          postal_code: '95014'
+        }
       })
     })
     .then(shop => {

@@ -4,6 +4,7 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
+const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 /**
  * @module CartService
  * @description Cart Service
@@ -70,12 +71,28 @@ module.exports = class CartService extends Service {
    * @returns {Promise.<*>}
    */
   checkout(data){
+    const ProductVariant = this.app.services.ProxyEngineService.getModel('ProductVariant')
     if (!data.cart.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
+    let resCart
     return this.resolve(data.cart)
-      .then(resCart => {
+      .then(cart => {
+        resCart = cart
+        Promise.all(resCart.line_items.map(item => {
+          return ProductVariant.findById(item.variant_id, {attributes: ['id']})
+            .then(productVariant => {
+              return productVariant.checkRestrictions(resCart.Customer || resCart.customer_id, data.shipping_address)
+            })
+        }))
+      })
+      .then(restrictions => {
+        _.each(restrictions, restricted => {
+          if (restricted) {
+            throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)
+          }
+        })
         // Recalculate the Cart
         return resCart.recalculate()
       })
@@ -84,10 +101,10 @@ module.exports = class CartService extends Service {
         return resCart.save()
       })
       .then(resCart => {
-        // TODO make this not required for POS
-        if (!resCart.customer_id) {
-          throw new Errors.FoundError(Error('Cart is missing customer_id'))
-        }
+        // This not required for POS or Guest Checkout
+        // if (!resCart.customer_id) {
+        //   throw new Errors.FoundError(Error('Cart is missing customer_id'))
+        // }
         // Create new Order constraints
         const newOrder = {
           cart_token: resCart.token,
@@ -96,8 +113,10 @@ module.exports = class CartService extends Service {
           ip: data.ip,
           payment_details: data.payment_details,
           gateway: data.gateway,
-          payment_kind: data.payment,
-          processing_method: 'checkout'
+          payment_kind: data.payment_kind,
+          processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
+          shipping_address: data.shipping_address,
+          billing_address: data.billing_address
         }
         return this.app.services.OrderService.create(newOrder)
       })
@@ -132,7 +151,6 @@ module.exports = class CartService extends Service {
    * @param item
    * @returns {*}
    */
-  // TODO refactor to sequelize
   resolveItem(item){
     // const FootprintService = this.app.services.FootprintService
     const Product = this.app.services.ProxyEngineService.getModel('Product')
@@ -213,13 +231,18 @@ module.exports = class CartService extends Service {
           }))
         })
         .then(resolvedItems => {
-          _.each(resolvedItems, (item, index) => {
-            // Make item plain so we can set new attributes before adding it to line_items
-            item = item.get({plain: true})
-            // Support Item Properties
-            item.properties = items[index].properties
-            cart.addLine(item, items[index].quantity)
-          })
+          // _.each(resolvedItems, (item, index) => {
+          //   // Make item plain so we can set new attributes before adding it to line_items
+          //   item = item.get({plain: true})
+          //   // Support Item Properties
+          //   item.properties = items[index].properties
+          //   cart.addLine(item, items[index].quantity)
+          // })
+          return Promise.all(resolvedItems.map((item, index) => {
+            return cart.addLine(item, items[index].quantity, items[index].properties)
+          }))
+        })
+        .then(resolvledItems => {
           return cart.recalculate()
         })
         .then(cart => {

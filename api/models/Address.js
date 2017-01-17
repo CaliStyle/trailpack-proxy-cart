@@ -116,6 +116,26 @@ module.exports = class Address extends Model {
           type: Sequelize.STRING,
           allowNull: false
         },
+        // Geographic coordinate specifying the north/south location of a shop.
+        latitude: {
+          type: Sequelize.FLOAT,
+          allowNull: true,
+          defaultValue: null,
+          validate: {
+            min: -90,
+            max: 90
+          }
+        },
+        // Geographic coordinate specifying the east/west location of a shop.
+        longitude: {
+          type: Sequelize.FLOAT,
+          allowNull: true,
+          defaultValue: null,
+          validate: {
+            min: -180,
+            max: 180
+          }
+        },
         // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,

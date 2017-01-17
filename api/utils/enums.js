@@ -230,7 +230,7 @@ module.exports = {
   },
   TRANSACTION_KIND: {
     // Money that the customer has agreed to pay. Authorization period lasts for up to 7 to 30 days (depending on your payment service) while a store awaits for a customer's capture.
-    AUTHORIZATION: 'authorization',
+    AUTHORIZE: 'authorize',
     // Transfer of money that was reserved during the authorization of a shop.
     CAPTURE: 'capture',
     // The combination of authorization and capture, performed in one single step.

@@ -37,6 +37,63 @@ module.exports = {
 }
 ```
 
+## Shops
+A shop represents a physical location that sells a product. When taxes and shipping are calculated per product, they are calculated by the nearest shop to the destination of an order. This means that the same product can be sold in multiple stores and shipped from different locations which may effect shipping and tax rates.
+
+## Products
+A Product is a Physical or Digital item.
+
+## Product Variants
+A Product Variant is a variation of a product denoted by a unique Stock Keeping Unit (SKU)
+
+## Product Images
+A Product Image is an image that is associated directly with a product and sometimes a product variant.
+
+## Product Reviews
+A Product Review is input from a customer with a history of purchasing a product.
+
+## Metadata
+A Metadata is additional information about a product or customer that is not constrained by the parent model.
+
+## Collections
+A Collection is a grouping of like items, such as products, customers, and shipping zones.
+
+## Tags
+A Tag is a searching marker for a customer or product.
+
+## Customers
+A Customer is a user or guest.
+
+## Carts
+A Cart is a bucket that holds products and data until an order is placed.
+
+## Orders
+An Order is a bucket that holds products and data and the transactions of purchases and fulfillment.
+
+## Fulfillment
+A Fulfillment is a shipping transaction for an order.
+
+## Transactions
+A Transaction is a representation of a purchasing event.
+
+## Gift Cards
+A Gift Card is an alternate payment method that acts as a customer source.
+
+## Discounts
+A Discount is a value or percent off of a product, shipping cost, or total order applied by meeting criteria.
+
+## Coupon
+A redeemable discount that has a code.
+
+## Subscriptions
+A Subscription is the reoccurring of an order based on time period.
+
+## Shipping Zones
+A Shipping Zone is a geographical area that may override shipping and tax costs.
+
+## Shipping Restrictions
+A Shipping Restriction is a geographical restriction on the shipping of certain products.
+
 ## Usage
 
 ### Controllers

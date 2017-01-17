@@ -178,7 +178,7 @@ module.exports = class OrderService extends Service {
         return PaymentService[orderPayment](transaction)
           .then(transaction => {
             // TODO resolve Mark as paid
-            resOrder.financial_status = transaction.status
+            resOrder.setFinancialStatus([transaction])
             return resOrder.save()
           })
       })

@@ -78,24 +78,34 @@ module.exports = class Cart extends Model {
               return line
             },
             // TODO handle deny adding product if restricted by fulfillment policy
-            addLine: function(item, qty) {
-              const lineItems = this.line_items
-              if (!qty || !_.isNumber(qty)) {
-                qty = 1
-              }
-              let itemIndex = _.findIndex(lineItems, {variant_id: item.id})
-              if (itemIndex > -1) {
-                app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
-                lineItems[itemIndex].quantity = lineItems[itemIndex].quantity + qty
-                this.line_items = lineItems
-              }
-              else {
-                item.quantity = qty
-                const line = this.line(item)
-                app.log.silly('Cart.addLine NEW LINE', line)
-                lineItems.push(line)
-                this.line_items = lineItems
-              }
+            addLine: function(item, qty, properties) {
+              // Check if Product is Restricted
+              return item.checkRestrictions(this.Customer || this.customer_id)
+                .then(restricted => {
+                  if (restricted) {
+                    throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)
+                  }
+                  // Rename line items so they are no longer immutable
+                  const lineItems = this.line_items
+                  if (!qty || !_.isNumber(qty)) {
+                    qty = 1
+                  }
+                  let itemIndex = _.findIndex(lineItems, {variant_id: item.id})
+                  if (itemIndex > -1) {
+                    app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
+                    lineItems[itemIndex].quantity = lineItems[itemIndex].quantity + qty
+                    this.line_items = lineItems
+                  }
+                  else {
+                    item.quantity = qty
+                    item.properties = properties
+                    const line = this.line(item)
+                    app.log.silly('Cart.addLine NEW LINE', line)
+                    lineItems.push(line)
+                    this.line_items = lineItems
+                  }
+                  return this.save()
+                })
             },
             removeLine: function(item, qty) {
               const lineItems = this.line_items
