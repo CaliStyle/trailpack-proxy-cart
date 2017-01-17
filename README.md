@@ -9,6 +9,11 @@
 Proxy Cart is the eCommerce component for [Proxy Engine](https://github.com/calistyle/trailpack-proxy-engine). Connect your own [Merchant Processor, Shipping Provider, Fulfillment Service, Tax Provider](https://github.com/calistyle/trailpack-proxy-generics), and import your products. Attach it to Proxy Engine and start building with [Proxy CMS](https://github.com/calistyle/trailpack-proxy-cms)!
 
 ## Dependencies
+### Proxy Engine
+| Repo          |  Build Status (edge)                  |
+|---------------|---------------------------------------|
+| [trailpack-proxy-engine](https://github.com/calistyle/trailpack-proxy-engine) | [![Build status][ci-proxyengine-image]][ci-proxyengine-url] |
+
 ### Supported ORMs
 | Repo          |  Build Status (edge)                  |
 |---------------|---------------------------------------|
@@ -231,6 +236,9 @@ Handles Transaction operations
 
 [ci-sequelize-image]: https://img.shields.io/travis/trailsjs/trailpack-sequelize/master.svg?style=flat-square
 [ci-sequelize-url]: https://travis-ci.org/trailsjs/trailpack-sequelize
+
+[ci-proxyengine-image]: https://img.shields.io/circleci/project/github/CaliStyle/trailpack-proxy-engine/nmaster.svg
+[ci-proxyengine-url]: https://circleci.com/gh/CaliStyle/trailpack-proxy-engine/tree/master
 
 [ci-express-image]: https://img.shields.io/travis/trailsjs/trailpack-express/master.svg?style=flat-square
 [ci-express-url]: https://travis-ci.org/trailsjs/trailpack-express

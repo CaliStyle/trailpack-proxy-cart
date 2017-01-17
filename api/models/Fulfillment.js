@@ -44,6 +44,7 @@ module.exports = class Fulfillment extends Model {
           type: Sequelize.STRING
         },
         //The status of the fulfillment.
+        // fulfilled, none, partial
         status: {
           type: Sequelize.ENUM,
           values: _.values(FULFILLMENT_STATUS),
