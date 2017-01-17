@@ -21,6 +21,21 @@ module.exports = class Transaction extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            afterCreate: (values, options, fn) => {
+              const Order = app.orm['Order']
+              Order.findById(values.order_id)
+                  .then(order => {
+                    return order.resolveFinancialStatus()
+                  })
+                  .then(order => {
+                    fn(null, values)
+                  })
+                  .catch(err => {
+                    fn(err, values)
+                  })
+            }
+          },
           classMethods: {
             TRANSACTION_ERRORS: TRANSACTION_ERRORS,
             TRANSACTION_STATUS: TRANSACTION_STATUS,
@@ -30,9 +45,9 @@ module.exports = class Transaction extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Transaction.belongsTo(models.Order, {
-                // as: 'order_id'
-              })
+              // models.Transaction.belongsTo(models.Order, {
+              //   // as: 'order_id'
+              // })
             }
           }
         }
@@ -45,6 +60,14 @@ module.exports = class Transaction extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        order_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Order',
+            key: 'id'
+          },
+          allowNull: false
+        },
         // The amount of money that the transaction was for.
         amount: {
           type: Sequelize.INTEGER,

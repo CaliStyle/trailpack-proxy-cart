@@ -15,6 +15,21 @@ module.exports = class Fulfillment extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            afterCreate: (values, options, fn) => {
+              const Order = app.orm['Order']
+              Order.findById(values.order_id)
+                .then(order => {
+                  return order.resolveFulFillmentStatus()
+                })
+                .then(order => {
+                  fn(null, values)
+                })
+                .catch(err => {
+                  fn(err, values)
+                })
+            }
+          },
           classMethods: {
             FULFILLMENT_STATUS: FULFILLMENT_STATUS,
             /**
@@ -22,9 +37,9 @@ module.exports = class Fulfillment extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Fulfillment.belongsTo(models.Order, {
-                // as: 'order_id'
-              })
+              // models.Fulfillment.belongsTo(models.Order, {
+              //   // as: 'order_id'
+              // })
               models.Fulfillment.hasMany(models.OrderItem, {
                 as: 'line_items'
               })
@@ -40,6 +55,14 @@ module.exports = class Fulfillment extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        order_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Order',
+            key: 'id'
+          },
+          allowNull: false
+        },
         receipt: {
           type: Sequelize.STRING
         },

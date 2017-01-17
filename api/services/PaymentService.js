@@ -2,12 +2,11 @@
 'use strict'
 
 const Service = require('trails/service')
-const _ = require('lodash')
+// const _ = require('lodash')
 /**
  * @module PaymentService
  * @description Payment Service
  */
-// TODO handle multiple payment methods
 module.exports = class PaymentService extends Service {
   /**
    * Authorizes and amount
@@ -16,24 +15,18 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   authorize(transaction){
-    const TransactionService = this.app.services.TransactionService
+    const Transaction = this.app.services.ProxyEngineService.getModel('Transaction')
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
-    return TransactionService.create(transaction)
-      .then(transaction => {
-        if (paymentProcessor && paymentProcessor.adapter) {
-          return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
-            .then(resTransaction => {
-              return _.extend(transaction, resTransaction)
-            })
-        }
-        else {
-          // TODO handle this
-          return transaction
-        }
-      })
+    if (!paymentProcessor || !paymentProcessor.adapter) {
+      const err = new Error('Payment Processor is unspecified')
+      return Promise.reject(err)
+    }
+    transaction = Transaction.build(transaction)
+    return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
       })
+
   }
 
   /**
@@ -43,16 +36,14 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   capture(transaction){
-    const TransactionService = this.app.services.TransactionService
+    const Transaction = this.app.services.ProxyEngineService.getModel('Transaction')
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-    return TransactionService.create(transaction)
-      .then(transaction => {
-        return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
-      })
+    transaction = Transaction.build(transaction)
+    return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
       })
@@ -65,16 +56,15 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   sale(transaction){
-    const TransactionService = this.app.services.TransactionService
+    const Transaction = this.app.services.ProxyEngineService.getModel('Transaction')
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-    return TransactionService.create(transaction)
-      .then(transaction => {
-        return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
-      })
+
+    transaction = Transaction.build(transaction)
+    return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
       })
@@ -86,39 +76,39 @@ module.exports = class PaymentService extends Service {
    * @param amount
    * @returns {Promise}
    */
-  manual(source, amount){
-    return Promise.resolve({status: 'pending'})
+  manual(transaction){
+    const Transaction = this.app.services.ProxyEngineService.getModel('Transaction')
+    transaction = Transaction.build(transaction)
+    return Promise.resolve(transaction)
   }
 
   void(transaction){
-    const TransactionService = this.app.services.TransactionService
+    const Transaction = this.app.services.ProxyEngineService.getModel('Transaction')
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-    return TransactionService.create(transaction)
-      .then(transaction => {
-        return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
-      })
+    transaction = Transaction.build(transaction)
+    return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
       })
   }
   refund(transaction){
-    const TransactionService = this.app.services.TransactionService
+    const Transaction = this.app.services.ProxyEngineService.getModel('Transaction')
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-    return TransactionService.create(transaction)
-      .then(transaction => {
-        return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
-      })
+
+    transaction = Transaction.build(transaction)
+    return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
       })
+
   }
 }
 

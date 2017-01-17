@@ -140,13 +140,13 @@ module.exports = class Order extends Model {
             }
           },
           instanceMethods: {
-            resolveFinancialStatus: function(options) {
+            resolveFinancialStatus: function() {
               const Transaction = app.orm['Transaction']
               return Transaction.findAll({
                 where: {
                   order_id: this.id
                 }
-              }, options)
+              })
                 .then(transactions => {
                   this.setFinancialStatus(transactions)
                   return this.save()
@@ -223,7 +223,7 @@ module.exports = class Order extends Model {
                 // console.log('SHOULD BE: partially_refunded')
                 financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
               }
-              app.log.debug(`FINANCIAL Status: ${financialStatus} Sales: ${totalSale} Authorized: ${totalAuthorized} Refunded: ${totalRefund}`)
+              app.log.debug(`FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}`)
               // pending: The finances are pending. (This is the default value.)
               // authorized: The finances have been authorized.
               // partially_paid: The finances have been partially paid.
