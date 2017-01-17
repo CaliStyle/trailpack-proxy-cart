@@ -179,7 +179,7 @@ module.exports = class Cart extends Model {
                   // Finalize Total
                   totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
 
-                  // Set Cart valeus
+                  // Set Cart values
                   this.tax_lines = taxLines
                   this.shipping_lines = shippingLines
                   this.total_shipping = totalShipping

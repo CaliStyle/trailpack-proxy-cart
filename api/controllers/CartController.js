@@ -129,5 +129,8 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
+
+  //TODO
+  addCoupon(req, res) {}
 }
 

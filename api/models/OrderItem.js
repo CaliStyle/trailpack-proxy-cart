@@ -31,12 +31,6 @@ module.exports = class OrderItem extends Model {
               models.OrderItem.belongsTo(models.ProductVariant, {
 
               })
-              models.OrderItem.belongsTo(models.Order, {
-
-              })
-              models.OrderItem.belongsTo(models.Fulfillment, {
-
-              })
             }
           }
         }
@@ -49,6 +43,22 @@ module.exports = class OrderItem extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        order_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Order',
+            key: 'id'
+          },
+          allowNull: false
+        },
+        fulfillment_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Fulfillment',
+            key: 'id'
+          }
+          // allowNull: false
+        },
         // The amount available to fulfill. This is the quantity - max(refunded_quantity, fulfilled_quantity) - pending_fulfilled_quantity - open_fulfilled_quantity.
         fulfillable_quantity: {
           type: Sequelize.INTEGER
