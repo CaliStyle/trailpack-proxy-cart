@@ -80,19 +80,30 @@ module.exports = class CartService extends Service {
     return this.resolve(data.cart)
       .then(cart => {
         resCart = cart
-        Promise.all(resCart.line_items.map(item => {
+        // Resolve all Line Items, Check Restrictions, Check Availability
+        return Promise.all(resCart.line_items.map(item => {
           return ProductVariant.findById(item.variant_id, {attributes: ['id']})
             .then(productVariant => {
               return productVariant.checkRestrictions(resCart.Customer || resCart.customer_id, data.shipping_address)
+                .then(restricted => {
+                  if (restricted) {
+                    throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)
+                  }
+                  return restricted
+                })
+                .then(restriction => {
+                  return productVariant.checkAvailability()
+                    .then(availability => {
+                      if (!availability.allowed) {
+                        throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
+                      }
+                      return availability
+                    })
+                })
             })
         }))
       })
       .then(restrictions => {
-        _.each(restrictions, restricted => {
-          if (restricted) {
-            throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)
-          }
-        })
         // Recalculate the Cart
         return resCart.recalculate()
       })

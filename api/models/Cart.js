@@ -80,7 +80,13 @@ module.exports = class Cart extends Model {
             // TODO handle deny adding product if restricted by fulfillment policy
             addLine: function(item, qty, properties) {
               // Check if Product is Restricted
-              return item.checkRestrictions(this.Customer || this.customer_id)
+              return item.checkAvailability()
+                .then(availability => {
+                  if (!availability.allowed) {
+                    throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
+                  }
+                  return item.checkRestrictions(this.Customer || this.customer_id)
+                })
                 .then(restricted => {
                   if (restricted) {
                     throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)

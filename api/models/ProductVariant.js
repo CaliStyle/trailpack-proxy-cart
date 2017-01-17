@@ -91,6 +91,14 @@ module.exports = class ProductVariant extends Model {
             // TODO Resolve customer address and see if product is allowed to be sent there
             checkRestrictions: function(customer, shippingAddress){
               return Promise.resolve(false)
+            },
+            // TODO check fulfillment policies
+            checkAvailability: function(){
+              const res = {
+                title: this.title,
+                allowed: true
+              }
+              return Promise.resolve(res)
             }
           }
         }
