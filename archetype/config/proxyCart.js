@@ -6,6 +6,9 @@
 module.exports = {
   // The default function for an automatic order payment: manual, authorize, sale
   order_payment_kind: 'authorize',
+  // Restock default for refunded order items
+  refund_restock: false,
+  // Allow certain events
   allow: {
     // Allows a product to be destroyed Recommended false
     destroy_product: false,

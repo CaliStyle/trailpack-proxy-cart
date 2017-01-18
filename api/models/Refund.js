@@ -54,7 +54,7 @@ module.exports = class Refund extends Model {
         // },
         restock: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: app.config.proxyCart.refund_restock
         },
         live_mode: {
           type: Sequelize.BOOLEAN,
