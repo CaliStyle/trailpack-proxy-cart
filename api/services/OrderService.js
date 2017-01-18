@@ -4,6 +4,7 @@ const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
+const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 /**
  * @module OrderService
  * @description Order Service
@@ -202,12 +203,8 @@ module.exports = class OrderService extends Service {
             device_id: obj.device_id || null
           }
           return PaymentService[orderPayment](transaction)
-            // .then(transaction => {
-            //   resOrder.setFinancialStatus([transaction])
-            //   return resOrder.save()
-            // })
         })
-        .then(order => {
+        .then(transaction => {
           return Order.findIdDefault(resOrder.id)
         })
     })
@@ -216,8 +213,45 @@ module.exports = class OrderService extends Service {
   /**
    *
    * @param order
+   * @returns {Promise.<T>}
+   */
+  // TODO
+  update(order) {
+    const Order = this.app.services.ProxyEngineService.getModel('Order')
+
+    return this.resolve(order)
+      .then(resOrder => {
+        if (resOrder.fulfillment_status !== FULFILLMENT_STATUS.NONE) {
+          throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
+        }
+        if (order.billing_address) {
+          resOrder.billing_address = _.merge(resOrder.billing_address, order.billing_address)
+          resOrder.billing_address = this.app.services.ProxyCartService.validateAddress(resOrder.billing_address)
+        }
+        if (order.shipping_address) {
+          resOrder.shipping_address = _.merge(resOrder.shipping_address, order.shipping_address)
+          resOrder.shipping_address = this.app.services.ProxyCartService.validateAddress(resOrder.shipping_address)
+        }
+        if (order.buyer_accepts_marketing) {
+          resOrder.buyer_accepts_marketing = order.buyer_accepts_marketing
+        }
+
+        return resOrder.save()
+      })
+      .then(resOrder => {
+        return Order.findIdDefault(resOrder.id)
+      })
+  }
+  // TODO
+  removeItemFromOrder(data) {
+    return Promise.resolve(data)
+  }
+  /**
+   *
+   * @param order
    * @returns {*|Promise.<TResult>}
    */
+  // TODO
   payOrder(order, gateway) {
     return this.resolve(order)
       .then(order => {
@@ -232,6 +266,7 @@ module.exports = class OrderService extends Service {
    * @param order
    * @returns {*|Promise.<TResult>}
    */
+  // TODO
   refundOrder(order, refund) {
     return this.resolve(order)
       .then(order => {

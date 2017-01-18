@@ -50,6 +50,7 @@ module.exports = class OrderController extends Controller {
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.update(req.body)
       .then(values => {
+        req.body.id = req.params.id
         return OrderService.update(req.body)
       })
       .then(order => {

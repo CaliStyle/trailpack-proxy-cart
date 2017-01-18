@@ -74,11 +74,12 @@ describe('OrderController', () => {
         done(err)
       })
   })
-  it.skip('should update an order', (done) => {
+  it('should update an order', (done) => {
     request
       .post(`/order/${orderID}`)
       .send({
-
+        shipping_address: {},
+        billing_address: {}
       })
       .expect(200)
       .end((err, res) => {
