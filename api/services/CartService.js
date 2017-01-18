@@ -51,7 +51,28 @@ module.exports = class CartService extends Service {
    */
   create(data, options){
     const Cart = this.app.services.ProxyEngineService.getModel('Cart')
-    return Cart.create(data, options)
+    if (!data.line_items) {
+      data.line_items = []
+    }
+    // Remove the items from the caart creation so we can resolve them
+    const items = data.line_items
+    delete data.line_items
+    const cart = Cart.build(data)
+
+    return Promise.all(items.map(item => {
+      return this.resolveItem(item)
+    }))
+      .then(resolvedItems => {
+        return Promise.all(resolvedItems.map((item, index) => {
+          return cart.addLine(item, items[index].quantity, items[index].properties)
+        }))
+      })
+      .then(resolvledItems => {
+        return cart.recalculate()
+      })
+      .then(cart => {
+        return cart.save()
+      })
   }
 
   /**
@@ -168,8 +189,8 @@ module.exports = class CartService extends Service {
     const ProductVariant = this.app.services.ProxyEngineService.getModel('ProductVariant')
     const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
 
-    if (item.id || item.product_variant_id) {
-      const id = item.id ? item.id : item.product_variant_id
+    if (item.id || item.variant_id || item.product_variant_id) {
+      const id = item.id || item.variant_id || item.product_variant_id
       return ProductVariant.findById(id, {
         include: [
           {
@@ -242,13 +263,6 @@ module.exports = class CartService extends Service {
           }))
         })
         .then(resolvedItems => {
-          // _.each(resolvedItems, (item, index) => {
-          //   // Make item plain so we can set new attributes before adding it to line_items
-          //   item = item.get({plain: true})
-          //   // Support Item Properties
-          //   item.properties = items[index].properties
-          //   cart.addLine(item, items[index].quantity)
-          // })
           return Promise.all(resolvedItems.map((item, index) => {
             return cart.addLine(item, items[index].quantity, items[index].properties)
           }))
