@@ -3,6 +3,7 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
+const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 /**
  * @module OrderService
  * @description Order Service
@@ -63,8 +64,8 @@ module.exports = class OrderService extends Service {
       const err = new Errors.FoundError(Error('Missing Cart token'))
       return Promise.reject(err)
     }
-    if (!obj.customer_id) {
-      const err = new Errors.FoundError(Error('Missing Customer id'))
+    if (!obj.payment_details) {
+      const err = new Errors.FoundError(Error('Missing Payment Details'))
       return Promise.reject(err)
     }
 
@@ -84,37 +85,55 @@ module.exports = class OrderService extends Service {
             throw new Errors.ConflictError(Error(`Cart status '${cart.status}' is not '${Cart.CART_STATUS.OPEN}'`))
           }
           resCart = cart
-          return Customer.findById(obj.customer_id, {
-            include: [
-              {
-                model: Address,
-                as: 'shipping_address'
-              },
-              {
-                model: Address,
-                as: 'billing_address'
-              }
-            ]
-          })
+          // If a customer is attached to this order
+          if (obj.customer_id) {
+            return Customer.findById(obj.customer_id, {
+              include: [
+                {
+                  model: Address,
+                  as: 'shipping_address'
+                },
+                {
+                  model: Address,
+                  as: 'billing_address'
+                }
+              ]
+            })
+          }
+          else {
+            return null
+          }
         })
         .then(customer => {
-          // TODO, make this not required for POS
-          if (!customer) {
-            throw new Errors.FoundError(Error(`Could not find customer by id '${obj.customer_id}'`))
-          }
-          if (!customer.billing_address) {
+          if (customer && !customer.billing_address && !obj.billing_address) {
             throw new Errors.FoundError(Error(`Could not find customer billing address for id '${obj.customer_id}'`))
           }
-          if (!customer.shipping_address) {
+          if (customer && !customer.shipping_address && !obj.shipping_address) {
             throw new Errors.FoundError(Error(`Could not find customer shipping address for id '${obj.customer_id}'`))
           }
-          resCustomer = customer
-          resBillingAddress = customer.billing_address || obj.billing_address
-          resShippingAddress = customer.shipping_address || obj.shipping_address
+          if (!customer) {
+            resCustomer = {
+              id: null,
+              billing_address: null,
+              shipping_address: null
+            }
+          }
+          else {
+            resCustomer = customer
+          }
+          resBillingAddress = resCustomer.billing_address ? resCustomer.billing_address.get({plain: true}) : obj.billing_address
+          resShippingAddress = resCustomer.shipping_address ? resCustomer.shipping_address.get({plain: true}) : obj.shipping_address
+          // If Addresses, validate them
+          if (resBillingAddress) {
+            resBillingAddress = this.app.services.ProxyCartService.validateAddress(resBillingAddress)
+          }
+          if (resShippingAddress) {
+            resShippingAddress = this.app.services.ProxyCartService.validateAddress(resShippingAddress)
+          }
 
           const order = {
             // Order Info
-            processing_method: obj.processing_method,
+            processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
 
             // Cart Info
             cart_token: resCart.token,
@@ -138,8 +157,8 @@ module.exports = class OrderService extends Service {
             customer_id: resCustomer.id, // (May Be Null)
             buyer_accepts_marketing: resCustomer.accepts_marketing || obj.buyer_accepts_marketing,
             email: resCustomer.email || obj.email,
-            billing_address: resBillingAddress || obj.billing_address,
-            shipping_address: resShippingAddress || obj.shipping_address
+            billing_address: resBillingAddress,
+            shipping_address: resShippingAddress
           }
 
           return Order.create(order, {
@@ -158,12 +177,18 @@ module.exports = class OrderService extends Service {
           return resCart.save()
         })
         .then(cart => {
-          resCustomer.setLastOrder(resOrder)
-          // TODO create a blank new cart for customer
-          // resCustomer.newCart()
-          return resCustomer.save()
+          if (resCustomer instanceof Customer.Instance) {
+            resCustomer.setLastOrder(resOrder)
+            // TODO create a blank new cart for customer
+            // resCustomer.newCart()
+            return resCustomer.save()
+          }
+          else {
+            return null
+          }
         })
         .then(customer => {
+          // Set proxy cart default payment kind if not set by order.create
           let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment_kind
           if (!orderPayment) {
             this.app.log.debug('Order does not have a payment function, defaulting to manual')
@@ -172,9 +197,9 @@ module.exports = class OrderService extends Service {
           const transaction = {
             order_id: resOrder.id,
             currency: resOrder.currency,
+            amount: resOrder.total_price,
             payment_details: obj.payment_details,
-            device_id: obj.device_id,
-            amount: resOrder.total_price
+            device_id: obj.device_id || null
           }
           return PaymentService[orderPayment](transaction)
             // .then(transaction => {

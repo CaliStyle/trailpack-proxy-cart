@@ -3,7 +3,7 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
-// const Errors = require('proxy-engine-errors')
+const Errors = require('proxy-engine-errors')
 const joi = require('joi')
 const sharp = require('sharp')
 const lib = require('../../lib')
@@ -170,12 +170,13 @@ module.exports = class ProxyCartService extends Service {
    * @returns {*}
    */
   validateAddress(address) {
-    joi.validate(address, lib.Schemas.customer.address, (err, value) => {
+    const self = this
+    joi.validate(address, lib.Schemas.address.address, (err, value) => {
       if (err) {
-        throw new Error(err)
+        throw new Errors.ValidationError(err)
       }
       try {
-        address = this.normalizeAddress(address)
+        address = self.normalizeAddress(address)
       }
       catch (err) {
         throw new Error(err)
