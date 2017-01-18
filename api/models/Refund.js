@@ -1,6 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
+// const helpers = require('proxy-engine-helpers')
 
 /**
  * @module Refund
@@ -23,7 +24,14 @@ module.exports = class Refund extends Model {
               models.Refund.belongsTo(models.Order, {
                 // as: 'order_id'
               })
-              models.Refund.hasOne(models.Transaction, {
+              models.Refund.belongsToMany(models.OrderItem, {
+                as: 'refund_order_items',
+                through: 'RefundOrderItems'
+                // as: 'order_id'
+              })
+              models.Refund.belongsToMany(models.Transaction, {
+                as: 'transactions',
+                through: 'RefundTransactions'
                 // as: 'order_id'
               })
             }
@@ -38,6 +46,16 @@ module.exports = class Refund extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        processed_at: {
+          type: Sequelize.DATE
+        },
+        // refund_order_items: {
+        //
+        // },
+        restock: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode
