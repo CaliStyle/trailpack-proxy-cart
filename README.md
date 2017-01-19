@@ -119,12 +119,47 @@ Handles Cart operations
 ##### CartController.create
 
 ##### CartController.checkout
+From cart to checkout is easy and there are some special features to note:
+- You can supply multiple payment methods
+- You can override the the shipping and billing address
+- You can process payments immediately
+- You can send to fulfillment immediately
+
+`payment_kind`: the type of transactions to create, 'authorize', 'capture', 'sale', or 'manual'
+
+`payment_details`: an array of payment information, requires a 'gateway' attribute and normally a 'token'
+
+`fulfillment_kind`: the type of fulfillment to perform, 'immediate', null or blank
+
+`billing_address`: an address object or you can leave null if cart has a customer with address 
+
+`shipping_address`: an address object or you can leave null if cart has a customer with address
+
+`shop_id`: an id, provide a shop ID if you want to require calculations be based on a shop location
+
+```
+// <api>/cart/:id/checkout
+{
+  payment_kind: 'sale',
+  payment_details: [
+    {
+      gateway: 'payment_processor',
+      token: '123'
+    }
+  ],
+  fulfillment_kind: 'immediate'
+}
+```
 
 ##### CartController.addItems
 
 ##### CartController.removeItems
 
 ##### CartController.clear
+Removes all items from an open cart
+```
+// <api>/cart/:id/clear
+```
 
 #### OrderController
 Handles Order operations

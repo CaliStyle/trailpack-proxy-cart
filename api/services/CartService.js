@@ -5,6 +5,8 @@ const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
+const CART_STATUS = require('../utils/enums').CART_STATUS
+
 /**
  * @module CartService
  * @description Cart Service
@@ -99,8 +101,18 @@ module.exports = class CartService extends Service {
     }
     let resCart
     return this.resolve(data.cart)
-      .then(cart => {
-        resCart = cart
+      .then(foundCart => {
+
+        if (!foundCart) {
+          throw new Errors.FoundError(Error('Cart Not Found'))
+        }
+
+        if (foundCart.status !== CART_STATUS.OPEN) {
+          throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        }
+
+        resCart = foundCart
+
         // Resolve all Line Items, Check Restrictions, Check Availability
         return Promise.all(resCart.line_items.map(item => {
           return ProductVariant.findById(item.variant_id, {attributes: ['id']})
@@ -249,38 +261,32 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   addItemsToCart(items, cart){
-    return new Promise((resolve, reject) => {
-      this.resolve(cart)
-        .then(foundCart => {
-          if (!foundCart) {
-            const err = new Errors.FoundError(Error('Cart Not Found'))
-            return reject(err)
-          }
-          cart = foundCart
-          // const minimize = _.unionBy(items, 'product_id')
-          return Promise.all(items.map(item => {
-            return this.resolveItem(item)
-          }))
-        })
-        .then(resolvedItems => {
-          return Promise.all(resolvedItems.map((item, index) => {
-            return cart.addLine(item, items[index].quantity, items[index].properties)
-          }))
-        })
-        .then(resolvledItems => {
-          return cart.recalculate()
-        })
-        .then(cart => {
-          return cart.save()
-        })
-        .then(cart => {
-          this.app.log.silly('CartService.addItemsToCart Result', cart)
-          return resolve(cart)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+    return this.resolve(cart)
+      .then(foundCart => {
+        if (!foundCart) {
+          throw new Errors.FoundError(Error('Cart Not Found'))
+        }
+        if (foundCart.status !== CART_STATUS.OPEN) {
+          throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        }
+
+        cart = foundCart
+        // const minimize = _.unionBy(items, 'product_id')
+        return Promise.all(items.map(item => {
+          return this.resolveItem(item)
+        }))
+      })
+      .then(resolvedItems => {
+        return Promise.all(resolvedItems.map((item, index) => {
+          return cart.addLine(item, items[index].quantity, items[index].properties)
+        }))
+      })
+      .then(resolvledItems => {
+        return cart.recalculate()
+      })
+      .then(cart => {
+        return cart.save()
+      })
   }
 
   /**
@@ -290,35 +296,29 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   removeItemsFromCart(items, cart){
-    return new Promise((resolve, reject) => {
-      this.resolve(cart)
-        .then(foundCart => {
-          if (!foundCart) {
-            const err = new Errors.FoundError(Error('Cart Not Found'))
-            return reject(err)
-          }
-          cart = foundCart
-          return Promise.all(items.map(item => {
-            return this.resolveItem(item)
-          }))
+    return this.resolve(cart)
+      .then(foundCart => {
+        if (!foundCart) {
+          throw new Errors.FoundError(Error('Cart Not Found'))
+        }
+        if (foundCart.status !== CART_STATUS.OPEN) {
+          throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        }
+
+        cart = foundCart
+        return Promise.all(items.map(item => {
+          return this.resolveItem(item)
+        }))
+      })
+      .then(resolvedItems => {
+        _.each(resolvedItems, (item, index) => {
+          cart.removeLine(item, items[index].quantity)
         })
-        .then(resolvedItems => {
-          _.each(resolvedItems, (item, index) => {
-            cart.removeLine(item, items[index].quantity)
-          })
-          return cart.recalculate()
-        })
-        .then(cart => {
-          return cart.save()
-        })
-        .then(cart => {
-          // console.log('CartService.removeItemsFromCart CART', cart)
-          return resolve(cart)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+        return cart.recalculate()
+      })
+      .then(cart => {
+        return cart.save()
+      })
   }
   clearCart(cart){
     return new Promise((resolve, reject) => {
@@ -326,6 +326,10 @@ module.exports = class CartService extends Service {
         .then(foundCart => {
           if (!foundCart) {
             const err = new Errors.FoundError(Error('Cart Not Found'))
+            return reject(err)
+          }
+          if (foundCart.status !== CART_STATUS.OPEN) {
+            const err = new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
             return reject(err)
           }
           cart = foundCart
