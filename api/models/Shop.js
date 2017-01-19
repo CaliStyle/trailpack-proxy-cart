@@ -22,7 +22,12 @@ module.exports = class Shop extends Model {
             }
           },
           hooks: {
-            //
+            beforeValidate(values, options, fn) {
+              if (!values.handle && values.name) {
+                values.handle = values.name
+              }
+              fn()
+            }
           },
           classMethods: {
             UNITS: UNITS,
@@ -59,6 +64,14 @@ module.exports = class Shop extends Model {
         name: {
           type: Sequelize.STRING,
           allowNull: false
+        },
+        handle: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          unique: true,
+          set: function(val) {
+            this.setDataValue('handle', app.services.ProxyCartService.slug(val))
+          }
         },
         // The contact phone number for the shop.
         phone: {

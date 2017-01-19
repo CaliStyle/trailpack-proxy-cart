@@ -25,7 +25,7 @@ describe('ProxyCartService', () => {
     const address = {
       'address_1': '1600 Pennsylvania Ave NW',
       'address_2': '',
-      'company': 'Shipping Department',
+      'company': 'Normalize Address',
       'city': 'Washington',
       'phone': '',
       'province_code': 'DC',
@@ -43,13 +43,13 @@ describe('ProxyCartService', () => {
 
     done()
   })
-  it.skip('should validate address', done => {
+  it('should validate address', done => {
     const address = {
       'first_name': 'Scott',
       'last_name': 'Wyatt',
       'address_1': '1600 Pennsylvania Ave NW',
       'address_2': '',
-      'company': 'Shipping Department',
+      'company': 'Validate Address',
       'city': 'Washington',
       'phone': '',
       'province': 'District of Columbia',
@@ -61,8 +61,18 @@ describe('ProxyCartService', () => {
     }
 
     const validatedAddress = ProxyCartService.validateAddress(address)
-    console.log('THIS ADDRESS',validatedAddress)
+    // console.log('THIS ADDRESS',validatedAddress)
     assert.equal(validatedAddress.first_name, address.first_name)
+    assert.equal(validatedAddress.last_name, address.last_name)
+    assert.equal(validatedAddress.address_1, '1600 Pennsylvania Ave NW')
+    assert.equal(validatedAddress.address_2, '')
+    assert.equal(validatedAddress.company, 'Validate Address')
+    assert.equal(validatedAddress.city, 'Washington')
+    assert.equal(validatedAddress.phone, '')
+    assert.equal(validatedAddress.province, 'District of Columbia')
+    assert.equal(validatedAddress.province_code, 'DC')
+    assert.equal(validatedAddress.country, 'United States')
+    assert.equal(validatedAddress.country_code, 'US')
 
     done()
   })

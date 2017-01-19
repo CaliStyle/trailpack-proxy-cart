@@ -155,16 +155,18 @@ module.exports = class OrderService extends Service {
           else {
             resCustomer = customer
           }
-          resBillingAddress = resCustomer.billing_address ? resCustomer.billing_address.get({plain: true}) : obj.billing_address
-          resShippingAddress = resCustomer.shipping_address ? resCustomer.shipping_address.get({plain: true}) : obj.shipping_address
-          // If Addresses, validate them
-          if (resBillingAddress) {
-            resBillingAddress = this.app.services.ProxyCartService.validateAddress(resBillingAddress)
-          }
-          if (resShippingAddress) {
-            resShippingAddress = this.app.services.ProxyCartService.validateAddress(resShippingAddress)
+          resBillingAddress = this.resolveAddress(resCustomer.billing_address, obj.billing_address)
+          resShippingAddress = this.resolveAddress(resCustomer.shipping_address, obj.shipping_address)
+
+          if (!resShippingAddress) {
+            throw new Error('Order does not have a valid shipping address')
           }
 
+          if (!resBillingAddress) {
+            resBillingAddress = resShippingAddress
+          }
+
+          // console.log('OrderService.create', resShippingAddress, resBillingAddress)
           const order = {
             // Order Info
             processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
@@ -261,7 +263,6 @@ module.exports = class OrderService extends Service {
    * @param order
    * @returns {Promise.<T>}
    */
-  // TODO
   update(order) {
     const Order = this.app.services.ProxyEngineService.getModel('Order')
 
@@ -271,11 +272,11 @@ module.exports = class OrderService extends Service {
           throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
         }
         if (order.billing_address) {
-          resOrder.billing_address = _.merge(resOrder.billing_address, order.billing_address)
+          resOrder.billing_address = _.extend(resOrder.billing_address, order.billing_address)
           resOrder.billing_address = this.app.services.ProxyCartService.validateAddress(resOrder.billing_address)
         }
         if (order.shipping_address) {
-          resOrder.shipping_address = _.merge(resOrder.shipping_address, order.shipping_address)
+          resOrder.shipping_address = _.extend(resOrder.shipping_address, order.shipping_address)
           resOrder.shipping_address = this.app.services.ProxyCartService.validateAddress(resOrder.shipping_address)
         }
         if (order.buyer_accepts_marketing) {
@@ -321,12 +322,30 @@ module.exports = class OrderService extends Service {
       })
   }
 
-  cancel(order) {
+  cancel(order, reason) {
     return this.resolve(order)
       .then(order => {
 
         return order
       })
+  }
+
+  resolveAddress(customerAddress, address) {
+    const Address = this.app.services.ProxyEngineService.getModel('Address')
+    if (address && !_.isEmpty(address)) {
+      // console.log('before', address)
+      address =  this.app.services.ProxyCartService.validateAddress(address)
+      // console.log('after', address)
+      return address
+    }
+    else {
+      if (customerAddress instanceof Address.Instance) {
+        return customerAddress.get({plain: true})
+      }
+      else {
+        return customerAddress
+      }
+    }
   }
 }
 

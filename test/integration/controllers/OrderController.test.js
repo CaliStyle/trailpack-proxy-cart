@@ -71,6 +71,19 @@ describe('OrderController', () => {
         console.log('THIS ORDER', res.body)
         assert.ok(res.body.id)
         orderID = res.body.id
+        assert.equal(res.body.cart_token, cartToken)
+        assert.equal(res.body.email, 'example@example.com')
+        // Shipping
+        assert.equal(res.body.shipping_address.first_name, 'Scott')
+        assert.equal(res.body.shipping_address.last_name, 'Wyatt')
+        assert.equal(res.body.shipping_address.address_1, '1 Infinite Loop')
+        assert.equal(res.body.shipping_address.city, 'Cupertino')
+        assert.equal(res.body.shipping_address.province, 'California')
+        assert.equal(res.body.shipping_address.province_code, 'CA')
+        assert.equal(res.body.shipping_address.country_code, 'US')
+        assert.equal(res.body.shipping_address.country, 'United States')
+        assert.equal(res.body.shipping_address.postal_code, '95014')
+
         done(err)
       })
   })
@@ -78,13 +91,40 @@ describe('OrderController', () => {
     request
       .post(`/order/${orderID}`)
       .send({
-        shipping_address: {},
+        shipping_address: {
+          first_name: 'Scottie',
+          last_name: 'W'
+        },
         billing_address: {}
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('ORDERS COUNT', res.body)
+        // console.log('THIS ORDER', res.body)
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.cart_token, cartToken)
+        assert.equal(res.body.email, 'example@example.com')
+        assert.equal(res.body.shipping_address.first_name, 'Scottie')
+        assert.equal(res.body.shipping_address.last_name, 'W')
+        assert.equal(res.body.shipping_address.address_1, '1 Infinite Loop')
+        assert.equal(res.body.shipping_address.city, 'Cupertino')
+        assert.equal(res.body.shipping_address.province, 'California')
+        assert.equal(res.body.shipping_address.province_code, 'CA')
+        assert.equal(res.body.shipping_address.country_code, 'US')
+        assert.equal(res.body.shipping_address.country, 'United States')
+        assert.equal(res.body.shipping_address.postal_code, '95014')
         done(err)
       })
+  })
+  it.skip('should add an item to order', (done) => {
+  })
+  it.skip('should remove an item from order', (done) => {
+  })
+  it.skip('should pay an order', (done) => {
+  })
+  it.skip('should partially refund an order', (done) => {
+  })
+  it.skip('should refund an order', (done) => {
+  })
+  it.skip('should cancel an order', (done) => {
   })
 })

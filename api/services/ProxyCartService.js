@@ -7,6 +7,7 @@ const Errors = require('proxy-engine-errors')
 const joi = require('joi')
 const sharp = require('sharp')
 const lib = require('../../lib')
+const geolib = require('geolib')
 
 /**
  * @module ProxyCartService
@@ -170,19 +171,19 @@ module.exports = class ProxyCartService extends Service {
    * @returns {*}
    */
   validateAddress(address) {
-    const self = this
-    joi.validate(address, lib.Schemas.address.address, (err, value) => {
-      if (err) {
-        throw new Errors.ValidationError(err)
-      }
-      try {
-        address = self.normalizeAddress(address)
-      }
-      catch (err) {
-        throw new Error(err)
-      }
-      return address
-    })
+    try {
+      joi.validate(address, lib.Schemas.address.address)
+    }
+    catch (err) {
+      throw new Errors.ValidationError(err)
+    }
+    try {
+      address = this.normalizeAddress(address)
+    }
+    catch (err) {
+      throw new Error(err)
+    }
+    return address
   }
 
   /**
@@ -192,8 +193,8 @@ module.exports = class ProxyCartService extends Service {
    */
   normalizeAddress(address){
     const CountryService = this.app.services.CountryService
-    const provinceNorm = address.province_code || address.province
     const countryNorm = address.country_code || address.country || address.country_name
+    const provinceNorm = address.province_code || address.province
 
     if (!provinceNorm && !countryNorm) {
       return address
@@ -212,7 +213,9 @@ module.exports = class ProxyCartService extends Service {
       province: normalizedProvince.name,
       province_code: normalizedProvince.code
     }
-    return _.merge(address, ext)
+    address = _.merge(address, ext)
+    // console.log(address)
+    return address
   }
 
   /**
@@ -292,6 +295,18 @@ module.exports = class ProxyCartService extends Service {
           return reject(err)
         })
     })
+  }
+  nearestToAddress(shops, address) {
+    shops = _.map(shops, shop => {
+      shop.distance = geolib.getDistance(
+        {latitude: shop.latitude, longitude: shop.longitude},
+        {latitude: address.latitude, longitude: address.longitude}
+      )
+      return shop
+    })
+    shops = _.sortBy(shops, 'distance')
+
+    return shops
   }
 }
 
