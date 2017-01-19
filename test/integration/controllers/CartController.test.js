@@ -227,6 +227,7 @@ describe('CartController', () => {
         payment_kind: 'sale',
         payment_details: [
           {
+            gateway: 'payment_processor',
             token: '123'
           }
         ],

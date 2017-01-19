@@ -157,8 +157,8 @@ module.exports = class OrderService extends Service {
           else {
             resCustomer = customer
           }
-          resBillingAddress = this.resolveAddress(resCustomer.billing_address, obj.billing_address)
-          resShippingAddress = this.resolveAddress(resCustomer.shipping_address, obj.shipping_address)
+          resBillingAddress = this.resolveToAddress(resCustomer.billing_address, obj.billing_address)
+          resShippingAddress = this.resolveToAddress(resCustomer.shipping_address, obj.shipping_address)
 
           if (!resShippingAddress) {
             throw new Error('Order does not have a valid shipping address')
@@ -172,6 +172,7 @@ module.exports = class OrderService extends Service {
           const order = {
             // Order Info
             processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
+            processed_at: new Date(),
 
             // Cart Info
             cart_token: resCart.token,
@@ -232,22 +233,25 @@ module.exports = class OrderService extends Service {
             this.app.log.debug(`Order does not have a payment function, defaulting to ${TRANSACTION_KIND.MANUAL}`)
             orderPayment = TRANSACTION_KIND.MANUAL
           }
-          const transaction = {
-            order_id: resOrder.id,
-            currency: resOrder.currency,
-            amount: resOrder.total_price,
-            payment_details: obj.payment_details,
-            device_id: obj.device_id || null
-          }
-          return PaymentService[orderPayment](transaction)
+          return Promise.all(obj.payment_details.map((detail, index) => {
+            const transaction = {
+              order_id: resOrder.id,
+              currency: resOrder.currency,
+              amount: resOrder.total_price,
+              payment_details: obj.payment_details[index],
+              gateway: detail.gateway,
+              device_id: obj.device_id || null
+            }
+            return PaymentService[orderPayment](transaction)
+          }))
         })
-        .then(transaction => {
+        .then(transactions => {
           let orderFulfillment = obj.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind
           if (!orderFulfillment) {
             this.app.log.debug(`Order does not have a fulfillment function, defaulting to ${ORDER_FULFILLMENT_KIND.MANUAL}`)
             orderFulfillment = ORDER_FULFILLMENT_KIND.MANUAL
           }
-          if (transaction.status == TRANSACTION_STATUS.SUCCESS && transaction.kind == TRANSACTION_KIND.SALE && orderFulfillment == ORDER_FULFILLMENT_KIND.IMMEDIATE) {
+          if (this.resolveSendImmediately(transactions, orderFulfillment)) {
             return this.app.services.FulfillmentService.fulfillOrder(resOrder)
           }
           else {
@@ -270,7 +274,7 @@ module.exports = class OrderService extends Service {
 
     return this.resolve(order)
       .then(resOrder => {
-        if (resOrder.fulfillment_status !== FULFILLMENT_STATUS.NONE || resOrder.cancelled_at) {
+        if (resOrder.fulfillment_status !== (FULFILLMENT_STATUS.NONE || FULFILLMENT_STATUS.SENT) || resOrder.cancelled_at) {
           throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
         }
         if (order.billing_address) {
@@ -374,7 +378,32 @@ module.exports = class OrderService extends Service {
       })
   }
 
-  resolveAddress(customerAddress, address) {
+  /**
+   *
+   * @param transactions
+   * @param orderFulfillmentKind
+   * @returns {boolean}
+   */
+  resolveSendImmediately(transactions, orderFulfillmentKind) {
+    let immediate = false
+    if (orderFulfillmentKind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
+      return immediate
+    }
+    const successes = _.map(transactions, transaction => { return transaction.status == TRANSACTION_STATUS.SUCCESS})
+    const sales = _.map(transactions, transaction => { return transaction.kind == TRANSACTION_KIND.SALE})
+    if (successes.length == transactions.length && sales.length == transactions.length) {
+      immediate = true
+    }
+    return immediate
+  }
+
+  /**
+   *
+   * @param customerAddress
+   * @param address
+   * @returns {*}
+   */
+  resolveToAddress(customerAddress, address) {
     const Address = this.app.services.ProxyEngineService.getModel('Address')
     if (address && !_.isEmpty(address)) {
       address =  this.app.services.ProxyCartService.validateAddress(address)

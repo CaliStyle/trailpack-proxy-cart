@@ -244,6 +244,7 @@ module.exports = class Order extends Model {
               let fulfillmentStatus = ORDER_FULFILLMENT.NONE
               let totalFulfillments = 0
               let totalPartialFulfillments = 0
+              let totalSentFulfillments = 0
               let totalNonFulfillments = 0
               _.each(fulfillments, fulfilment => {
                 if (fulfilment.status == FULFILLMENT_STATUS.FULFILLED) {
@@ -252,12 +253,18 @@ module.exports = class Order extends Model {
                 else if (fulfilment.status == FULFILLMENT_STATUS.PARTIAL) {
                   totalPartialFulfillments++
                 }
+                else if (fulfilment.status == FULFILLMENT_STATUS.SENT) {
+                  totalSentFulfillments++
+                }
                 else if (fulfilment.status == FULFILLMENT_STATUS.NONE) {
                   totalNonFulfillments++
                 }
               })
               if (totalFulfillments == fulfillments.length) {
                 fulfillmentStatus = ORDER_FULFILLMENT.FULFILLED
+              }
+              else if (totalSentFulfillments == fulfillments.length) {
+                fulfillmentStatus = ORDER_FULFILLMENT.SENT
               }
               else if (totalPartialFulfillments > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.PARTIAL

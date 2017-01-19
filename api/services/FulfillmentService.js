@@ -4,6 +4,7 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
+const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 
 /**
  * @module FulfillmentService
@@ -53,6 +54,7 @@ module.exports = class FulfillmentService extends Service {
           service: service
         }
         if (service == FULFILLMENT_SERVICE.MANUAL) {
+          fulfillment.status = FULFILLMENT_STATUS.SENT
           return fulfillment
         }
         else {

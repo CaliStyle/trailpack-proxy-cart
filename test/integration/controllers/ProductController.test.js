@@ -214,28 +214,35 @@ describe('ProductController', () => {
       .send([
         {
           id: createdProductID,
+          // Updates Title
           title: 'Burton Custom Freestyle 151 Gen 2',
+          // Updates Metdata
           metadata: {
             test: 'new value'
           },
+          // Alters collections
           collections: [
             'free-shipping'
           ],
           images: [
+            // Updates Image alt Tag
             {
               id: firstVariantID,
               alt: 'Hello World 2 Updated'
             },
+            // Creates new Image
             {
               src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
               alt: 'Hello World 3'
             }
           ],
           variants: [
+            // Updates Variant
             {
               id: firstVariantID,
               title: 'Women\'s Burton Custom Freestyle 151 Updated'
             },
+            // Creates new Variant
             {
               title: 'Youth Burton Custom Freestyle 151',
               sku: 'board-y-123',

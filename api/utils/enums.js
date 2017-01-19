@@ -181,6 +181,7 @@ module.exports = {
   // partial: At least one line item in the order has been fulfilled.
   ORDER_FULFILLMENT: {
     FULFILLED: 'fulfilled',
+    SENT: 'sent',
     NONE: 'none',
     PARTIAL: 'partial'
   },
@@ -193,6 +194,7 @@ module.exports = {
   },
   FULFILLMENT_STATUS: {
     FULFILLED: 'fulfilled',
+    SENT: 'sent',
     NONE: 'none',
     PARTIAL: 'partial'
   },

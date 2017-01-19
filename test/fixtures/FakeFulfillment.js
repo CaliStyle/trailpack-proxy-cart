@@ -1,13 +1,17 @@
 'use strict'
-// const _ = require('lodash')
+const _ = require('lodash')
 module.exports = class FakeFulfillmentProvider {
   constructor(options) {
     this.options = options
   }
   createOrder(fulfillment){
+    fulfillment.status = 'sent'
     return Promise.resolve(fulfillment)
   }
   createOrders(fulfillments){
+    fulfillments = _.map(fulfillments, fulfillment => {
+      fulfillment.status = 'sent'
+    })
     return Promise.resolve(fulfillments)
   }
   updateOrder(fulfillment){

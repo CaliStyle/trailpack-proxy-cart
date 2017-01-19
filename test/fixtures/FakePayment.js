@@ -15,14 +15,11 @@ module.exports = class FakePaymentProcessor {
     }
     else {
       transaction.status = 'success'
-      transaction.payment_details = _.map(transaction.payment_details, card => {
-        card.avs_result_code = '123'
-        card.credit_card_iin = '123'
-        card.credit_card_company = 'visa'
-        card.credit_card_number = '**** **** **** 1234'
-        card.cvv_result_code = 'Y'
-        return card
-      })
+      transaction.payment_details.avs_result_code = '123'
+      transaction.payment_details.credit_card_iin = '123'
+      transaction.payment_details.credit_card_company = 'visa'
+      transaction.payment_details.credit_card_number = '**** **** **** 1234'
+      transaction.payment_details.cvv_result_code = 'Y'
     }
     return Promise.resolve(transaction)
   }
@@ -35,14 +32,12 @@ module.exports = class FakePaymentProcessor {
     transaction.authorization = 'abc123'
     transaction.status = 'success'
     transaction.kind = 'sale'
-    transaction.payment_details = _.map(transaction.payment_details, card => {
-      card.avs_result_code = '123'
-      card.credit_card_iin = '123'
-      card.credit_card_company = 'visa'
-      card.credit_card_number = '**** **** **** 1234'
-      card.cvv_result_code = 'Y'
-      return card
-    })
+    transaction.payment_details.avs_result_code = '123'
+    transaction.payment_details.credit_card_iin = '123'
+    transaction.payment_details.credit_card_company = 'visa'
+    transaction.payment_details.credit_card_number = '**** **** **** 1234'
+    transaction.payment_details.cvv_result_code = 'Y'
+
     return Promise.resolve(transaction)
   }
   void(transaction) {

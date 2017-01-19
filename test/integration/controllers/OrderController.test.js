@@ -61,6 +61,7 @@ describe('OrderController', () => {
         email: 'example@example.com',
         payment_details: [
           {
+            gateway: 'payment_processor',
             token: '123'
           }
         ]
