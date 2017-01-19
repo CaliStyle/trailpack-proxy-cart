@@ -111,9 +111,19 @@ module.exports = class ProductVariant extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        product_id: {
+          type: Sequelize.INTEGER,
+          unique: 'productvariant_sku',
+          references: {
+            model: 'Product',
+            key: 'id'
+          }
+        },
         // The SKU for this Variation
         sku: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          unique: 'productvariant_sku',
+          allowNull: false
         },
         // Variant Title
         title: {

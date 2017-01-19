@@ -175,7 +175,7 @@ Handles Transaction operations
 #### CollectionService
 #### CouponService
 #### CustomerService
-#### CustomerCSVService
+#### CustomerCsvService
 #### DiscountService
 #### FulfillmentService
 #### GiftCardService

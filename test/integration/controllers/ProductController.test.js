@@ -238,6 +238,7 @@ describe('ProductController', () => {
             },
             {
               title: 'Youth Burton Custom Freestyle 151',
+              sku: 'board-y-123',
               images: [
                 {
                   src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
