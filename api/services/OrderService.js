@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Service = require('trails/service')
@@ -5,6 +6,9 @@ const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
+const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
+const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
+const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 /**
  * @module OrderService
  * @description Order Service
@@ -41,6 +45,35 @@ module.exports = class OrderService extends Service {
     }
     else {
       const err = new Error('Unable to resolve Order')
+      Promise.reject(err)
+    }
+  }
+
+  resolveItem(item, options) {
+    const OrderItem =  this.app.services.ProxyEngineService.getModel('OrderItem')
+    if (item instanceof OrderItem.Instance){
+      return Promise.resolve(item)
+    }
+    else if (item && _.isObject(item) && item.id) {
+      return OrderItem.findById(item.id, options)
+        .then(resOrderItem => {
+          if (!resOrderItem) {
+            throw new Errors.FoundError(Error(`Order ${item.id} not found`))
+          }
+          return resOrderItem
+        })
+    }
+    else if (item && (_.isString(item) || _.isNumber(item))) {
+      return OrderItem.findById(item, options)
+        .then(resOrderItem => {
+          if (!resOrderItem) {
+            throw new Errors.FoundError(Error(`Order ${item} not found`))
+          }
+          return resOrderItem
+        })
+    }
+    else {
+      const err = new Error('Unable to resolve Order Item')
       Promise.reject(err)
     }
   }
@@ -192,8 +225,8 @@ module.exports = class OrderService extends Service {
           // Set proxy cart default payment kind if not set by order.create
           let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment_kind
           if (!orderPayment) {
-            this.app.log.debug('Order does not have a payment function, defaulting to manual')
-            orderPayment = 'manual'
+            this.app.log.debug(`Order does not have a payment function, defaulting to ${TRANSACTION_KIND.MANUAL}`)
+            orderPayment = TRANSACTION_KIND.MANUAL
           }
           const transaction = {
             order_id: resOrder.id,
@@ -205,6 +238,19 @@ module.exports = class OrderService extends Service {
           return PaymentService[orderPayment](transaction)
         })
         .then(transaction => {
+          let orderFulfillment = obj.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind
+          if (!orderFulfillment) {
+            this.app.log.debug(`Order does not have a fulfillment function, defaulting to ${ORDER_FULFILLMENT_KIND.MANUAL}`)
+            orderFulfillment = ORDER_FULFILLMENT_KIND.MANUAL
+          }
+          if (transaction.status == TRANSACTION_STATUS.SUCCESS && transaction.kind == TRANSACTION_KIND.SALE && orderFulfillment == ORDER_FULFILLMENT_KIND.IMMEDIATE) {
+            return this.app.services.FulfillmentService.fulfillOrder(resOrder)
+          }
+          else {
+            return
+          }
+        })
+        .then(fulfillments => {
           return Order.findIdDefault(resOrder.id)
         })
     })
@@ -221,7 +267,7 @@ module.exports = class OrderService extends Service {
 
     return this.resolve(order)
       .then(resOrder => {
-        if (resOrder.fulfillment_status !== FULFILLMENT_STATUS.NONE) {
+        if (resOrder.fulfillment_status !== FULFILLMENT_STATUS.NONE || resOrder.cancelled_at) {
           throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
         }
         if (order.billing_address) {
@@ -243,7 +289,7 @@ module.exports = class OrderService extends Service {
       })
   }
   // TODO
-  removeItemFromOrder(data) {
+  removeItem(data) {
     return Promise.resolve(data)
   }
   /**
@@ -252,7 +298,7 @@ module.exports = class OrderService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   // TODO
-  payOrder(order, gateway) {
+  pay(order, gateway) {
     return this.resolve(order)
       .then(order => {
         if (order.financial_status !== ('authorized' || 'partially_paid')) {
@@ -267,7 +313,15 @@ module.exports = class OrderService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   // TODO
-  refundOrder(order, refund) {
+  refund(order, refund) {
+    return this.resolve(order)
+      .then(order => {
+
+        return order
+      })
+  }
+
+  cancel(order) {
     return this.resolve(order)
       .then(order => {
 

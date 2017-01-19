@@ -60,5 +60,33 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+  cancel(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.cancel(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return OrderService.cancel(req.body)
+      })
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  refund(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.refund(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return OrderService.refund(req.body)
+      })
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

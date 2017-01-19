@@ -308,7 +308,7 @@ describe('ProductController', () => {
   })
   it('should make removeImage post request', (done) => {
     request
-      .post(`/product/removeImage/${firstImageID}`)
+      .post(`/product/image/${firstImageID}/remove`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -326,7 +326,7 @@ describe('ProductController', () => {
   })
   it('should make removeVariant post request', (done) => {
     request
-      .post(`/product/removeVariant/${firstVariantID}`)
+      .post(`/product/variant/${firstVariantID}/remove`)
       .send({})
       .expect(200)
       .end((err, res) => {

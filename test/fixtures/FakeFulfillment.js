@@ -4,34 +4,34 @@ module.exports = class FakeFulfillmentProvider {
   constructor(options) {
     this.options = options
   }
-  createOrder(data, adapter){
-    return Promise.resolve({})
+  createOrder(fulfillment){
+    return Promise.resolve(fulfillment)
   }
-  createOrders(data, adapter){
-    return Promise.resolve([])
+  createOrders(fulfillments){
+    return Promise.resolve(fulfillments)
   }
-  updateOrder(data){
-    return Promise.resolve({})
+  updateOrder(fulfillment){
+    return Promise.resolve(fulfillment)
   }
-  updateOrders(data){
-    return Promise.resolve([])
+  updateOrders(fulfillments){
+    return Promise.resolve(fulfillments)
   }
-  destroyOrder(data){
-    return Promise.resolve({})
+  destroyOrder(fulfillment){
+    return Promise.resolve(fulfillment)
   }
-  destroyOrders(data){
-    return Promise.resolve([])
+  destroyOrders(fulfillments){
+    return Promise.resolve(fulfillments)
   }
-  getOrder(data){
-    return Promise.resolve({})
+  getOrder(fulfillment){
+    return Promise.resolve(fulfillment)
   }
-  getOrders(data){
-    return Promise.resolve([])
+  getOrders(fulfillments){
+    return Promise.resolve(fulfillments)
   }
-  holdOrder(data){
-    return Promise.resolve({})
+  holdOrder(fulfillment){
+    return Promise.resolve(fulfillment)
   }
-  holdOrders(data){
-    return Promise.resolve([])
+  holdOrders(fulfillments){
+    return Promise.resolve(fulfillments)
   }
 }

@@ -146,6 +146,7 @@ module.exports = class CartService extends Service {
           payment_details: data.payment_details,
           gateway: data.gateway,
           payment_kind: data.payment_kind,
+          fulfillment_kind: data.fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
           shipping_address: data.shipping_address,
           billing_address: data.billing_address

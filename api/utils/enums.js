@@ -184,6 +184,13 @@ module.exports = {
     NONE: 'none',
     PARTIAL: 'partial'
   },
+  ORDER_FULFILLMENT_KIND: {
+    IMMEDIATE: 'immediate',
+    MANUAL: 'manual'
+  },
+  FULFILLMENT_SERVICE: {
+    MANUAL: 'manual'
+  },
   FULFILLMENT_STATUS: {
     FULFILLED: 'fulfilled',
     NONE: 'none',

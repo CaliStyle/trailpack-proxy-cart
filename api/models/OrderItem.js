@@ -6,6 +6,7 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
+const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
 /**
  * @module OrderItem
  * @description Order Item Model
@@ -20,6 +21,7 @@ module.exports = class OrderItem extends Model {
           underscored: true,
           classMethods: {
             FULFILLMENT_STATUS: FULFILLMENT_STATUS,
+            FULFILLMENT_SERVICE: FULFILLMENT_SERVICE,
             /**
              * Associate the Model
              * @param models
@@ -65,7 +67,8 @@ module.exports = class OrderItem extends Model {
         },
         // Service provider who is doing the fulfillment. Valid values are either "manual" or the name of the provider. eg: "amazon", "shipwire", etc.
         fulfillment_service: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          defaultValue: FULFILLMENT_SERVICE.MANUAL
         },
         // How far along an order is in terms line items fulfilled. Valid values are: fulfilled, null or partial.
         fulfillment_status: {

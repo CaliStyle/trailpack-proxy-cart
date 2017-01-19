@@ -11,6 +11,7 @@ const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
+const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 
 
@@ -70,6 +71,7 @@ module.exports = class Order extends Model {
             PAYMENT_PROCESSING_METHOD: PAYMENT_PROCESSING_METHOD,
             TRANSACTION_STATUS: TRANSACTION_STATUS,
             TRANSACTION_KIND: TRANSACTION_KIND,
+            FULFILLMENT_STATUS: FULFILLMENT_STATUS,
             /**
              * Associate the Model
              * @param models
@@ -133,6 +135,10 @@ module.exports = class Order extends Model {
                   {
                     model: app.orm['Transaction'],
                     as: 'transactions'
+                  },
+                  {
+                    model: app.orm['Fulfillment'],
+                    as: 'fulfillments'
                   }
                 ]
               })
@@ -152,13 +158,13 @@ module.exports = class Order extends Model {
                   return this.save()
                 })
             },
-            resolveFulfillmentStatus: function(options) {
+            resolveFulfillmentStatus: function() {
               const Fulfillment = app.orm['Fulfillment']
               return Fulfillment.findAll({
                 where: {
                   order_id: this.id
                 }
-              }, options)
+              })
                 .then(fulfillments => {
                   this.setFulfillmentStatus(fulfillments)
                   return this.save()
@@ -235,6 +241,28 @@ module.exports = class Order extends Model {
               return this
             },
             setFulfillmentStatus: function(fulfillments){
+              let fulfillmentStatus = ORDER_FULFILLMENT.NONE
+              let totalFulfillments = 0
+              let totalPartialFulfillments = 0
+              let totalNonFulfillments = 0
+              _.each(fulfillments, fulfilment => {
+                if (fulfilment.status == FULFILLMENT_STATUS.FULFILLED) {
+                  totalFulfillments++
+                }
+                else if (fulfilment.status == FULFILLMENT_STATUS.PARTIAL) {
+                  totalPartialFulfillments++
+                }
+                else if (fulfilment.status == FULFILLMENT_STATUS.NONE) {
+                  totalNonFulfillments++
+                }
+              })
+              if (totalFulfillments == fulfillments.length) {
+                fulfillmentStatus = ORDER_FULFILLMENT.FULFILLED
+              }
+              else if (totalPartialFulfillments > 0) {
+                fulfillmentStatus = ORDER_FULFILLMENT.PARTIAL
+              }
+              this.fulfillment_status = fulfillmentStatus
               return this
             }
           }
@@ -263,27 +291,29 @@ module.exports = class Order extends Model {
             key: 'id'
           }
         },
-
+        // Billing Address on Order
         billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address', {
           defaultValue: {}
         }),
+        // Shipping Address on Order
         shipping_address: helpers.JSONB('order', app, Sequelize, 'shipping_address', {
           defaultValue: {}
         }),
-        //
+        // If Buyer Accepts marketing
         buyer_accepts_marketing: {
           type: Sequelize.BOOLEAN,
           defaultValue: true
         },
-
         // The reason why the order was cancelled. If the order was not cancelled, this value is "null."
         cancel_reason: {
           type: Sequelize.ENUM,
           values: _.values(ORDER_CANCEL)
         },
+        // The time the order was cancelled
         cancelled_at: {
           type: Sequelize.DATE
         },
+        // The details from the browser that placed the order
         client_details: helpers.JSONB('order', app, Sequelize, 'client_details', {
           defaultValue: {
             'host': null,
@@ -297,6 +327,7 @@ module.exports = class Order extends Model {
             'longitude': null
           }
         }),
+        // The time the order was closed at.
         closed_at: {
           type: Sequelize.DATE
         },
@@ -323,14 +354,19 @@ module.exports = class Order extends Model {
           type: Sequelize.ENUM,
           values: _.values(ORDER_FINANCIAL)
         },
+        // fulfilled: the order has been completely fulfilled
+        // none: the order has no fulfillments
+        // partial: the order has some fulfillments
         fulfillment_status: {
           type: Sequelize.ENUM,
           values: _.values(ORDER_FULFILLMENT),
           defaultValue: ORDER_FULFILLMENT.NONE
         },
+        // The gateway used to create transactions
         gateway: {
           type: Sequelize.STRING
         },
+        // The site this sale originated from
         landing_site: {
           type: Sequelize.STRING
         },
@@ -398,7 +434,6 @@ module.exports = class Order extends Model {
         taxes_included: {
           type: Sequelize.BOOLEAN
         },
-        // TODO
         // Unique identifier for a particular order.
         token: {
           type: Sequelize.STRING,

@@ -229,7 +229,8 @@ describe('CartController', () => {
           {
             token: '123'
           }
-        ]
+        ],
+        fulfillment_kind: 'immediate'
       })
       .expect(200)
       .end((err, res) => {

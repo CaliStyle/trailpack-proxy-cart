@@ -3,6 +3,7 @@
 const Model = require('trails/model')
 const _ = require('lodash')
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
+const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
 /**
  * @module Fulfillment
  * @description Fulfillment Model
@@ -20,7 +21,7 @@ module.exports = class Fulfillment extends Model {
               const Order = app.orm['Order']
               Order.findById(values.order_id)
                 .then(order => {
-                  return order.resolveFulFillmentStatus()
+                  return order.resolveFulfillmentStatus()
                 })
                 .then(order => {
                   fn(null, values)
@@ -32,6 +33,7 @@ module.exports = class Fulfillment extends Model {
           },
           classMethods: {
             FULFILLMENT_STATUS: FULFILLMENT_STATUS,
+            FULFILLMENT_SERVICE: FULFILLMENT_SERVICE,
             /**
              * Associate the Model
              * @param models
@@ -41,7 +43,7 @@ module.exports = class Fulfillment extends Model {
               //   // as: 'order_id'
               // })
               models.Fulfillment.hasMany(models.OrderItem, {
-                as: 'line_items'
+                as: 'order_items'
               })
             }
           }
@@ -72,6 +74,10 @@ module.exports = class Fulfillment extends Model {
           type: Sequelize.ENUM,
           values: _.values(FULFILLMENT_STATUS),
           defaultValue: FULFILLMENT_STATUS.NONE
+        },
+        service: {
+          type: Sequelize.STRING,
+          defaultValue: FULFILLMENT_SERVICE.MANUAL
         },
         //The name of the shipping company.
         tracking_company: {
