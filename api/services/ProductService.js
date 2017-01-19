@@ -10,6 +10,7 @@ const Errors = require('proxy-engine-errors')
  * @description Product Service
  */
 module.exports = class ProductService extends Service {
+
   /**
    * Add Multiple Products
    * @param products
@@ -30,37 +31,23 @@ module.exports = class ProductService extends Service {
    * @returns {Promise}
    */
   addProduct(product) {
-    return new Promise((resolve, reject) => {
-      // Footprints Service
-      const FootprintService = this.app.services.FootprintService
-      // The Search Parameters
-      const find = {
+    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    return Product.find({
+      where: {
         host: product.host ? product.host : 'localhost',
         handle: product.handle
       }
-      // Search for the Product
-      FootprintService.find('Product', find)
-        .then(foundProducts => {
-          // console.log('ProductService.addProduct', foundProducts)
-          if (foundProducts.length === 0){
-            // Create Product
-            return this.createProduct(product)
-          }
-          else {
-            // Set this id just in case it's missing
-            product.id = foundProducts[0].id
-            // Check if this request has new variants and add them
-            return this.updateProduct(product)
-          }
-        })
-        .then(resProduct => {
-          // console.log('ProductService.addProduct', product)
-          return resolve(resProduct)
-        })
-        .catch(err =>{
-          return reject(err)
-        })
     })
+      .then(resProduct => {
+        if (!resProduct) {
+          return this.createProduct(product)
+        }
+        else {
+          // Set ID in case it's missing in this transaction
+          product.id = resProduct.id
+          return this.updateProduct(product)
+        }
+      })
   }
 
   /**
@@ -70,111 +57,111 @@ module.exports = class ProductService extends Service {
    */
   // TODO Create Images and Variant Images in one command
   createProduct(product){
-    return new Promise((resolve, reject) => {
-      // const FootprintService = this.app.services.FootprintService
-      const Product = this.app.services.ProxyEngineService.getModel('Product')
-      const Tag = this.app.services.ProxyEngineService.getModel('Tag')
-      const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
-      const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
-      const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
-      const Collection = this.app.services.ProxyEngineService.getModel('Collection')
+    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    const Tag = this.app.services.ProxyEngineService.getModel('Tag')
+    const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+    const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
+    const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
+    const Collection = this.app.services.ProxyEngineService.getModel('Collection')
 
-      // The Default Product
-      const create = {
-        host: product.host,
-        handle: product.handle,
-        title: product.title,
-        body: product.body,
-        vendor: product.vendor,
-        type: product.type,
-        price: product.price,
-        published: product.published,
-        published_scope: product.published_scope,
-        weight: product.weight,
-        weight_unit: product.weight_unit,
-        metadata: Metadata.transform(product.metadata || {})
-      }
+    // The Default Product
+    const create = {
+      host: product.host,
+      handle: product.handle,
+      title: product.title,
+      body: product.body,
+      vendor: product.vendor,
+      type: product.type,
+      price: product.price,
+      published: product.published,
+      published_scope: product.published_scope,
+      weight: product.weight,
+      weight_unit: product.weight_unit,
+      metadata: Metadata.transform(product.metadata || {})
+    }
 
-      if (product.published) {
-        create.published_at = new Date()
-      }
-      if (product.published_scope) {
-        create.published_scope = product.published_scope
-      }
-      if (product.seo_title) {
-        create.seo_title = product.seo_title
-      }
-      else {
-        create.seo_title = product.title
-      }
-      if (product.seo_description) {
-        create.seo_description = product.seo_description
-      }
-      else {
-        create.seo_description = product.body
-      }
+    if (product.published) {
+      create.published_at = new Date()
+    }
+    if (product.published_scope) {
+      create.published_scope = product.published_scope
+    }
+    if (product.seo_title) {
+      create.seo_title = product.seo_title
+    }
+    else {
+      create.seo_title = product.title
+    }
+    if (product.seo_description) {
+      create.seo_description = product.seo_description
+    }
+    else {
+      create.seo_description = product.body
+    }
 
-      // Images
-      let images = []
-      // If this request came with product images
-      if (product.images) {
-        _.map(product.images, image => {
-          image.variant = 0
+    // Images
+    let images = []
+    // If this request came with product images
+    if (product.images) {
+      _.map(product.images, image => {
+        image.variant = 0
+      })
+      images = images.concat(product.images)
+      delete product.images
+    }
+
+    // Variants
+    let variants = [{
+      sku: product.sku,
+      title: product.title,
+      price: product.price,
+      weight: product.weight,
+      weight_unit: product.weight_unit,
+      published: product.published
+    }]
+    if (product.published) {
+      variants[0].published_at = create.published_at
+    }
+    // Add variants to the default
+    if (product.variants) {
+      variants = variants.concat(product.variants)
+    }
+
+    _.map(variants, (variant, index) => {
+      variant = this.variantDefaults(variant, product)
+      // Map Variant Positions putting default at 1
+      //if (!variant.position) {
+      variant.position = index + 1
+      //}
+      // If this variant is not explicitly not published set to status of parent
+      if (product.published && variant.published !== false) {
+        variant.published = true
+      }
+      // If this variant is published then set published_at to same as parent
+      if (variant.published) {
+        variant.published_at = create.published_at
+      }
+      // Handle Variant Images
+      if (variant.images) {
+        _.map(variant.images, image => {
+          image.variant = index
         })
-        images = images.concat(product.images)
-        delete product.images
+        images = images.concat(variant.images)
+        delete variant.images
       }
+    })
+    // Assign the variants to the create model
+    create.variants = variants
 
-      // Variants
-      let variants = [{
-        sku: product.sku,
-        title: product.title,
-        price: product.price,
-        weight: product.weight,
-        weight_unit: product.weight_unit,
-        published: product.published
-      }]
-      if (product.published) {
-        variants[0].published_at = create.published_at
-      }
-      // Add variants to the default
-      if (product.variants) {
-        variants = variants.concat(product.variants)
-      }
+    _.map(images, (image, index) => {
+      image.position = index + 1
+    })
 
-      _.map(variants, (variant, index) => {
-        variant = this.variantDefaults(variant, product)
-        // Map Variant Positions putting default at 1
-        //if (!variant.position) {
-        variant.position = index + 1
-        //}
-        // If this variant is not explicitly not published set to status of parent
-        if (product.published && variant.published !== false) {
-          variant.published = true
-        }
-        // If this variant is published then set published_at to same as parent
-        if (variant.published) {
-          variant.published_at = create.published_at
-        }
-        // Handle Variant Images
-        if (variant.images) {
-          _.map(variant.images, image => {
-            image.variant = index
-          })
-          images = images.concat(variant.images)
-          delete variant.images
-        }
-      })
-      // Assign the variants to the create model
-      create.variants = variants
-
-      _.map(images, (image, index) => {
-        image.position = index + 1
-      })
-
+    // Setup Transaction
+    return Product.sequelize.transaction(t => {
       // Set the resulting Product
       let resProduct = {}
-      Product.create(create, {
+      return Product.create(create, {
         include: [
           {
             model: Tag,
@@ -220,6 +207,20 @@ module.exports = class ProductService extends Service {
           return
         })
         .then(tags => {
+          if (product.shops) {
+            return Promise.all(product.shops.map(shop => {
+              return this.app.services.ShopService.resolve(shop)
+            }))
+          }
+          return
+        })
+        .then(shops => {
+          if (shops) {
+            return resProduct.setShops(shops)
+          }
+          return
+        })
+        .then(shops => {
           if (product.collections) {
             // Resolve the collections
             return Promise.all(product.collections.map(collection => {
@@ -249,13 +250,6 @@ module.exports = class ProductService extends Service {
           // Reload
           return Product.findIdDefault(resProduct.id)
         })
-        .then(product => {
-          // Return Product
-          return resolve(product)
-        })
-        .catch(err => {
-          return reject(err)
-        })
     })
   }
   /**
@@ -280,22 +274,20 @@ module.exports = class ProductService extends Service {
   // TODO Create/Update Images and Variant Images in one command
   // TODO resolve collection if posted
   updateProduct(product) {
-    return new Promise((resolve, reject) => {
-      if (!product.id) {
-        const err = new Errors.FoundError(Error('Product is missing id'))
-        return reject(err)
-      }
-      const Product = this.app.services.ProxyEngineService.getModel('Product')
-      const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
-      const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
-      const Tag = this.app.services.ProxyEngineService.getModel('Tag')
-      // const Collection = this.app.services.ProxyEngineService.getModel('Collection')
-      // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
+    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+    const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
+    const Tag = this.app.services.ProxyEngineService.getModel('Tag')
+    // const Collection = this.app.services.ProxyEngineService.getModel('Collection')
+    // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
 
-
+    // let newTags = []
+    return Product.sequelize.transaction(t => {
       let resProduct = {}
-      // let newTags = []
-      Product.findIdDefault(product.id)
+      if (!product.id) {
+        throw new Errors.FoundError(Error('Product is missing id'))
+      }
+      return Product.findIdDefault(product.id)
         .then(foundProduct => {
           resProduct = foundProduct
 
@@ -473,14 +465,6 @@ module.exports = class ProductService extends Service {
         .then(images => {
           return Product.findIdDefault(resProduct.id)
         })
-        .then(product => {
-          // console.log('updateProduct', product)
-          return resolve(product)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-
     })
   }
   /**
@@ -496,23 +480,24 @@ module.exports = class ProductService extends Service {
       return this.removeProduct(product)
     }))
   }
-  removeProduct(product) {
-    return new Promise((resolve, reject) => {
-      if (!product.id) {
-        const err = new Errors.FoundError(Error('Product is missing id'))
-        return reject(err)
-      }
 
-      const FootprintService = this.app.services.FootprintService
-      FootprintService.destroy('Product', product.id)
-        .then(destroyedProduct => {
-          return resolve(destroyedProduct)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+  /**
+   *
+   * @param product
+   */
+  removeProduct(product) {
+    if (!product.id) {
+      const err = new Errors.FoundError(Error('Product is missing id'))
+      return Promise.reject(err)
+    }
+    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    return Product.destroy({where: {id: product.id}})
   }
+
+  /**
+   *
+   * @param variants
+   */
   removeVariants(variants){
     if (!Array.isArray(variants)) {
       variants = [variants]
@@ -522,48 +507,50 @@ module.exports = class ProductService extends Service {
       return this.removeVariant(id)
     }))
   }
+
+  /**
+   *
+   * @param id
+   */
   removeVariant(id){
-    return new Promise((resolve, reject) => {
-      const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
-      let destroy
-      let updates
-      Variant.findById(id)
-        .then(foundVariant => {
-          destroy = foundVariant
-          return Variant.findAll({
-            where: {
-              product_id: destroy.product_id
-            }
-          })
+    const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+    let destroy
+    let updates
+    return Variant.findById(id)
+      .then(foundVariant => {
+        destroy = foundVariant
+        return Variant.findAll({
+          where: {
+            product_id: destroy.product_id
+          }
         })
-        .then(foundVariants => {
-          updates = _.sortBy(_.filter(foundVariants, variant => {
-            if (variant.id !== id){
-              return variant
-            }
-          }), 'position')
-          _.map(updates, (variant, index) => {
-            variant.position = index + 1
-          })
-          return Promise.all(updates.map(variant => {
-            return variant.save()
-          }))
+      })
+      .then(foundVariants => {
+        updates = _.sortBy(_.filter(foundVariants, variant => {
+          if (variant.id !== id){
+            return variant
+          }
+        }), 'position')
+        _.map(updates, (variant, index) => {
+          variant.position = index + 1
         })
-        .then(updatedVariants => {
-          return Variant.destroy({
-            where: {
-              id: id
-            }
-          })
+        return Promise.all(updates.map(variant => {
+          return variant.save()
+        }))
+      })
+      .then(updatedVariants => {
+        return Variant.destroy({
+          where: {
+            id: id
+          }
         })
-        .then(destroyedVariant => {
-          return resolve(destroyedVariant)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+      })
   }
+
+  /**
+   *
+   * @param images
+   */
   removeImages(images){
     if (!Array.isArray(images)) {
       images = [images]
@@ -573,48 +560,45 @@ module.exports = class ProductService extends Service {
       return this.removeImage(id)
     }))
   }
+
+  /**
+   *
+   * @param id
+   */
   removeImage(id){
-    return new Promise((resolve, reject) => {
-      const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
-      let destroy
-      let updates
-      Image.findById(id)
-        .then(foundImage => {
-          destroy = foundImage
-          return Image.findAll({
-            where: {
-              product_id: destroy.product_id
-            }
-          })
+    const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
+    let destroy
+    let updates
+    return Image.findById(id)
+      .then(foundImage => {
+        destroy = foundImage
+        return Image.findAll({
+          where: {
+            product_id: destroy.product_id
+          }
         })
-        .then(foundImages => {
-          updates = _.sortBy(_.filter(foundImages, image => {
-            if (image.id !== id){
-              return image
-            }
-          }), 'position')
-          _.map(updates, (image, index) => {
-            image.position = index + 1
-          })
-          return Promise.all(updates.map(image => {
-            return image.save()
-            // return FootprintService.update('ProductImage',image.id, { position: image.position })
-          }))
+      })
+      .then(foundImages => {
+        updates = _.sortBy(_.filter(foundImages, image => {
+          if (image.id !== id){
+            return image
+          }
+        }), 'position')
+        _.map(updates, (image, index) => {
+          image.position = index + 1
         })
-        .then(updatedImages => {
-          return Image.destroy({
-            where: {
-              id: id
-            }
-          })
+        return Promise.all(updates.map(image => {
+          return image.save()
+          // return FootprintService.update('ProductImage',image.id, { position: image.position })
+        }))
+      })
+      .then(updatedImages => {
+        return Image.destroy({
+          where: {
+            id: id
+          }
         })
-        .then(destroyedImage => {
-          return resolve(destroyedImage)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+      })
   }
   // TODO addTag
   addTag(product, tag){
@@ -631,6 +615,15 @@ module.exports = class ProductService extends Service {
   }
   // TODO removeFromCollection
   removeFromCollection(product, collection){
+
+  }
+
+  // TODO addToShop
+  addToShop(product, shop){
+
+  }
+  // TODO removeFromShop
+  removeFromShop(product, shop){
 
   }
 

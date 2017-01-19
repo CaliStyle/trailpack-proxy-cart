@@ -88,5 +88,13 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  exportOrders(req, res) {
+    //
+  }
 }
 

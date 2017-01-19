@@ -305,7 +305,11 @@ describe('ProductController', () => {
   })
   it.skip('should add collection to product', (done) => {
   })
-  it.skip('should add remove to product', (done) => {
+  it.skip('should remove collection from product', (done) => {
+  })
+  it.skip('should add shop to product', (done) => {
+  })
+  it.skip('should remove shop from product', (done) => {
   })
   it('should make removeImage post request', (done) => {
     request

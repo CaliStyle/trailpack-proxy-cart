@@ -98,5 +98,13 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  exportCustomers(req, res) {
+    //
+  }
 }
 

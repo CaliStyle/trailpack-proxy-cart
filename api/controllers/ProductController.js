@@ -413,5 +413,13 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  exportProducts(req, res) {
+    //
+  }
 }
 
