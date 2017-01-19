@@ -6,9 +6,11 @@ const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
+const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
 const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
+const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
 /**
  * @module OrderService
  * @description Order Service
@@ -302,11 +304,27 @@ module.exports = class OrderService extends Service {
   pay(order, gateway) {
     return this.resolve(order)
       .then(order => {
-        if (order.financial_status !== ('authorized' || 'partially_paid')) {
-          throw new Error(`Order status is ${order.financial_status} not 'authorized or partially_paid'`)
+        if (order.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
+          throw new Error(`Order status is ${order.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
         }
         return order
       })
+      .then(order => {
+        if (!order.transactions || order.transactions.length == 0) {
+          return order.getTransactions()
+        }
+        else {
+          return order
+        }
+      })
+      .then(order => {
+        return order
+      })
+  }
+  payOrders(orders) {
+    return Promise.all(orders.map(order => {
+      return this.pay(order)
+    }))
   }
   /**
    *
@@ -322,20 +340,44 @@ module.exports = class OrderService extends Service {
       })
   }
 
-  cancel(order, reason) {
+  // TODO cancel fulfillments, refund transactions
+  cancel(order) {
+    const reason = order.cancel_reason
+    let resOrder
     return this.resolve(order)
       .then(order => {
-
-        return order
+        resOrder = order
+        if (resOrder.fulfillment_status !== ORDER_FULFILLMENT.NONE) {
+          throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}'`)
+        }
+        return resOrder
+        // if (!resOrder.transactions) {
+        //   return resOrder.getTransactions()
+        // }
+        // else {
+        //   return resOrder
+        // }
+      })
+      // .then(order => {
+      //   if (!order.fulfillments) {
+      //     return order.getFulfillments()
+      //   }
+      //   else {
+      //     return order
+      //   }
+      // })
+      .then(resOrder => {
+        resOrder.cancelled_at = new Date()
+        resOrder.closed_at = resOrder.cancelled_at
+        resOrder.cancel_reason = reason
+        return resOrder.save()
       })
   }
 
   resolveAddress(customerAddress, address) {
     const Address = this.app.services.ProxyEngineService.getModel('Address')
     if (address && !_.isEmpty(address)) {
-      // console.log('before', address)
       address =  this.app.services.ProxyCartService.validateAddress(address)
-      // console.log('after', address)
       return address
     }
     else {

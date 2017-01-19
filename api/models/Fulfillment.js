@@ -39,9 +39,6 @@ module.exports = class Fulfillment extends Model {
              * @param models
              */
             associate: (models) => {
-              // models.Fulfillment.belongsTo(models.Order, {
-              //   // as: 'order_id'
-              // })
               models.Fulfillment.hasMany(models.OrderItem, {
                 as: 'order_items'
               })

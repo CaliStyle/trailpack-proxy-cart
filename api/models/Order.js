@@ -362,10 +362,6 @@ module.exports = class Order extends Model {
           values: _.values(ORDER_FULFILLMENT),
           defaultValue: ORDER_FULFILLMENT.NONE
         },
-        // The gateway used to create transactions
-        gateway: {
-          type: Sequelize.STRING
-        },
         // The site this sale originated from
         landing_site: {
           type: Sequelize.STRING

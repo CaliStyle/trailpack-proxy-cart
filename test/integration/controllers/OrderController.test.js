@@ -68,7 +68,7 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS ORDER', res.body)
+        // console.log('THIS ORDER', res.body)
         assert.ok(res.body.id)
         orderID = res.body.id
         assert.equal(res.body.cart_token, cartToken)
@@ -125,6 +125,19 @@ describe('OrderController', () => {
   })
   it.skip('should refund an order', (done) => {
   })
-  it.skip('should cancel an order', (done) => {
+  it('should cancel an order', (done) => {
+    request
+      .post(`/order/${orderID}/cancel`)
+      .send({
+        cancel_reason: 'customer'
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, orderID)
+        assert.ok(res.body.cancelled_at)
+        assert.ok(res.body.closed_at)
+        assert.equal(res.body.cancel_reason, 'customer')
+        done(err)
+      })
   })
 })
