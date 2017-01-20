@@ -37,7 +37,8 @@ $ npm install --save trailpack-proxy-cart
 module.exports = {
   packs: [
     // ... other trailpacks
-    require('trailpack-proxy-cart')
+    require('trailpack-proxy-cart'),
+    require('trailpack-proxy-cart-countries')
   ]
 }
 ```
@@ -104,19 +105,73 @@ A Shipping Restriction is a geographical restriction on the shipping of certain 
 ### Controllers
 #### CustomerController
 Handles Customer operations
+
 ##### CustomerController.create
+Creates a Customer
+```
+//POST <api>/customer
+```
 
 ##### CustomerController.update
+Updates a Customer
+```
+//POST <api>/customer/:id
+```
 
 ##### CustomerController.findOne
+Find a Customer by id
+```
+//GET <api>/cart/:id
+```
 
 ##### CustomerController.uploadCSV
+Upload a Customer CSV
+```
+//POST <api>/customer/uploadCSV
+```
 
 ##### CustomerController.processUpload
+Process Uploaded Customer CSV
+```
+//POST <api>/customer/processUpload
+```
+
+##### CustomerController.exportCustomers
+Exports customers as a CSV
 
 #### CartController
 Handles Cart operations
+
 ##### CartController.create
+Creates a new cart and can add items at the start. Some interesting features:
+
+- Specify a `product_id`, `variant_id`, or `product_variant_id` which is an alias of 'variant_id' 
+- Specify a quantity 
+- Specify properties, useful for custom specifics to an order
+- Checks if the product inventory is available according to inventory policy
+- Checks for geographic restrictions
+
+```
+//POST <api>/cart
+{
+  line_items: [
+    {
+      variant_id: 1,
+      properties: [
+        { custom_engraving: 'Hello World' }
+      ]
+    },
+    {
+      product_variant_id: 1
+    },
+    {
+      product_id: 1,
+      quantity: 2
+    }
+  ]
+}
+```
+Returns a Cart Object
 
 ##### CartController.checkout
 From cart to checkout is easy and there are some special features to note:
@@ -138,7 +193,7 @@ From cart to checkout is easy and there are some special features to note:
 `shop_id`: an id, provide a shop ID if you want to require calculations be based on a shop location
 
 ```
-// <api>/cart/:id/checkout
+//POST <api>/cart/:id/checkout
 {
   payment_kind: 'sale',
   payment_details: [
@@ -150,54 +205,154 @@ From cart to checkout is easy and there are some special features to note:
   fulfillment_kind: 'immediate'
 }
 ```
+Returns an Order
 
 ##### CartController.addItems
+Add Items to an open cart. Some interesting things to note:
+
+- You can add an existing item to a cart and it will increase the quantity
+- Checks if the product inventory is available according to inventory policy
+- Checks for geographic restrictions
+
+```
+//POST <api>/cart/:id/addItems
+{
+  line_items: [
+    {
+      variant_id: 1,
+      properties: [
+        { custom_engraving: 'Hello World' }
+      ]
+    },
+    {
+      product_variant_id: 1
+    },
+    {
+      product_id: 1,
+      quantity: 2
+    }
+  ]
+}
+```
 
 ##### CartController.removeItems
+Remove Items from an open cart. Some interesting things to note:
+
+- If you specify just an id form, it will only reduce the quantity in the cart by 1.
+- If you specify a quantity, it will reduce the quantity in the cart by that number
+
+```
+//POST <api>/cart/:id/removeItems
+{
+  line_items: [
+    {
+      variant_id: 1,
+    },
+    {
+      product_variant_id: 1
+    },
+    {
+      product_id: 1,
+      quantity: 2
+    }
+  ]
+}
+```
+Returns updated Cart
 
 ##### CartController.clear
 Removes all items from an open cart
 ```
-// <api>/cart/:id/clear
+//POST <api>/cart/:id/clear
 ```
+Returns updated Cart
+
+#### FulfillmentController
+Handles Fulfillment operations
+
+#### ProductController
+Handles Product operations
+
+##### ProductController.findOne
+Find a Product by `id`
+
+##### ProductController.addProduct
+Adds a new product
+```
+//POST <api>/product/add
+```
+
+##### ProductController.addProducts
+Adds new products
+```
+//POST <api>/product/addProducts
+```
+
+##### ProductController.updateProduct
+Updates a product
+```
+//POST <api>/product/:id/update
+```
+
+##### ProductController.updateProducts
+Updates multiple products
+```
+//POST <api>/product/updateProducts
+```
+
+##### ProductController.removeProduct
+Removes a product (does not delete unless configured too)
+```
+//POST <api>/product/:id/remove
+```
+
+##### ProductController.removeProducts
+Removes multiple products (does not delete unless configured too)
+```
+//POST <api>/product/removeProducts
+```
+
+##### ProductController.removeVariant
+Removes a product variant (does not delete unless configured too)
+
+##### ProductController.removeVariants
+Removes multiple product variants (does not delete unless configured too)
+
+##### ProductController.removeImage
+Removes a product image
+
+##### ProductController.removeImages
+Removes multiple images
+
+##### ProductController.uploadCSV
+Uploads a Product CSV
+
+##### ProductController.processUpload
+Processes Uploaded CSV
+
+##### ProductController.uploadMetaCSV
+Uploads a Metadata CSV
+
+##### ProductController.processMetaUpload
+Processes Uploaded Metadata CSV
+
+##### ProductController.exportProducts
+Exports products as a CSV
 
 #### OrderController
 Handles Order operations
 
-#### ProductController
-Handles Product operations
-##### ProductController.findOne
-
-##### ProductController.addProduct
-
-##### ProductController.addProducts
-
-##### ProductController.updateProduct
-
-##### ProductController.updateProducts
-
-##### ProductController.removeProduct
-
-##### ProductController.removeProducts
-
-##### ProductController.removeVariant
-
-##### ProductController.removeVariants
-
-##### ProductController.removeImage
-
-##### ProductController.removeImages
-
-##### ProductController.uploadCSV
-
-##### ProductController.processUpload
-
-##### ProductController.uploadMetaCSV
-
-##### ProductController.processMetaUpload
+##### OrderController.exportOrders
+Exports orders as a CSV
 
 #### ShopController
 Handles Shop operations
+
+##### ShopController.create
+Creates a new Shop
+
+##### ShopController.update
+Updates a Shop
 
 #### SubscriptionController
 Handles Subscription operations
