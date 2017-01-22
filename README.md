@@ -100,6 +100,22 @@ A Shipping Zone is a geographical area that may override shipping and tax costs.
 ## Shipping Restrictions
 A Shipping Restriction is a geographical restriction on the shipping of certain products.
 
+## Events
+Proxy Cart publishes many subscribable events.
+
+### Order Events
+#### transaction.sale.*
+
+#### transaction.authorize.*
+
+#### transaction.capture.*
+
+#### transaction.void.*
+
+#### transaction.refund.*
+
+#### fulfillment.create.*
+
 ## Usage
 
 ### Controllers

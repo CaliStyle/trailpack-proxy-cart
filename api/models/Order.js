@@ -26,6 +26,7 @@ module.exports = class Order extends Model {
     if (app.config.database.orm === 'sequelize') {
       config = {
         options: {
+          autoSave: true,
           underscored: true,
           defaultScope: {
             where: {

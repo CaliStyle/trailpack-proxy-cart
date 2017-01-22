@@ -4,6 +4,18 @@
  * @see {@link http://
  */
 module.exports = {
+  // The default Shop address (Nexus)
+  nexus: {
+    name: '',
+    address: {
+      address_1: '',
+      address_2: '',
+      address_3: '',
+      company: '',
+      province: '',
+      country: ''
+    }
+  },
   // The default function for an automatic order payment: manual, authorize, sale
   order_payment_kind: 'authorize',
   // The default function for an automatic order fulfillment: manual, immediate
