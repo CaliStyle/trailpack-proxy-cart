@@ -28,14 +28,14 @@ module.exports = class FulfillmentService extends Service {
           return {service: service, items: items}
         })
         return Promise.all(groups.map((group) => {
-          return this.createFulfillment(order, group.items, group.service)
+          return this.create(order, group.items, group.service)
         }))
       })
       .then(fulfillments => {
         return fulfillments
       })
   }
-  createFulfillment(order, items, service) {
+  create(order, items, service) {
     const Fulfillment = this.app.services.ProxyEngineService.getModel('Fulfillment')
     // const OrderItem = this.app.services.ProxyEngineService.getModel('OrderItem')
     if (!order.id) {
@@ -77,6 +77,15 @@ module.exports = class FulfillmentService extends Service {
         }))
       })
       .then(items => {
+        const event = {
+          object_id: resFulfillment.order_id,
+          object: 'order',
+          type: `fulfillment.create.${resFulfillment.status}`,
+          data: resFulfillment
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return resFulfillment
       })
   }

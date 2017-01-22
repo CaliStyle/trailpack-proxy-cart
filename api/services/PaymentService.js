@@ -21,10 +21,24 @@ module.exports = class PaymentService extends Service {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
+    let resTransaction
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
+      })
+      .then(transaction => {
+        resTransaction = transaction
+        const event = {
+          object_id: transaction.order_id,
+          object: 'order',
+          type: `transaction.authorize.${transaction.status}`,
+          data: transaction
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resTransaction
       })
 
   }
@@ -42,10 +56,24 @@ module.exports = class PaymentService extends Service {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
+    let resTransaction
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
+      })
+      .then(transaction => {
+        resTransaction = transaction
+        const event = {
+          object_id: transaction.order_id,
+          object: 'order',
+          type: `transaction.capture.${transaction.status}`,
+          data: transaction
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resTransaction
       })
   }
 
@@ -62,11 +90,24 @@ module.exports = class PaymentService extends Service {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-
+    let resTransaction
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
+      })
+      .then(transaction => {
+        resTransaction = transaction
+        const event = {
+          object_id: transaction.order_id,
+          object: 'order',
+          type: `transaction.sale.${transaction.status}`,
+          data: transaction
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resTransaction
       })
   }
 
@@ -89,10 +130,24 @@ module.exports = class PaymentService extends Service {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
+    let resTransaction
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
+      })
+      .then(transaction => {
+        resTransaction = transaction
+        const event = {
+          object_id: transaction.order_id,
+          object: 'order',
+          type: `transaction.void.${transaction.status}`,
+          data: transaction
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resTransaction
       })
   }
   refund(transaction){
@@ -102,13 +157,25 @@ module.exports = class PaymentService extends Service {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-
+    let resTransaction
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
       })
-
+      .then(transaction => {
+        resTransaction = transaction
+        const event = {
+          object_id: transaction.order_id,
+          object: 'order',
+          type: `transaction.refund.${transaction.status}`,
+          data: transaction
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resTransaction
+      })
   }
 }
 

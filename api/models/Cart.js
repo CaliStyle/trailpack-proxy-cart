@@ -190,6 +190,8 @@ module.exports = class Cart extends Model {
                   this.total_weight = totalWeight
                   this.total_line_items_price = totalLineItemsPrice
                   this.total_price = totalPrice
+                  // TODO
+                  this.total_due = totalPrice
 
                   return this
                 })
@@ -253,62 +255,96 @@ module.exports = class Cart extends Model {
           values: _.values(CART_STATUS),
           defaultValue: CART_STATUS.OPEN
         },
+        // The three letter code (ISO 4217) for the currency used for the payment.
+        currency: {
+          type: Sequelize.STRING,
+          defaultValue: 'USD'
+        },
+        // The items in the cart
         line_items: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'line_items', {
           defaultValue: []
         }),
+        // Price of the checkout before shipping and taxes
         subtotal_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The line_items that have discounts
         discounted_lines: helpers.JSONB('cart', app, Sequelize, 'discounted_lines', {
           defaultValue: {}
         }),
+        // The line_items that require shipping
         shipping_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
           defaultValue: []
         }),
+        // If the cost of shipping is included
         shipping_included: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
+        // An array of selected shipping_rates
+        shipping_rate: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_rate', {
+          defaultValue: []
+        }),
+        // An array of shipping_rate objects, each of which details the shipping methods available.
+        shipping_rates: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_rates', {
+          defaultValue: []
+        }),
+        // If shipping is taxed
         tax_shipping: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
+        // The line_items that have taxes
         tax_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'tax_lines', {
           defaultValue: []
         }),
+        // The rate at which taxes are applied
         tax_rate: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },
+        // The rate as a percentage at which taxes are applies
         tax_percentage: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },
+        // True when taxes are included in the subtotal_price
         taxes_included: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
+        // The total amount of discounts applied
         total_discounts: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The amount left to be paid. This is equal to the cost of the line items, taxes and shipping minus discounts and gift cards.
+        total_due: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total original price of the line items
         total_line_items_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The sum of all the prices of all the items in the checkout, taxes and discounts included.
         total_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The sum of all the Shipping costs
         total_shipping: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The sum of all the taxes applied to the line items in the checkout.
         total_tax: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The total weight of the cart
         total_weight: {
           type: Sequelize.INTEGER,
           defaultValue: 0
@@ -323,6 +359,7 @@ module.exports = class Cart extends Model {
         update_ip: {
           type: Sequelize.STRING
         },
+        // The request details of the customer you are processing the checkout on behalf of.
         client_details: helpers.JSONB('cart', app, Sequelize, 'client_details', {
           defaultValue: {
             'accept_language': null,
@@ -333,6 +370,17 @@ module.exports = class Cart extends Model {
             'user_agent': null
           }
         }),
+        // The reservation time in seconds for the products in the line items. This can be set up to 5 minutes, or 1 hour depending on the authentication type used.
+        reservation_time: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The time in seconds that the products in the line items will be held. If the reservation time expires, the products may not be available and completion may fail.
+        reservation_time_left: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode

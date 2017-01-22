@@ -47,6 +47,7 @@ module.exports = class Coupon extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+
         balance: {
           type: Sequelize.INTEGER,
           defaultValue: 0

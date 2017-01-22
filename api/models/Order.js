@@ -124,6 +124,13 @@ module.exports = class Order extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Order.hasMany(models.Event, {
+                as: 'events',
+                foreignKey: 'object_id',
+                scope: {
+                  object: 'order'
+                }
+              })
             },
             findIdDefault: function(criteria, options) {
               options = _.merge(options, {
@@ -139,6 +146,10 @@ module.exports = class Order extends Model {
                   {
                     model: app.orm['Fulfillment'],
                     as: 'fulfillments'
+                  },
+                  {
+                    model: app.orm['Event'],
+                    as: 'events'
                   }
                 ]
               })
@@ -238,6 +249,7 @@ module.exports = class Order extends Model {
               // refunded: The finances have been refunded.
               // voided: The finances have been voided.
               this.financial_status = financialStatus
+              this.total_due = this.total_price - totalSale
               return this
             },
             setFulfillmentStatus: function(fulfillments){
@@ -447,6 +459,10 @@ module.exports = class Order extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        total_due: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         // The sum of all the prices of all the items in the order.
         total_line_items_price: {
           type: Sequelize.INTEGER,
@@ -467,8 +483,8 @@ module.exports = class Order extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        // The URL pointing to the order status web page. The URL will be null unless the order was created from a checkout.
-        order_status_url: {
+        // The URL pointing to the order status web page.
+        status_url: {
           type: Sequelize.STRING
         },
         // TODO Enable User or Owner

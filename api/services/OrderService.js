@@ -187,6 +187,7 @@ module.exports = class OrderService extends Service {
             total_price: resCart.total_price,
             total_tax: resCart.total_tax,
             total_weight: resCart.total_weight,
+            total_due: resCart.total_due,
 
             // Client Info
             client_details: obj.client_details,

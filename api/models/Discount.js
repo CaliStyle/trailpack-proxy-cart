@@ -39,54 +39,68 @@ module.exports = class Discount extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // Specify how the discount's value will be applied to the order. Valid values are:
+        //
         discount_type: {
           type: Sequelize.ENUM,
           values: _.values(DISCOUNT_TYPES),
           defaultValue: DISCOUNT_TYPES.FIXED_AMOUNT
         },
+        // The case-insensitive discount code that customers use at checkout. Required when creating a discount. Maximum length of 255 characters.
+        code: {
+          type: Sequelize.STRING
+        },
+        // The value of the discount. Required when creating a percentage-based or fixed-amount discount. See the discount_type property to learn more about how value is interpreted.
         value: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        code: {
-          type: Sequelize.STRING
-        },
+        // The date when the discount code becomes disabled
         ends_at: {
           type: Sequelize.DATE
         },
+        // The date the discount becomes valid for use during checkout
         starts_at: {
           type: Sequelize.DATE
         },
+        // The status of the discount code. Valid values are enabled, disabled, or depleted.
         status: {
           type: Sequelize.ENUM,
           values: _.values(DISCOUNT_STATUS),
           defaultValue: DISCOUNT_STATUS.ENABLED
         },
+        // The minimum value an order must reach for the discount to be allowed during checkout.
         minimum_order_amount: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The number of times this discount code can be redeemed. It can be redeemed by one or many customers; the usage_limit is a store-wide absolute value. Leave blank for unlimited uses.
         usage_limit: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        applies_to_resource: {
-          type: Sequelize.STRING
-        },
+        // The id of a collection or product that this discount code is restricted to. Leave blank for a store-wide discount. If applies_to_id is set, then the applies_to_resource property is also mandatory.
         applies_to_id: {
           type: Sequelize.STRING
         },
+        // The discount code can be set to apply to only a product, variant, or collection. If applies_to_resource is set, then applies_to_id should also be set.
+        applies_to_resource: {
+          type: Sequelize.STRING
+        },
+        // When a discount applies to a product or collection resource, applies_once determines whether the discount should be applied once per order, or to every applicable item in the cart.
         applies_once: {
           type: Sequelize.BOOLEAN
         },
+        // Determines whether the discount should be applied once, or any number of times per customer.
         applies_once_per_customer: {
           type: Sequelize.BOOLEAN
         },
+        // Returns a count of successful checkouts where the discount code has been used. Cannot exceed the usage_limit property.
         times_used: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode
