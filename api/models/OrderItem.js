@@ -27,12 +27,12 @@ module.exports = class OrderItem extends Model {
              * @param models
              */
             associate: (models) => {
-              models.OrderItem.belongsTo(models.Product, {
-
-              })
-              models.OrderItem.belongsTo(models.ProductVariant, {
-
-              })
+              // models.OrderItem.belongsTo(models.Product, {
+              //
+              // })
+              // models.OrderItem.belongsTo(models.ProductVariant, {
+              //
+              // })
             }
           }
         }
@@ -60,6 +60,22 @@ module.exports = class OrderItem extends Model {
             key: 'id'
           }
           // allowNull: false
+        },
+        product_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Product',
+            key: 'id'
+          },
+          allowNull: false
+        },
+        variant_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'ProductVariant',
+            key: 'id'
+          },
+          allowNull: false
         },
         // The amount available to fulfill. This is the quantity - max(refunded_quantity, fulfilled_quantity) - pending_fulfilled_quantity - open_fulfilled_quantity.
         fulfillable_quantity: {
