@@ -9,23 +9,13 @@ before(() => {
   // return global.app.start().catch(global.app.stop)
   return global.app.start()
     .then(() => {
-      return global.app.services.ShopService.create({
-        name: 'Test Shop',
-        host: 'localhost',
-        address: {
-          address_1: '1 Infinite Loop',
-          city: 'Cupertino',
-          province: 'California',
-          country: 'United States',
-          postal_code: '95014'
-        }
-      })
+      return global.app.orm.Shop.findAll()
     })
-    .then(shop => {
-      global.app.shopID = shop.id
+    .then(shops => {
+      global.app.shopID = shops[0].id
       let products = require('./fixtures/products')
       products = products.map( product => {
-        product.shops = [{id: shop.id}]
+        product.shops = [{id: global.app.shopID}]
         return product
       })
       return global.app.services.ProductService.addProducts(products)

@@ -95,6 +95,11 @@ module.exports = class Discount extends Model {
         applies_once_per_customer: {
           type: Sequelize.BOOLEAN
         },
+        // if this discount can be compounded with other discounts.
+        compound: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
         // Returns a count of successful checkouts where the discount code has been used. Cannot exceed the usage_limit property.
         times_used: {
           type: Sequelize.INTEGER,

@@ -93,7 +93,6 @@ module.exports = class Shop extends Model {
         host: {
           type: Sequelize.STRING,
           allowNull: false
-
         },
         // The contact email address for the shop.
         email: {

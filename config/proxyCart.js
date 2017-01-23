@@ -7,6 +7,7 @@ module.exports = {
   // The default Shop address (Nexus)
   nexus: {
     name: '',
+    host: '',
     address: {
       address_1: '',
       address_2: '',

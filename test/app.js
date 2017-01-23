@@ -95,6 +95,7 @@ const App = {
       // The default Shop address (Nexus)
       nexus: {
         name: 'Test Shop',
+        host: 'localhost',
         address: {
           address_1: '1 Infinite Loop',
           city: 'Cupertino',
