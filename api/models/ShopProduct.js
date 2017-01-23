@@ -28,11 +28,11 @@ module.exports = class ShopProduct extends Model {
       schema = {
         variant_id: {
           type: Sequelize.INTEGER,
-          unique: 'shopproduct_product'
+          unique: 'shopproduct_variant'
         },
         shop_id: {
           type: Sequelize.INTEGER,
-          unique: 'shopproduct_product',
+          unique: 'shopproduct_variant',
           references: null
         },
         // Specifies whether or not Proxy Cart tracks the number of items in stock for this product variant.
