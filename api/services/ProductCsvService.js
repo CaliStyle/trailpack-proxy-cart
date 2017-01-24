@@ -290,7 +290,7 @@ module.exports = class ProductCsvService extends Service {
    */
   csvProductMetaRow(row, uploadID) {
     // console.log(row)
-    const ProductMetaUpload = this.app.services.ProxyEngineService.getModel('ProductMetaUpload')
+    const ProductMetaUpload = this.app.orm.ProductMetaUpload
     const values = _.values(PRODUCT_META_UPLOAD)
     const keys = _.keys(PRODUCT_META_UPLOAD)
     const upload = {
@@ -322,7 +322,7 @@ module.exports = class ProductCsvService extends Service {
    */
   processProductMetaUpload(uploadId) {
     return new Promise((resolve, reject) => {
-      const ProductMetaUpload = this.app.services.ProxyEngineService.getModel('ProductMetaUpload')
+      const ProductMetaUpload = this.app.orm.ProductMetaUpload
       const Metadata = this.app.orm.Metadata
       const Product = this.app.orm.Product
       let productsTotal = 0
@@ -333,7 +333,6 @@ module.exports = class ProductCsvService extends Service {
       })
         .then(metadatums => {
           return Promise.all(metadatums.map(metadata => {
-            // TODO change addresses to objects
             return Product.find(
               {
                 where: {
