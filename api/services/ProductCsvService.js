@@ -77,7 +77,7 @@ module.exports = class ProductCsvService extends Service {
    */
   csvProductRow(row, uploadID) {
     // console.log(row)
-    const ProductUpload = this.app.services.ProxyEngineService.getModel('ProductUpload')
+    const ProductUpload = this.app.orm.ProductUpload
     const values = _.values(PRODUCT_UPLOAD)
     const keys = _.keys(PRODUCT_UPLOAD)
     const upload = {
@@ -166,7 +166,7 @@ module.exports = class ProductCsvService extends Service {
    */
   processProductUpload(uploadId) {
     return new Promise((resolve, reject) => {
-      const ProductUpload = this.app.services.ProxyEngineService.getModel('ProductUpload')
+      const ProductUpload = this.app.orm.ProductUpload
       let productsTotal = 0
       let variantsTotal = 0
       ProductUpload.findAll({
@@ -203,7 +203,7 @@ module.exports = class ProductCsvService extends Service {
   processProductGroup(handle) {
     return new Promise((resolve, reject) => {
       this.app.log.debug('ProxyCartService.processProductGroup', handle)
-      const ProductUpload = this.app.services.ProxyEngineService.getModel('ProductUpload')
+      const ProductUpload = this.app.orm.ProductUpload
       ProductUpload.findAll({where: {handle: handle}})
         .then(products => {
           // Remove Upload Junk
@@ -323,8 +323,8 @@ module.exports = class ProductCsvService extends Service {
   processProductMetaUpload(uploadId) {
     return new Promise((resolve, reject) => {
       const ProductMetaUpload = this.app.services.ProxyEngineService.getModel('ProductMetaUpload')
-      const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
-      const Product = this.app.services.ProxyEngineService.getModel('Product')
+      const Metadata = this.app.orm.Metadata
+      const Product = this.app.orm.Product
       let productsTotal = 0
       ProductMetaUpload.findAll({
         where: {

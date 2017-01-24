@@ -10,7 +10,7 @@ const Errors = require('proxy-engine-errors')
  */
 module.exports = class ShopService extends Service {
   resolve(shop, options) {
-    const Shop =  this.app.services.ProxyEngineService.getModel('Shop')
+    const Shop =  this.app.orm.Shop
     if (shop instanceof Shop.Instance){
       return Promise.resolve(shop)
     }
@@ -50,7 +50,7 @@ module.exports = class ShopService extends Service {
    * @returns {data}
    */
   create(data, options) {
-    const Shop = this.app.services.ProxyEngineService.getModel('Shop')
+    const Shop = this.app.orm.Shop
     return Shop.create(data, options)
   }
 }

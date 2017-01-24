@@ -37,7 +37,7 @@ module.exports = class FulfillmentService extends Service {
   }
   create(order, items, service) {
     const Fulfillment = this.app.services.ProxyEngineService.getModel('Fulfillment')
-    // const OrderItem = this.app.services.ProxyEngineService.getModel('OrderItem')
+    // const OrderItem = this.app.orm.OrderItem
     if (!order.id) {
       const err = new Error('Missing Order Id')
       return Promise.reject(err)

@@ -31,7 +31,7 @@ module.exports = class ProductService extends Service {
    * @returns {Promise}
    */
   addProduct(product) {
-    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    const Product = this.app.orm.Product
     return Product.find({
       where: {
         host: product.host ? product.host : 'localhost',
@@ -57,12 +57,12 @@ module.exports = class ProductService extends Service {
    */
   // TODO Create Images and Variant Images in one command
   createProduct(product){
-    const Product = this.app.services.ProxyEngineService.getModel('Product')
-    const Tag = this.app.services.ProxyEngineService.getModel('Tag')
-    const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
-    const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
-    const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
-    const Collection = this.app.services.ProxyEngineService.getModel('Collection')
+    const Product = this.app.orm.Product
+    const Tag = this.app.orm.Tag
+    const Variant = this.app.orm.ProductVariant
+    const Image = this.app.orm.ProductImage
+    const Metadata = this.app.orm.Metadata
+    const Collection = this.app.orm.Collection
 
     // The Default Product
     const create = {
@@ -274,12 +274,12 @@ module.exports = class ProductService extends Service {
   // TODO Create/Update Images and Variant Images in one command
   // TODO resolve collection if posted
   updateProduct(product) {
-    const Product = this.app.services.ProxyEngineService.getModel('Product')
-    const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
-    const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
-    const Tag = this.app.services.ProxyEngineService.getModel('Tag')
-    // const Collection = this.app.services.ProxyEngineService.getModel('Collection')
-    // const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
+    const Product = this.app.orm.Product
+    const Variant = this.app.orm.ProductVariant
+    const Image = this.app.orm.ProductImage
+    const Tag = this.app.orm.Tag
+    // const Collection = this.app.orm.Collection
+    // const Metadata = this.app.orm.Metadata
 
     // let newTags = []
     return Product.sequelize.transaction(t => {
@@ -490,7 +490,7 @@ module.exports = class ProductService extends Service {
       const err = new Errors.FoundError(Error('Product is missing id'))
       return Promise.reject(err)
     }
-    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    const Product = this.app.orm.Product
     return Product.destroy({where: {id: product.id}})
   }
 
@@ -513,7 +513,7 @@ module.exports = class ProductService extends Service {
    * @param id
    */
   removeVariant(id){
-    const Variant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+    const Variant = this.app.orm.ProductVariant
     let destroy
     let updates
     return Variant.findById(id)
@@ -566,7 +566,7 @@ module.exports = class ProductService extends Service {
    * @param id
    */
   removeImage(id){
-    const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
+    const Image = this.app.orm.ProductImage
     let destroy
     let updates
     return Image.findById(id)

@@ -16,7 +16,7 @@ module.exports = class CustomerService extends Service {
    * @returns {Customer} // An instance of the Customer
    */
   resolve(customer, options){
-    const Customer =  this.app.services.ProxyEngineService.getModel('Customer')
+    const Customer =  this.app.orm.Customer
     if (customer instanceof Customer.Instance){
       return Promise.resolve(customer)
     }
@@ -32,11 +32,11 @@ module.exports = class CustomerService extends Service {
   }
   create(customer) {
     return new Promise((resolve, reject) => {
-      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
-      const Tag = this.app.services.ProxyEngineService.getModel('Tag')
-      const Cart = this.app.services.ProxyEngineService.getModel('Cart')
-      const Metadata = this.app.services.ProxyEngineService.getModel('Metadata')
-      const Address = this.app.services.ProxyEngineService.getModel('Address')
+      const Customer = this.app.orm.Customer
+      const Tag = this.app.orm.Tag
+      const Cart = this.app.orm.Cart
+      const Metadata = this.app.orm.Metadata
+      const Address = this.app.orm.Address
 
       if (customer.cart) {
         customer.default_cart = customer.cart
@@ -139,8 +139,8 @@ module.exports = class CustomerService extends Service {
         const err = new Errors.FoundError(Error('Customer is missing id'))
         return reject(err)
       }
-      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
-      const Tag = this.app.services.ProxyEngineService.getModel('Tag')
+      const Customer = this.app.orm.Customer
+      const Tag = this.app.orm.Tag
       let resCustomer = {}
       Customer.findIdDefault(customer.id)
         .then(foundCustomer => {
@@ -203,7 +203,7 @@ module.exports = class CustomerService extends Service {
   addCart(customer, cart) {
     return new Promise((resolve, reject) => {
       // const FootprintService = this.app.services.FootprintService
-      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
+      const Customer = this.app.orm.Customer
       const customerId = _.isObject(customer) ? customer.id : customer
       const cartId = _.isObject(cart) ? cart.id : cart
 
@@ -232,7 +232,7 @@ module.exports = class CustomerService extends Service {
   setDefaultCartForCustomer(customer, cart){
     return new Promise((resolve, reject) => {
       // const FootprintService = this.app.services.FootprintService
-      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
+      const Customer = this.app.orm.Customer
       const customerId = _.isObject(customer) ? customer.id : customer
       const cartId = _.isObject(cart) ? cart.id : cart
 

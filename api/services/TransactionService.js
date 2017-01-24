@@ -9,7 +9,7 @@ const Errors = require('proxy-engine-errors')
  */
 module.exports = class TransactionService extends Service {
   resolve(transaction, options){
-    const Transaction =  this.app.services.ProxyEngineService.getModel('Transaction')
+    const Transaction =  this.app.orm.Transaction
     if (transaction instanceof Transaction.Instance){
       return Promise.resolve(transaction)
     }
@@ -43,7 +43,7 @@ module.exports = class TransactionService extends Service {
    * @returns {transaction}
    */
   create(transaction, options) {
-    const Transaction = this.app.services.ProxyEngineService.getModel('Transaction')
+    const Transaction = this.app.orm.Transaction
     return Transaction.create(transaction, options)
   }
 

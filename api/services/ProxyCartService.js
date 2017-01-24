@@ -226,10 +226,10 @@ module.exports = class ProxyCartService extends Service {
    */
   resolveSendFromTo(cart, shippingAddress) {
     return new Promise((resolve, reject) => {
-      const Cart = this.app.services.ProxyEngineService.getModel('Cart')
-      const Customer = this.app.services.ProxyEngineService.getModel('Customer')
-      const Shop = this.app.services.ProxyEngineService.getModel('Shop')
-      const Address = this.app.services.ProxyEngineService.getModel('Address')
+      const Cart = this.app.orm.Cart
+      const Customer = this.app.orm.Customer
+      const Shop = this.app.orm.Shop
+      const Address = this.app.orm.Address
 
       if (!(cart instanceof Cart.Instance)) {
         const err = new Error('Cart must be an instance!')

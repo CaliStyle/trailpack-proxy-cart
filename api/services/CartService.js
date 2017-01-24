@@ -14,7 +14,7 @@ const CART_STATUS = require('../utils/enums').CART_STATUS
 module.exports = class CartService extends Service {
   resolve(cart, options){
     // console.log('TYPEOF cart',typeof cart)
-    const Cart =  this.app.services.ProxyEngineService.getModel('Cart')
+    const Cart =  this.app.orm.Cart
     if (cart instanceof Cart.Instance){
       return Promise.resolve(cart, options)
     }
@@ -52,7 +52,7 @@ module.exports = class CartService extends Service {
    * @returns {Cart}
    */
   create(data, options){
-    const Cart = this.app.services.ProxyEngineService.getModel('Cart')
+    const Cart = this.app.orm.Cart
     if (!data.line_items) {
       data.line_items = []
     }
@@ -94,7 +94,7 @@ module.exports = class CartService extends Service {
    * @returns {Promise.<*>}
    */
   checkout(data){
-    const ProductVariant = this.app.services.ProxyEngineService.getModel('ProductVariant')
+    const ProductVariant = this.app.orm.ProductVariant
     if (!data.cart.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
@@ -197,9 +197,9 @@ module.exports = class CartService extends Service {
    */
   resolveItem(item){
     // const FootprintService = this.app.services.FootprintService
-    const Product = this.app.services.ProxyEngineService.getModel('Product')
-    const ProductVariant = this.app.services.ProxyEngineService.getModel('ProductVariant')
-    const Image = this.app.services.ProxyEngineService.getModel('ProductImage')
+    const Product = this.app.orm.Product
+    const ProductVariant = this.app.orm.ProductVariant
+    const Image = this.app.orm.ProductImage
 
     if (item.id || item.variant_id || item.product_variant_id) {
       const id = item.id || item.variant_id || item.product_variant_id

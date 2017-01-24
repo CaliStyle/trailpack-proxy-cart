@@ -76,7 +76,7 @@ module.exports = class CustomerCsvService extends Service {
    */
   csvCustomerRow(row, uploadID) {
     // console.log(row)
-    const CustomerUpload = this.app.services.ProxyEngineService.getModel('CustomerUpload')
+    const CustomerUpload = this.app.orm.CustomerUpload
     const values = _.values(CUSTOMER_UPLOAD)
     const keys = _.keys(CUSTOMER_UPLOAD)
     const upload = {
@@ -119,7 +119,7 @@ module.exports = class CustomerCsvService extends Service {
    */
   processCustomerUpload(uploadId) {
     return new Promise((resolve, reject) => {
-      const CustomerUpload = this.app.services.ProxyEngineService.getModel('CustomerUpload')
+      const CustomerUpload = this.app.orm.CustomerUpload
       let customersTotal = 0
       CustomerUpload.findAll({
         where: {

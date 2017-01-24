@@ -23,7 +23,7 @@ module.exports = class OrderService extends Service {
    * @returns {Promise}
    */
   resolve(order, options) {
-    const Order =  this.app.services.ProxyEngineService.getModel('Order')
+    const Order =  this.app.orm.Order
     if (order instanceof Order.Instance){
       return Promise.resolve(order)
     }
@@ -52,7 +52,7 @@ module.exports = class OrderService extends Service {
   }
 
   resolveItem(item, options) {
-    const OrderItem =  this.app.services.ProxyEngineService.getModel('OrderItem')
+    const OrderItem =  this.app.orm.OrderItem
     if (item instanceof OrderItem.Instance){
       return Promise.resolve(item)
     }
@@ -88,11 +88,11 @@ module.exports = class OrderService extends Service {
   // TODO handle taxes, shipping, subscriptions, start transactions/fulfillment
   // TODO handle inventory policy
   create(obj) {
-    const Address = this.app.services.ProxyEngineService.getModel('Address')
-    const Customer = this.app.services.ProxyEngineService.getModel('Customer')
-    const Cart = this.app.services.ProxyEngineService.getModel('Cart')
-    const Order = this.app.services.ProxyEngineService.getModel('Order')
-    const OrderItem = this.app.services.ProxyEngineService.getModel('OrderItem')
+    const Address = this.app.orm.Address
+    const Customer = this.app.orm.Customer
+    const Cart = this.app.orm.Cart
+    const Order = this.app.orm.Order
+    const OrderItem = this.app.orm.OrderItem
     const PaymentService = this.app.services.PaymentService
 
     // Validate obj cart and customer
@@ -271,7 +271,7 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   update(order) {
-    const Order = this.app.services.ProxyEngineService.getModel('Order')
+    const Order = this.app.orm.Order
 
     return this.resolve(order)
       .then(resOrder => {
@@ -405,7 +405,7 @@ module.exports = class OrderService extends Service {
    * @returns {*}
    */
   resolveToAddress(customerAddress, address) {
-    const Address = this.app.services.ProxyEngineService.getModel('Address')
+    const Address = this.app.orm.Address
     if (address && !_.isEmpty(address)) {
       address =  this.app.services.ProxyCartService.validateAddress(address)
       return address

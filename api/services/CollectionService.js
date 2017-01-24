@@ -12,7 +12,7 @@ module.exports = class CollectionService extends Service {
   resolve(collection, options){
     return new Promise((resolve, reject) => {
 
-      const Collection =  this.app.services.ProxyEngineService.getModel('Collection')
+      const Collection =  this.app.orm.Collection
       const Sequelize = Collection.sequelize
 
       if (collection instanceof Collection.Instance){
