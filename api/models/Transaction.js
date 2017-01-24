@@ -77,6 +77,11 @@ module.exports = class Transaction extends Model {
         authorization: {
           type: Sequelize.STRING
         },
+        // The date the authorization expires
+        authorization_exp: {
+          type: Sequelize.DATE,
+          defaultValue: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
+        },
         // The unique identifier for the device.
         device_id: {
           type: Sequelize.STRING
@@ -99,8 +104,8 @@ module.exports = class Transaction extends Model {
         // credit_card_number: The customer's credit card number, with most of the leading digits redacted with Xs.
         // cvv_result_code: The Response code from the credit card company indicating whether the customer entered the card security code, a.k.a. card verification value, correctly. The code is a single letter or empty string; see this chart http://www.emsecommerce.net/avs_cvv2_response_codes.htm for the codes and their definitions.
         // token: The card token from the Gateway
-        payment_details: helpers.ARRAY('transaction', app, Sequelize, Sequelize.JSON, 'payment_details', {
-          defaultValue: []
+        payment_details: helpers.JSONB('transaction', app, Sequelize, 'payment_details', {
+          defaultValue: {}
         }),
         // The kind of transaction:
         kind: {
