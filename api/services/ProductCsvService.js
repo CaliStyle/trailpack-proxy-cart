@@ -108,6 +108,12 @@ module.exports = class ProductCsvService extends Service {
           else if (k == 'collections') {
             upload[k] = data.split(',').map(collection => { return collection.trim()})
           }
+          else if (k == 'shops') {
+            upload[k] = data.split(',').map(shop => { return shop.trim()})
+          }
+          else if (k == 'shops_quantity') {
+            upload[k] = data.split(',').map(shopQty => { return parseInt(shopQty.trim())})
+          }
           else {
             upload[k] = data
           }

@@ -62,6 +62,7 @@ module.exports = class Cart extends Model {
                 requires_shipping: data.requires_shipping,
                 // requires_tax: data.requires_tax, // TODO resolve which of these to keep
                 taxable: data.requires_tax, // TODO resolve which of these to keep
+                tax_code: data.tax_code,
                 tax_lines: [{}],
                 requires_subscription: data.requires_subscription,
                 subscription_interval: data.subscription_interval,

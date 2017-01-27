@@ -205,6 +205,12 @@ To organize your products into collections during the CSV upload, you can add a 
 ## Collections (must create a new column, can be left blank)
 Enter the name of the collections separated by a comma character `,` you want to add this product to. If the collection(s) does not already exist, one will be created for you.
 
+## Shops (must create a new column, can be left blank)
+Enter the name of the shops handles separated by a comma character `,` you want to add this product to. If the shop(s) does not already exist, one will be created for you.
+
+## Shops Quantity (must create a new column, can be left blank)
+Enter the quantity of the product/product variant separated by a comma character `,` that is stored at this shop.
+
 # Create your product CSV file
 
 For each product, you'll need to decide if it is a simple product or one with variants:

@@ -142,6 +142,10 @@ module.exports = class OrderItem extends Model {
         taxable: {
           type: Sequelize.BOOLEAN
         },
+        tax_code: {
+          type: Sequelize.STRING,
+          defaultValue: 'P000000' // Physical Good
+        },
         // A list of tax_line objects, each of which details the taxes applicable to this line_item.
         tax_lines: helpers.JSONB('orderitem', app, Sequelize, 'tax_lines', {
           defaultValue: {}

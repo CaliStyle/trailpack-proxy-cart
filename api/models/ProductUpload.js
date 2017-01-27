@@ -157,6 +157,14 @@ module.exports = class ProductUpload extends Model {
       collections: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'collections', {
         defaultValue: []
       }),
+      // 'Shops'
+      shops: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'shops', {
+        defaultValue: []
+      }),
+      // 'Shops Quantity'
+      shops_quantity: helpers.ARRAY('productupload', app, Sequelize, Sequelize.INTEGER, 'shops_quantity', {
+        defaultValue: []
+      }),
       // 'Google Shopping / Google Product Category'
       g_product_category: {
         type: Sequelize.STRING
