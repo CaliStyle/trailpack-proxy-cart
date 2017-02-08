@@ -1,7 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
-
+const _ = require('lodash')
 /**
  * @module Address
  * @description Address Model
@@ -23,6 +23,28 @@ module.exports = class Address extends Model {
               catch (err) {
                 return fn(err, values)
               }
+            },
+            beforeCreate: (values, options, fn) => {
+              app.services.GeolocationGenericService.locate(values)
+                .then(latLng => {
+                  values = _.defaults(values, latLng)
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  // Don't break over Geolocation failure
+                  return fn(null, values)
+                })
+            },
+            beforeUpdate: (values, options, fn) => {
+              app.services.GeolocationGenericService.locate(values)
+                .then(latLng => {
+                  values = _.defaults(values, latLng)
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  // Don't break over Geolocation failure
+                  return fn(null, values)
+                })
             }
           },
           classMethods: {
@@ -119,8 +141,8 @@ module.exports = class Address extends Model {
         // Geographic coordinate specifying the north/south location of a shop.
         latitude: {
           type: Sequelize.FLOAT,
-          allowNull: true,
-          defaultValue: null,
+          allowNull: false,
+          defaultValue: 0.000000,
           validate: {
             min: -90,
             max: 90
@@ -129,12 +151,16 @@ module.exports = class Address extends Model {
         // Geographic coordinate specifying the east/west location of a shop.
         longitude: {
           type: Sequelize.FLOAT,
-          allowNull: true,
-          defaultValue: null,
+          allowNull: false,
+          defaultValue: 0.000000,
           validate: {
             min: -180,
             max: 180
           }
+        },
+        // The address as a String
+        formatted_address: {
+          type: Sequelize.STRING
         },
         // Live Mode
         live_mode: {

@@ -1,7 +1,7 @@
 /**
  * Proxy-Cart Configuration
  *
- * @see {@link http://
+ * @see {@link https://github.com/CaliStyle/trailpack-proxy-cart}
  */
 module.exports = {
   // The default Shop address (Nexus)
@@ -13,8 +13,10 @@ module.exports = {
       address_2: '',
       address_3: '',
       company: '',
+      city: '',
       province: '',
-      country: ''
+      country: '',
+      postal_code: ''
     }
   },
   // The default function for an automatic order payment: manual, authorize, sale
@@ -25,9 +27,9 @@ module.exports = {
   refund_restock: false,
   // Allow certain events
   allow: {
-    // Allows a product to be destroyed Recommended false
+    // Allows a product to be destroyed, Recommended false
     destroy_product: false,
-    // Allows a product variant to be destroyed Recommended false
+    // Allows a product variant to be destroyed, Recommended false
     destroy_variant: false
   }
 }

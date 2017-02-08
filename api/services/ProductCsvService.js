@@ -114,6 +114,9 @@ module.exports = class ProductCsvService extends Service {
           else if (k == 'shops_quantity') {
             upload[k] = data.split(',').map(shopQty => { return parseInt(shopQty.trim())})
           }
+          else if (k == 'weight_unit') {
+            upload[k] = data.toLowerCase()
+          }
           else {
             upload[k] = data
           }

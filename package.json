@@ -30,7 +30,7 @@
     "striptags": "^2.1.1",
     "trailpack": "v2-latest",
     "trailpack-proxy-cart-countries": "^0.0.2",
-    "trailpack-proxy-generics": "^0.0.9"
+    "trailpack-proxy-generics": "^0.0.18"
   },
   "devDependencies": {
     "eslint": "^2.4",

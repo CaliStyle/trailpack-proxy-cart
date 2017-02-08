@@ -392,6 +392,12 @@ module.exports = class Product extends Model {
           defaultValue: 0
         },
 
+        // The Total variants
+        total_variants: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+
         // 'Google Shopping / Google Product Category'
         g_product_category: {
           type: Sequelize.STRING

@@ -61,7 +61,7 @@ module.exports = {
     subscription_interval: 'Subscription Interval',
     collections: 'Collections',
     shops: 'Shops',
-    shops_qty: 'Shops Quantity',
+    shops_quantity: 'Shops Quantity',
     g_product_category: 'Google Shopping / Google Product Category',
     g_gender: 'Google Shopping / Gender',
     g_age_group: 'Google Shopping / Age Group',
@@ -77,7 +77,9 @@ module.exports = {
     g_custom_label_4: 'Google Shopping / Custom Label 4'
   },
   PRODUCT_META_UPLOAD: {
-    handle: 'Handle'
+    handle: 'Handle',
+    id: 'ID',
+    product_id: 'Product ID'
   },
   UNITS: {
     // Grams

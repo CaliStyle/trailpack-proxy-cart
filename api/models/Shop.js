@@ -65,6 +65,7 @@ module.exports = class Shop extends Model {
           type: Sequelize.STRING,
           allowNull: false
         },
+        // The Unique string for shop
         handle: {
           type: Sequelize.STRING,
           allowNull: false,

@@ -104,6 +104,11 @@ module.exports = class ProxyCartService extends Service {
    */
   uploadImage(image, orgUrl) {
     return this.app.services.DataStoreGenericService.upload(image)
+      .catch(err => {
+        return {
+          url: orgUrl
+        }
+      })
   }
 
   /**
@@ -224,6 +229,7 @@ module.exports = class ProxyCartService extends Service {
    * @param shippingAddress
    * @returns {Promise}
    */
+  // TODO
   resolveSendFromTo(cart, shippingAddress) {
     return new Promise((resolve, reject) => {
       const Cart = this.app.orm.Cart
@@ -299,8 +305,14 @@ module.exports = class ProxyCartService extends Service {
   nearestToAddress(shops, address) {
     shops = _.map(shops, shop => {
       shop.distance = geolib.getDistance(
-        {latitude: shop.latitude, longitude: shop.longitude},
-        {latitude: address.latitude, longitude: address.longitude}
+        {
+          latitude: shop.latitude,
+          longitude: shop.longitude
+        },
+        {
+          latitude: address.latitude,
+          longitude: address.longitude
+        }
       )
       return shop
     })

@@ -209,6 +209,30 @@ module.exports = class Cart extends Model {
                 // as: 'customer'
                 // as: 'customer_id'
               })
+              models.Cart.belongsTo(models.Address, {
+                as: 'shipping_address',
+                through: {
+                  model: models.CartAddress,
+                  foreignKey: 'cart_id',
+                  unique: true,
+                  scope: {
+                    address: 'shipping_address'
+                  },
+                  constraints: false
+                }
+              })
+              models.Cart.belongsTo(models.Address, {
+                as: 'billing_address',
+                through: {
+                  model: models.CartAddress,
+                  foreignKey: 'cart_id',
+                  unique: true,
+                  scope: {
+                    address: 'billing_address'
+                  },
+                  constraints: false
+                }
+              })
               // models.Cart.belongsTo(models.Customer, {
               //   foreignKey: 'default_cart'
               //   // as: 'customer_id'
