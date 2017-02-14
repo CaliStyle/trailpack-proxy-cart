@@ -16,7 +16,39 @@ module.exports = class CustomerUpload extends Model {
       migrate: 'drop', //override default models configurations if needed
       store: 'uploads',
       options: {
-        underscored: true
+        underscored: true,
+        classMethods: {
+          /**
+           *
+           * @param options
+           * @param batch
+           * @returns Promise.<T>
+           */
+          batch: function (options, batch) {
+            const self = this
+            options.limit = options.limit || 100
+            options.offset = options.offset || 0
+
+            const recursiveQuery = function(options) {
+              let count = 0
+              return self.findAndCountAll(options)
+                .then(results => {
+                  count = results.count
+                  return batch(results.rows)
+                })
+                .then(batched => {
+                  if (count > options.offset + options.limit) {
+                    options.offset = options.offset + options.limit
+                    return recursiveQuery(options)
+                  }
+                  else {
+                    return batched
+                  }
+                })
+            }
+            return recursiveQuery(options)
+          }
+        }
       }
     }
     return config

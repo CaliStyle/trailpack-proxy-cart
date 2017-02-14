@@ -121,45 +121,46 @@ module.exports = class CustomerCsvService extends Service {
     return new Promise((resolve, reject) => {
       const CustomerUpload = this.app.orm.CustomerUpload
       let customersTotal = 0
-      CustomerUpload.findAll({
+      CustomerUpload.batch({
         where: {
           upload_id: uploadId
         }
+      }, customers => {
+        return Promise.all(customers.map(customer => {
+          const create = {
+            first_name: customer.first_name,
+            last_name: customer.last_name,
+            phone: customer.phone,
+            shipping_address: {},
+            billing_address: {},
+            collections: customer.collections,
+            tags: customer.tags
+          }
+          _.each(customer.get({plain: true}), (value, key) => {
+            if (key.indexOf('shipping_') > -1) {
+              const newKey = key.replace('shipping_', '')
+              create.shipping_address[newKey] = value
+            }
+            if (key.indexOf('billing_') > -1) {
+              const newKey = key.replace('billing_', '')
+              create.billing_address[newKey] = value
+            }
+          })
+          if (create.shipping_address.length == 0) {
+            delete create.shipping_address
+          }
+          if (create.billing_address.length == 0) {
+            delete create.billing_address
+          }
+          // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
+          return this.app.services.CustomerService.create(create)
+        }))
+          .then(results => {
+            // Calculate Totals
+            customersTotal = customersTotal + results.length
+          })
       })
-        .then(customers => {
-          return Promise.all(customers.map(customer => {
-            // TODO change addresses to objects
-            const create = {
-              first_name: customer.first_name,
-              last_name: customer.last_name,
-              phone: customer.phone,
-              shipping_address: {},
-              billing_address: {},
-              collections: customer.collections,
-              tags: customer.tags
-            }
-            _.each(customer.get({plain: true}), (value, key) => {
-              if (key.indexOf('shipping_') > -1) {
-                const newKey = key.replace('shipping_', '')
-                create.shipping_address[newKey] = value
-              }
-              if (key.indexOf('billing_') > -1) {
-                const newKey = key.replace('billing_', '')
-                create.billing_address[newKey] = value
-              }
-            })
-            if (create.shipping_address.length == 0) {
-              delete create.shipping_address
-            }
-            if (create.billing_address.length == 0) {
-              delete create.billing_address
-            }
-            // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
-            return this.app.services.CustomerService.create(create)
-          }))
-        })
         .then(results => {
-          customersTotal = results.length
           return CustomerUpload.destroy({where: {upload_id: uploadId }})
         })
         .then(destroyed => {

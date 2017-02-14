@@ -79,6 +79,11 @@ module.exports = class Collection extends Model {
             this.setDataValue('handle', app.services.ProxyCartService.slug(val))
           }
         },
+        title: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          unique: true
+        },
         // Multi Site Support
         // TODO possibly switch to store_id for multi tenant support?
         host: {
@@ -99,11 +104,6 @@ module.exports = class Collection extends Model {
         },
         unpublished_at: {
           type: Sequelize.DATE
-        },
-        title: {
-          type: Sequelize.STRING,
-          allowNull: false,
-          unique: true
         },
         sort_order: {
           type: Sequelize.ENUM,

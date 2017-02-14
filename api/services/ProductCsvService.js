@@ -178,29 +178,27 @@ module.exports = class ProductCsvService extends Service {
       const ProductUpload = this.app.orm.ProductUpload
       let productsTotal = 0
       let variantsTotal = 0
-      ProductUpload.findAll({
+      ProductUpload.batch({
         where: {
           upload_id: uploadId
         },
         attributes: ['handle'],
         group: ['handle']
+      }, (products) => {
+        return Promise.all(products.map(product => {
+          return this.processProductGroup(product.handle)
+            .then((results) => {
+              // Calculate the totals created
+              productsTotal = productsTotal + results.products
+              variantsTotal = variantsTotal + results.variants
+              return results
+            })
+        }))
       })
-        .then(products => {
-          return Promise.all(products.map(product => {
-            return this.processProductGroup(product.handle)
-          }))
-        })
         .then(results => {
-          // Calculate the totals created
-          _.each(results, result => {
-            // console.log(result)
-            productsTotal = productsTotal + result.products
-            variantsTotal = variantsTotal + result.variants
-          })
           return ProductUpload.destroy({where: {upload_id: uploadId }})
         })
         .then(destroyed => {
-
           resolve({products: productsTotal, variants: variantsTotal })
         })
         .catch(err => {
@@ -335,38 +333,41 @@ module.exports = class ProductCsvService extends Service {
       const Metadata = this.app.orm.Metadata
       const Product = this.app.orm.Product
       let productsTotal = 0
-      ProductMetaUpload.findAll({
+      ProductMetaUpload.batch({
         where: {
           upload_id: uploadId
         }
-      })
-        .then(metadatums => {
-          return Promise.all(metadatums.map(metadata => {
-            return Product.find(
-              {
-                where: {
-                  handle: metadata.handle
-                },
-                attributes: ['id'],
-                include: [
-                  {
-                    model: Metadata,
-                    as: 'metadata',
-                    attributes: ['data', 'id']
-                  }
-                ]
-              })
-              .then(product => {
-                if (!product) {
-                  return
+      }, metadatums => {
+        return Promise.all(metadatums.map(metadata => {
+          return Product.find(
+            {
+              where: {
+                handle: metadata.handle
+              },
+              attributes: ['id'],
+              include: [
+                {
+                  model: Metadata,
+                  as: 'metadata',
+                  attributes: ['data', 'id']
                 }
-                product.metadata.data = metadata.data
-                return product.metadata.save()
-              })
-          }))
-        })
+              ]
+            })
+            .then(product => {
+              if (!product) {
+                return
+              }
+              product.metadata.data = metadata.data
+              return product.metadata.save()
+            })
+        }))
+          .then(results => {
+            // Calculate Totals
+            productsTotal = productsTotal + results.length
+            return results
+          })
+      })
         .then(results => {
-          productsTotal = results.length
           return ProductMetaUpload.destroy({
             where: {upload_id: uploadId }
           })

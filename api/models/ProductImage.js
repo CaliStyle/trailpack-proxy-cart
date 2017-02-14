@@ -66,7 +66,8 @@ module.exports = class ProductImage extends Model {
       schema = {
         // The original source
         src: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          allowNull: false
         },
         // Unaltered (raw) Image
         full: {
