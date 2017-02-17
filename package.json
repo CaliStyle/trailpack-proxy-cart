@@ -41,7 +41,7 @@
     "sails-disk": "^0.10.10",
     "smokesignals": "v2-latest",
     "supertest": "^2.0.1",
-    "trailpack-express": "^2.0.0-rc1",
+    "trailpack-express": "^2.0.3",
     "trailpack-proxy-engine": "^0.0.10",
     "trailpack-sequelize": "^2.0.0",
     "trailpack-router": "v2-latest",
