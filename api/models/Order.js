@@ -282,6 +282,9 @@ module.exports = class Order extends Model {
               else if (totalPartialFulfillments > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.PARTIAL
               }
+              else if (totalNonFulfillments == fulfillments.length) {
+                fulfillmentStatus = ORDER_FULFILLMENT.NONE // back to default
+              }
               this.fulfillment_status = fulfillmentStatus
               return this
             }

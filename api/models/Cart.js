@@ -98,7 +98,7 @@ module.exports = class Cart extends Model {
                   if (!qty || !_.isNumber(qty)) {
                     qty = 1
                   }
-                  let itemIndex = _.findIndex(lineItems, {variant_id: item.id})
+                  const itemIndex = _.findIndex(lineItems, {variant_id: item.id})
                   if (itemIndex > -1) {
                     app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
                     lineItems[itemIndex].quantity = lineItems[itemIndex].quantity + qty
@@ -120,7 +120,7 @@ module.exports = class Cart extends Model {
               if (!qty || !_.isNumber(qty)) {
                 qty = 1
               }
-              let itemIndex = _.findIndex(lineItems, {variant_id: item.id})
+              const itemIndex = _.findIndex(lineItems, {variant_id: item.id})
               if (itemIndex > -1) {
                 lineItems[itemIndex].quantity = lineItems[itemIndex].quantity - qty
                 // Resolve Grams
@@ -137,7 +137,7 @@ module.exports = class Cart extends Model {
             recalculate: function() {
               let subtotalPrice = 0
               let totalDiscounts = 0
-              let totalCoupons = 0
+              const totalCoupons = 0
               let totalTax = 0
               let totalWeight = 0
               let totalPrice = 0
