@@ -141,10 +141,14 @@ module.exports = class Customer extends Model {
             findIdDefault: function(id, options) {
               options = _.merge(options, {
                 // include: [{ all: true }]
+                attributes: {
+                  exclude: [
+                    'shipping_address_id',
+                    'billing_address_id',
+                    'default_address_id'
+                  ]
+                },
                 include: [
-                  // {association: 'shipping_address'},
-                  // {association: 'billing_address'},
-                  // app.orm['CustomerAddress'],
                   {
                     model: app.orm['Address'],
                     as: 'default_address'
@@ -186,6 +190,7 @@ module.exports = class Customer extends Model {
             }
           },
           instanceMethods: {
+            // TODO Discussion: should this be pulled with each query or set after order?
             setLastOrder: function(order){
               this.last_order_name = order.name
               this.last_order_id = order.id

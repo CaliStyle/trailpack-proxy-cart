@@ -123,7 +123,8 @@ module.exports = class CustomerService extends Service {
           }
         })
         .then(cart => {
-          return resCustomer.reload()
+          // return resCustomer.reload()
+          return Customer.findIdDefault(resCustomer.id)
         })
         .then(customer => {
           return resolve(customer)
@@ -190,7 +191,8 @@ module.exports = class CustomerService extends Service {
           ])
         })
         .then(addresses => {
-          return resCustomer.reload()
+          // return resCustomer.reload()
+          return Customer.findIdDefault(resCustomer.id)
         })
         .then(customer => {
           return resolve(customer)
