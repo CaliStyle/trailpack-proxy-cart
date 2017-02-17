@@ -32,6 +32,7 @@ describe('CustomerController', () => {
       .get(`/customer/${customerID}`)
       .expect(200)
       .end((err, res) => {
+        console.log('THIS CUSTOMER First',res.body)
         // console.log('CUSTOMER',res.body)
         assert.equal(res.body.first_name, 'Scottie')
         assert.equal(res.body.last_name, 'Wyatt')

@@ -106,8 +106,11 @@ module.exports = class Customer extends Model {
                   constraints: false
                 }
               })
-              models.Customer.hasMany(models.Order, {
-                as: 'orders'
+              models.Customer.belongsToMany(models.Order, {
+                as: 'orders',
+                through: {
+                  model: models.CustomerOrder
+                }
               })
               // models.Customer.hasOne(models.Order, {
               //   as: 'last_order_id'
@@ -148,6 +151,30 @@ module.exports = class Customer extends Model {
                     'default_address_id'
                   ]
                 },
+                // [
+                //   'Customer.*',
+                //   // 'billing_address.*',
+                //   // 'shipping_address.*',
+                //   // 'metadata.*',
+                //   // 'tags.*',
+                //   // 'default_cart.*'
+                //   // [app.orm['Order'].sequelize.fn('COUNT', app.orm['Order'].sequelize.col('orders.id')), 'orders_count']
+                // ],
+                // {
+                //   // include: [
+                //   //   'billing_address.*',
+                //   //   'shipping_address.*',
+                //   //   'metadata.*',
+                //   //   'tags.*',
+                //   //   'default_cart.*'
+                //   //   // [app.orm['Order'].sequelize.fn('COUNT', app.orm['Order'].sequelize.col('orders.id')), 'orders_count']
+                //   // ],
+                //   exclude: [
+                //     'shipping_address_id',
+                //     'billing_address_id',
+                //     'default_address_id'
+                //   ]
+                // },
                 include: [
                   {
                     model: app.orm['Address'],
@@ -179,6 +206,12 @@ module.exports = class Customer extends Model {
                     model: app.orm['Cart'],
                     as: 'default_cart'
                   }
+                  // ,
+                  // {
+                  //   model: app.orm['Order'],
+                  //   as: 'orders',
+                  //   attributes: [[app.orm['Order'].sequelize.fn('COUNT', app.orm['Order'].sequelize.col('orders.id')), 'orders_count']]
+                  // }
                   // ,
                   // {
                   //   model: app.orm['Cart'],

@@ -4,5 +4,4 @@ module.exports = class DefaultImageProvider {
   constructor(options) {
     this.options = options
   }
-
 }

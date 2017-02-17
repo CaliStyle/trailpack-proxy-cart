@@ -82,6 +82,9 @@ module.exports = class Order extends Model {
               //   as: 'cart_token'
               // })
               // models.Order.belongsTo(models.Customer, {
+              //   // through: {
+              //   //   model: models.CustomerOrder
+              //   // }
               //   // as: 'customer_id'
               // })
               // models.Order.hasOne(models.CustomerAddress, {
@@ -136,6 +139,10 @@ module.exports = class Order extends Model {
             findIdDefault: function(criteria, options) {
               options = _.merge(options, {
                 include: [
+                  // {
+                  //   model: app.orm['Customer'],
+                  //   // as: 'customer'
+                  // },
                   {
                     model: app.orm['OrderItem'],
                     as: 'order_items'

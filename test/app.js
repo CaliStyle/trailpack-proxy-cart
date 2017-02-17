@@ -145,12 +145,12 @@ const App = {
       //   adapter: require('../api/generics').imageProvider,
       //   options: {}
       // },
+      // geolocation_provider: {
+      //   adapter: require('../api/generics').geolocationProvider,
+      //   options: {}
+      // },
       fulfillment_provider: {
         adapter: require('./fixtures/FakeFulfillment'),
-        options: {}
-      },
-      geolocation_provider: {
-        adapter: require('./fixtures/FakeGeolocation'),
         options: {}
       }
     },

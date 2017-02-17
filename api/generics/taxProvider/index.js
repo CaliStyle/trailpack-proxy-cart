@@ -6,8 +6,8 @@ module.exports = class DefaultTaxProvider {
   }
   getRate(data) {
     return Promise.resolve({
-      amount: 1000,
-      rate: 0.075,
+      amount: 0,
+      rate: 0.0,
       title: 'Sales Tax',
       tax_details: {}
     })
