@@ -37,6 +37,14 @@ module.exports = class Tag extends Model {
                 foreignKey: 'tag_id',
                 constraints: false
               })
+              models.Tag.belongsToMany(models.Collection, {
+                through: {
+                  model: models.ItemTag,
+                  unique: false
+                },
+                foreignKey: 'tag_id',
+                constraints: false
+              })
             },
             transformTags: (tags) => {
               const Tag = app.orm['Tag']

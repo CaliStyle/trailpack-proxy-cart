@@ -75,7 +75,7 @@ module.exports = class DefaultGeolocationProvider {
   /**
    *
    * @param address
-   * @returns {Promise.<{latitude: number, longitude: number, }>}
+   * @returns {Promise.<{latitude: number, longitude: number, formatted_address: string}>}
    */
   locate(address) {
     return Promise.resolve({

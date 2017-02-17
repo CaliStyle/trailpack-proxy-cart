@@ -146,14 +146,14 @@ module.exports = class ProductCsvService extends Service {
     upload.images = _.map(upload.images, (image, index) => {
       return {
         src: image,
-        alt: upload.images_alt[index]
+        alt: upload.images_alt ? upload.images_alt[index] : ''
       }
     })
     delete upload.images_alt
     upload.varinat_images = _.map(upload.variant_images, (image, index) => {
       return {
         src: image,
-        alt: upload.varinat_images_alt[index]
+        alt: upload.varinat_images_alt ? upload.varinat_images_alt[index] : ''
       }
     })
     delete upload.variant_images_alt
