@@ -76,13 +76,27 @@ describe('ProxyCartService', () => {
 
     done()
   })
-  it.skip('should build images', done => {
-    done()
+  let builtImages
+  it('should build and upload images', done => {
+    ProxyCartService.buildImages('https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150')
+      .then(images => {
+        builtImages = images
+        assert.ok(builtImages.full)
+        assert.ok(builtImages.thumbnail)
+        assert.ok(builtImages.small)
+        assert.ok(builtImages.medium)
+        assert.ok(builtImages.large)
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
   })
-  it.skip('should upload images', done => {
-    done()
-  })
-  it.skip('should download image', done => {
-    done()
-  })
+  // it('should upload images', done => {
+  //   console.log(builtImages)
+  //   done()
+  // })
+  // it('should download image', done => {
+  //   done()
+  // })
 })
