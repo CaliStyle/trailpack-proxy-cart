@@ -10,6 +10,24 @@ const lib = require('../../lib')
  */
 module.exports = class TransactionController extends Controller {
   /**
+   * count the amount of transactions
+   * @param req
+   * @param res
+   */
+  count(req, res){
+    const ProxyEngineService = this.app.services.ProxyEngineService
+    ProxyEngineService.count('Transaction')
+      .then(count => {
+        const counts = {
+          transactions: count
+        }
+        return res.json(counts)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
    *
    * @param req
    * @param res
@@ -107,6 +125,15 @@ module.exports = class TransactionController extends Controller {
       .catch(err => {
         return res.serverError(err)
       })
+  }
+  // TODO
+  create(req, res) {
+  }
+  // TODO
+  update(req, res) {
+  }
+  // TODO
+  destroy(req, res) {
   }
 }
 

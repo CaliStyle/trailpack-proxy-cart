@@ -132,14 +132,19 @@ const App = {
         adapter: require('./fixtures/FakeDataStore'),
         options: {}
       },
-      tax_provider: {
-        adapter: require('./fixtures/FakeTax'),
-        options: {}
-      },
-      shipping_provider: {
-        adapter: require('./fixtures/FakeShipping'),
-        options: {}
-      },
+      // Moved to Default Generics
+      // tax_provider: {
+      //   adapter: require('../api/generics').taxProvider,
+      //   options: {}
+      // },
+      // shipping_provider: {
+      //   adapter: require('../api/generics').shippingProvider,
+      //   options: {}
+      // },
+      // image_provider: {
+      //   adapter: require('../api/generics').imageProvider,
+      //   options: {}
+      // },
       fulfillment_provider: {
         adapter: require('./fixtures/FakeFulfillment'),
         options: {}
@@ -148,7 +153,6 @@ const App = {
         adapter: require('./fixtures/FakeGeolocation'),
         options: {}
       }
-
     },
     proxyEngine: {
       live_mode: false

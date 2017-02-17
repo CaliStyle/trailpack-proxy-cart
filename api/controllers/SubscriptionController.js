@@ -8,7 +8,7 @@ const Controller = require('trails/controller')
  */
 module.exports = class SubscriptionController extends Controller {
   /**
-   * count the amount of carts
+   * count the amount of subscriptions
    * @param req
    * @param res
    */
