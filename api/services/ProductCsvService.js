@@ -20,7 +20,7 @@ module.exports = class ProductCsvService extends Service {
    * @returns {Promise}
    */
   productCsv(file) {
-    // TODO validate csv
+    // TODO validate csv and return rows with errors
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
@@ -150,10 +150,10 @@ module.exports = class ProductCsvService extends Service {
       }
     })
     delete upload.images_alt
-    upload.varinat_images = _.map(upload.variant_images, (image, index) => {
+    upload.variant_images = _.map(upload.variant_images, (image, index) => {
       return {
         src: image,
-        alt: upload.varinat_images_alt ? upload.varinat_images_alt[index] : ''
+        alt: upload.variant_images_alt ? upload.variant_images_alt[index] : ''
       }
     })
     delete upload.variant_images_alt
@@ -206,7 +206,12 @@ module.exports = class ProductCsvService extends Service {
         })
     })
   }
-  // TODO
+
+  /**
+   *
+   * @param handle
+   * @returns {Promise}
+   */
   processProductGroup(handle) {
     return new Promise((resolve, reject) => {
       this.app.log.debug('ProxyCartService.processProductGroup', handle)
@@ -224,7 +229,7 @@ module.exports = class ProductCsvService extends Service {
             product.images = product.variant_images
             return _.omit(product, ['variant_images'])
           })
-          // console.log(defaultProduct)
+          console.log(defaultProduct)
           // Add the product with it's variants
           return this.app.services.ProductService.addProduct(defaultProduct)
         })
@@ -240,7 +245,7 @@ module.exports = class ProductCsvService extends Service {
    * @returns {Promise}
    */
   productMetaCsv(file) {
-    // TODO validate csv
+    // TODO validate csv and return rows with errors
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService

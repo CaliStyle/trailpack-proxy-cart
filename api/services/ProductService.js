@@ -111,6 +111,7 @@ module.exports = class ProductService extends Service {
     }
 
     // Variants
+    // Set a default variant based of off product
     let variants = [{
       sku: product.sku,
       title: product.title,
@@ -119,14 +120,19 @@ module.exports = class ProductService extends Service {
       weight_unit: product.weight_unit,
       published: product.published
     }]
+    // Set the published status
     if (product.published) {
       variants[0].published_at = create.published_at
+    }
+    // This is not a true variant because it is missing a sku (which is required), let's remove it.
+    if (!variants[0].sku) {
+      variants.splice(0,1)
     }
     // Add variants to the default
     if (product.variants) {
       variants = variants.concat(product.variants)
     }
-
+    // For every variant, map missing defaults and images
     _.map(variants, (variant, index) => {
       variant = this.variantDefaults(variant, product)
       // Map Variant Positions putting default at 1
@@ -142,7 +148,7 @@ module.exports = class ProductService extends Service {
         variant.published_at = create.published_at
       }
       // Handle Variant Images
-      if (variant.images) {
+      if (variant.images && variant.images.length > 0) {
         _.map(variant.images, image => {
           image.variant = index
         })
@@ -150,9 +156,11 @@ module.exports = class ProductService extends Service {
         delete variant.images
       }
     })
+
     // Assign the variants to the create model
     create.variants = variants
 
+    // Map image positions
     _.map(images, (image, index) => {
       image.position = index + 1
     })
