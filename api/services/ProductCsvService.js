@@ -35,7 +35,7 @@ module.exports = class ProductCsvService extends Service {
           // TODO handle errors
           // console.log('Row errors:', results.errors)
           parser.pause()
-          this.csvProductRow(results.data[0], uploadID)
+          return this.csvProductRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
@@ -53,11 +53,11 @@ module.exports = class ProductCsvService extends Service {
               results.products = count
               // Publish the event
               ProxyEngineService.publish('product_upload.complete', results)
-              resolve(results)
+              return resolve(results)
             })
             // TODO handle this more gracefully
             .catch(err => {
-              reject(err)
+              return reject(err)
             })
         },
         error: (err, file) => {
@@ -108,6 +108,9 @@ module.exports = class ProductCsvService extends Service {
           else if (k == 'collections') {
             upload[k] = data.split(',').map(collection => { return collection.trim()})
           }
+          else if (k == 'associations') {
+            upload[k] = data.split(',').map(collection => { return collection.trim()})
+          }
           else if (k == 'shops') {
             upload[k] = data.split(',').map(shop => { return shop.trim()})
           }
@@ -130,19 +133,25 @@ module.exports = class ProductCsvService extends Service {
             const index = Number(match[3]) - 1
             // console.log(index, part)
             if (typeof upload.options[index] === 'undefined') {
-              upload.options[index] = {name: '', value: ''}
+              upload.options[index] = {
+                name: '',
+                value: ''
+              }
             }
             upload.options[index][part] = data.trim()
           }
         }
       }
     })
+
     // Handle Options
     upload.options = _.map(upload.options, option => {
       const rectObj = {}
       rectObj[option.name] = option.value
       return rectObj
     })
+
+    // Map images
     upload.images = _.map(upload.images, (image, index) => {
       return {
         src: image,
@@ -150,6 +159,8 @@ module.exports = class ProductCsvService extends Service {
       }
     })
     delete upload.images_alt
+
+    // Map variant images
     upload.variant_images = _.map(upload.variant_images, (image, index) => {
       return {
         src: image,
@@ -158,10 +169,26 @@ module.exports = class ProductCsvService extends Service {
     })
     delete upload.variant_images_alt
 
+    // Map collections
     upload.collections = _.map(upload.collections, (collection, index) => {
       return {
         title: collection
       }
+    })
+
+    // Map associations
+    upload.associations = _.map(upload.associations, (association) => {
+      const handle = association.split(/:(.+)/)[0]
+      const sku = association.split(/:(.+)/)[1]
+      const res = {}
+      if (handle && handle != '') {
+        res.handle = handle
+        if (sku && sku != '') {
+          res.sku = sku
+        }
+        return res
+      }
+      return
     })
 
     const newProduct = ProductUpload.build(upload)
@@ -182,6 +209,7 @@ module.exports = class ProductCsvService extends Service {
         where: {
           upload_id: uploadId
         },
+        limit: 10,
         attributes: ['handle'],
         group: ['handle']
       }, (products) => {
@@ -199,7 +227,13 @@ module.exports = class ProductCsvService extends Service {
           return ProductUpload.destroy({where: {upload_id: uploadId }})
         })
         .then(destroyed => {
-          resolve({products: productsTotal, variants: variantsTotal })
+          const results = {
+            upload_id: uploadId,
+            products: productsTotal,
+            variants: variantsTotal
+          }
+          this.app.services.ProxyEngineService.publish('product_process.complete', results)
+          return resolve(results)
         })
         .catch(err => {
           return reject(err)
@@ -215,6 +249,7 @@ module.exports = class ProductCsvService extends Service {
   processProductGroup(handle) {
     return new Promise((resolve, reject) => {
       this.app.log.debug('ProxyCartService.processProductGroup', handle)
+      let errorsCount = 0
       const ProductUpload = this.app.orm.ProductUpload
       ProductUpload.findAll({where: {handle: handle}})
         .then(products => {
@@ -226,15 +261,21 @@ module.exports = class ProductCsvService extends Service {
           const defaultProduct = products.shift()
           // Add Product Variants
           defaultProduct.variants = _.map(products, product => {
-            product.images = product.variant_images
-            return _.omit(product, ['variant_images'])
+            // Sku is required for a variant
+            if (!product.sku) {
+              errorsCount++
+            }
+            else {
+              product.images = product.variant_images
+              return _.omit(product, ['variant_images'])
+            }
           })
           // console.log(defaultProduct)
           // Add the product with it's variants
           return this.app.services.ProductService.addProduct(defaultProduct)
         })
         .then(product => {
-          return resolve({products: 1, variants: product.variants.length})
+          return resolve({products: 1, variants: product.variants.length, errors: errorsCount})
         })
     })
   }
@@ -260,7 +301,7 @@ module.exports = class ProductCsvService extends Service {
           // TODO handle errors
           // console.log('Row errors:', results.errors)
           parser.pause()
-          this.csvProductMetaRow(results.data[0], uploadID)
+          return this.csvProductMetaRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
@@ -278,11 +319,11 @@ module.exports = class ProductCsvService extends Service {
               results.products = count
               // Publish the event
               ProxyEngineService.publish('product_meta_upload.complete', results)
-              resolve(results)
+              return resolve(results)
             })
             // TODO handle this more gracefully
             .catch(err => {
-              reject(err)
+              return reject(err)
             })
         },
         error: (err, file) => {
@@ -378,7 +419,12 @@ module.exports = class ProductCsvService extends Service {
           })
         })
         .then(destroyed => {
-          return resolve({products: productsTotal})
+          const results = {
+            upload_id: uploadId,
+            products: productsTotal
+          }
+          this.app.services.ProxyEngineService.publish('product_metadata_process.complete', results)
+          return resolve(results)
         })
         .catch(err => {
           return reject(err)

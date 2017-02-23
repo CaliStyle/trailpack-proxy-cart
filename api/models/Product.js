@@ -122,6 +122,18 @@ module.exports = class Product extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Product.belongsToMany(models.Product, {
+                as: 'associations',
+                through: {
+                  model: models.ProductAssociation,
+                  unique: false
+                  // scope: {
+                  //   model: 'product'
+                  // }
+                },
+                foreignKey: 'associated_product_id',
+                constraints: false
+              })
               // models.Product.belongsToMany(models.OrderItem, {
               //   as: 'order_items',
               //   through: 'OrderItemProduct'
@@ -273,6 +285,13 @@ module.exports = class Product extends Model {
                   resp.metadata = resp.metadata.data
                 }
               }
+              // TODO Render the body as HTML
+              // app.services.RenderGenericService.render(this.body)
+              //   .then(doc => {
+              //     resp.html = doc.document
+              //     return resp
+              //   })
+              resp.html = resp.body
               return resp
             }
           }

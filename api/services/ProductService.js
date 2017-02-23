@@ -610,29 +610,38 @@ module.exports = class ProductService extends Service {
   }
   // TODO addTag
   addTag(product, tag){
-
+    return Promise.resolve()
   }
   // TODO removeTag
   removeTag(product, tag){
-
+    return Promise.resolve()
   }
 
-  // TODO addToCollection
-  addToCollection(product, collection){
-
+  // TODO addAssociation
+  addAssociation(product, association){
+    return Promise.resolve()
   }
-  // TODO removeFromCollection
-  removeFromCollection(product, collection){
-
+  // TODO removeAssociation
+  removeAssociation(product, association){
+    return Promise.resolve()
   }
 
-  // TODO addToShop
-  addToShop(product, shop){
-
+  // TODO addCollection
+  addCollection(product, collection){
+    return Promise.resolve()
   }
-  // TODO removeFromShop
-  removeFromShop(product, shop){
+  // TODO removeCollection
+  removeCollection(product, collection){
+    return Promise.resolve()
+  }
 
+  // TODO addShop
+  addShop(product, shop){
+    return Promise.resolve()
+  }
+  // TODO removeShop
+  removeShop(product, shop){
+    return Promise.resolve()
   }
 
   /**

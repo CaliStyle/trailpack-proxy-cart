@@ -314,6 +314,10 @@ describe('ProductController', () => {
   })
   it.skip('should remove collection from product', (done) => {
   })
+  it.skip('should add association to product', (done) => {
+  })
+  it.skip('should remove association from product', (done) => {
+  })
   it.skip('should add shop to product', (done) => {
   })
   it.skip('should remove shop from product', (done) => {

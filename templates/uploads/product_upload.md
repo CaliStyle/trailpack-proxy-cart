@@ -26,10 +26,13 @@ The name of the vendor for your product. For example, John's Apparel.
 The Product type. For example, Snowboard.
 
 ## Tags (can be left blank)
-Comma-separated list of tags used to tag the product. Most spreadsheet applications automatically add quotes around the tags for you. If you are using a plain text editor, you will need to manually add the quote. For example, `tag1, tag2, tag3`.
+Comma-separated list of tags used to tag the product. For example, `tag1, tag2, tag3`.
+
+## Associations (can be left blank)
+Comma-separated list of associations used to relate a product with a different product variant. The schema is the "product handle" plus a "colon" and optional a "variant sku". If no variant sku is specified, the default sku will be used. For example, `product-handle1:sku-1, product-handle2, product-handle3:sku-1`.
 
 ## Published
-States whether or not a product is published on your storefront. Valid values are TRUE if the product is published on your storefront, or FALSE if the product is hidden from your storefront. Leaving the field blank will publish the product.
+States whether or not a product is published on your storefront. Valid values are TRUE if the product is published on your storefront, or FALSE if the product is hidden from your storefront. Leaving the field blank will leave the product unpublished.
 
 ## Option / 1 Name (Default)
 If a product has an option that does not alter the SKU, enter its name. For example, Color.

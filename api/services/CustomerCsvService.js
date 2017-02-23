@@ -34,7 +34,7 @@ module.exports = class CustomerCsvService extends Service {
           // TODO handle errors
           // console.log('Row errors:', results.errors)
           parser.pause()
-          this.csvCustomerRow(results.data[0], uploadID)
+          return this.csvCustomerRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
@@ -52,15 +52,15 @@ module.exports = class CustomerCsvService extends Service {
               results.customers = count
               // Publish the event
               ProxyEngineService.publish('customer_upload.complete', results)
-              resolve(results)
+              return resolve(results)
             })
             // TODO handle this more gracefully
             .catch(err => {
-              reject(err)
+              return reject(err)
             })
         },
         error: (err, file) => {
-          reject(err)
+          return reject(err)
         }
       }
       const fileString = fs.readFileSync(file, 'utf8')
@@ -164,7 +164,12 @@ module.exports = class CustomerCsvService extends Service {
           return CustomerUpload.destroy({where: {upload_id: uploadId }})
         })
         .then(destroyed => {
-          return resolve({customers: customersTotal})
+          const results = {
+            upload_id: uploadId,
+            customers: customersTotal
+          }
+          this.app.services.ProxyEngineService.publish('customer_process.complete', results)
+          return resolve(results)
         })
         .catch(err => {
           return reject(err)

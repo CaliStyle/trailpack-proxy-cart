@@ -90,6 +90,14 @@ module.exports = class ProductUpload extends Model {
       tags: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'tags', {
         defaultValue: []
       }),
+      // 'Collections'
+      collections: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'collections', {
+        defaultValue: []
+      }),
+      // 'Associations'
+      associations: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'associations', {
+        defaultValue: []
+      }),
       // 'Published'
       published: {
         type: Sequelize.STRING
@@ -185,10 +193,6 @@ module.exports = class ProductUpload extends Model {
       subscription_interval: {
         type: Sequelize.STRING
       },
-      // 'Collections'
-      collections: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'collections', {
-        defaultValue: []
-      }),
       // 'Shops'
       shops: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'shops', {
         defaultValue: []

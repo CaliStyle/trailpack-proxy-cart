@@ -49,7 +49,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
   }
 
   /**
-   * Adds Routes, Policies, and Agenda
+   * Adds Routes, Policies, Generics, and Agenda
    */
   configure () {
     return Promise.all([
@@ -62,7 +62,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
   }
 
   /**
-   * TODO document method
+   * Loads default shop fixtures
    */
   initialize () {
     return Promise.all([

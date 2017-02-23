@@ -9,16 +9,14 @@ const Errors = require('proxy-engine-errors')
  * @description Product Controller.
  */
 module.exports = class ProductController extends Controller {
-  // TODO add Customer Attributes to Product (Previously Purchased, Selected Options, etc)
+  // TODO add Customer Attributes to Product (Previously Purchased, Selected Options, attributes, discounts, etc)
   findOne(req, res){
-    // const FootprintService = this.app.services.FootprintService
-    const Product = this.app.services.ProxyEngineService.getModel('Product')
+    const Product = this.app.orm['Product']
     Product.findIdDefault(req.params.id, {})
       .then(product => {
         if (!product) {
-          throw new Errors.FoundError(Error(`Product id ${req.params.id} not found`))
+          throw new Errors.FoundError(Error(`Product id ${ req.params.id } not found`))
         }
-        // product.unwrapTags(product.tags)
         return res.json(product)
       })
       .catch(err => {
@@ -26,10 +24,10 @@ module.exports = class ProductController extends Controller {
       })
   }
   findByTag(req, res) {
-    const orm = this.app.services.ProxyEngineService.getModel
-    const Product = orm('Product')
-    const Collection = orm('Collection')
-    const Tag = orm('Tag')
+    const orm = this.app.orm
+    const Product = orm['Product']
+    const Collection = orm['Collection']
+    const Tag = orm['Tag']
     Product.findAndCount({
       offset: req.query.offset || 0,
       limit: req.query.limit || 10,
@@ -56,11 +54,10 @@ module.exports = class ProductController extends Controller {
       })
   }
   findByCollection(req, res) {
-    const orm = this.app.services.ProxyEngineService.getModel
-    const Product = orm('Product')
-    const Collection = orm('Collection')
-    const Tag = orm('Tag')
-    // console.log('PARAMS', req.params, 'Query', req.query)
+    const orm = this.app.orm
+    const Product = orm['Product']
+    const Collection = orm['Collection']
+    const Tag = orm['Tag']
     Product.findAndCount({
       offset: req.query.offset || 0,
       limit: req.query.limit || 10,
@@ -86,10 +83,10 @@ module.exports = class ProductController extends Controller {
       })
   }
   findAll(req, res){
-    const orm = this.app.services.ProxyEngineService.getModel
-    const Product = orm('Product')
-    const Collection = orm('Collection')
-    const Tag = orm('Tag')
+    const orm = this.app.orm
+    const Product = orm['Product']
+    const Collection = orm['Collection']
+    const Tag = orm['Tag']
     Product.findAndCount({
       offset: req.query.offset || 0,
       limit: req.query.limit || 10,
@@ -332,6 +329,105 @@ module.exports = class ProductController extends Controller {
       })
   }
   /**
+   *
+   * @param req
+   * @param res
+   */
+  addTag(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.addTag(req.body.product, req.body.tag)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.addTag', err)
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeTag(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.removeTag(req.body.product, req.body.tag)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeTag', err)
+        return res.serverError(err)
+      })
+  }
+  /**
+   * add a product to a collection
+   * @param req
+   * @param res
+   */
+  addCollection(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.addCollection(req.body.product, req.body.collection)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.addCollection', err)
+        return res.serverError(err)
+      })
+  }
+  /**
+   * remove a product from a collection
+   * @param req
+   * @param res
+   */
+  removeCollection(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.removeCollection(req.body.product, req.body.collection)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeCollection', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   * Add an association to a product
+   * @param req
+   * @param res
+   */
+  addAssociation(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.addAssociation(req.body.product, req.body.association)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.addAssociation', err)
+        return res.serverError(err)
+      })
+  }
+  /**
+   * Remove an association from a product
+   * @param req
+   * @param res
+   */
+  removeAssociation(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.removeAssociation(req.body.product, req.body.association)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
+
+
+  /**
    * upload CSV
    * @param req
    * @param res
@@ -341,7 +437,7 @@ module.exports = class ProductController extends Controller {
     const csv = req.file
 
     if (!csv) {
-      const err = new Error('File failed to upload')
+      const err = new Error('File failed to upload, check input name is "csv" and try again.')
       return res.serverError(err)
     }
 
@@ -382,7 +478,7 @@ module.exports = class ProductController extends Controller {
     const csv = req.file
 
     if (!csv) {
-      const err = new Error('File failed to upload')
+      const err = new Error('File failed to upload, check input name is "csv" and try again.')
       return res.serverError(err)
     }
 

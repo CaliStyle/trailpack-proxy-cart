@@ -3,6 +3,7 @@
 const Model = require('trails/model')
 const _ = require('lodash')
 const COLLECTION_SORT_ORDER = require('../utils/enums').COLLECTION_SORT_ORDER
+const COLLECTION_PURPOSE = require('../utils/enums').COLLECTION_PURPOSE
 /**
  * @module ProductCollection
  * @description Product Collection Model
@@ -31,6 +32,7 @@ module.exports = class Collection extends Model {
           },
           classMethods: {
             COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
+            COLLECTION_PURPOSE: COLLECTION_PURPOSE,
             /**
              *
              * @param models
@@ -60,6 +62,19 @@ module.exports = class Collection extends Model {
               //   as: 'images'
               // })
             }
+          },
+          instanceMethods: {
+            toJSON: function () {
+              const resp = this.get({ plain: true })
+              // TODO render body as HTML
+              // app.services.RenderGenericService.render(this.body)
+              //   .then(doc => {
+              //     resp.html = doc.document
+              //     return resp
+              //   })
+              resp.html = this.body
+              return resp
+            }
           }
         }
       }
@@ -84,34 +99,46 @@ module.exports = class Collection extends Model {
           allowNull: false,
           unique: true
         },
+        // The purpose of the collection
+        primary_purpose: {
+          type: Sequelize.ENUM,
+          values: _.values(COLLECTION_PURPOSE),
+          defaultValue: COLLECTION_PURPOSE.GROUP
+        },
         // Multi Site Support
         // TODO possibly switch to store_id for multi tenant support?
         host: {
           type: Sequelize.STRING,
           defaultValue: 'localhost'
         },
+        // The body of a collection
         body: {
           type: Sequelize.TEXT
         },
+        // If the Collection is published
         published: {
           type: Sequelize.BOOLEAN
         },
+        // When the Collection was published
         published_at: {
           type: Sequelize.DATE
         },
+        // The scope Collection is published
         published_scope: {
           type: Sequelize.STRING
         },
+        // When the collection was unpublished
         unpublished_at: {
           type: Sequelize.DATE
         },
+        // The way Items are displayed in this collection
         sort_order: {
           type: Sequelize.ENUM,
           values: _.values(COLLECTION_SORT_ORDER),
           defaultValue: COLLECTION_SORT_ORDER.ALPHA_DESC
         },
 
-        // TODO Tax Percentage Override
+        // TODO Tax Percentage Override for products in this collection
         tax_rate: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0

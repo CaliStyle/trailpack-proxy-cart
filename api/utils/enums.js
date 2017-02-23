@@ -33,6 +33,8 @@ module.exports = {
     vendor: 'Vendor',
     type: 'Type',
     tags: 'Tags',
+    collections: 'Collections',
+    associations: 'Associations',
     published: 'Published',
     option_name: 'Option / * Name',
     option_value: 'Option / * Value',
@@ -59,7 +61,6 @@ module.exports = {
     subscription: 'Subscription',
     subscription_unit: 'Subscription Unit',
     subscription_interval: 'Subscription Interval',
-    collections: 'Collections',
     shops: 'Shops',
     shops_quantity: 'Shops Quantity',
     g_product_category: 'Google Shopping / Google Product Category',
@@ -252,6 +253,13 @@ module.exports = {
     VOID: 'void',
     //  The partial or full return of the captured money to the customer.
     REFUND: 'refund'
+  },
+  COLLECTION_PURPOSE: {
+    NAVIGATION: 'navigation',
+    GROUP: 'group',
+    DISCOUNT: 'discount',
+    SHIPPING: 'shipping',
+    TAXES: 'taxes'
   },
   COLLECTION_SORT_ORDER: {
     // Alphabetically, in ascending order (A - Z).
