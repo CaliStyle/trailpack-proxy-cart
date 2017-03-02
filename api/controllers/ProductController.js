@@ -9,6 +9,11 @@ const Errors = require('proxy-engine-errors')
  * @description Product Controller.
  */
 module.exports = class ProductController extends Controller {
+  /**
+   *
+   * @param req
+   * @param res
+   */
   // TODO add Customer Attributes to Product (Previously Purchased, Selected Options, attributes, discounts, etc)
   findOne(req, res){
     const Product = this.app.orm['Product']
@@ -23,11 +28,18 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findByTag(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
     const Collection = orm['Collection']
     const Tag = orm['Tag']
+
     Product.findAndCount({
       offset: req.query.offset || 0,
       limit: req.query.limit || 10,
@@ -46,13 +58,18 @@ module.exports = class ProductController extends Controller {
       ]
     })
       .then(products => {
-        // product.unwrapTags(product.tags)
         return res.json(products)
       })
       .catch(err => {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findByCollection(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
@@ -82,6 +99,12 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findAll(req, res){
     const orm = this.app.orm
     const Product = orm['Product']
@@ -109,6 +132,12 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   * Count Products, Variants, Images
+   * @param req
+   * @param res
+   */
   count(req, res){
     const ProxyEngineService = this.app.services.ProxyEngineService
     let productCount = 0

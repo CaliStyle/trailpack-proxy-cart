@@ -28,6 +28,30 @@ module.exports = class Collection extends Model {
               //   values.handle = app.services.ProxyCartService.slug(values.title)
               // }
               fn()
+            },
+            beforeCreate(values, options, fn) {
+              if (values.body) {
+                app.services.RenderGenericService.render(values.body)
+                  .then(doc => {
+                    values.html = doc.document
+                    return fn()
+                  })
+              }
+              else {
+                return fn()
+              }
+            },
+            beforeUpdate(values, options, fn) {
+              if (values.body) {
+                app.services.RenderGenericService.render(values.body)
+                  .then(doc => {
+                    values.html = doc.document
+                    return fn()
+                  })
+              }
+              else {
+                return fn()
+              }
             }
           },
           classMethods: {
@@ -63,19 +87,19 @@ module.exports = class Collection extends Model {
               // })
             }
           },
-          instanceMethods: {
-            toJSON: function () {
-              const resp = this.get({ plain: true })
-              // TODO render body as HTML
-              // app.services.RenderGenericService.render(this.body)
-              //   .then(doc => {
-              //     resp.html = doc.document
-              //     return resp
-              //   })
-              resp.html = this.body
-              return resp
-            }
-          }
+          // instanceMethods: {
+          //   toJSON: function () {
+          //     const resp = this.get({ plain: true })
+          //     // TODO render body as HTML
+          //     // app.services.RenderGenericService.render(this.body)
+          //     //   .then(doc => {
+          //     //     resp.html = doc.document
+          //     //     return resp
+          //     //   })
+          //     resp.html = this.body
+          //     return resp
+          //   }
+          // }
         }
       }
     }

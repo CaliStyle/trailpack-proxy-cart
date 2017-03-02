@@ -34,6 +34,31 @@ module.exports = class Product extends Model {
                 values.handle = values.title
               }
               fn()
+            },
+            beforeCreate(values, options, fn) {
+              if (values.body) {
+                app.services.RenderGenericService.render(values.body)
+                  .then(doc => {
+                    values.html = doc.document
+                    return fn(null, values)
+                  })
+              }
+              else {
+                return fn(null, values)
+              }
+            },
+            beforeUpdate(values, options, fn) {
+              console.log(app.services)
+              if (values.body) {
+                app.services.RenderGenericService.render(values.body)
+                  .then(doc => {
+                    values.html = doc.document
+                    return fn()
+                  })
+              }
+              else {
+                return fn()
+              }
             }
           },
           classMethods: {
@@ -291,7 +316,7 @@ module.exports = class Product extends Model {
               //     resp.html = doc.document
               //     return resp
               //   })
-              resp.html = resp.body
+              // resp.html = resp.body
               return resp
             }
           }

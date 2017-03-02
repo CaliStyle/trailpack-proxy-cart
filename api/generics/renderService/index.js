@@ -1,6 +1,7 @@
 'use strict'
 const _ = require('lodash')
 const MarkdownIt = require('markdown-it')
+const meta = require('markdown-it-meta')
 
 module.exports = class DefaultRenderService {
   constructor(options, plugins) {
@@ -25,7 +26,8 @@ module.exports = class DefaultRenderService {
 
     // Make new instance
     const md = new MarkdownIt(options)
-
+    // Add markdown-it-meta
+    md.use(meta)
     // Set Plugins additional plugins
     _.each(this.plugins, (plugin) => {
       if (!plugin.options) {

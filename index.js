@@ -27,7 +27,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
     }
 
     if (!_.includes(_.keys(this.app.packs), 'proxy-generics')) {
-      return Promise.reject(new Error('This Trailpack requires trailpack-generics!'))
+      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-generics!'))
     }
 
     if (!this.app.config.proxyEngine) {

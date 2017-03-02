@@ -149,6 +149,10 @@ const App = {
       //   adapter: require('../api/generics').geolocationProvider,
       //   options: {}
       // },
+      // render_service: {
+      //   adapter: require('../api/generics').renderService,
+      //   options: {}
+      // },
       fulfillment_provider: {
         adapter: require('./fixtures/FakeFulfillment'),
         options: {}
