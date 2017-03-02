@@ -34,15 +34,54 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
+  findAll(req, res){
+    const orm = this.app.orm
+    const Product = orm['Product']
+    const Collection = orm['Collection']
+    const Tag = orm['Tag']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    Product.findAndCount({
+      offset: offset,
+      limit: limit,
+      include: [
+        {
+          model: Tag,
+          as: 'tags'
+        },
+        {
+          model: Collection,
+          as: 'collections'
+        }
+      ]
+    })
+      .then(products => {
+        res.set('X-Pagination-Total', products.count)
+        res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        return res.json(products.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findByTag(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
     const Collection = orm['Collection']
     const Tag = orm['Tag']
-
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
     Product.findAndCount({
-      offset: req.query.offset || 0,
-      limit: req.query.limit || 10,
+      offset: offset,
+      limit: limit,
       include: [
         {
           model: Tag,
@@ -58,7 +97,11 @@ module.exports = class ProductController extends Controller {
       ]
     })
       .then(products => {
-        return res.json(products)
+        res.set('X-Pagination-Total', products.count)
+        res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        return res.json(products.rows)
       })
       .catch(err => {
         return res.serverError(err)
@@ -75,9 +118,11 @@ module.exports = class ProductController extends Controller {
     const Product = orm['Product']
     const Collection = orm['Collection']
     const Tag = orm['Tag']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
     Product.findAndCount({
-      offset: req.query.offset || 0,
-      limit: req.query.limit || 10,
+      offset: offset,
+      limit: limit,
       include: [
         {
           model: Tag,
@@ -93,45 +138,18 @@ module.exports = class ProductController extends Controller {
       ]
     })
       .then(products => {
-        return res.json(products)
+        res.set('X-Pagination-Total', products.count)
+        res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        return res.json(products.rows)
       })
       .catch(err => {
         return res.serverError(err)
       })
   }
 
-  /**
-   *
-   * @param req
-   * @param res
-   */
-  findAll(req, res){
-    const orm = this.app.orm
-    const Product = orm['Product']
-    const Collection = orm['Collection']
-    const Tag = orm['Tag']
-    Product.findAndCount({
-      offset: req.query.offset || 0,
-      limit: req.query.limit || 10,
-      include: [
-        {
-          model: Tag,
-          as: 'tags'
-        },
-        {
-          model: Collection,
-          as: 'collections'
-        }
-      ]
-    })
-      .then(products => {
-        // product.unwrapTags(product.tags)
-        return res.json(products)
-      })
-      .catch(err => {
-        return res.serverError(err)
-      })
-  }
+
 
   /**
    * Count Products, Variants, Images
