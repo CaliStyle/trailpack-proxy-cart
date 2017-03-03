@@ -8,6 +8,30 @@ const Errors = require('proxy-engine-errors')
  * @description Customer Controller.
  */
 module.exports = class CustomerController extends Controller {
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  count(req, res){
+    const ProxyEngineService = this.app.services.ProxyEngineService
+    ProxyEngineService.count('Customer')
+      .then(count => {
+        const counts = {
+          customers: count
+        }
+        return res.json(counts)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findOne(req, res){
     const Customer = this.app.services.ProxyEngineService.getModel('Customer')
     Customer.findIdDefault(req.params.id, {})

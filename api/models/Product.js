@@ -48,7 +48,6 @@ module.exports = class Product extends Model {
               }
             },
             beforeUpdate(values, options, fn) {
-              console.log(app.services)
               if (values.body) {
                 app.services.RenderGenericService.render(values.body)
                   .then(doc => {

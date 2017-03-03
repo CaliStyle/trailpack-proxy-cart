@@ -40,6 +40,7 @@ describe('OrderController', () => {
       .get('/order/count')
       .expect(200)
       .end((err, res) => {
+        console.log('COUNT ORDERS', res.body.orders)
         assert.ok(_.isNumber(res.body.orders))
         done(err)
       })
