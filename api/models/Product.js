@@ -309,13 +309,6 @@ module.exports = class Product extends Model {
                   resp.metadata = resp.metadata.data
                 }
               }
-              // TODO Render the body as HTML
-              // app.services.RenderGenericService.render(this.body)
-              //   .then(doc => {
-              //     resp.html = doc.document
-              //     return resp
-              //   })
-              // resp.html = resp.body
               return resp
             }
           }
@@ -348,8 +341,12 @@ module.exports = class Product extends Model {
         title: {
           type: Sequelize.STRING
         },
-        // Body (html or markdown)
+        // The body of a product (in markdown or html)
         body: {
+          type: Sequelize.TEXT
+        },
+        // The html of a product (DO NOT EDIT DIRECTLY)
+        html: {
           type: Sequelize.TEXT
         },
         // SEO title

@@ -90,13 +90,6 @@ module.exports = class Collection extends Model {
           // instanceMethods: {
           //   toJSON: function () {
           //     const resp = this.get({ plain: true })
-          //     // TODO render body as HTML
-          //     // app.services.RenderGenericService.render(this.body)
-          //     //   .then(doc => {
-          //     //     resp.html = doc.document
-          //     //     return resp
-          //     //   })
-          //     resp.html = this.body
           //     return resp
           //   }
           // }
@@ -135,8 +128,12 @@ module.exports = class Collection extends Model {
           type: Sequelize.STRING,
           defaultValue: 'localhost'
         },
-        // The body of a collection
+        // The body of a collection (in markdown or html)
         body: {
+          type: Sequelize.TEXT
+        },
+        // The html of a collection (DO NOT EDIT DIRECTLY)
+        html: {
           type: Sequelize.TEXT
         },
         // If the Collection is published

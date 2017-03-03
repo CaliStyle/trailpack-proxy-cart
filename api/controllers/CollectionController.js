@@ -74,5 +74,47 @@ module.exports = class CollectionController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   * upload CSV
+   * @param req
+   * @param res
+   */
+  uploadCSV(req, res) {
+    const CollectionCsvService = this.app.services.CollectionCsvService
+    const csv = req.file
+
+    if (!csv) {
+      const err = new Error('File failed to upload')
+      return res.serverError(err)
+    }
+
+    CollectionCsvService.collectionCsv(csv.path)
+      .then(result => {
+        return res.json({
+          file: req.file,
+          result: result
+        })
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  processUpload(req, res) {
+    const CollectionCsvService = this.app.services.CollectionCsvService
+    CollectionCsvService.processCollectionUpload(req.params.id)
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

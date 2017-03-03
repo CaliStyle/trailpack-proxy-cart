@@ -11,7 +11,7 @@ Every line in the CSV starting with a different handle is treated as a new produ
 The title of your product. Example: Women's Snowboard
 
 ## Body (Markdown or HTML)
-The description of the product in Markdown or HTML format. This can also be plain text without any formatting which default to Markdown.
+The description of the product in Markdown or HTML format. This can also be plain text without any formatting which defaults to Markdown.
 
 ## SEO Title
 The SEO Title has a character (letters & numbers) limit of 70.

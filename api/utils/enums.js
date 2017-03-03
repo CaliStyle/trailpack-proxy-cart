@@ -1,6 +1,14 @@
 'use strict'
 
 module.exports = {
+  COLLECTION_UPLOAD: {
+    title: 'Title',
+    handle: 'Handle',
+    body: 'Body',
+    primary_purpose: 'Primary Purpose',
+    published: 'Published',
+    sort_order: 'Sort Order'
+  },
   CUSTOMER_UPLOAD: {
     first_name: 'First Name',
     last_name: 'Last Name',
