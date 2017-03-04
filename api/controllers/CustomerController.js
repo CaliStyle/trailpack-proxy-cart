@@ -65,6 +65,12 @@ module.exports = class CustomerController extends Controller {
       })
 
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   update(req, res) {
     const CustomerService = this.app.services.CustomerService
     lib.Validator.validateCustomer(req.body)

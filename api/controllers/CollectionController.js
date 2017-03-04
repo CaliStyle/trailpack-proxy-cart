@@ -1,8 +1,9 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Controller = require('trails/controller')
 const Errors = require('proxy-engine-errors')
-
+const lib = require('../../lib')
 /**
  * @module CollectionController
  * @description Generated Trails.js Controller.
@@ -76,6 +77,49 @@ module.exports = class CollectionController extends Controller {
   }
 
   /**
+   *
+   * @param req
+   * @param res
+   */
+  create(req, res) {
+    const CollectionService = this.app.services.CollectionService
+    console.log(req.body)
+    lib.Validator.validateCollection.create(req.body)
+      .then(values => {
+        return CollectionService.create(req.body)
+      })
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.create', err)
+        return res.serverError(err)
+      })
+
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  update(req, res) {
+    const CollectionService = this.app.services.CollectionService
+    lib.Validator.validateCollection.update(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return CollectionService.update(req.body)
+      })
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
    * upload CSV
    * @param req
    * @param res
@@ -91,6 +135,7 @@ module.exports = class CollectionController extends Controller {
 
     CollectionCsvService.collectionCsv(csv.path)
       .then(result => {
+        console.log('CollectionController.uploadCSV',result)
         return res.json({
           file: req.file,
           result: result

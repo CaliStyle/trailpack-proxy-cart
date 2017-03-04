@@ -21,12 +21,6 @@ module.exports = class Collection extends Model {
               if (!values.handle && values.title) {
                 values.handle = values.title
               }
-              // if (values.handle) {
-              //   values.handle = app.services.ProxyCartService.slug(values.handle)
-              // }
-              // if (!values.handle && values.title) {
-              //   values.handle = app.services.ProxyCartService.slug(values.title)
-              // }
               fn()
             },
             beforeCreate(values, options, fn) {
@@ -174,7 +168,7 @@ module.exports = class Collection extends Model {
         tax_name: {
           type: Sequelize.STRING
         },
-
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode

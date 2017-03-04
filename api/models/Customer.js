@@ -329,7 +329,7 @@ module.exports = class Customer extends Model {
         update_ip: {
           type: Sequelize.STRING
         },
-
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode

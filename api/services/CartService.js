@@ -80,12 +80,19 @@ module.exports = class CartService extends Service {
   /**
    *
    * @param cart
-   * @returns {Cart}
+   * @returns {Promise<T>|Cart}
    */
   update(cart, options){
-    const FootprintService = this.app.services.FootprintService
+    if (!cart.id) {
+      const err = new Errors.FoundError(Error('Cart is missing id'))
+      return Promise.reject(err)
+    }
+    const Cart =  this.app.orm.Cart
     const update = _.omit(cart,['id','created_at','updated_at'])
-    return FootprintService.update('Cart', cart.id, update)
+    return Cart.findById(cart.id)
+      .then(resCart => {
+        return resCart.update(update, options)
+      })
   }
 
   /**
