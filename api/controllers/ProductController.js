@@ -15,7 +15,7 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   // TODO add Customer Attributes to Product (Previously Purchased, Selected Options, attributes, discounts, etc)
-  findOne(req, res){
+  findById(req, res){
     const Product = this.app.orm['Product']
     Product.findIdDefault(req.params.id, {})
       .then(product => {
@@ -41,8 +41,12 @@ module.exports = class ProductController extends Controller {
     const Tag = orm['Tag']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
-    const order = req.query.order
+    const sort = req.query.sort || 'created_at DESC'
+    const where = req.query.where || {}
+
     Product.findAndCount({
+      where: where,
+      order: sort,
       offset: offset,
       limit: limit,
       include: [
@@ -61,7 +65,7 @@ module.exports = class ProductController extends Controller {
         res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
         res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
         res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Order', order)
+        res.set('X-Pagination-Sort', sort)
         return res.json(products.rows)
       })
       .catch(err => {
@@ -81,8 +85,9 @@ module.exports = class ProductController extends Controller {
     const Tag = orm['Tag']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
-    const order = req.query.order
+    const sort = req.query.sort || 'created_at DESC'
     Product.findAndCount({
+      order: sort,
       offset: offset,
       limit: limit,
       include: [
@@ -104,7 +109,7 @@ module.exports = class ProductController extends Controller {
         res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
         res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
         res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Order', order)
+        res.set('X-Pagination-Sort', sort)
         return res.json(products.rows)
       })
       .catch(err => {
@@ -124,8 +129,9 @@ module.exports = class ProductController extends Controller {
     const Tag = orm['Tag']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
-    // const sort = req.query.sort
+    const sort = req.query.sort || 'created_at DESC'
     Product.findAndCount({
+      order: sort,
       offset: offset,
       limit: limit,
       include: [
@@ -147,6 +153,7 @@ module.exports = class ProductController extends Controller {
         res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
         res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
         res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
         return res.json(products.rows)
       })
       .catch(err => {

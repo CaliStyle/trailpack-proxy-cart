@@ -33,7 +33,7 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
-  findOne(req, res){
+  findById(req, res){
     const orm = this.app.orm
     const Order = orm['Order']
     Order.findById(req.params.id, {})
@@ -58,9 +58,12 @@ module.exports = class OrderController extends Controller {
     const Order = orm['Order']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
-    const order = req.query.order
+    const sort = req.query.sort || 'created_at DESC'
+    const where = req.query.where || {}
 
     Order.findAndCount({
+      order: sort,
+      where: where,
       offset: offset,
       limit: limit
     })
@@ -69,7 +72,7 @@ module.exports = class OrderController extends Controller {
         res.set('X-Pagination-Pages', Math.ceil(orders.count / limit))
         res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
         res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Order', order)
+        res.set('X-Pagination-Sort', sort)
         return res.json(orders.rows)
       })
       .catch(err => {

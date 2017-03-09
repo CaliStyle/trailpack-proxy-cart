@@ -32,7 +32,7 @@ module.exports = class CollectionController extends Controller {
    * @param req
    * @param res
    */
-  findOne(req, res){
+  findById(req, res){
     const orm = this.app.orm
     const Collection = orm['Collection']
     Collection.findById(req.params.id, {})
@@ -57,18 +57,21 @@ module.exports = class CollectionController extends Controller {
     const Collection = orm['Collection']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
-    const order = req.query.order
+    const sort = req.query.sort || 'created_at DESC'
+    const where = req.query.where || {}
 
     Collection.findAndCount({
+      order: sort,
       offset: offset,
-      limit: limit
+      limit: limit,
+      where: where
     })
       .then(collections => {
         res.set('X-Pagination-Total', collections.count)
         res.set('X-Pagination-Pages', Math.ceil(collections.count / limit))
         res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
         res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Order', order)
+        res.set('X-Pagination-Sort', sort)
         return res.json(collections.rows)
       })
       .catch(err => {

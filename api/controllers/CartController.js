@@ -2,6 +2,7 @@
 'use strict'
 
 const Controller = require('trails/controller')
+const Errors = require('proxy-engine-errors')
 const lib = require('../../lib')
 /**
  * @module CartController
@@ -21,6 +22,58 @@ module.exports = class CartController extends Controller {
           carts: count
         }
         return res.json(counts)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findById(req, res){
+    const orm = this.app.orm
+    const Cart = orm['Cart']
+    Cart.findIdDefault(req.params.id, {})
+      .then(cart => {
+        if (!cart) {
+          throw new Errors.FoundError(Error(`Cart id ${req.params.id} not found`))
+        }
+        return res.json(cart)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findAll(req, res){
+    const orm = this.app.orm
+    const Cart = orm['Cart']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+    const where = req.query.where || {}
+
+    Cart.findAndCount({
+      order: sort,
+      offset: offset,
+      limit: limit,
+      where: where
+    })
+      .then(carts => {
+        res.set('X-Pagination-Total', carts.count)
+        res.set('X-Pagination-Pages', Math.ceil(carts.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(carts.rows)
       })
       .catch(err => {
         return res.serverError(err)

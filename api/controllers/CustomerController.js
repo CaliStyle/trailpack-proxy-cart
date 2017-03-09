@@ -32,14 +32,47 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
-  findOne(req, res){
-    const Customer = this.app.services.ProxyEngineService.getModel('Customer')
+  findById(req, res){
+    const orm = this.app.orm
+    const Customer = orm['Customer']
     Customer.findIdDefault(req.params.id, {})
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error(`Customer id ${req.params.id} not found`))
         }
         return res.json(customer)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findAll(req, res){
+    const orm = this.app.orm
+    const Customer = orm['Customer']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+    const where = req.query.where || {}
+
+    Customer.findAndCount({
+      order: sort,
+      offset: offset,
+      limit: limit,
+      where: where
+    })
+      .then(customers => {
+        res.set('X-Pagination-Total', customers.count)
+        res.set('X-Pagination-Pages', Math.ceil(customers.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(customers.rows)
       })
       .catch(err => {
         return res.serverError(err)
