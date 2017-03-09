@@ -79,8 +79,36 @@ module.exports = class Collection extends Model {
               // models.ProductCollection.hasMany(models.ProductImage, {
               //   as: 'images'
               // })
+            },
+            findByIdDefault: function(criteria, options) {
+              options = _.merge(options, {})
+
+              return this.findById(criteria, options)
+            },
+            findByHandle: function(handle, options) {
+              options = _.merge(options, {
+                where: {
+                  handle: handle
+                }
+              })
+              return this.findOne(options)
+            },
+            findOneDefault: function(options) {
+              options = _.merge(options, {})
+
+              return this.findOne(options)
+            },
+            findAllDefault: function(options) {
+              options = _.merge(options, {})
+
+              return this.findAll(options)
+            },
+            findAndCountDefault: function(options) {
+              options = _.merge(options, {})
+
+              return this.findAndCount(options)
             }
-          },
+          }
           // instanceMethods: {
           //   toJSON: function () {
           //     const resp = this.get({ plain: true })

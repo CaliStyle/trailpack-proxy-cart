@@ -469,4 +469,28 @@ describe('ProductController', () => {
         done()
       })
   })
+  it('It should get product by handle', (done) => {
+    request
+      .get('/product/handle/hydroflask')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        assert.equal(res.body.handle, 'hydroflask')
+        done()
+      })
+  })
+  it('It should search and get product', (done) => {
+    request
+      .get('/product/search?term=Hydro')
+      .expect(200)
+      .end((err, res) => {
+        console.log(res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.body.length)
+        done()
+      })
+  })
 })

@@ -235,6 +235,81 @@ module.exports = class Product extends Model {
               })
               return this.findById(criteria, options)
             },
+            findByHandle: function(handle) {
+              let options = {
+                // paranoid: false,
+                include: [
+                  {
+                    model: app.orm['ProductImage'],
+                    as: 'images',
+                    order: ['position', 'ASC']
+                  },
+                  {
+                    model: app.orm['Tag'],
+                    as: 'tags',
+                    attributes: ['name', 'id']
+                  },
+                  {
+                    model: app.orm['ProductVariant'],
+                    as: 'variants',
+                    attributes: {
+                      exclude: ['updated_at','created_at']
+                    },
+                    include: [
+                      {
+                        model: app.orm['ProductImage'],
+                        as: 'images',
+                        attributes: {
+                          exclude: ['src','updated_at','created_at']
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    model: app.orm['Metadata'],
+                    as: 'metadata',
+                    attributes: ['data', 'id']
+                  },
+                  {
+                    model: app.orm['Collection'],
+                    as: 'collections',
+                    attributes: ['id', 'title', 'handle']
+                  }
+                  // app.orm['ProductVariant'].associations.variants
+                ],
+                order: [
+                  [
+                    {
+                      model: app.orm['ProductVariant'],
+                      as: 'variants'
+                    },
+                    'position'
+                  ],
+                  [
+                    {
+                      model: app.orm['ProductImage'],
+                      as: 'images'
+                    },
+                    'position'
+                  ]
+                ]
+              }
+              options = _.merge(options, {
+                where: {
+                  handle: handle
+                }
+              })
+              return this.findOne(options)
+            },
+            findOneDefault: function(criteria, options) {
+              options = _.merge(options, {})
+
+              return this.findOne(criteria, options)
+            },
+            findAllDefault: function(options) {
+              options = _.merge(options, {})
+              return this.findAll(options)
+            },
             findAndCountDefault: function(options) {
               options = _.merge(options, {
                 // paranoid: false,

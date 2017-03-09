@@ -34,6 +34,100 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
+  findByHandle(req, res){
+    const Product = this.app.orm['Product']
+    // console.log('ProductController.findByHandle', req.params.handle)
+    Product.findByHandle(req.params.handle)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error(`Product handle ${ req.params.handle } not found`))
+        }
+        return res.json(product)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  search(req, res) {
+    const orm = this.app.orm
+    const Product = orm['Product']
+    const Collection = orm['Collection']
+    const Tag = orm['Tag']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'title DESC'
+    const term = req.query.term
+    // console.log('ProductController.search', term)
+    Product.findAndCount({
+      where: {
+        $or: [
+          {
+            title: {
+              $like: `%${term}%`
+            }
+          }
+          // {
+          //   '$tags.name$': term
+          // }
+        ]
+      },
+      include: [
+        {
+          model: Tag,
+          as: 'tags'
+        },
+        {
+          model: Collection,
+          as: 'collections'
+        }
+      ],
+      order: sort,
+      offset: offset,
+      limit: limit
+    })
+      .then(products => {
+        res.set('X-Pagination-Total', products.count)
+        res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(products.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findOne(req, res){
+    const orm = this.app.orm
+    const Product = orm['Product']
+    const where = req.query.where || {}
+
+    Product.findOneDefault({
+      where: where
+    })
+      .then(product => {
+        return res.json(product)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findAll(req, res){
     const orm = this.app.orm
     const Product = orm['Product']
@@ -44,7 +138,7 @@ module.exports = class ProductController extends Controller {
     const sort = req.query.sort || 'created_at DESC'
     const where = req.query.where || {}
 
-    Product.findAndCount({
+    Product.findAndCountDefault({
       where: where,
       order: sort,
       offset: offset,

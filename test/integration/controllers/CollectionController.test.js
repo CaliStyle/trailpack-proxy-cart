@@ -89,4 +89,14 @@ describe('CollectionController', () => {
         done()
       })
   })
+  it('It should get collection by handle', (done) => {
+    request
+      .get('/collection/handle/awesome')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        assert.equal(res.body.handle, 'awesome')
+        done()
+      })
+  })
 })

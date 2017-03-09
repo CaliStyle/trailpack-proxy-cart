@@ -35,11 +35,47 @@ module.exports = class CollectionController extends Controller {
   findById(req, res){
     const orm = this.app.orm
     const Collection = orm['Collection']
-    Collection.findById(req.params.id, {})
+    Collection.findByIdDefault(req.params.id, {})
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error(`Collection id ${ req.params.id } not found`))
         }
+        return res.json(collection)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  findByHandle(req, res){
+    const orm = this.app.orm
+    const Collection = orm['Collection']
+    Collection.findByHandle(req.params.handle)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error(`Collection handle ${ req.params.handle } not found`))
+        }
+        return res.json(collection)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findOne(req, res){
+    const orm = this.app.orm
+    const Collection = orm['Collection']
+    const where = req.query.where || {}
+
+    Collection.findOneDefault({
+      where: where
+    })
+      .then(collection => {
         return res.json(collection)
       })
       .catch(err => {
@@ -60,7 +96,7 @@ module.exports = class CollectionController extends Controller {
     const sort = req.query.sort || 'created_at DESC'
     const where = req.query.where || {}
 
-    Collection.findAndCount({
+    Collection.findAndCountDefault({
       order: sort,
       offset: offset,
       limit: limit,
