@@ -71,15 +71,22 @@ module.exports = class ProductController extends Controller {
             title: {
               $like: `%${term}%`
             }
+          },
+          {
+            '$tags.name$': {
+              $like: `%${term}%`
+            }
+          },
+          {
+            '$collections.title$': {
+              $like: `%${term}%`
+            }
           }
-          // {
-          //   '$tags.name$': term
-          // }
         ]
       },
       order: sort,
-      offset: offset,
-      limit: limit
+      offset: offset
+      // limit: limit // TODO: Sequelize breaks with limit here
     })
       .then(products => {
         res.set('X-Pagination-Total', products.count)
