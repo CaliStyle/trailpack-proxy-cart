@@ -199,6 +199,7 @@ module.exports = class Product extends Model {
             },
             findAndCountDefault: function(options) {
               options = _.merge(options, queryDefaults.Product.default(app))
+              console.log('Product.findAndCountDefault', options)
               return this.findAndCount(options)
             }
           },
@@ -212,6 +213,24 @@ module.exports = class Product extends Model {
                     return tag
                   }
                   return tag.name
+                })
+              }
+              // Map Variants as Products are mapped
+              if (resp.variants) {
+                resp.variants.map((variant, idx) => {
+                  if (variant.tags) {
+                    resp.variants[idx].tags = variant.tags.map(tag => {
+                      if (_.isString(tag)) {
+                        return tag
+                      }
+                      return tag.name
+                    })
+                  }
+                  if (variant.metadata) {
+                    if (typeof variant.metadata.data !== 'undefined') {
+                      resp.variants[idx].metadata = variant.metadata.data
+                    }
+                  }
                 })
               }
               // Transform Metadata to plain on toJSON

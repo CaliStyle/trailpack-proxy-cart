@@ -57,14 +57,14 @@ module.exports = class ProductController extends Controller {
   search(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
-    const Collection = orm['Collection']
-    const Tag = orm['Tag']
+    // const Collection = orm['Collection']
+    // const Tag = orm['Tag']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'title DESC'
     const term = req.query.term
     // console.log('ProductController.search', term)
-    Product.findAndCount({
+    Product.findAndCountDefault({
       where: {
         $or: [
           {
@@ -77,16 +77,6 @@ module.exports = class ProductController extends Controller {
           // }
         ]
       },
-      include: [
-        {
-          model: Tag,
-          as: 'tags'
-        },
-        {
-          model: Collection,
-          as: 'collections'
-        }
-      ],
       order: sort,
       offset: offset,
       limit: limit
@@ -131,8 +121,6 @@ module.exports = class ProductController extends Controller {
   findAll(req, res){
     const orm = this.app.orm
     const Product = orm['Product']
-    const Collection = orm['Collection']
-    const Tag = orm['Tag']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
@@ -141,17 +129,7 @@ module.exports = class ProductController extends Controller {
       where: where,
       order: sort,
       offset: offset,
-      limit: limit,
-      include: [
-        {
-          model: Tag,
-          as: 'tags'
-        },
-        {
-          model: Collection,
-          as: 'collections'
-        }
-      ]
+      limit: limit
     })
       .then(products => {
         res.set('X-Pagination-Total', products.count)
@@ -174,28 +152,16 @@ module.exports = class ProductController extends Controller {
   findByTag(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
-    const Collection = orm['Collection']
-    const Tag = orm['Tag']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
-    Product.findAndCount({
+    Product.findAndCountDefault({
+      where: {
+        '$tags.name$': req.params.tag
+      },
       order: sort,
-      offset: offset,
-      limit: limit,
-      include: [
-        {
-          model: Tag,
-          as: 'tags',
-          where: {
-            'name': req.params.tag
-          }
-        },
-        {
-          model: Collection,
-          as: 'collections'
-        }
-      ]
+      offset: offset
+      // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(products => {
         res.set('X-Pagination-Total', products.count)
@@ -218,28 +184,16 @@ module.exports = class ProductController extends Controller {
   findByCollection(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
-    const Collection = orm['Collection']
-    const Tag = orm['Tag']
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
-    Product.findAndCount({
+    Product.findAndCountDefault({
+      where: {
+        '$collections.handle$': req.params.handle
+      },
       order: sort,
-      offset: offset,
-      limit: limit,
-      include: [
-        {
-          model: Tag,
-          as: 'tags'
-        },
-        {
-          model: Collection,
-          as: 'collections',
-          where: {
-            'handle': req.params.handle
-          }
-        }
-      ]
+      offset: offset
+      // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(products => {
         res.set('X-Pagination-Total', products.count)

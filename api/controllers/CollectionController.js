@@ -96,10 +96,10 @@ module.exports = class CollectionController extends Controller {
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     Collection.findAndCountDefault({
+      where: where,
       order: sort,
       offset: offset,
-      limit: limit,
-      where: where
+      limit: limit
     })
       .then(collections => {
         res.set('X-Pagination-Total', collections.count)

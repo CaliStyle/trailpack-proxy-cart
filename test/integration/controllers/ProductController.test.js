@@ -459,8 +459,8 @@ describe('ProductController', () => {
       .get('/product/collection/bottles')
       .expect(200)
       .end((err, res) => {
+        // console.log(res.body)
         assert.ok(res.body)
-        // TODO FIX THIS!
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
