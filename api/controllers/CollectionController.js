@@ -70,7 +70,7 @@ module.exports = class CollectionController extends Controller {
   findOne(req, res){
     const orm = this.app.orm
     const Collection = orm['Collection']
-    const where = req.query.where || {}
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Collection.findOneDefault({
       where: where
@@ -94,8 +94,7 @@ module.exports = class CollectionController extends Controller {
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
-    const where = req.query.where || {}
-
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     Collection.findAndCountDefault({
       order: sort,
       offset: offset,

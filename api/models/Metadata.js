@@ -22,6 +22,7 @@ module.exports = class Metadata extends Model {
              * Associate the Model
              * @param models
              */
+            // TODO associate Metadata with product variant as well.
             associate: (models) => {
               models.Metadata.belongsTo(models.Product, {
                 through: {

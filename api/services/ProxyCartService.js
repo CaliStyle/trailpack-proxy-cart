@@ -14,7 +14,21 @@ const geolib = require('geolib')
  * @description ProxyCart Service
  */
 module.exports = class ProxyCartService extends Service {
-
+  jsonCritera(str) {
+    if (!str) {
+      return {}
+    }
+    if (str instanceof Object) {
+      return str
+    }
+    try {
+      str = JSON.parse(str)
+    }
+    catch(err) {
+      str = {}
+    }
+    return str
+  }
   /**
    *
    * @param url

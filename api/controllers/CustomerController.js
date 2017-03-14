@@ -58,7 +58,7 @@ module.exports = class CustomerController extends Controller {
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
-    const where = req.query.where || {}
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Customer.findAndCount({
       order: sort,

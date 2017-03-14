@@ -111,7 +111,7 @@ module.exports = class ProductController extends Controller {
   findOne(req, res){
     const orm = this.app.orm
     const Product = orm['Product']
-    const where = req.query.where || {}
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Product.findOneDefault({
       where: where
@@ -136,8 +136,7 @@ module.exports = class ProductController extends Controller {
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
-    const where = req.query.where || {}
-
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     Product.findAndCountDefault({
       where: where,
       order: sort,
