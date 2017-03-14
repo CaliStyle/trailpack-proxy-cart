@@ -42,6 +42,14 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
       return Promise.reject(new Error('No configuration found at config.proxyGenerics!'))
     }
 
+    if (
+      this.app.config.policies
+      && this.app.config.policies['*']
+      && this.app.config.policies['*'].indexOf('CheckPermissions.checkRoute') === -1
+    ) {
+      this.app.log.warn('ProxyCart Routes are unlocked! add \'*\' : [\'CheckPermissions.checkRoute\'] to config/policies.js')
+    }
+
     return Promise.all([
       lib.Validator.validateDatabase.config(this.app.config.database),
       lib.Validator.validateProxyCart.config(this.app.config.proxyCart)

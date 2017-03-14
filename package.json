@@ -46,7 +46,7 @@
     "trailpack-proxy-engine": "^0.0.10",
     "trailpack-sequelize": "^2.0.0",
     "trailpack-router": "^2.0.0",
-    "trailpack-proxy-permissions": "^0.0.3",
+    "trailpack-proxy-permissions": "^0.0.5",
     "trails": "^2.0.0"
   },
   "scripts": {

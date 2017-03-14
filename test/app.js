@@ -86,7 +86,9 @@ const App = {
     main: {
       packs: packs
     },
-    policies: {},
+    policies: {
+      // '*': [ 'CheckPermissions.checkRoute' ]
+    },
     log: {
       logger: new smokesignals.Logger('debug')
     },
