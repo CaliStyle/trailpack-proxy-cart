@@ -24,7 +24,7 @@ module.exports = class ProxyCartService extends Service {
     try {
       str = JSON.parse(str)
     }
-    catch(err) {
+    catch (err) {
       str = {}
     }
     return str

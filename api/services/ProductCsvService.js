@@ -378,6 +378,7 @@ module.exports = class ProductCsvService extends Service {
       const ProductMetaUpload = this.app.orm.ProductMetaUpload
       const Metadata = this.app.orm.Metadata
       const Product = this.app.orm.Product
+      const ProductVariant = this.app.orm.ProductVariant
       let productsTotal = 0
       ProductMetaUpload.batch({
         where: {
@@ -385,19 +386,37 @@ module.exports = class ProductCsvService extends Service {
         }
       }, metadatums => {
         return Promise.all(metadatums.map(metadata => {
-          return Product.find(
+          const Type = metadata.handle.indexOf(':') === -1 ? Product : ProductVariant
+          let where = {}
+          const includes = [
             {
-              where: {
-                handle: metadata.handle
-              },
+              model: Metadata,
+              as: 'metadata',
+              attributes: ['data', 'id']
+            }
+          ]
+
+          if (Type === Product) {
+            where = {
+              'handle': metadata.handle
+            }
+          }
+          else {
+            where = {
+              'sku': metadata.handle.split(/:(.+)/)[1],
+              'Product.handle': metadata.handle.split(/:(.+)/)[0]
+            }
+            includes.push({
+              model: Product,
+              attributes: ['handle']
+            })
+          }
+
+          return Type.find(
+            {
+              where: where,
               attributes: ['id'],
-              include: [
-                {
-                  model: Metadata,
-                  as: 'metadata',
-                  attributes: ['data', 'id']
-                }
-              ]
+              include: includes
             })
             .then(product => {
               if (!product) {

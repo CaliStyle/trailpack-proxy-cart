@@ -73,6 +73,18 @@ module.exports = class ProductVariant extends Model {
                 //   allowNull: false
                 // }
               })
+              models.ProductVariant.hasOne(models.Metadata, {
+                as: 'metadata',
+                through: {
+                  model: models.ItemMetadata,
+                  unique: false,
+                  scope: {
+                    model: 'product_variant'
+                  },
+                  foreignKey: 'model_id',
+                  constraints: false
+                }
+              })
               // models.Product.belongsToMany(models.Collection, {
               //   as: 'collections',
               //   through: {
