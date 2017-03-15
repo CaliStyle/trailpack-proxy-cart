@@ -8,6 +8,7 @@ const lib = require('../../lib')
  * @module CartController
  * @description Cart Controller.
  */
+// TODO lock down certain requests by Owner(s)
 module.exports = class CartController extends Controller {
   /**
    * count the amount of carts

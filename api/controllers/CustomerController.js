@@ -7,6 +7,7 @@ const Errors = require('proxy-engine-errors')
  * @module CustomerController
  * @description Customer Controller.
  */
+// TODO lock down certain requests by Owner(s)
 module.exports = class CustomerController extends Controller {
   /**
    *

@@ -117,98 +117,112 @@ module.exports = {
     // Every 2 years
     BIYEAR: 'yy'
   },
-  // deny (default): Customers are not allowed to place orders for a product variant when it's out of stock.
-  // continue: Customers are allowed to place orders for a product variant when it's out of stock.
   INVENTORY_POLICY: {
+    // deny (default): Customers are not allowed to place orders for a product variant when it's out of stock.
     DENY: 'deny',
+    // continue: Customers are allowed to place orders for a product variant when it's out of stock.
     CONTINUE: 'continue'
   },
-//   disabled: customers are disabled by default until they are invited. Staff accounts can disable a customer's account at any time.
-// invited: the customer has been emailed an invite to create an account that saves their customer settings.
-//   enabled: the customer accepted the email invite and created an account.
-//   declined: the customer declined the email invite to create an account.
   CUSTOMER_STATE: {
+    // disabled: customers are disabled by default until they are invited. Staff accounts can disable a customer's account at any time.
     DISABLED: 'disabled',
+    // invited: the customer has been emailed an invite to create an account that saves their customer settings.
     INVITED: 'invited',
+    // enabled: the customer accepted the email invite and created an account.
     ENABLED: 'enabled',
+    //   declined: the customer declined the email invite to create an account.
     DECLINED: 'declined'
   },
-  // open: Cart is open for transactions
-  // closed: Cart was closed by
-  // abandoned: Cart was abandoned
-  // ordered: Cart resulted in an Order
   CART_STATUS: {
+    // open: Cart is open for transactions
     OPEN: 'open',
+    // closed: Cart was closed by
     CLOSED: 'closed',
+    // abandoned: Cart was abandoned
     ABANDONED: 'abandoned',
+    // ordered: Cart resulted in an Order
     ORDERED: 'ordered'
   },
   DISCOUNT_TYPES: {
+    // A percentage of the price was discounted
     PERCENTAGE: 'percentage',
+    // A fixed amount of the price was discounted
     FIXED_AMOUNT: 'fixed_amount',
+    // Shipping was discounted
     SHIPPING: 'shipping'
   },
   DISCOUNT_STATUS: {
+    // Discount is ready for use
     ENABLED: 'enabled',
+    // Discount is disabled
     DISABLED: 'disabled',
+    // Discount has met total allowed uses and is now depleted
     DEPLETED: 'depleted'
   },
-  // customer: The customer changed or cancelled the order.
-  // fraud: The order was fraudulent.
-  // inventory: Items in the order were not in inventory.
-  // other: The order was cancelled for a reason not in the list above.
   ORDER_CANCEL: {
+    // customer: The customer changed or cancelled the order.
     CUSTOMER: 'customer',
+    // fraud: The order was fraudulent.
     FRAUD: 'fraud',
+    // inventory: Items in the order were not in inventory.
     INVENTORY: 'inventory',
+    // other: The order was cancelled for a reason not in the list above.
     OTHER: 'other'
   },
-  // customer: The customer changed or cancelled the order.
-  // fraud: The order was fraudulent.
-  // inventory: Items in the order were not in inventory.
-  // other: The order was cancelled for a reason not in the list above.
   SUBSCRIPTION_CANCEL: {
+    // customer: The customer changed or cancelled the order.
     CUSTOMER: 'customer',
+    // fraud: The subscription was fraudulent.
     FRAUD: 'fraud',
+    // inventory: Items in the subscription were not in inventory.
     INVENTORY: 'inventory',
+    // other: The order was cancelled for a reason not in the list above.
     OTHER: 'other'
   },
-  // pending: The finances are pending.
-  // authorized: The finances have been authorized.
-  // partially_paid: The finances have been partially paid.
-  // paid: The finances have been paid. (This is the default value.)
-  // partially_refunded: The finances have been partially refunded.
-  // refunded: The finances have been refunded.
-  // voided: The finances have been voided.
   ORDER_FINANCIAL: {
+    // pending: The finances are pending.
     PENDING: 'pending',
+    // authorized: The finances have been authorized.
     AUTHORIZED: 'authorized',
+    // partially_paid: The finances have been partially paid.
     PARTIALLY_PAID: 'partially_paid',
+    // paid: The finances have been paid. (This is the default value.)
     PAID: 'paid',
+    // partially_refunded: The finances have been partially refunded.
     PARTIALLY_REFUNDED: 'partially_refunded',
+    // refunded: The finances have been refunded.
     REFUNDED: 'refunded',
+    // voided: The finances have been voided.
     VOIDED: 'voided'
   },
-  // fulfilled: Every line item in the order has been fulfilled.
-  // none: None of the line items in the order have been fulfilled.
-  // partial: At least one line item in the order has been fulfilled.
   ORDER_FULFILLMENT: {
+    // Fulfillment is complete, Every line item in the order has been fulfilled.
     FULFILLED: 'fulfilled',
+    // Fulfillment has been sent to provider
     SENT: 'sent',
+    // Nothing has happened yet, None of the line items in the order have been fulfilled.
     NONE: 'none',
+    // Fulfillment has partially fulfilled order, At least one line item in the order has been fulfilled.
     PARTIAL: 'partial'
   },
   ORDER_FULFILLMENT_KIND: {
+    // Schedule to fulfill order immediately upon creating order
     IMMEDIATE: 'immediate',
+    // Schedule to fulfill at a later time
     MANUAL: 'manual'
   },
   FULFILLMENT_SERVICE: {
+    // Fulfillment is manually taken care of
     MANUAL: 'manual'
   },
   FULFILLMENT_STATUS: {
+    // Fulfillment is complete
     FULFILLED: 'fulfilled',
+    // Fulfillment has been sent to provider
     SENT: 'sent',
+    // Nothing has happened yet
     NONE: 'none',
+    // Fulfillment has partially fulfilled order
     PARTIAL: 'partial'
   },
   FULFILLMENT_EVENT_STATUS: {
@@ -224,30 +238,51 @@ module.exports = {
     FAILURE: 'failure'
   },
   PAYMENT_PROCESSING_METHOD: {
+    // Payment processed at checkout
     CHECKOUT: 'checkout',
+    // Payment processed directly by teller
     DIRECT: 'direct',
+    //
     MANUAL: 'manual',
+    //
     OFFSITE: 'offsite',
+    //
     EXPRESS: 'express'
   },
   TRANSACTION_ERRORS: {
+    // Incorrect credit card number
     INCORRECT_NUMBER: 'incorrect_number',
+    // Invalid credit card number
     INVALID_NUMBER: 'invalid_number',
+    // Invalid Expiration date
     INVALID_EXPIRY_DATE: 'invalid_expiry_date',
+    // Invalid Security code
     INVALID_CVC: 'invalid_cvc',
+    // Card is expired
     EXPIRED_CARD: 'expired_card',
+    // Incorrect security code
     INCORRECT_CVC: 'incorrect_cvc',
+    // Incorrect zip code
     INCORRECT_ZIP: 'incorrect_zip',
+    // Incorrect Address
     INCORRECT_ADDRESS: 'incorrect_address',
+    // Card declined by processor
     CARD_DECLINED: 'card_declined',
+    // Processor had an error
     PROCESSING_ERROR: 'processing_error',
+    // Call card issuer
     CALL_ISSUER: 'call_issuer',
+    // Inform representative to confiscate card
     PICK_UP_CARD: 'pick_up_card'
   },
   TRANSACTION_STATUS: {
+    // Transaction is pending
     PENDING: 'pending',
+    // Transaction failed
     FAILURE: 'failure',
+    // Transaction succeeded
     SUCCESS: 'success',
+    // Transaction resulted in error
     ERROR: 'error'
   },
   TRANSACTION_KIND: {
@@ -263,10 +298,15 @@ module.exports = {
     REFUND: 'refund'
   },
   COLLECTION_PURPOSE: {
+    // The collection is used for navigation
     NAVIGATION: 'navigation',
+    // The collection is used to group objects
     GROUP: 'group',
+    // The collection applies a discount to products/customers
     DISCOUNT: 'discount',
+    // The collection applies shipping to products/customers
     SHIPPING: 'shipping',
+    // The collection applies taxes to products/customers
     TAXES: 'taxes'
   },
   COLLECTION_SORT_ORDER: {

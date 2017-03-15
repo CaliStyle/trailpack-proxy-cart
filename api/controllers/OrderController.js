@@ -8,6 +8,7 @@ const Errors = require('proxy-engine-errors')
  * @module OrderController
  * @description Order Controller.
  */
+// TODO lock down certain requests by Owner(s)
 module.exports = class OrderController extends Controller {
   /**
    * count the amount of orders

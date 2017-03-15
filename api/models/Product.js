@@ -231,6 +231,8 @@ module.exports = class Product extends Model {
                       resp.variants[idx].metadata = variant.metadata.data
                     }
                   }
+                  // TODO loop through collections and produce calculated price
+                  resp.variants[idx].calculated_price = variant.price
                 })
               }
               // Transform Metadata to plain on toJSON
@@ -239,6 +241,10 @@ module.exports = class Product extends Model {
                   resp.metadata = resp.metadata.data
                 }
               }
+
+              // TODO loop through collections and produce calculated price
+              resp.calculated_price = resp.price
+
               return resp
             }
           }

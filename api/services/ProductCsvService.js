@@ -404,7 +404,7 @@ module.exports = class ProductCsvService extends Service {
           else {
             where = {
               'sku': metadata.handle.split(/:(.+)/)[1],
-              'Product.handle': metadata.handle.split(/:(.+)/)[0]
+              '$Product.handle$': metadata.handle.split(/:(.+)/)[0]
             }
             includes.push({
               model: Product,
