@@ -32,7 +32,7 @@ describe('CustomerController', () => {
       .get(`/customer/${customerID}`)
       .expect(200)
       .end((err, res) => {
-        console.log('THIS CUSTOMER First',res.body)
+        // console.log('THIS CUSTOMER First',res.body)
         // console.log('CUSTOMER',res.body)
         assert.equal(res.body.first_name, 'Scottie')
         assert.equal(res.body.last_name, 'Wyatt')
@@ -57,7 +57,7 @@ describe('CustomerController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS CUSTOMER',res.body)
+        // console.log('THIS CUSTOMER',res.body)
         assert.equal(res.body.first_name, 'Scotty')
         assert.equal(res.body.last_name, 'W')
         // Tags

@@ -173,7 +173,7 @@ module.exports = class CollectionController extends Controller {
 
     CollectionCsvService.collectionCsv(csv.path)
       .then(result => {
-        console.log('CollectionController.uploadCSV',result)
+        // console.log('CollectionController.uploadCSV',result)
         return res.json({
           file: req.file,
           result: result

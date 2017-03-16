@@ -22,7 +22,7 @@
     "joi": "^10.2.2",
     "multer": "^1.2.1",
     "proxy-engine-errors": "^1.0.1",
-    "proxy-engine-helpers": "^1.0.1",
+    "proxy-engine-helpers": "^1.0.2",
     "proxy-generics-render": "^0.0.1",
     "remove-markdown": "^0.1.0",
     "sharp": "^0.17.2",

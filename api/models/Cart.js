@@ -33,7 +33,21 @@ module.exports = class Cart extends Model {
               if (!values.token) {
                 values.token = `cart_${shortid.generate()}`
               }
-              fn()
+              if (!values.shop_id ) {
+                app.services.ShopService.resolve()
+                  .then(shop => {
+                    // console.log('Cart.beforeCreate', shop)
+                    values.shop_id = shop.id
+                    return fn()
+                  })
+                  .catch(err => {
+                    // console.log('Cart.beforeCreate', err)
+                    return fn(err)
+                  })
+              }
+              else {
+                return fn()
+              }
             },
             // TODO connect to Shop and Cart/Customer
             beforeUpdate: (values, options, fn) => {
@@ -64,7 +78,7 @@ module.exports = class Cart extends Model {
                 tax_code: data.tax_code,
                 tax_lines: [],
                 shipping_lines: [],
-                discount_lines: [],
+                discounted_lines: [],
                 requires_subscription: data.requires_subscription,
                 subscription_interval: data.subscription_interval,
                 subscription_unit: data.subscription_unit,
@@ -83,14 +97,14 @@ module.exports = class Cart extends Model {
             },
             addLine: function(item, qty, properties) {
               // The quantity available of this variant
-              let lineQtyAvailabile = 0
+              let lineQtyAvailable = 0
               // Check if Product is Available
               return item.checkAvailability(qty)
                 .then(availability => {
                   if (!availability.allowed) {
                     throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
                   }
-                  lineQtyAvailabile = availability.quantity
+                  lineQtyAvailable = availability.quantity
                   // Check if Product is Restricted
                   return item.checkRestrictions(this.Customer || this.customer_id)
                 })
@@ -108,12 +122,12 @@ module.exports = class Cart extends Model {
                     app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
                     const calculatedQty = lineItems[itemIndex].quantity + qty
                     lineItems[itemIndex].quantity = calculatedQty
-                    lineItems[itemIndex].fulfillable_quantity = calculatedQty > lineQtyAvailabile ? Math.max(0,lineQtyAvailabile - calculatedQty) : calculatedQty
+                    lineItems[itemIndex].fulfillable_quantity = calculatedQty > lineQtyAvailable ? Math.max(0,lineQtyAvailable - calculatedQty) : calculatedQty
                     this.line_items = lineItems
                   }
                   else {
                     item.quantity = qty
-                    item.fulfillable_quantity = qty > lineQtyAvailabile ? Math.max(0, lineQtyAvailabile - qty) : qty
+                    item.fulfillable_quantity = qty > lineQtyAvailable ? Math.max(0, lineQtyAvailable - qty) : qty
                     item.properties = properties
                     const line = this.line(item)
                     app.log.silly('Cart.addLine NEW LINE', line)
@@ -157,12 +171,18 @@ module.exports = class Cart extends Model {
               let shippingLines = []
               let discountedLines = []
               let couponLines = []
-              this.requires_shipping = false
+              this.has_shipping = false
+              this.has_subscription = false
 
               _.each(this.line_items, item => {
+                // Check if at least one time requires shipping
                 if (item.requires_shipping) {
                   totalWeight = totalWeight + item.grams
-                  this.requires_shipping = true
+                  this.has_shipping = true
+                }
+                // Check if at least one item requires subscription
+                if (item.requires_subscription) {
+                  this.has_subscription = true
                 }
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
@@ -191,7 +211,7 @@ module.exports = class Cart extends Model {
                 })
                 .then(discounts => {
                   discountedLines = discounts
-                  _.each(shippingLines, line => {
+                  _.each(discountedLines, line => {
                     totalDiscounts = totalDiscounts + line.price
                   })
                   return app.services.CouponService.calculate(this)
@@ -359,12 +379,17 @@ module.exports = class Cart extends Model {
         shipping_rates: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_rates', {
           defaultValue: []
         }),
-        // If this cart contains an item that requires shipping
-        requires_shipping: {
+        // If this cart contains an item that requires a subscription
+        has_subscription: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
-        // If shipping is taxed
+        // If this cart contains an item that requires shipping
+        has_shipping: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        // If shipping should be taxed
         tax_shipping: {
           type: Sequelize.BOOLEAN,
           defaultValue: false

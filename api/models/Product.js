@@ -177,6 +177,7 @@ module.exports = class Product extends Model {
             },
             findIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Product.default(app))
+              // console.log('Product.findIdDefault', options)
               return this.findById(criteria, options)
             },
             findByHandle: function(handle, options) {
@@ -186,20 +187,22 @@ module.exports = class Product extends Model {
                   handle: handle
                 }
               })
+              // console.log('Product.findByHandle', options)
               return this.findOne(options)
             },
             findOneDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Product.default(app))
-
+              // console.log('Product.findOneDefault', options)
               return this.findOne(criteria, options)
             },
             findAllDefault: function(options) {
               options = _.merge(options, queryDefaults.Product.default(app))
+              // console.log('Product.findAllDefault', options)
               return this.findAll(options)
             },
             findAndCountDefault: function(options) {
               options = _.merge(options, queryDefaults.Product.default(app))
-              console.log('Product.findAndCountDefault', options)
+              // console.log('Product.findAndCountDefault', options)
               return this.findAndCount(options)
             }
           },

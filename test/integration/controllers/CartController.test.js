@@ -187,7 +187,7 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log('THIS CART', res.body)
+        // console.log('THIS CART', res.body)
         assert.equal(res.body.id, cartID)
 
         assert.equal(res.body.line_items.length, 3)
@@ -235,7 +235,7 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('CHECKOUT', res.body)
+        // console.log('CHECKOUT', res.body)
         orderID = res.body.id
         assert.ok(res.body.id)
         assert.ok(res.body.token)

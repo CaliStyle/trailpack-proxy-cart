@@ -306,8 +306,13 @@ module.exports = class Order extends Model {
             key: 'id'
           }
         },
-        // If this cart contains an item that requires shipping
-        requires_shipping: {
+        // If this order contains an item that requires shipping
+        has_shipping: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        // If this order contains an item that requires a subscription
+        has_subscription: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },

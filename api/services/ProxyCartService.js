@@ -273,8 +273,8 @@ module.exports = class ProxyCartService extends Service {
             country_name: shop.country_name,
             country_code: shop.country_code
           }
-          // If this function was provided a
-          if (this.app.services.ProxyCartService.validateAddress(shippingAddress)) {
+          // If provided a shipping address
+          if (shippingAddress && this.app.services.ProxyCartService.validateAddress(shippingAddress)) {
             const res = {
               to: shippingAddress,
               from: from

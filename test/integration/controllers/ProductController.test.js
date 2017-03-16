@@ -484,7 +484,7 @@ describe('ProductController', () => {
       .get('/product/search?term=Hydro')
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
+        // console.log(res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])

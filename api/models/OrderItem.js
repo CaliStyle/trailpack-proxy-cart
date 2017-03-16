@@ -77,6 +77,13 @@ module.exports = class OrderItem extends Model {
           },
           allowNull: false
         },
+        subscription_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Subscription',
+            key: 'id'
+          }
+        },
         // The amount available to fulfill. This is the quantity - max(refunded_quantity, fulfilled_quantity) - pending_fulfilled_quantity - open_fulfilled_quantity.
         fulfillable_quantity: {
           type: Sequelize.INTEGER
@@ -107,6 +114,11 @@ module.exports = class OrderItem extends Model {
         },
         // States whether or not the fulfillment requires shipping. Values are: true or false.
         requires_shipping: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: true
+        },
+        // States whether or not the order item requires a subscription. Values are: true or false.
+        requires_subscription: {
           type: Sequelize.BOOLEAN,
           defaultValue: true
         },
@@ -159,8 +171,8 @@ module.exports = class OrderItem extends Model {
           defaultValue: []
         }),
         // A list of tax_line objects, each of which details the taxes applicable to this line_item.
-        tax_lines: helpers.JSONB('orderitem', app, Sequelize, 'tax_lines', {
-          defaultValue: {}
+        tax_lines: helpers.ARRAY('orderitem', app, Sequelize, Sequelize.JSON, 'tax_lines', {
+          defaultValue: []
         }),
         // The total discounts amount applied to this line item. This value is not subtracted in the line item price.
         total_discounts: {

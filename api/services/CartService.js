@@ -292,6 +292,7 @@ module.exports = class CartService extends Service {
         return cart.recalculate()
       })
       .then(cart => {
+        // console.log('CartService.addItemsToCart', cart)
         return cart.save()
       })
   }

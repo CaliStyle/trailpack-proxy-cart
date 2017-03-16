@@ -85,8 +85,8 @@ module.exports = class OrderService extends Service {
    * @param obj
    * @returns {Promise}
    */
-  // TODO handle taxes, shipping, subscriptions, start transactions/fulfillment
-  // TODO handle inventory policy
+  // TODO handle taxes, shipping, subscriptions
+  // TODO handle inventory policy and coupon policy
   create(obj) {
     const Address = this.app.orm.Address
     const Customer = this.app.orm.Customer
@@ -162,12 +162,11 @@ module.exports = class OrderService extends Service {
           // Resolve the Shipping Address
           resShippingAddress = this.resolveToAddress(resCustomer.shipping_address, obj.shipping_address)
 
-          // TODO check if order requires shipping
-          if (!resShippingAddress && resCart.requires_shipping) {
+          if (!resShippingAddress && resCart.has_shipping) {
             throw new Error('Order does not have a valid shipping address')
           }
 
-          if (!resBillingAddress && resCart.requires_shipping) {
+          if (!resBillingAddress) {
             resBillingAddress = resShippingAddress
           }
           const paymentGatewayNames = obj.payment_details.map(detail => { return detail.gateway })
@@ -194,6 +193,8 @@ module.exports = class OrderService extends Service {
             payment_gateway_names: paymentGatewayNames,
             requires_shipping: resCart.requires_shipping,
             shop_id: resCart.shop_id,
+            has_shipping: resCart.has_shipping,
+            has_subscription: resCart.has_subscription,
 
             // Client Info
             client_details: obj.client_details,

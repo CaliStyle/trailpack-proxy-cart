@@ -93,6 +93,9 @@ module.exports = class CartController extends Controller {
         return CartService.create(req.body)
       })
       .then(cart => {
+        if (!cart) {
+          throw new Error('Unexpected Error while creating cart')
+        }
         return res.json(cart)
       })
       .catch(err => {
@@ -119,6 +122,9 @@ module.exports = class CartController extends Controller {
       })
       .then(data => {
         // console.log('CartController.checkout Order', data)
+        if (!data) {
+          throw new Error('Unexpected Error while checking out')
+        }
         return res.json(data)
       })
       .catch(err => {
@@ -139,6 +145,10 @@ module.exports = class CartController extends Controller {
         return CartService.addItemsToCart(req.body, req.params.id)
       })
       .then(data => {
+        // console.log('ProductController.addItemsToCart',data)
+        if (!data) {
+          throw new Error('Unexpected Error while adding items')
+        }
         return res.json(data)
       })
       .catch(err => {
@@ -159,6 +169,9 @@ module.exports = class CartController extends Controller {
         return CartService.removeItemsFromCart(req.body, req.params.id)
       })
       .then(data => {
+        if (!data) {
+          throw new Error('Unexpected Error while removing items')
+        }
         return res.json(data)
       })
       .catch(err => {

@@ -26,8 +26,10 @@ module.exports = class ShopService extends Service {
     else if (shop && (_.isString(shop) || _.isNumber(shop))) {
       return Shop.find({
         where: {
-          id: shop,
-          handle: shop
+          $or: [
+            { id: shop },
+            { handle: shop }
+          ]
         }
       }, options)
         .then(resShop => {
@@ -38,8 +40,15 @@ module.exports = class ShopService extends Service {
         })
     }
     else {
-      const err = new Error('Unable to resolve Shop')
-      Promise.reject(err)
+      return Shop.findOne({})
+        .then(resShop => {
+          if (!resShop) {
+            throw new Errors.FoundError(Error(`Shop ${shop} not found and could not resolve the default`))
+          }
+          return resShop
+        })
+      // const err = new Error('Unable to resolve Shop')
+      // Promise.reject(err)
     }
   }
 
