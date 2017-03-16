@@ -12,5 +12,11 @@ module.exports = class CouponService extends Service {
   expire(data){}
   redeem(data){}
   validate(data){}
+  calculate(cart){
+    return this.app.services.CartService.resolve(cart)
+      .then(cart => {
+        return []
+      })
+  }
 }
 

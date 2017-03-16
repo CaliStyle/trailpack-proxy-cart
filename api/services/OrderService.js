@@ -17,7 +17,7 @@ const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
  */
 module.exports = class OrderService extends Service {
   /**
-   *
+   * resolves an Order from either an Instance, an ID, or an Object with ID
    * @param order
    * @param options
    * @returns {Promise}
@@ -188,11 +188,12 @@ module.exports = class OrderService extends Service {
             total_discounts: resCart.total_discounts,
             total_line_items_price: resCart.total_line_items_price,
             total_price: resCart.total_price,
+            total_due: resCart.total_due,
             total_tax: resCart.total_tax,
             total_weight: resCart.total_weight,
-            total_due: resCart.total_due,
             payment_gateway_names: paymentGatewayNames,
             requires_shipping: resCart.requires_shipping,
+            shop_id: resCart.shop_id,
 
             // Client Info
             client_details: obj.client_details,
@@ -222,6 +223,10 @@ module.exports = class OrderService extends Service {
           return resCart.save()
         })
         .then(cart => {
+          // TODO set inventory of products in cart
+          return
+        })
+        .then(inventories => {
           if (resCustomer instanceof Customer.Instance) {
             resCustomer.setLastOrder(resOrder)
             // TODO create a blank new cart for customer
@@ -235,19 +240,28 @@ module.exports = class OrderService extends Service {
         .then(customer => {
           // Set proxy cart default payment kind if not set by order.create
           let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment_kind
+          // Set transaction type to 'manual' if none is specified
           if (!orderPayment) {
             this.app.log.debug(`Order does not have a payment function, defaulting to ${TRANSACTION_KIND.MANUAL}`)
             orderPayment = TRANSACTION_KIND.MANUAL
           }
+
           return Promise.all(obj.payment_details.map((detail, index) => {
             const transaction = {
+              // Set the order id
               order_id: resOrder.id,
+              // Set the order currency
               currency: resOrder.currency,
-              amount: resOrder.total_price,
+              // Set the amount for this transaction and handle if it is a split transaction
+              amount: detail.amount || resOrder.total_due,
+              // Copy the entire payment details to this transaction
               payment_details: obj.payment_details[index],
+              // Specify the gateway to use
               gateway: detail.gateway,
+              // Set the device (that input the credit card) or null
               device_id: obj.device_id || null
             }
+            // Return the Payment Service
             return PaymentService[orderPayment](transaction)
           }))
         })
@@ -301,12 +315,18 @@ module.exports = class OrderService extends Service {
         return Order.findIdDefault(resOrder.id)
       })
   }
+
+  /**
+   * Remove an Item from Order
+   * @param data
+   * @returns {Promise.<T>}
+   */
   // TODO
   removeItem(data) {
     return Promise.resolve(data)
   }
   /**
-   *
+   * Pay an item
    * @param order
    * @returns {*|Promise.<TResult>}
    */
@@ -331,13 +351,19 @@ module.exports = class OrderService extends Service {
         return order
       })
   }
+
+  /**
+   * Pay multiple orders
+   * @param orders
+   * @returns {Promise.<*>}
+   */
   payOrders(orders) {
     return Promise.all(orders.map(order => {
       return this.pay(order)
     }))
   }
   /**
-   *
+   * Refund an Order
    * @param order
    * @returns {*|Promise.<TResult>}
    */
@@ -350,6 +376,11 @@ module.exports = class OrderService extends Service {
       })
   }
 
+  /**
+   * Cancel and Order
+   * @param order
+   * @returns {Promise.<TResult>}
+   */
   // TODO cancel fulfillments, refund transactions
   cancel(order) {
     const reason = order.cancel_reason
@@ -395,8 +426,12 @@ module.exports = class OrderService extends Service {
     if (orderFulfillmentKind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
       return immediate
     }
-    const successes = _.map(transactions, transaction => { return transaction.status == TRANSACTION_STATUS.SUCCESS})
-    const sales = _.map(transactions, transaction => { return transaction.kind == TRANSACTION_KIND.SALE})
+    const successes = _.map(transactions, transaction => {
+      return transaction.status == TRANSACTION_STATUS.SUCCESS
+    })
+    const sales = _.map(transactions, transaction => {
+      return transaction.kind == TRANSACTION_KIND.SALE
+    })
     if (successes.length == transactions.length && sales.length == transactions.length) {
       immediate = true
     }

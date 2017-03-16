@@ -432,6 +432,14 @@ module.exports = class Order extends Model {
         shipping_lines: helpers.ARRAY('order', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
           defaultValue: []
         }),
+        // The line_items that have discounts
+        discounted_lines: helpers.ARRAY('order', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+          defaultValue: []
+        }),
+        // The line_items that have coupons
+        coupon_lines: helpers.ARRAY('orderitem', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+          defaultValue: []
+        }),
         // Where the order originated. May only be set during creation, and is not writable thereafter. Orders created through official Proxy Engine channels have protected values that cannot be assigned by other API clients during order creation. These protected values are: "web", "pos", "iphone", and "android" Orders created via the API may be assigned any other string of your choice. If source_name is unspecified, new orders are assigned the value "api".
         source_name: {
           type: Sequelize.STRING,

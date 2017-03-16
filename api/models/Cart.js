@@ -60,10 +60,11 @@ module.exports = class Cart extends Model {
                 fulfillment_service: data.fulfillment_service,
                 gift_card: data.gift_card,
                 requires_shipping: data.requires_shipping,
-                // requires_tax: data.requires_tax, // TODO resolve which of these to keep
-                taxable: data.requires_tax, // TODO resolve which of these to keep
+                taxable: data.requires_tax,
                 tax_code: data.tax_code,
-                tax_lines: [{}],
+                tax_lines: [],
+                shipping_lines: [],
+                discount_lines: [],
                 requires_subscription: data.requires_subscription,
                 subscription_interval: data.subscription_interval,
                 subscription_unit: data.subscription_unit,
@@ -80,7 +81,6 @@ module.exports = class Cart extends Model {
               }
               return line
             },
-            // TODO handle deny adding product if restricted by fulfillment policy
             addLine: function(item, qty, properties) {
               // The quantity available of this variant
               let lineQtyAvailabile = 0
@@ -131,6 +131,7 @@ module.exports = class Cart extends Model {
               const itemIndex = _.findIndex(lineItems, {variant_id: item.id})
               if (itemIndex > -1) {
                 lineItems[itemIndex].quantity = lineItems[itemIndex].quantity - qty
+                lineItems[itemIndex].fulfillable_quantity = Math.max(0, lineItems[itemIndex].fulfillable_quantity - qty)
                 // Resolve Grams
                 if ( lineItems[itemIndex].quantity < 1) {
                   app.log.silly(`Cart.removeLine removing '${lineItems[itemIndex].variant_id}' line completely`)
@@ -145,24 +146,23 @@ module.exports = class Cart extends Model {
             recalculate: function() {
               let subtotalPrice = 0
               let totalDiscounts = 0
-              const totalCoupons = 0
+              let totalCoupons = 0
               let totalTax = 0
               let totalWeight = 0
               let totalPrice = 0
+              let totalDue = 0
               let totalLineItemsPrice = 0
               let totalShipping = 0
               let taxLines = []
               let shippingLines = []
-              // let discountedLines = []
-              let requiresShipping = false
+              let discountedLines = []
+              let couponLines = []
+              this.requires_shipping = false
 
               _.each(this.line_items, item => {
-                // if (item.tax_lines.length > 0) {
-                //   taxLines.concat(item.tax_lines)
-                // }
                 if (item.requires_shipping) {
                   totalWeight = totalWeight + item.grams
-                  requiresShipping = true
+                  this.requires_shipping = true
                 }
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
@@ -187,13 +187,30 @@ module.exports = class Cart extends Model {
                   _.each(shippingLines, line => {
                     totalShipping = totalShipping + line.price
                   })
+                  return app.services.DiscountService.calculate(this)
+                })
+                .then(discounts => {
+                  discountedLines = discounts
+                  _.each(shippingLines, line => {
+                    totalDiscounts = totalDiscounts + line.price
+                  })
+                  return app.services.CouponService.calculate(this)
+                })
+                .then(coupons => {
+                  couponLines = coupons
+                  _.each(couponLines, line => {
+                    totalCoupons = totalCoupons + line.price
+                  })
 
-                  // Finalize Total
-                  totalPrice = totalTax + totalShipping + subtotalPrice - totalDiscounts - totalCoupons
+                  // Finalize Totals
+                  totalPrice = totalTax + totalShipping + subtotalPrice
+                  totalDue = totalPrice - totalDiscounts - totalCoupons
 
                   // Set Cart values
                   this.tax_lines = taxLines
                   this.shipping_lines = shippingLines
+                  this.discounted_lines = discountedLines
+                  this.coupon_lines = couponLines
                   this.total_shipping = totalShipping
                   this.subtotal_price = subtotalPrice
                   this.total_discounts = totalDiscounts
@@ -201,9 +218,7 @@ module.exports = class Cart extends Model {
                   this.total_weight = totalWeight
                   this.total_line_items_price = totalLineItemsPrice
                   this.total_price = totalPrice
-                  this.requires_shipping = requiresShipping
-                  // TODO
-                  this.total_due = totalPrice
+                  this.total_due = totalDue
 
                   return this
                 })
@@ -320,8 +335,12 @@ module.exports = class Cart extends Model {
           defaultValue: 0
         },
         // The line_items that have discounts
-        discounted_lines: helpers.JSONB('cart', app, Sequelize, 'discounted_lines', {
-          defaultValue: {}
+        discounted_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+          defaultValue: []
+        }),
+        // The line_items that have discounts
+        coupon_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+          defaultValue: []
         }),
         // The line_items that require shipping
         shipping_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_lines', {

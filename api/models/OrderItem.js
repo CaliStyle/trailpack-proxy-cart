@@ -146,12 +146,24 @@ module.exports = class OrderItem extends Model {
           type: Sequelize.STRING,
           defaultValue: 'P000000' // Physical Good
         },
+        // The line_items that have discounts
+        discounted_lines: helpers.ARRAY('orderitem', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+          defaultValue: []
+        }),
+        // The line_items that have discounts
+        coupon_lines: helpers.ARRAY('orderitem', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+          defaultValue: []
+        }),
+        // The line_items that have shipping
+        shipping_lines: helpers.ARRAY('orderitem', app, Sequelize, Sequelize.JSON,  'shipping_lines', {
+          defaultValue: []
+        }),
         // A list of tax_line objects, each of which details the taxes applicable to this line_item.
         tax_lines: helpers.JSONB('orderitem', app, Sequelize, 'tax_lines', {
           defaultValue: {}
         }),
-        // The total discount amount applied to this line item. This value is not subtracted in the line item price.
-        total_discount: {
+        // The total discounts amount applied to this line item. This value is not subtracted in the line item price.
+        total_discounts: {
           type: Sequelize.INTEGER
         },
 
