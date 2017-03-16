@@ -65,6 +65,14 @@ module.exports = class Subscription extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        order_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Order',
+            key: 'id'
+          },
+          allowNull: false
+        },
         // The interval of the subscription, defaults to 0 months
         interval: {
           type: Sequelize.INTEGER,
