@@ -120,6 +120,9 @@ module.exports = class ProductCsvService extends Service {
           else if (k == 'weight_unit') {
             upload[k] = data.toLowerCase()
           }
+          else if (k == 'inventory_policy') {
+            upload[k] = data.toLowerCase()
+          }
           else {
             upload[k] = data
           }

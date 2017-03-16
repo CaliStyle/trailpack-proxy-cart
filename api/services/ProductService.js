@@ -695,6 +695,10 @@ module.exports = class ProductService extends Service {
     if (product.inventory_quantity && !variant.inventory_quantity) {
       variant.inventory_quantity = product.inventory_quantity
     }
+    // If the inventory_policy set on parent
+    if (product.inventory_policy && !variant.inventory_policy) {
+      variant.inventory_policy = product.inventory_policy
+    }
     // If the weight set on parent
     if (product.weight && !variant.weight) {
       variant.weight = product.weight

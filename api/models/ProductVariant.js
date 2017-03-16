@@ -105,10 +105,15 @@ module.exports = class ProductVariant extends Model {
               return Promise.resolve(false)
             },
             // TODO check fulfillment policies
-            checkAvailability: function(){
+            checkAvailability: function(qty){
+              let allowed = true
+              if (qty > this.inventory_quantity && this.inventory_policy == INVENTORY_POLICY.DENY) {
+                allowed = false
+              }
               const res = {
                 title: this.title,
-                allowed: true
+                allowed: allowed,
+                quantity: this.inventory_quantity
               }
               return Promise.resolve(res)
             }
@@ -215,6 +220,7 @@ module.exports = class ProductVariant extends Model {
           defaultValue: false
         },
         // Specifies whether or not customers are allowed to place an order for a product variant when it's out of stock.
+        //
         inventory_policy: {
           type: Sequelize.ENUM,
           values: _.values(INVENTORY_POLICY),

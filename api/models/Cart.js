@@ -71,6 +71,7 @@ module.exports = class Cart extends Model {
                 weight_unit: data.weight_unit,
                 images: data.images.length > 0 ? data.images : data.Product.images,
                 quantity: data.quantity,
+                fulfillable_quantity: data.fulfillable_quantity,
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
                 // TODO handle discounts
                 total_discounts: 0,
@@ -81,12 +82,16 @@ module.exports = class Cart extends Model {
             },
             // TODO handle deny adding product if restricted by fulfillment policy
             addLine: function(item, qty, properties) {
-              // Check if Product is Restricted
-              return item.checkAvailability()
+              // The quantity available of this variant
+              let lineQtyAvailabile = 0
+              // Check if Product is Available
+              return item.checkAvailability(qty)
                 .then(availability => {
                   if (!availability.allowed) {
                     throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
                   }
+                  lineQtyAvailabile = availability.quantity
+                  // Check if Product is Restricted
                   return item.checkRestrictions(this.Customer || this.customer_id)
                 })
                 .then(restricted => {
@@ -101,11 +106,14 @@ module.exports = class Cart extends Model {
                   const itemIndex = _.findIndex(lineItems, {variant_id: item.id})
                   if (itemIndex > -1) {
                     app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
-                    lineItems[itemIndex].quantity = lineItems[itemIndex].quantity + qty
+                    const calculatedQty = lineItems[itemIndex].quantity + qty
+                    lineItems[itemIndex].quantity = calculatedQty
+                    lineItems[itemIndex].fulfillable_quantity = calculatedQty > lineQtyAvailabile ? Math.max(0,lineQtyAvailabile - calculatedQty) : calculatedQty
                     this.line_items = lineItems
                   }
                   else {
                     item.quantity = qty
+                    item.fulfillable_quantity = qty > lineQtyAvailabile ? Math.max(0, lineQtyAvailabile - qty) : qty
                     item.properties = properties
                     const line = this.line(item)
                     app.log.silly('Cart.addLine NEW LINE', line)
@@ -146,6 +154,7 @@ module.exports = class Cart extends Model {
               let taxLines = []
               let shippingLines = []
               // let discountedLines = []
+              let requiresShipping = false
 
               _.each(this.line_items, item => {
                 // if (item.tax_lines.length > 0) {
@@ -153,6 +162,7 @@ module.exports = class Cart extends Model {
                 // }
                 if (item.requires_shipping) {
                   totalWeight = totalWeight + item.grams
+                  requiresShipping = true
                 }
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
@@ -191,6 +201,7 @@ module.exports = class Cart extends Model {
                   this.total_weight = totalWeight
                   this.total_line_items_price = totalLineItemsPrice
                   this.total_price = totalPrice
+                  this.requires_shipping = requiresShipping
                   // TODO
                   this.total_due = totalPrice
 
@@ -205,10 +216,10 @@ module.exports = class Cart extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Cart.belongsTo(models.Customer, {
-                // as: 'customer'
-                // as: 'customer_id'
-              })
+              // models.Cart.belongsTo(models.Customer, {
+              //   // as: 'customer'
+              //   // as: 'customer_id'
+              // })
               models.Cart.belongsTo(models.Address, {
                 as: 'shipping_address',
                 through: {
@@ -269,6 +280,20 @@ module.exports = class Cart extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        customer_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Customer',
+            key: 'id'
+          }
+        },
+        shop_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Shop',
+            key: 'id'
+          }
+        },
         // Unique identifier for a particular cart.
         token: {
           type: Sequelize.STRING,
@@ -315,6 +340,11 @@ module.exports = class Cart extends Model {
         shipping_rates: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_rates', {
           defaultValue: []
         }),
+        // If this cart contains an item that requires shipping
+        requires_shipping: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
         // If shipping is taxed
         tax_shipping: {
           type: Sequelize.BOOLEAN,

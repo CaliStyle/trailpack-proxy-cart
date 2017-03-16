@@ -238,13 +238,13 @@ module.exports = {
     FAILURE: 'failure'
   },
   PAYMENT_PROCESSING_METHOD: {
-    // Payment processed at checkout
+    // Payment processed at digital checkout
     CHECKOUT: 'checkout',
-    // Payment processed directly by teller
+    // Payment processed default
     DIRECT: 'direct',
-    //
+    // Payment processed by means other than digital
     MANUAL: 'manual',
-    //
+    // Payment processed by 3rd party in network
     OFFSITE: 'offsite',
     //
     EXPRESS: 'express'

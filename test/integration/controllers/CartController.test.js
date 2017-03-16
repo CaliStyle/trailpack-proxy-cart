@@ -246,6 +246,7 @@ describe('CartController', () => {
         assert.equal(res.body.processing_method, 'checkout')
         assert.ok(res.body.subtotal_price)
         // Order Items
+        // TODO check quantities
         assert.equal(res.body.order_items.length, 3)
         assert.equal(res.body.order_items[0].order_id, orderID)
         assert.equal(res.body.order_items[1].order_id, orderID)

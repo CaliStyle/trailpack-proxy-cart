@@ -7,6 +7,8 @@
     "type": "3D Printer",
     "price": "100000",
     "published": true,
+    "inventory_policy": "continue",
+    "inventory_quantity": 1000,
     "tags": [
       "equipment",
       "productivity"
@@ -42,6 +44,8 @@
     "type": "3D Printer",
     "price": "100000",
     "published": true,
+    "inventory_policy": "deny",
+    "inventory_quantity": 2,
     "tags": [
       "equipment",
       "productivity"

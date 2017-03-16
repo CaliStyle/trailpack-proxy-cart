@@ -157,17 +157,20 @@ module.exports = class OrderService extends Service {
           else {
             resCustomer = customer
           }
+          // Resolve the Billing Address
           resBillingAddress = this.resolveToAddress(resCustomer.billing_address, obj.billing_address)
+          // Resolve the Shipping Address
           resShippingAddress = this.resolveToAddress(resCustomer.shipping_address, obj.shipping_address)
 
-          if (!resShippingAddress) {
+          // TODO check if order requires shipping
+          if (!resShippingAddress && resCart.requires_shipping) {
             throw new Error('Order does not have a valid shipping address')
           }
 
-          if (!resBillingAddress) {
+          if (!resBillingAddress && resCart.requires_shipping) {
             resBillingAddress = resShippingAddress
           }
-
+          const paymentGatewayNames = obj.payment_details.map(detail => { return detail.gateway })
           // console.log('OrderService.create', resShippingAddress, resBillingAddress)
           const order = {
             // Order Info
@@ -188,6 +191,8 @@ module.exports = class OrderService extends Service {
             total_tax: resCart.total_tax,
             total_weight: resCart.total_weight,
             total_due: resCart.total_due,
+            payment_gateway_names: paymentGatewayNames,
+            requires_shipping: resCart.requires_shipping,
 
             // Client Info
             client_details: obj.client_details,

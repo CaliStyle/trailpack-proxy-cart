@@ -6,6 +6,7 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const shortid = require('shortid')
+const queryDefaults = require('../utils/queryDefaults')
 const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
 const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
@@ -137,30 +138,7 @@ module.exports = class Order extends Model {
               })
             },
             findIdDefault: function(criteria, options) {
-              options = _.merge(options, {
-                include: [
-                  // {
-                  //   model: app.orm['Customer'],
-                  //   // as: 'customer'
-                  // },
-                  {
-                    model: app.orm['OrderItem'],
-                    as: 'order_items'
-                  },
-                  {
-                    model: app.orm['Transaction'],
-                    as: 'transactions'
-                  },
-                  {
-                    model: app.orm['Fulfillment'],
-                    as: 'fulfillments'
-                  },
-                  {
-                    model: app.orm['Event'],
-                    as: 'events'
-                  }
-                ]
-              })
+              options = _.merge(options, queryDefaults.Order.default(app))
               return this.findById(criteria, options)
             }
           },
@@ -320,6 +298,18 @@ module.exports = class Order extends Model {
             model: 'Customer',
             key: 'id'
           }
+        },
+        shop_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Shop',
+            key: 'id'
+          }
+        },
+        // If this cart contains an item that requires shipping
+        requires_shipping: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         },
         // Billing Address on Order
         billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address', {
