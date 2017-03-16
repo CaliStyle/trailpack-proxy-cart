@@ -412,10 +412,6 @@ module.exports = class Order extends Model {
         number: {
           type: Sequelize.INTEGER
         },
-        // A unique numeric identifier for the order. This one is used by the shop owner and customer. This is different from the id property, which is also a unique numeric identifier for the order, but used for API purposes.
-        order_number: {
-          type: Sequelize.STRING
-        },
         // The list of all payment gateways used for the order.
         payment_gateway_names: helpers.ARRAY('order', app, Sequelize, Sequelize.STRING, 'payment_gateway_names', {
           defaultValue: []
