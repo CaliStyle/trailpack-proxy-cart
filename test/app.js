@@ -96,6 +96,9 @@ const App = {
       logger: new smokesignals.Logger('debug')
     },
     web: web,
+    session: {
+      secret: 'proxyCart'
+    },
     passport: {
       strategies: {
         local: {

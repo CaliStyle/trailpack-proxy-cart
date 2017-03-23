@@ -345,10 +345,18 @@ module.exports = class ProxyCartService extends Service {
   }
 
   serializeCart(cart, next) {
+    // console.log('SERIALIZE CART')
+    if (typeof next != 'function') {
+      throw new Error('instance#serializeCart requires a callback function')
+    }
     next(null, cart.id)
   }
 
   deserializeCart(id, next) {
+    // console.log('DESERIALIZE CART')
+    if (typeof next != 'function') {
+      throw new Error('instance#deserializeCart requires a callback function')
+    }
     this.app.orm['Cart'].findById(id)
       .then(cart => {
         next(null, cart)
@@ -359,10 +367,16 @@ module.exports = class ProxyCartService extends Service {
   }
 
   serializeCustomer(customer, next) {
+    if (typeof next != 'function') {
+      throw new Error('instance#serializeCustomer requires a callback function')
+    }
     next(null, customer.id)
   }
 
   deserializeCustomer(id, next) {
+    if (typeof next != 'function') {
+      throw new Error('instance#deserializeCustomer requires a callback function')
+    }
     this.app.orm['Customer'].findById(id)
       .then(customer => {
         next(null, customer)

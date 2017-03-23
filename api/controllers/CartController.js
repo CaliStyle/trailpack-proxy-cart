@@ -96,14 +96,17 @@ module.exports = class CartController extends Controller {
         if (!cart) {
           throw new Error('Unexpected Error while creating cart')
         }
-        // return new Promise((resolve,reject) => {
-        //   req.loginCart(cart, function () {
-        //     return resolve(res.json(cart))
-        //   })
-        // })
-        // console.log('CART REQUEST', req)
+        return new Promise((resolve,reject) => {
+          req.loginCart(cart, function (err) {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(cart)
+          })
+        })
+      })
+      .then(cart => {
         return res.json(cart)
-
       })
       .catch(err => {
         // console.log('ProductController.checkout', err)
@@ -206,7 +209,10 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
-
+  logout(req, res) {
+    req.logoutCart()
+    res.ok()
+  }
   //TODO
   addCoupon(req, res) {}
 }

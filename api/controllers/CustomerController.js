@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Controller = require('trails/controller')
@@ -91,6 +92,17 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.create(req.body)
       })
       .then(customer => {
+        return new Promise((resolve,reject) => {
+          req.loginCustomer(customer, function (err) {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(customer)
+          })
+        })
+      })
+      .then(customer => {
+        // console.log('Customer Request', req.customer)
         return res.json(customer)
       })
       .catch(err => {
@@ -121,6 +133,10 @@ module.exports = class CustomerController extends Controller {
       })
   }
 
+  logout(req, res) {
+    req.logoutCustomer()
+    res.ok()
+  }
   /**
    * upload CSV
    * @param req

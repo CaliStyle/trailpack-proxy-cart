@@ -9,7 +9,7 @@ const Policy = require('trails/policy')
  */
 module.exports = class CartPolicy extends Policy {
   session(req, res, next) {
-    console.log('Cart Policy',req.cart)
+    // console.log('Cart Policy',req.cart)
     next()
   }
 }

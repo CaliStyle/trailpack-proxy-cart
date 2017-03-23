@@ -11,7 +11,7 @@ const multer = require('multer')
  */
 module.exports = class CustomerPolicy extends Policy {
   session(req, res, next) {
-    console.log('Cart Policy',req.cart)
+    // console.log('Customer Policy', req.customer)
     next()
   }
   csv(req, res, next) {
