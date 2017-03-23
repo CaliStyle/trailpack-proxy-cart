@@ -134,6 +134,9 @@ module.exports = class ProductUpload extends Model {
       inventory_policy: {
         type: Sequelize.STRING
       },
+      max_quantity: {
+        type: Sequelize.INTEGER
+      },
       // 'Variant Fulfillment Service'
       fulfillment_service: {
         type: Sequelize.STRING

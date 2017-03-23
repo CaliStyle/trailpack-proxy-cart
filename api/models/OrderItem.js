@@ -88,6 +88,10 @@ module.exports = class OrderItem extends Model {
         fulfillable_quantity: {
           type: Sequelize.INTEGER
         },
+        // The maximum allowed per order.
+        max_quantity: {
+          type: Sequelize.INTEGER
+        },
         // Service provider who is doing the fulfillment. Valid values are either "manual" or the name of the provider. eg: "amazon", "shipwire", etc.
         fulfillment_service: {
           type: Sequelize.STRING,

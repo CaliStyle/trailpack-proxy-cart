@@ -236,6 +236,10 @@ module.exports = class ProductVariant extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        max_quantity: {
+          type: Sequelize.INTEGER,
+          defaultValue: -1
+        },
         // The tax code of the product, defaults to physical good.
         tax_code: {
           type: Sequelize.STRING,

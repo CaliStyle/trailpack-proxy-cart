@@ -17,7 +17,7 @@ describe('ShopController', () => {
       .get('/shop/count')
       .expect(200)
       .end((err, res) => {
-        // console.log('SHOPS COUNT', res.body)
+        // console.log('RESPONSE', res)
         assert.ok(_.isNumber(res.body.shops))
         done(err)
       })

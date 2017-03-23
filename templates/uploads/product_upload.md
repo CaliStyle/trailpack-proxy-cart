@@ -92,6 +92,9 @@ The number of items you have in stock of this product or variant.
 ## Variant Inventory Policy
 How to handle orders when inventory level for this product or variant has reached zero. Valid values are "deny", or "continue". "deny" will stop selling when inventory reaches 0, and "continue" will allow sales to continue into negative inventory levels.
 
+## Variant Max Quantity
+The number of items that a customer can purchase of the product at a time. -1 equals no limit, and a positive integer will enforce no more than this quantity can be added to a cart.
+
 ## Variant Fulfillment Service
 The product or variant fulfillment service used. Valid values are generics like: `manual`, `shipwire`, `amazon_marketplace_web`. If you use a custom fulfillment service that does not have a generic built for it, you can add the name of the service in this column. For the custom name, use only lowercase alphabet letters. Spaces aren't allowed, replace them with a dash `-` or underscore `_`. Periods and other special characters are removed. For example, if "Mr. Fulfiller" is your fulfillment service's name, enter "mr-fulfiller" in the CSV file.
 

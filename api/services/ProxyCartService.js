@@ -14,6 +14,14 @@ const geolib = require('geolib')
  * @description ProxyCart Service
  */
 module.exports = class ProxyCartService extends Service {
+  constructor(app) {
+    super(app)
+    // Middleware exports
+    this.initialize = require('../../lib/middleware/initialize')
+    this.session = require('../../lib/middleware/session')
+  }
+
+
   jsonCritera(str) {
     if (!str) {
       return {}
@@ -333,6 +341,34 @@ module.exports = class ProxyCartService extends Service {
     shops = _.sortBy(shops, 'distance')
 
     return shops
+  }
+
+  serializeCart(cart, next) {
+    next(null, cart.id)
+  }
+
+  deserializeCart(id, next) {
+    this.app.orm['Cart'].findById(id)
+      .then(cart => {
+        next(null, cart)
+      })
+      .catch(err => {
+        next(err)
+      })
+  }
+
+  serializeCustomer(customer, next) {
+    next(null, customer.id)
+  }
+
+  deserializeCustomer(id, next) {
+    this.app.orm['Customer'].findById(id)
+      .then(customer => {
+        next(null, customer)
+      })
+      .catch(err => {
+        next(err)
+      })
   }
 }
 

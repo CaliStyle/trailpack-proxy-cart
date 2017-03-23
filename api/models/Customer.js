@@ -140,6 +140,21 @@ module.exports = class Customer extends Model {
                   constraints: false
                 }
               })
+              models.Customer.hasMany(models.User, {
+                as: 'users',
+                foreignKey: {
+                  allowNull: true
+                }
+              })
+              models.Customer.belongsToMany(models.User, {
+                as: 'users',
+                through: {
+                  model: models.CustomerUser,
+                  foreignKey: 'customer_id',
+                  unique: true,
+                  constraints: false
+                }
+              })
             },
             findIdDefault: function(id, options) {
               options = _.merge(options, {
@@ -311,8 +326,15 @@ module.exports = class Customer extends Model {
         },
         // The total amount the customer has spent
         total_spent: {
-          type: Sequelize.INTEGER
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
+        // The amount the customer has as a credit on their account
+        account_balance: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+
         // If the customer's email address is verified
         verified_email: {
           type: Sequelize.BOOLEAN,

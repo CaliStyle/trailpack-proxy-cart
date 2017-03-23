@@ -61,6 +61,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
    */
   configure () {
     return Promise.all([
+      lib.ProxyCart.configure(this.app),
       lib.ProxyCart.addPolicies(this.app),
       lib.ProxyCart.addRoutes(this.app),
       lib.ProxyCart.resolveGenerics(this.app),
@@ -76,7 +77,6 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
    */
   initialize () {
     return Promise.all([
-      lib.ProxyCart.init(this.app),
       lib.Utils.buildShopFixtures(this.app)
         .then(fixtures => {
           this.shopFixtures = fixtures

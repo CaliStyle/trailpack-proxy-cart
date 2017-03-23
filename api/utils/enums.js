@@ -54,6 +54,7 @@ module.exports = {
     inventory_tracker: 'Variant Inventory Tracker',
     inventory_quantity: 'Variant Inventory Quantity',
     inventory_policy: 'Variant Inventory Policy',
+    max_quantity: 'Variant Max Quantity',
     fulfillment_service: 'Variant Fulfillment Service',
     price: 'Variant Price',
     compare_at_price: 'Variant Compare at Price',

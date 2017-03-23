@@ -87,6 +87,7 @@ module.exports = class Cart extends Model {
                 images: data.images.length > 0 ? data.images : data.Product.images,
                 quantity: data.quantity,
                 fulfillable_quantity: data.fulfillable_quantity,
+                max_quantity: data.max_quantity,
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
                 // TODO handle discounts
                 total_discounts: 0,
@@ -97,7 +98,7 @@ module.exports = class Cart extends Model {
             },
             addLine: function(item, qty, properties) {
               // The quantity available of this variant
-              let lineQtyAvailable = 0
+              let lineQtyAvailable = -1
               // Check if Product is Available
               return item.checkAvailability(qty)
                 .then(availability => {
@@ -110,24 +111,47 @@ module.exports = class Cart extends Model {
                 })
                 .then(restricted => {
                   if (restricted) {
-                    throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)
+                    throw new Error(`${restricted.title} can not be delivered to ${restricted.city} ${restricted.province} ${restricted.country}`)
                   }
                   // Rename line items so they are no longer immutable
                   const lineItems = this.line_items
+                  // Make quantity an integer
                   if (!qty || !_.isNumber(qty)) {
                     qty = 1
                   }
                   const itemIndex = _.findIndex(lineItems, {variant_id: item.id})
                   if (itemIndex > -1) {
                     app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
-                    const calculatedQty = lineItems[itemIndex].quantity + qty
+                    const maxQuantity = lineItems[itemIndex].max_quantity
+                    let calculatedQty = lineItems[itemIndex].quantity + qty
+
+                    if (maxQuantity > -1 && calculatedQty > maxQuantity) {
+                      calculatedQty = maxQuantity
+                    }
+
+                    if (lineQtyAvailable > -1 && calculatedQty > lineQtyAvailable) {
+                      calculatedQty = Math.max(0, lineQtyAvailable - calculatedQty)
+                    }
+
                     lineItems[itemIndex].quantity = calculatedQty
-                    lineItems[itemIndex].fulfillable_quantity = calculatedQty > lineQtyAvailable ? Math.max(0,lineQtyAvailable - calculatedQty) : calculatedQty
+                    lineItems[itemIndex].fulfillable_quantity = calculatedQty
                     this.line_items = lineItems
                   }
                   else {
-                    item.quantity = qty
-                    item.fulfillable_quantity = qty > lineQtyAvailable ? Math.max(0, lineQtyAvailable - qty) : qty
+                    const maxQuantity = item.max_quantity
+                    let calculatedQty = qty
+
+                    if (maxQuantity > -1 && calculatedQty > maxQuantity) {
+                      calculatedQty = maxQuantity
+                    }
+
+                    if (lineQtyAvailable > -1 && calculatedQty > lineQtyAvailable) {
+                      calculatedQty = Math.max(0, lineQtyAvailable - calculatedQty)
+                    }
+
+                    item.quantity = calculatedQty
+                    item.fulfillable_quantity = calculatedQty
+                    item.max_quantity = maxQuantity
                     item.properties = properties
                     const line = this.line(item)
                     app.log.silly('Cart.addLine NEW LINE', line)
@@ -158,6 +182,7 @@ module.exports = class Cart extends Model {
               this.status = status
             },
             recalculate: function() {
+              // Default Values
               let subtotalPrice = 0
               let totalDiscounts = 0
               let totalCoupons = 0
@@ -171,6 +196,8 @@ module.exports = class Cart extends Model {
               let shippingLines = []
               let discountedLines = []
               let couponLines = []
+
+              // Reset Globals
               this.has_shipping = false
               this.has_subscription = false
 
@@ -186,7 +213,6 @@ module.exports = class Cart extends Model {
                 }
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
-                totalDiscounts = totalDiscounts + item.total_discounts
               })
               // Resolve taxes
               return app.services.TaxService.calculate(this)

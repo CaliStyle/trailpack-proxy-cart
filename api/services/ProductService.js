@@ -699,6 +699,10 @@ module.exports = class ProductService extends Service {
     if (product.inventory_policy && !variant.inventory_policy) {
       variant.inventory_policy = product.inventory_policy
     }
+    // If the max_quantity set on parent
+    if (product.max_quantity && !variant.max_quantity) {
+      variant.max_quantity = product.max_quantity
+    }
     // If the weight set on parent
     if (product.weight && !variant.weight) {
       variant.weight = product.weight

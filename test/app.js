@@ -7,6 +7,7 @@ const fs = require('fs')
 
 const packs = [
   require('trailpack-router'),
+  require('trailpack-passport'),
   require('trailpack-proxy-engine'),
   require('trailpack-proxy-permissions'),
   require('trailpack-proxy-generics'),
@@ -57,6 +58,8 @@ if ( SERVER == 'express' ) {
         'bodyParser',
         'passportInit',
         'passportSession',
+        'proxyCartInit',
+        'proxyCartSession',
         'methodOverride',
         'router',
         'www',
@@ -93,6 +96,13 @@ const App = {
       logger: new smokesignals.Logger('debug')
     },
     web: web,
+    passport: {
+      strategies: {
+        local: {
+          strategy: require('passport-local').Strategy
+        }
+      }
+    },
     proxyCart: {
       // The default Shop address (Nexus)
       nexus: {
