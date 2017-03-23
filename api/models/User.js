@@ -42,6 +42,22 @@ module.exports = class User extends Model {
         validate: {
           isEmail: true
         }
+      },
+      current_customer_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Customer',
+          key: 'id'
+        },
+        allowNull: true
+      },
+      current_cart_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Cart',
+          key: 'id'
+        },
+        allowNull: true
       }
     }
   }

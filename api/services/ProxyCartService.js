@@ -17,6 +17,7 @@ module.exports = class ProxyCartService extends Service {
   constructor(app) {
     super(app)
     // Middleware exports
+    this._key = 'proxyCart'
     this.initialize = require('../../lib/middleware/initialize')
     this.session = require('../../lib/middleware/session')
   }

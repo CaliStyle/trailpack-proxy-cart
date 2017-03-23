@@ -96,7 +96,14 @@ module.exports = class CartController extends Controller {
         if (!cart) {
           throw new Error('Unexpected Error while creating cart')
         }
+        // return new Promise((resolve,reject) => {
+        //   req.loginCart(cart, function () {
+        //     return resolve(res.json(cart))
+        //   })
+        // })
+        // console.log('CART REQUEST', req)
         return res.json(cart)
+
       })
       .catch(err => {
         // console.log('ProductController.checkout', err)
