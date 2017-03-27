@@ -285,12 +285,16 @@ module.exports = class Customer extends Model {
           type: Sequelize.BOOLEAN,
           defaultValue: true
         },
-        //
+        // Customer First Name if not a Company
         first_name: {
           type: Sequelize.STRING
         },
-        //
+        // Customer Last Name if not a Company
         last_name: {
+          type: Sequelize.STRING
+        },
+        // Customer Company if not a User
+        company: {
           type: Sequelize.STRING
         },
         //

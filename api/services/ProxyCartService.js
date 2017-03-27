@@ -19,7 +19,9 @@ module.exports = class ProxyCartService extends Service {
     // Middleware exports
     this._key = 'proxyCart'
     this.initialize = require('../../lib/middleware/initialize')
-    this.session = require('../../lib/middleware/session')
+    this.authenticate = require('../../lib/middleware/authenticate')
+    this.cart = require('../../lib/middleware/cart')
+    this.customer = require('../../lib/middleware/customer')
   }
 
 
@@ -352,7 +354,7 @@ module.exports = class ProxyCartService extends Service {
     next(null, cart.id)
   }
 
-  deserializeCart(id, next) {
+  deserializeCart(id, options, next) {
     // console.log('DESERIALIZE CART')
     if (typeof next != 'function') {
       throw new Error('instance#deserializeCart requires a callback function')
@@ -373,7 +375,7 @@ module.exports = class ProxyCartService extends Service {
     next(null, customer.id)
   }
 
-  deserializeCustomer(id, next) {
+  deserializeCustomer(id, options, next) {
     if (typeof next != 'function') {
       throw new Error('instance#deserializeCustomer requires a callback function')
     }

@@ -60,6 +60,8 @@ if ( SERVER == 'express' ) {
         'passportSession',
         'proxyCartInit',
         'proxyCartSession',
+        'proxyCartSessionCart',
+        'proxyCartSessionCustomer',
         'methodOverride',
         'router',
         'www',

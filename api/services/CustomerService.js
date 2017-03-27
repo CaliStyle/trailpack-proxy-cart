@@ -63,11 +63,18 @@ module.exports = class CustomerService extends Service {
         state: customer.state,
         tax_exempt: customer.tax_exempt,
         verified_email: customer.verified_email,
-        metadata: Metadata.transform(customer.metadata || {}),
-        shipping_address: customer.shipping_address,
-        billing_address: customer.billing_address,
-        default_address: customer.default_address
+        metadata: Metadata.transform(customer.metadata || {})
       }
+      if (customer.shipping_address) {
+        create.shipping_address = customer.shipping_address
+      }
+      if (customer.billing_address) {
+        create.billing_address = customer.billing_address
+      }
+      if (customer.default_address) {
+        create.default_address = customer.default_address
+      }
+
       Customer.create(create, {
         include: [
           {

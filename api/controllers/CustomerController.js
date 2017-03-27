@@ -34,13 +34,29 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  session(req, res) {
+    if (!req.customer) {
+      return res.sendStatus(401)
+    }
+    return res.json(req.customer)
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findById(req, res){
     const orm = this.app.orm
     const Customer = orm['Customer']
-    Customer.findIdDefault(req.params.id, {})
+    let id = req.params.id
+    if (!id && req.customer) {
+      id = req.customer.id
+    }
+    Customer.findIdDefault(id, {})
       .then(customer => {
         if (!customer) {
-          throw new Errors.FoundError(Error(`Customer id ${req.params.id} not found`))
+          throw new Errors.FoundError(Error(`Customer id ${id} not found`))
         }
         return res.json(customer)
       })
@@ -119,9 +135,13 @@ module.exports = class CustomerController extends Controller {
    */
   update(req, res) {
     const CustomerService = this.app.services.CustomerService
+    let id = req.params.id
+    if (!id && req.customer) {
+      id = req.customer.id
+    }
     lib.Validator.validateCustomer(req.body)
       .then(values => {
-        req.body.id = req.params.id
+        req.body.id = id
         return CustomerService.update(req.body)
       })
       .then(customer => {

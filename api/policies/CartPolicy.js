@@ -10,7 +10,11 @@ const Policy = require('trails/policy')
 module.exports = class CartPolicy extends Policy {
   session(req, res, next) {
     // console.log('Cart Policy',req.cart)
-    next()
+    let err
+    if (!req.cart) {
+      err = new Error('session requires a cart')
+    }
+    next(err)
   }
 }
 

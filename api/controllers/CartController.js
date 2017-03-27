@@ -10,6 +10,40 @@ const lib = require('../../lib')
  */
 // TODO lock down certain requests by Owner(s)
 module.exports = class CartController extends Controller {
+  init(req, res) {
+    if (!req.cart) {
+      if (!req.body) {
+        req.body = {}
+      }
+      if (req.customer) {
+        req.body.customer = req.customer.id
+      }
+      this.app.services.CartService.create(req.body)
+        .then(cart => {
+          if (!cart) {
+            throw new Error('Unexpected Error while creating cart')
+          }
+          return new Promise((resolve,reject) => {
+            req.loginCart(cart, function (err) {
+              if (err) {
+                return reject(err)
+              }
+              return resolve(cart)
+            })
+          })
+        })
+        .then(cart => {
+          return res.json(cart)
+        })
+        .catch(err => {
+          // console.log('ProductController.checkout', err)
+          return res.serverError(err)
+        })
+    }
+    else {
+      res.json(req.cart)
+    }
+  }
   /**
    * count the amount of carts
    * @param req
@@ -34,13 +68,28 @@ module.exports = class CartController extends Controller {
    * @param req
    * @param res
    */
+  session(req, res) {
+    if (!req.cart) {
+      return res.sendStatus(401)
+    }
+    return res.json(req.cart)
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findById(req, res){
     const orm = this.app.orm
     const Cart = orm['Cart']
-    Cart.findIdDefault(req.params.id, {})
+    let id = req.params.id
+    if (!id && req.cart) {
+      id = req.cart.id
+    }
+    Cart.findIdDefault(id, {})
       .then(cart => {
         if (!cart) {
-          throw new Errors.FoundError(Error(`Cart id ${req.params.id} not found`))
+          throw new Errors.FoundError(Error(`Cart id ${id} not found`))
         }
         return res.json(cart)
       })
@@ -88,6 +137,11 @@ module.exports = class CartController extends Controller {
    */
   create(req, res) {
     const CartService = this.app.services.CartService
+
+    if (req.customer) {
+      req.body.customer = req.customer.id
+    }
+
     lib.Validator.validateCart.create(req.body)
       .then(values => {
         return CartService.create(req.body)
@@ -127,7 +181,25 @@ module.exports = class CartController extends Controller {
         if (!req.body.cart) {
           req.body.cart = {}
         }
-        req.body.cart.id = req.params.id
+        if (!req.body.customer) {
+          req.body.customer = {}
+        }
+
+        if (req.cart) {
+          req.body.cart.id = req.cart.id
+        }
+        else {
+          req.body.cart.id = req.params.id
+        }
+
+        if (!req.body.cart.id) {
+          throw new Error('Checkout requires a cart session or cart id')
+        }
+
+        if (req.customer) {
+          req.body.customer.id = req.customer.id
+        }
+
         return CartService.checkout(req.body)
       })
       .then(data => {
@@ -150,9 +222,13 @@ module.exports = class CartController extends Controller {
    */
   addItems(req, res) {
     const CartService = this.app.services.CartService
+    let id = req.params.id
+    if (!id && req.cart) {
+      id = req.cart.id
+    }
     lib.Validator.validateCart.addItems(req.body)
       .then(values => {
-        return CartService.addItemsToCart(req.body, req.params.id)
+        return CartService.addItemsToCart(req.body, id)
       })
       .then(data => {
         // console.log('ProductController.addItemsToCart',data)
@@ -174,9 +250,13 @@ module.exports = class CartController extends Controller {
    */
   removeItems(req, res) {
     const CartService = this.app.services.CartService
+    let id = req.params.id
+    if (!id && req.cart) {
+      id = req.cart.id
+    }
     lib.Validator.validateCart.removeItems(req.body)
       .then(values => {
-        return CartService.removeItemsFromCart(req.body, req.params.id)
+        return CartService.removeItemsFromCart(req.body, id)
       })
       .then(data => {
         if (!data) {
@@ -197,9 +277,13 @@ module.exports = class CartController extends Controller {
    */
   clear(req, res) {
     const CartService = this.app.services.CartService
+    let id = req.params.id
+    if (!id && req.cart) {
+      id = req.cart.id
+    }
     lib.Validator.validateCart.clear(req.body)
       .then(values => {
-        return CartService.clearCart(req.params.id)
+        return CartService.clearCart(id)
       })
       .then(data => {
         return res.json(data)

@@ -12,7 +12,11 @@ const multer = require('multer')
 module.exports = class CustomerPolicy extends Policy {
   session(req, res, next) {
     // console.log('Customer Policy', req.customer)
-    next()
+    let err
+    if (!req.customer) {
+      err = new Error('session requires a customer')
+    }
+    next(err)
   }
   csv(req, res, next) {
     const upload = multer({dest: 'test/uploads/'})
