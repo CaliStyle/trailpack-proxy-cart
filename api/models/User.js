@@ -1,13 +1,27 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
 const ModelPassport = require('trailpack-passport/api/models/User')
 const ModelPermissions = require('trailpack-proxy-permissions/api/models/User')
+const _ = require('lodash')
 
 module.exports = class User extends Model {
   static config(app, Sequelize) {
     return {
       options: {
+        hooks: {
+          afterCreate: (values, options, fn) => {
+
+            app.services.ProxyCartService.afterUserCreate(values)
+              .then(values => {
+                return fn(null, values)
+              })
+              .catch(err => {
+                return fn(err)
+              })
+          }
+        },
         classMethods: {
           associate: (models) => {
             // Apply passport specific stuff
@@ -24,6 +38,48 @@ module.exports = class User extends Model {
                 constraints: false
               }
             })
+            // models.User.belongsToMany(models.Cart, {
+            //   as: 'carts',
+            //   through: {
+            //     model: models.CartUser,
+            //     foreignKey: 'user_id',
+            //     unique: true,
+            //     constraints: false
+            //   }
+            // })
+            models.User.hasOne(models.Metadata, {
+              as: 'metadata',
+              through: {
+                model: models.ItemMetadata,
+                unique: false,
+                scope: {
+                  model: 'user'
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              }
+            })
+          }
+        },
+        instanceMethods: {
+          toJSON: function() {
+            const resp = this.get({ plain: true })
+            // Transform Tags to array on toJSON
+            if (resp.tags) {
+              resp.tags = resp.tags.map(tag => {
+                if (_.isString(tag)) {
+                  return tag
+                }
+                return tag.name
+              })
+            }
+            // Transform Metadata to plain on toJSON
+            if (resp.metadata) {
+              if (typeof resp.metadata.data !== 'undefined') {
+                resp.metadata = resp.metadata.data
+              }
+            }
+            return resp
           }
         }
       }
@@ -31,17 +87,13 @@ module.exports = class User extends Model {
   }
   static schema(app, Sequelize) {
     // return ModelPassport.schema(app, Sequelize)
-    return {
-      username: {
-        type: Sequelize.STRING,
-        unique: true
-      },
-      email: {
-        type: Sequelize.STRING,
-        unique: true,
-        validate: {
-          isEmail: true
-        }
+    const PassportTrailpackSchema = ModelPassport.schema(app, Sequelize)
+    const PermissionsTrailpackSchema = ModelPermissions.schema(app, Sequelize)
+
+    const schema = {
+      accepts_marketing: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
       },
       current_customer_id: {
         type: Sequelize.INTEGER,
@@ -60,5 +112,6 @@ module.exports = class User extends Model {
         allowNull: true
       }
     }
+    return _.defaults(PassportTrailpackSchema, PermissionsTrailpackSchema, schema)
   }
 }

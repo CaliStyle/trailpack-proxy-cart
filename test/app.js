@@ -108,6 +108,27 @@ const App = {
         }
       }
     },
+    proxyPermissions: {
+      defaultRole: 'public',
+      modelsAsResources: true,
+      fixtures: {
+        roles: [{
+          name: 'admin',
+          publicName: 'Admin'
+        }, {
+          name: 'public' ,
+          publicName: 'Public'
+        }],
+        resources: [{
+          type: 'route',
+          name: 'fixture',
+          publicName: 'fixture'
+        }],
+        permissions: []
+      },
+      defaultAdminUsername: 'admin',
+      defaultAdminPassword: 'admin1234'
+    },
     proxyCart: {
       // The default Shop address (Nexus)
       nexus: {

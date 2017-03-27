@@ -345,7 +345,28 @@ module.exports = class ProxyCartService extends Service {
 
     return shops
   }
+  afterUserCreate(user) {
+    // const Customer = this.app.orm['Customer']
+    // const Cart = this.app.orm['Cart']
 
+    return this.app.services.CustomerService.resolve({
+      id: user.current_customer_id,
+      email: user.email
+    })
+      .then(customer => {
+        user.current_customer_id = customer.id
+
+        return this.app.services.CartService.resolve({
+          id: user.current_cart_id,
+          customer: customer.id
+        })
+      })
+      .then(cart => {
+        console.log(cart)
+        user.current_cart_id = cart.id
+        return user.save()
+      })
+  }
   serializeCart(cart, next) {
     // console.log('SERIALIZE CART')
     if (typeof next != 'function') {

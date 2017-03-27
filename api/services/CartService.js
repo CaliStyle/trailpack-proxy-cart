@@ -3,6 +3,7 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
+const shortid = require('shortid')
 const Errors = require('proxy-engine-errors')
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 const CART_STATUS = require('../utils/enums').CART_STATUS
@@ -360,6 +361,32 @@ module.exports = class CartService extends Service {
           return reject(err)
         })
     })
+  }
+  beforeCreate(cart) {
+    if (cart.ip) {
+      cart.create_ip = cart.ip
+    }
+    // If not token was already created, create it
+    if (!cart.token) {
+      cart.token = `cart_${shortid.generate()}`
+    }
+
+    return this.app.services.ShopService.resolve()
+      .then(shop => {
+        // console.log('CartService.beforeCreate', shop)
+        cart.shop_id = shop.id
+        return cart
+      })
+      .catch(err => {
+        // console.log('CartService.beforeCreate', err)
+        return cart
+      })
+  }
+  beforeUpdate(cart){
+    if (cart.ip) {
+      cart.update_ip = cart.ip
+    }
+    return Promise.resolve(cart)
   }
 }
 

@@ -44,6 +44,7 @@ module.exports = class CartController extends Controller {
       res.json(req.cart)
     }
   }
+
   /**
    * count the amount of carts
    * @param req
@@ -287,6 +288,36 @@ module.exports = class CartController extends Controller {
       })
       .then(data => {
         return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.clearCart', err)
+        return res.serverError(err)
+      })
+  }
+  login(req, res) {
+    let cartId = req.params.id
+    const Cart = this.app.orm['Cart']
+
+    if (!cartId && req.user) {
+      cartId = req.user.current_cart_id
+    }
+
+    Cart.findById(cartId)
+      .then(cart => {
+        if (!cart) {
+          throw new Error('Unexpected Error while authenticating cart')
+        }
+        return new Promise((resolve,reject) => {
+          req.loginCart(cart, function (err) {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(cart)
+          })
+        })
+      })
+      .then(cart => {
+        return res.json(cart)
       })
       .catch(err => {
         // console.log('ProductController.clearCart', err)

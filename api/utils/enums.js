@@ -10,8 +10,10 @@ module.exports = {
     sort_order: 'Sort Order'
   },
   CUSTOMER_UPLOAD: {
+    account_balance: 'Account Balance',
     first_name: 'First Name',
     last_name: 'Last Name',
+    company: 'Company',
     phone: 'Phone',
     billing_address_1: 'Billing Address 1',
     billing_address_2: 'Billing Address 2',

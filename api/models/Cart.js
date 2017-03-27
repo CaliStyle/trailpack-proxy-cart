@@ -6,7 +6,7 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const CART_STATUS = require('../utils/enums').CART_STATUS
-const shortid = require('shortid')
+
 /**
  * @module Cart
  * @description Cart Model
@@ -26,35 +26,23 @@ module.exports = class Cart extends Model {
           // },
           hooks: {
             beforeCreate: (values, options, fn) => {
-              if (values.ip) {
-                values.create_ip = values.ip
-              }
-              // If not token was already created, create it
-              if (!values.token) {
-                values.token = `cart_${shortid.generate()}`
-              }
-              if (!values.shop_id ) {
-                app.services.ShopService.resolve()
-                  .then(shop => {
-                    // console.log('Cart.beforeCreate', shop)
-                    values.shop_id = shop.id
-                    return fn()
-                  })
-                  .catch(err => {
-                    // console.log('Cart.beforeCreate', err)
-                    return fn(err)
-                  })
-              }
-              else {
-                return fn()
-              }
+              app.services.CartService.beforeCreate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             },
             // TODO connect to Shop and Cart/Customer
             beforeUpdate: (values, options, fn) => {
-              if (values.ip) {
-                values.update_ip = values.ip
-              }
-              fn(null, values)
+              app.services.CartService.beforeUpdate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             }
           },
           instanceMethods: {

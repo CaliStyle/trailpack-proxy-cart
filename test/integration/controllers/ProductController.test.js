@@ -21,6 +21,7 @@ describe('ProductController', () => {
   let firstImageID
   let uploadID
   let uploadMetaID
+
   it('should make addProducts post request', (done) => {
     request
       .post('/product/addProducts')

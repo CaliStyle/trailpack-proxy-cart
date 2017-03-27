@@ -60,12 +60,20 @@ module.exports = class CustomerUpload extends Model {
       upload_id: {
         type: Sequelize.STRING
       },
+      // Account Balance
+      account_balance: {
+        type: Sequelize.INTEGER
+      },
       // First Name
       first_name: {
         type: Sequelize.STRING
       },
       // Last Name
       last_name: {
+        type: Sequelize.STRING
+      },
+      // Company
+      company: {
         type: Sequelize.STRING
       },
       // Phone

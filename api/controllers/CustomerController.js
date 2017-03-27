@@ -153,10 +153,6 @@ module.exports = class CustomerController extends Controller {
       })
   }
 
-  logout(req, res) {
-    req.logoutCustomer()
-    res.ok()
-  }
   /**
    * upload CSV
    * @param req
@@ -205,6 +201,40 @@ module.exports = class CustomerController extends Controller {
    */
   exportCustomers(req, res) {
     //
+  }
+  login(req, res) {
+    let customerId = req.params.id
+    const Customer = this.app.orm['Customer']
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+
+    Customer.findById(customerId)
+      .then(customer => {
+        if (!customer) {
+          throw new Error('Unexpected Error while authenticating customer')
+        }
+        return new Promise((resolve,reject) => {
+          req.loginCustomer(customer, function (err) {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(customer)
+          })
+        })
+      })
+      .then(customer => {
+        return res.json(customer)
+      })
+      .catch(err => {
+        // console.log('ProductController.clearCustomer', err)
+        return res.serverError(err)
+      })
+  }
+  logout(req, res) {
+    req.logoutCustomer()
+    res.ok()
   }
 }
 

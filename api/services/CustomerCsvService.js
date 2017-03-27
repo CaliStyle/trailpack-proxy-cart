@@ -128,8 +128,10 @@ module.exports = class CustomerCsvService extends Service {
       }, customers => {
         return Promise.all(customers.map(customer => {
           const create = {
+            account_balance: customer.account_balance,
             first_name: customer.first_name,
             last_name: customer.last_name,
+            company: customer.company,
             phone: customer.phone,
             shipping_address: {},
             billing_address: {},

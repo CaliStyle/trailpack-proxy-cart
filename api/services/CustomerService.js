@@ -22,6 +22,12 @@ module.exports = class CustomerService extends Service {
     }
     else if (customer && _.isObject(customer) && customer.id) {
       return Customer.findById(customer.id, options)
+        .then(resCustomer => {
+          if (!resCustomer) {
+            return this.create(customer, options)
+          }
+          return resCustomer
+        })
     }
     else if (customer && (_.isString(customer) || _.isNumber(customer))) {
       return Customer.findById(customer, options)
@@ -30,6 +36,12 @@ module.exports = class CustomerService extends Service {
       return this.create(customer, options)
     }
   }
+
+  /**
+   *
+   * @param customer
+   * @returns {Promise}
+   */
   create(customer) {
     return new Promise((resolve, reject) => {
       const Customer = this.app.orm.Customer
@@ -141,6 +153,12 @@ module.exports = class CustomerService extends Service {
         })
     })
   }
+
+  /**
+   *
+   * @param customer
+   * @returns {Promise}
+   */
   update(customer) {
     return new Promise((resolve, reject) => {
       if (!customer.id) {
@@ -209,6 +227,13 @@ module.exports = class CustomerService extends Service {
         })
     })
   }
+
+  /**
+   *
+   * @param customer
+   * @param cart
+   * @returns {Promise}
+   */
   addCart(customer, cart) {
     return new Promise((resolve, reject) => {
       // const FootprintService = this.app.services.FootprintService

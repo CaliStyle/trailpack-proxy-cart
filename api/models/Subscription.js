@@ -1,9 +1,12 @@
+/* eslint new-cap: [0] */
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
 const _ = require('lodash')
 const INTERVALS = require('../utils/enums').INTERVALS
 const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
+const helpers = require('proxy-engine-helpers')
 /**
  * @module Subscription
  * @description Subscription Model
@@ -97,6 +100,9 @@ module.exports = class Subscription extends Model {
         cancelled_at: {
           type: Sequelize.DATE
         },
+        line_items: helpers.ARRAY('subscription', app, Sequelize, Sequelize.JSON, 'line_items', {
+          defaultValue: []
+        }),
         // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
