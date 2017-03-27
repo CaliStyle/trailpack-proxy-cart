@@ -103,14 +103,16 @@ describe('CartController', () => {
       })
   })
 
-  it('should make addItems post request and increment quantity', (done) => {
+  it('should make addItems post request with line_items as array in object and increment quantity', (done) => {
     request
       .post(`/cart/${cartID}/addItems`)
-      .send([
-        {
-          product_id: shopProducts[0].id
-        }
-      ])
+      .send({
+        line_items: [
+          {
+            product_id: shopProducts[0].id
+          }
+        ]
+      })
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)

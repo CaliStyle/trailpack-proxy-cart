@@ -268,6 +268,9 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   addItemsToCart(items, cart){
+    if (items.line_items) {
+      items = items.line_items
+    }
     return this.resolve(cart)
       .then(foundCart => {
         if (!foundCart) {
@@ -304,6 +307,9 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   removeItemsFromCart(items, cart){
+    if (items.line_items) {
+      items = items.line_items
+    }
     return this.resolve(cart)
       .then(foundCart => {
         if (!foundCart) {
