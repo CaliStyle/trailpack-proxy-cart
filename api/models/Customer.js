@@ -132,6 +132,18 @@ module.exports = class Customer extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Customer.belongsToMany(models.Collection, {
+                as: 'collections',
+                through: {
+                  model: models.ItemCollection,
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
               models.Customer.hasOne(models.Metadata, {
                 as: 'metadata',
                 through: {
