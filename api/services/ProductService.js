@@ -118,7 +118,8 @@ module.exports = class ProductService extends Service {
       price: product.price,
       weight: product.weight,
       weight_unit: product.weight_unit,
-      published: product.published
+      published: product.published,
+      requires_shipping: product.requires_shipping
     }]
     // Set the published status
     if (product.published) {
@@ -202,7 +203,9 @@ module.exports = class ProductService extends Service {
         .then(createdProduct => {
           resProduct = createdProduct
           // console.log('createdProduct',createdProduct)
-          if (product.tags) {
+          if (product.tags && product.tags.length > 0) {
+            product.tags = product.tags.filter(n => n)
+            // console.log('THIS PRODUCT TAGS NOW', product.tags)
             return Tag.transformTags(product.tags)
           }
           return
@@ -307,7 +310,8 @@ module.exports = class ProductService extends Service {
             type: product.type || resProduct.type,
             published_scope: product.published_scope || resProduct.published_scope,
             weight: product.weight || resProduct.weight,
-            weight_unit: product.weight_unit || resProduct.weight_unit
+            weight_unit: product.weight_unit || resProduct.weight_unit,
+            requires_shipping: product.requires_shipping || resProduct.requires_shipping
           }
           if (product.published) {
             resProduct.published = resProduct.variants[0].published = product.published
@@ -410,13 +414,16 @@ module.exports = class ProductService extends Service {
         })
         .then(updateProduct => {
           // Transform any new Tags
-          if (product.tags) {
+          if (product.tags && product.tags.length > 0) {
+            product.tags = product.tags.filter(n => n)
+            // console.log('THIS PRODUCT TAGS NOW', product.tags)
             return Tag.transformTags(product.tags)
           }
           return
         })
         .then(tags => {
           // console.log('THESE TAGS', tags)
+          // console.log('THIS PRODUCT TAGS NOW', tags)
           // Set Tags
           if (tags) {
             return resProduct.setTags(tags)

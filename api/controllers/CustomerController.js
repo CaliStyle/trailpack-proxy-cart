@@ -102,6 +102,11 @@ module.exports = class CustomerController extends Controller {
    * @param res
    */
   create(req, res) {
+
+    if (req.user && !req.body.owners) {
+      req.body.owners = [req.user]
+    }
+
     const CustomerService = this.app.services.CustomerService
     lib.Validator.validateCustomer(req.body)
       .then(values => {
@@ -229,6 +234,40 @@ module.exports = class CustomerController extends Controller {
       })
       .catch(err => {
         // console.log('ProductController.clearCustomer', err)
+        return res.serverError(err)
+      })
+  }
+  switchCustomer(req, res) {
+    const customerId = req.params.id
+    const Customer = this.app.orm['Customer']
+    const User = this.app.orm['User']
+
+    if (!customerId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+    User.findById(req.user.id)
+      .then(user => {
+        user.current_customer_id = customerId
+        return user.save()
+      })
+      .then(user => {
+        return Customer.findById(customerId)
+      })
+      .then(customer => {
+        return new Promise((resolve, reject) => {
+          req.loginCustomer(customer, (err) => {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(customer)
+          })
+        })
+      })
+      .then(customer => {
+        return res.json(customer)
+      })
+      .catch(err => {
         return res.serverError(err)
       })
   }

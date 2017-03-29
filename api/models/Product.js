@@ -211,11 +211,14 @@ module.exports = class Product extends Model {
               const resp = this.get({ plain: true })
               // Transform Tags to array on toJSON
               if (resp.tags) {
+                console.log(resp.tags)
                 resp.tags = resp.tags.map(tag => {
-                  if (_.isString(tag)) {
+                  if (tag && _.isString(tag)) {
                     return tag
                   }
-                  return tag.name
+                  else if (tag && tag.name && tag.name !== '') {
+                    return tag.name
+                  }
                 })
               }
               // Map Variants as Products are mapped
@@ -223,10 +226,12 @@ module.exports = class Product extends Model {
                 resp.variants.map((variant, idx) => {
                   if (variant.tags) {
                     resp.variants[idx].tags = variant.tags.map(tag => {
-                      if (_.isString(tag)) {
+                      if (tag && _.isString(tag)) {
                         return tag
                       }
-                      return tag.name
+                      else if (tag && tag.name) {
+                        return tag.name
+                      }
                     })
                   }
                   if (variant.metadata) {

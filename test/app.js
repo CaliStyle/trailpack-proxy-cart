@@ -7,7 +7,7 @@ const fs = require('fs')
 
 const packs = [
   require('trailpack-router'),
-  require('trailpack-passport'),
+  require('trailpack-proxy-passport'),
   require('trailpack-proxy-engine'),
   require('trailpack-proxy-permissions'),
   require('trailpack-proxy-generics'),
@@ -101,10 +101,74 @@ const App = {
     session: {
       secret: 'proxyCart'
     },
-    passport: {
+    proxyPassport: {
       strategies: {
         local: {
           strategy: require('passport-local').Strategy
+        }
+      },
+      onUserLogin: {
+        cart: (req, app, user) => {
+          if (!req || !user.current_cart_id) {
+            return Promise.resolve(user)
+          }
+          else {
+            return new Promise((resolve, reject) => {
+              app.orm['Cart'].findById(user.current_cart_id)
+                .then(cart => {
+                  if (!cart) {
+                    return resolve(user)
+                  }
+                  console.log(cart)
+                  req.loginCart(cart, (err) => {
+                    if (err) {
+                      return reject(err)
+                    }
+                    else {
+                      return resolve(user)
+                    }
+                  })
+                })
+            })
+          }
+        },
+        customer: (req, app, user) => {
+          if (!req || !user.current_customer_id) {
+            return Promise.resolve(user)
+          }
+          else {
+            return new Promise((resolve, reject) => {
+              app.orm['Customer'].findById(user.current_customer_id)
+                .then(customer => {
+                  if (!customer) {
+                    return resolve(user)
+                  }
+                  console.log(customer)
+                  req.loginCustomer(customer, (err) => {
+                    if (err) {
+                      return reject(err)
+                    }
+                    else {
+                      return resolve(user)
+                    }
+                  })
+                })
+            })
+          }
+        }
+      },
+      onUserLogout: {
+        cart: (req, app, user) => {
+          if (req) {
+            req.logoutCart()
+          }
+          return Promise.resolve(user)
+        },
+        customer: (req, app, user) => {
+          if (req) {
+            req.logoutCustomer()
+          }
+          return Promise.resolve(user)
         }
       }
     },

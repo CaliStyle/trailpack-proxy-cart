@@ -2,7 +2,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const ModelPassport = require('trailpack-passport/api/models/User')
+const ModelPassport = require('trailpack-proxy-passport/api/models/User')
 const ModelPermissions = require('trailpack-proxy-permissions/api/models/User')
 const _ = require('lodash')
 
@@ -67,10 +67,12 @@ module.exports = class User extends Model {
             // Transform Tags to array on toJSON
             if (resp.tags) {
               resp.tags = resp.tags.map(tag => {
-                if (_.isString(tag)) {
+                if (tag && _.isString(tag)) {
                   return tag
                 }
-                return tag.name
+                else if (tag && tag.name) {
+                  return tag.name
+                }
               })
             }
             // Transform Metadata to plain on toJSON

@@ -265,6 +265,10 @@ module.exports = class Cart extends Model {
              * @param models
              */
             associate: (models) => {
+              models.Cart.belongsToMany(models.User, {
+                as: 'owners',
+                through: 'UserItem'//If many to many is needed
+              })
               // models.Cart.belongsTo(models.Customer, {
               //   // as: 'customer'
               //   // as: 'customer_id'

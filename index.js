@@ -10,6 +10,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
    * Validates Configs
    */
   validate () {
+    // Packs
     if (!_.includes(_.keys(this.app.packs), 'express')) {
       return Promise.reject(new Error('This Trailpack only works for express!'))
     }
@@ -22,6 +23,14 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
       return Promise.reject(new Error('This Trailpack requires trailpack-proxy-engine!'))
     }
 
+    if (!_.includes(_.keys(this.app.packs), 'proxy-permissions')) {
+      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-permissions!'))
+    }
+
+    if (!_.includes(_.keys(this.app.packs), 'proxy-passport')) {
+      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-passport!'))
+    }
+
     if (!_.includes(_.keys(this.app.packs), 'proxy-cart-countries')) {
       return Promise.reject(new Error('This Trailpack requires trailpack-proxy-cart-countries!'))
     }
@@ -29,7 +38,7 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
     if (!_.includes(_.keys(this.app.packs), 'proxy-generics')) {
       return Promise.reject(new Error('This Trailpack requires trailpack-proxy-generics!'))
     }
-
+    // Configs
     if (!this.app.config.proxyEngine) {
       return Promise.reject(new Error('No configuration found at config.proxyEngine!'))
     }
@@ -40,6 +49,12 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
 
     if (!this.app.config.proxyGenerics) {
       return Promise.reject(new Error('No configuration found at config.proxyGenerics!'))
+    }
+    if (!this.app.config.proxyPermissions) {
+      return Promise.reject(new Error('No configuration found at config.proxyPermissions!'))
+    }
+    if (!this.app.config.proxyPassport) {
+      return Promise.reject(new Error('No configuration found at config.proxyPassport!'))
     }
 
     if (

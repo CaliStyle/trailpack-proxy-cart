@@ -282,6 +282,7 @@ module.exports = class ProductController extends Controller {
       })
       .then(products => {
         this.app.log.silly('ProductController.addProducts created:', products)
+        // TODO FIX SO THAT ONLY PRODUCT TAGS COME BACK
         return res.json(products)
       })
       .catch(err => {

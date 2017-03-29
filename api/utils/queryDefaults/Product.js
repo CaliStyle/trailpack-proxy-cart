@@ -10,7 +10,8 @@ module.exports = {
         {
           model: app.orm['Tag'],
           as: 'tags',
-          attributes: ['name', 'id']
+          attributes: ['name', 'id'],
+          order: ['name', 'ASC']
         },
         {
           model: app.orm['ProductVariant'],

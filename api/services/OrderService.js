@@ -141,10 +141,10 @@ module.exports = class OrderService extends Service {
           }
         })
         .then(customer => {
-          if (customer && !customer.billing_address && !obj.billing_address) {
+          if (customer && !customer.billing_address && !obj.billing_address && resCart.has_shipping) {
             throw new Errors.FoundError(Error(`Could not find customer billing address for id '${obj.customer_id}'`))
           }
-          if (customer && !customer.shipping_address && !obj.shipping_address) {
+          if (customer && !customer.shipping_address && !obj.shipping_address && resCart.has_shipping) {
             throw new Errors.FoundError(Error(`Could not find customer shipping address for id '${obj.customer_id}'`))
           }
           if (!customer) {
@@ -161,7 +161,7 @@ module.exports = class OrderService extends Service {
           resBillingAddress = this.resolveToAddress(resCustomer.billing_address, obj.billing_address)
           // Resolve the Shipping Address
           resShippingAddress = this.resolveToAddress(resCustomer.shipping_address, obj.shipping_address)
-
+          console.log(resCart)
           if (!resShippingAddress && resCart.has_shipping) {
             throw new Error('Order does not have a valid shipping address')
           }

@@ -57,9 +57,11 @@ module.exports = class CartService extends Service {
     if (!data.line_items) {
       data.line_items = []
     }
-    // Remove the items from the caart creation so we can resolve them
+
+    // Remove the items from the cart creation so we can resolve them
     const items = data.line_items
     delete data.line_items
+
     const cart = Cart.build(data)
 
     return Promise.all(items.map(item => {
@@ -74,6 +76,7 @@ module.exports = class CartService extends Service {
         return cart.recalculate()
       })
       .then(cart => {
+        // console.log('THIS CREATED CART', cart)
         return cart.save()
       })
   }
@@ -371,7 +374,7 @@ module.exports = class CartService extends Service {
       cart.token = `cart_${shortid.generate()}`
     }
 
-    return this.app.services.ShopService.resolve()
+    return this.app.services.ShopService.resolve(cart.shop_id)
       .then(shop => {
         // console.log('CartService.beforeCreate', shop)
         cart.shop_id = shop.id

@@ -4,10 +4,12 @@ const TrailsApp = require('trails')
 const assert = require('assert')
 const supertest = require('supertest')
 
-before(() => {
+before(function(done) {
+  this.timeout(5000)
+
   global.app = new TrailsApp(require('./app'))
   // return global.app.start().catch(global.app.stop)
-  return global.app.start()
+  global.app.start()
     .then(() => {
       return global.app.orm.Shop.findAll()
     })
@@ -25,8 +27,13 @@ before(() => {
         return product.get({plain: true})
       })
       global.app.shopProducts = products
+      done()
     })
-    .catch(global.app.stop)
+    .catch(err => {
+      console.log(err)
+      global.app.stop(err)
+      done(err)
+    })
 })
 
 after(() => {

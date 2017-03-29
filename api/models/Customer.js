@@ -49,6 +49,10 @@ module.exports = class Customer extends Model {
              * @param models
              */
             associate: (models) => {
+              models.Customer.belongsToMany(models.User, {
+                as: 'owners',
+                through: 'UserItem'//If many to many is needed
+              })
               // models.Customer.belongsToMany(models.Cart, {
               //   as: 'carts',
               //   through: {
@@ -140,21 +144,21 @@ module.exports = class Customer extends Model {
                   constraints: false
                 }
               })
-              models.Customer.hasMany(models.User, {
-                as: 'users',
-                foreignKey: {
-                  allowNull: true
-                }
-              })
-              models.Customer.belongsToMany(models.User, {
-                as: 'users',
-                through: {
-                  model: models.CustomerUser,
-                  foreignKey: 'customer_id',
-                  unique: true,
-                  constraints: false
-                }
-              })
+              // models.Customer.hasMany(models.User, {
+              //   as: 'users',
+              //   foreignKey: {
+              //     allowNull: true
+              //   }
+              // })
+              // models.Customer.belongsToMany(models.User, {
+              //   as: 'users',
+              //   through: {
+              //     model: models.CustomerUser,
+              //     foreignKey: 'customer_id',
+              //     unique: true,
+              //     constraints: false
+              //   }
+              // })
             },
             findIdDefault: function(id, options) {
               options = _.merge(options, {

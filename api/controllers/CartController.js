@@ -139,18 +139,23 @@ module.exports = class CartController extends Controller {
   create(req, res) {
     const CartService = this.app.services.CartService
 
-    if (req.customer) {
-      req.body.customer = req.customer.id
+    if (req.customer && !req.body.customer_id) {
+      req.body.customer_id = req.customer.id
+    }
+    if (req.user && !req.body.owners) {
+      req.body.owners = [req.user]
     }
 
     lib.Validator.validateCart.create(req.body)
       .then(values => {
+        console.log(values)
         return CartService.create(req.body)
       })
       .then(cart => {
         if (!cart) {
           throw new Error('Unexpected Error while creating cart')
         }
+        console.log('THIS CREATED CART', cart)
         return new Promise((resolve,reject) => {
           req.loginCart(cart, function (err) {
             if (err) {
@@ -164,7 +169,7 @@ module.exports = class CartController extends Controller {
         return res.json(cart)
       })
       .catch(err => {
-        // console.log('ProductController.checkout', err)
+        console.log('ProductController.create', err)
         return res.serverError(err)
       })
 
@@ -294,6 +299,12 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   login(req, res) {
     let cartId = req.params.id
     const Cart = this.app.orm['Cart']
@@ -321,6 +332,46 @@ module.exports = class CartController extends Controller {
       })
       .catch(err => {
         // console.log('ProductController.clearCart', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  switchCart(req, res) {
+    const cartId = req.params.id
+    const Cart = this.app.orm['Cart']
+    const User = this.app.orm['User']
+
+    if (!cartId || !req.user) {
+      const err = new Error('A cart id and a user in session are required')
+      return res.serverError(err)
+    }
+    User.findById(req.user.id)
+      .then(user => {
+        user.current_cart_id = cartId
+        return user.save()
+      })
+      .then(user => {
+        return Cart.findById(cartId)
+      })
+      .then(cart => {
+        return new Promise((resolve, reject) => {
+          req.loginCart(cart, (err) => {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(cart)
+          })
+        })
+      })
+      .then(cart => {
+        return res.json(cart)
+      })
+      .catch(err => {
         return res.serverError(err)
       })
   }

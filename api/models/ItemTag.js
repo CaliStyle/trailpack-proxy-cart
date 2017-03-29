@@ -24,11 +24,12 @@ module.exports = class ItemTag extends Model {
     const schema = {
       tag_id: {
         type: Sequelize.INTEGER,
-        unique: 'tag_model'
+        unique: 'tag_model',
+        notNull: true
       },
       model: {
         type: Sequelize.STRING,
-        unique: 'tag_model'
+        unique: 'tag_model',
       },
       model_id: {
         type: Sequelize.INTEGER,

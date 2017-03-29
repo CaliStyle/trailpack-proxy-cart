@@ -351,7 +351,8 @@ module.exports = class ProxyCartService extends Service {
 
     return this.app.services.CustomerService.resolve({
       id: user.current_customer_id,
-      email: user.email
+      email: user.email,
+      accepts_marketing: user.accepts_marketing
     })
       .then(customer => {
         user.current_customer_id = customer.id
@@ -362,7 +363,7 @@ module.exports = class ProxyCartService extends Service {
         })
       })
       .then(cart => {
-        console.log(cart)
+        // console.log(cart)
         user.current_cart_id = cart.id
         return user.save()
       })

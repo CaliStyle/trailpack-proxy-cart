@@ -49,12 +49,15 @@ module.exports = class Tag extends Model {
             transformTags: (tags) => {
               const Tag = app.orm['Tag']
               tags = _.map(tags, tag => {
-                if (_.isString(tag)) {
+                if (tag && _.isString(tag)) {
                   tag = { name: tag }
+                  return _.omit(tag, ['created_at','updated_at'])
                 }
-                return _.omit(tag, ['created_at','updated_at'])
+                else if (tag) {
+                  return _.omit(tag, ['created_at','updated_at'])
+                }
               })
-              // console.log('TAGS', tags)
+              // console.log('THESE TAGS', tags)
               return Tag.sequelize.transaction(t => {
                 return Promise.all(tags.map((tag, index) => {
                   return Tag.findOne({
@@ -62,23 +65,26 @@ module.exports = class Tag extends Model {
                     attributes: ['id', 'name']
                   })
                     .then(tag => {
-
                       if (tag) {
                         // console.log('TAG', tag.get({ plain: true }))
                         return tag
                       }
-                      // console.log('TAG',tags[index])
-                      return Tag.create(tags[index])
+                      else {
+                        // console.log('CREATING TAG',tags[index])
+                        return Tag.create(tags[index])
+                      }
                     })
                 }))
               })
             },
             reverseTransformTags: (tags) => {
               tags = _.map(tags, tag => {
-                if (_.isString(tag)) {
+                if (tag && _.isString(tag)) {
                   return tag
                 }
-                return tag.name
+                else if (tag && tag.name) {
+                  return tag.name
+                }
               })
               return tags
             }

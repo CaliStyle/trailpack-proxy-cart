@@ -121,11 +121,18 @@ module.exports = class CustomerService extends Service {
       })
         .then(createdCustomer => {
           resCustomer = createdCustomer
-          return Tag.transformTags(customer.tags)
+          if (customer.tags && customer.tags.length > 0) {
+            customer.tags = customer.tags.filter(n => n)
+            return Tag.transformTags(customer.tags)
+          }
+          return
         })
         .then(tags => {
           // Add Tags
-          return resCustomer.setTags(tags)
+          if (tags) {
+            return resCustomer.setTags(tags)
+          }
+          return
         })
         .then(tags => {
           if (customer.default_cart) {
@@ -193,7 +200,8 @@ module.exports = class CustomerService extends Service {
           return resCustomer.update(update)
         })
         .then(updatedCustomer => {
-          if (customer.tags) {
+          if (customer.tags && customer.tags.length > 0) {
+            customer.tags = customer.tags.filter(n => n)
             return Tag.transformTags(customer.tags)
           }
           return
