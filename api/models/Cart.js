@@ -184,6 +184,7 @@ module.exports = class Cart extends Model {
               let shippingLines = []
               let discountedLines = []
               let couponLines = []
+              let totalItems = 0
 
               // Reset Globals
               this.has_shipping = false
@@ -199,6 +200,7 @@ module.exports = class Cart extends Model {
                 if (item.requires_subscription) {
                   this.has_subscription = true
                 }
+                totalItems = totalItems + item.quantity
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
               })
@@ -241,6 +243,7 @@ module.exports = class Cart extends Model {
                   totalDue = totalPrice - totalDiscounts - totalCoupons
 
                   // Set Cart values
+                  this.total_items = totalItems
                   this.tax_lines = taxLines
                   this.shipping_lines = shippingLines
                   this.discounted_lines = discountedLines
