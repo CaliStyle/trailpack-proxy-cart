@@ -28,7 +28,10 @@ module.exports = class FulfillmentService extends Service {
           return {service: service, items: items}
         })
         return Promise.all(groups.map((group) => {
-          return this.create(order, group.items, group.service)
+          const items = group.items.filter(item => {
+            return item.requires_shipping
+          })
+          return this.create(order, items, group.service)
         }))
       })
       .then(fulfillments => {
@@ -55,6 +58,10 @@ module.exports = class FulfillmentService extends Service {
         }
         if (service == FULFILLMENT_SERVICE.MANUAL) {
           fulfillment.status = FULFILLMENT_STATUS.SENT
+          return fulfillment
+        }
+        else if (!order.has_shipping){
+          fulfillment.status = FULFILLMENT_STATUS.FULFILLED
           return fulfillment
         }
         else {

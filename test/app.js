@@ -233,7 +233,7 @@ const App = {
       data_store_provider: {
         adapter: require('./fixtures/FakeDataStore'),
         options: {}
-      },
+      }
       // Moved to Default Generics
       // tax_provider: {
       //   adapter: require('../api/generics').taxProvider,
@@ -255,10 +255,10 @@ const App = {
       //   adapter: require('../api/generics').renderService,
       //   options: {}
       // },
-      fulfillment_provider: {
-        adapter: require('./fixtures/FakeFulfillment'),
-        options: {}
-      }
+      // fulfillment_provider: {
+      //   adapter: require('./fixtures/FakeFulfillment'),
+      //   options: {}
+      // }
     },
     proxyEngine: {
       live_mode: false
