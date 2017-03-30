@@ -32,6 +32,7 @@
     "trailpack": "^2.0.0",
     "trailpack-proxy-cart-countries": "^0.0.4",
     "trailpack-proxy-generics": "^0.0.22",
+    "trailpack-proxy-passport": "^0.0.4",
     "trailpack-proxy-permissions": "^0.0.14"
   },
   "devDependencies": {
