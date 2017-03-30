@@ -31,6 +31,7 @@ describe('CartController', () => {
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.id)
+        assert.equal(res.body.total_items, 0)
         done(err)
       })
   })
@@ -49,6 +50,7 @@ describe('CartController', () => {
         assert.ok(res.body.id)
         cartID = res.body.id
         assert.equal(res.body.line_items.length, 1)
+        assert.equal(res.body.total_items, 1)
         console.log('THIS CART', res.body)
         done(err)
       })
@@ -102,6 +104,7 @@ describe('CartController', () => {
 
         assert.equal(res.body.total_line_items_price, 200000)
         assert.equal(res.body.subtotal_price, 200000)
+        assert.equal(res.body.total_items, 2)
         done(err)
       })
   })
@@ -123,6 +126,7 @@ describe('CartController', () => {
         assert.equal(res.body.line_items[1].product_id, shopProducts[0].id)
         assert.equal(res.body.line_items[1].quantity, 2)
         assert.equal(res.body.total_line_items_price, 300000)
+        assert.equal(res.body.total_items, 3)
         done(err)
       })
   })
@@ -142,6 +146,7 @@ describe('CartController', () => {
         assert.equal(res.body.line_items[1].product_id, shopProducts[0].id)
         assert.equal(res.body.line_items[1].quantity, 1)
         assert.equal(res.body.total_line_items_price, 200000)
+        assert.equal(res.body.total_items, 2)
         done(err)
       })
   })
@@ -161,6 +166,7 @@ describe('CartController', () => {
       .end((err, res) => {
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 0)
+        assert.equal(res.body.total_items, 0)
         done(err)
       })
   })
@@ -173,6 +179,7 @@ describe('CartController', () => {
       .end((err, res) => {
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 0)
+        assert.equal(res.body.total_items, 0)
         done(err)
       })
   })
@@ -195,7 +202,7 @@ describe('CartController', () => {
       .end((err, res) => {
         // console.log('THIS CART', res.body)
         assert.equal(res.body.id, cartID)
-
+        assert.equal(res.body.total_items, 4)
         assert.equal(res.body.line_items.length, 3)
         assert.equal(res.body.line_items[0].product_id, shopProducts[0].id)
         assert.equal(res.body.line_items[0].variant_id, shopProducts[0].variants[1].id)
@@ -252,11 +259,11 @@ describe('CartController', () => {
         assert.equal(res.body.processing_method, 'checkout')
         assert.ok(res.body.subtotal_price)
         // Order Items
-        // TODO check quantities
         assert.equal(res.body.order_items.length, 3)
         assert.equal(res.body.order_items[0].order_id, orderID)
         assert.equal(res.body.order_items[1].order_id, orderID)
         assert.equal(res.body.order_items[2].order_id, orderID)
+        assert.equal(res.body.total_items, 4)
         // Transactions
         assert.equal(res.body.transactions.length, 1)
         assert.equal(res.body.transactions[0].kind, 'sale')

@@ -410,6 +410,10 @@ module.exports = class Cart extends Model {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
+        total_items: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         // If shipping should be taxed
         tax_shipping: {
           type: Sequelize.BOOLEAN,

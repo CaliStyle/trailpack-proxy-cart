@@ -316,6 +316,10 @@ module.exports = class Order extends Model {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
+        total_items: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         // Billing Address on Order
         billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address', {
           defaultValue: {}

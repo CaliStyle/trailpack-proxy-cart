@@ -190,6 +190,7 @@ module.exports = class OrderService extends Service {
             total_due: resCart.total_due,
             total_tax: resCart.total_tax,
             total_weight: resCart.total_weight,
+            total_items: resCart.total_items,
             payment_gateway_names: paymentGatewayNames,
             requires_shipping: resCart.requires_shipping,
             shop_id: resCart.shop_id,

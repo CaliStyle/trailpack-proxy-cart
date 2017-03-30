@@ -85,7 +85,7 @@ describe('OrderController', () => {
         assert.equal(res.body.shipping_address.country_code, 'US')
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
-
+        assert.equal(res.body.total_items, 1)
         done(err)
       })
   })
@@ -114,6 +114,7 @@ describe('OrderController', () => {
         assert.equal(res.body.shipping_address.country_code, 'US')
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
+        assert.equal(res.body.total_items, 1)
         done(err)
       })
   })
