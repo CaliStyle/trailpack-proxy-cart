@@ -104,17 +104,17 @@ module.exports = class CartService extends Service {
    * @param data
    * @returns {Promise.<*>}
    */
-  checkout(data){
+  checkout(req){
     const ProductVariant = this.app.orm.ProductVariant
     const Customer = this.app.orm['Customer']
 
-    if (!data.cart.id) {
+    if (!req.body.cart.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
 
-    let resCart, resCustomer
-    return this.resolve(data.cart)
+    let resCart, resCustomer, resOrder
+    return this.resolve(req.body.cart)
       .then(foundCart => {
 
         if (!foundCart) {
@@ -127,7 +127,7 @@ module.exports = class CartService extends Service {
 
         resCart = foundCart
         // console.log('CART CUSTOMER',data.customer)
-        return Customer.findById(data.customer.id || resCart.customer_id)
+        return Customer.findById(req.body.customer.id || resCart.customer_id)
       })
       .then(foundCustomer => {
         if (!foundCustomer) {
@@ -141,7 +141,7 @@ module.exports = class CartService extends Service {
         return Promise.all(resCart.line_items.map(item => {
           return ProductVariant.findById(item.variant_id, {attributes: ['id']})
             .then(productVariant => {
-              return productVariant.checkRestrictions(resCustomer, data.shipping_address)
+              return productVariant.checkRestrictions(resCustomer, req.body.shipping_address)
                 .then(restricted => {
                   if (restricted) {
                     throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)
@@ -177,16 +177,30 @@ module.exports = class CartService extends Service {
         const newOrder = {
           cart_token: resCart.token,
           customer_id: resCustomer.id,
-          client_details: data.client_details,
-          ip: data.ip,
-          payment_details: data.payment_details,
-          payment_kind: data.payment_kind,
-          fulfillment_kind: data.fulfillment_kind,
+          client_details: req.body.client_details,
+          ip: req.body.ip,
+          payment_details: req.body.payment_details,
+          payment_kind: req.body.payment_kind,
+          fulfillment_kind: req.body.fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
-          shipping_address: data.shipping_address,
-          billing_address: data.billing_address
+          shipping_address: req.body.shipping_address,
+          billing_address: req.body.billing_address
         }
         return this.app.services.OrderService.create(newOrder)
+      })
+      .then(order => {
+        if (!order) {
+          throw new Error('Unexpected error during checkout')
+        }
+        resOrder = order
+
+        return this.createAndSwitch(req)
+      })
+      .then(cart => {
+        return {
+          cart: cart,
+          order: resOrder
+        }
       })
   }
 
@@ -378,6 +392,63 @@ module.exports = class CartService extends Service {
         })
     })
   }
+
+  /**
+   *
+   * @param req
+   */
+  createAndSwitch(req){
+    const User = this.app.orm['User']
+    const cart = {}
+    const owners = []
+    let customerId
+
+    if (req.user) {
+      owners.push(req.user)
+      customerId = req.user.current_customer_id
+      cart.customer_id = customerId
+    }
+    if (!customerId && req.customer) {
+      cart.customer_id = req.customer.id
+    }
+
+    return this.create(cart)
+      .then(cart => {
+        if (req.user) {
+          return User.findById(req.user.id)
+            .then(user => {
+              user.current_cart_id = cart.id
+              return user.save()
+            })
+            .then(user => {
+              return new Promise((resolve, reject) => {
+                req.loginCart(cart, (err) => {
+                  if (err) {
+                    return reject(err)
+                  }
+                  return resolve(cart)
+                })
+              })
+            })
+        }
+        else {
+          return new Promise((resolve, reject) => {
+            req.loginCart(cart, (err) => {
+              if (err) {
+                return reject(err)
+              }
+              return resolve(cart)
+            })
+          })
+        }
+      })
+
+  }
+  /**
+   *
+   * @param cart
+   * @returns {Promise.<TResult>}
+   */
   beforeCreate(cart) {
     if (cart.ip) {
       cart.create_ip = cart.ip
@@ -398,6 +469,12 @@ module.exports = class CartService extends Service {
         return cart
       })
   }
+
+  /**
+   *
+   * @param cart
+   * @returns {Promise.<T>}
+   */
   beforeUpdate(cart){
     if (cart.ip) {
       cart.update_ip = cart.ip

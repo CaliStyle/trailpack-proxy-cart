@@ -212,15 +212,22 @@ module.exports = class CartController extends Controller {
         if (!req.body.cart.id) {
           throw new Error('Checkout requires a cart session or cart id')
         }
-        return CartService.checkout(req.body)
+        return CartService.checkout(req)
 
       })
       .then(data => {
         // console.log('CartController.checkout Order', data)
-        if (!data) {
+        if (!data || !data.cart || !data.order) {
           throw new Error('Unexpected Error while checking out')
         }
-        return res.json(data)
+
+        return res.json({
+          cart: data.cart,
+          order: data.order
+        })
+      })
+      .then(data => {
+
       })
       .catch(err => {
         // console.log('ProductController.checkout', err)

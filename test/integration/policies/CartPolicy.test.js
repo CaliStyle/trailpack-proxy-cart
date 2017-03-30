@@ -54,12 +54,8 @@ describe('CartPolicy', () => {
       .set('Accept', 'application/json')
       .expect(200)
       .end((err, res) => {
-        console.log('THIS USER',res.body)
         assert.ok(res.body.user.id)
         assert.equal(res.body.user.current_cart_id, cartID)
-        // cartID = res.body.id
-        // assert.equal(res.body.line_items.length, 1)
-        // console.log('THIS POLICY CART', res.body)
         done(err)
       })
   })
@@ -174,27 +170,41 @@ describe('CartPolicy', () => {
       .expect(200)
       .end((err, res) => {
         console.log('CHECKOUT', res.body)
-        const orderID = res.body.id
-        assert.ok(res.body.id)
-        assert.ok(res.body.token)
+        const orderID = res.body.order.id
+        cartIDSwitch = res.body.cart.id
+        assert.ok(res.body.cart.id)
+        assert.ok(res.body.order.id)
+        assert.ok(res.body.order.token)
 
-        assert.equal(res.body.financial_status, 'paid')
-        assert.equal(res.body.currency, 'USD')
-        assert.equal(res.body.source_name, 'api')
-        assert.equal(res.body.processing_method, 'checkout')
-        assert.ok(res.body.subtotal_price)
+        assert.equal(res.body.order.financial_status, 'paid')
+        assert.equal(res.body.order.currency, 'USD')
+        assert.equal(res.body.order.source_name, 'api')
+        assert.equal(res.body.order.processing_method, 'checkout')
+        assert.ok(res.body.order.subtotal_price)
         // Order Items
         // TODO check quantities
-        assert.equal(res.body.order_items.length, 1)
-        assert.equal(res.body.order_items[0].order_id, orderID)
+        assert.equal(res.body.order.order_items.length, 1)
+        assert.equal(res.body.order.order_items[0].order_id, orderID)
 
         // Transactions
-        assert.equal(res.body.transactions.length, 1)
-        assert.equal(res.body.transactions[0].kind, 'sale')
-        assert.equal(res.body.transactions[0].status, 'success')
-        assert.equal(res.body.transactions[0].source_name, 'web')
-        assert.equal(res.body.transactions[0].order_id, orderID)
+        assert.equal(res.body.order.transactions.length, 1)
+        assert.equal(res.body.order.transactions[0].kind, 'sale')
+        assert.equal(res.body.order.transactions[0].status, 'success')
+        assert.equal(res.body.order.transactions[0].source_name, 'web')
+        assert.equal(res.body.order.transactions[0].order_id, orderID)
 
+        done(err)
+      })
+  })
+  it('should get new cart in session after checkout', done => {
+    agent
+      .get('/cart/session')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY CART', res.body)
+        assert.ok(res.body.id)
+        assert.equal(res.body.id, cartIDSwitch)
+        assert.equal(res.body.line_items.length, 0)
         done(err)
       })
   })
