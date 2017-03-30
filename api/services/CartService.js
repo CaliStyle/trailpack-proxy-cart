@@ -106,11 +106,14 @@ module.exports = class CartService extends Service {
    */
   checkout(data){
     const ProductVariant = this.app.orm.ProductVariant
+    const Customer = this.app.orm['Customer']
+
     if (!data.cart.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
-    let resCart
+
+    let resCart, resCustomer
     return this.resolve(data.cart)
       .then(foundCart => {
 
@@ -123,12 +126,22 @@ module.exports = class CartService extends Service {
         }
 
         resCart = foundCart
+        // console.log('CART CUSTOMER',data.customer)
+        return Customer.findById(data.customer.id || resCart.customer_id)
+      })
+      .then(foundCustomer => {
+        if (!foundCustomer) {
+          this.app.log.info('Checkout without Customer')
+          throw new Errors.FoundError(Error('Customer Not Found'))
+        }
+
+        resCustomer = foundCustomer
 
         // Resolve all Line Items, Check Restrictions, Check Availability
         return Promise.all(resCart.line_items.map(item => {
           return ProductVariant.findById(item.variant_id, {attributes: ['id']})
             .then(productVariant => {
-              return productVariant.checkRestrictions(resCart.Customer || resCart.customer_id, data.shipping_address)
+              return productVariant.checkRestrictions(resCustomer, data.shipping_address)
                 .then(restricted => {
                   if (restricted) {
                     throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)
@@ -163,7 +176,7 @@ module.exports = class CartService extends Service {
         // Create new Order constraints
         const newOrder = {
           cart_token: resCart.token,
-          customer_id: resCart.customer_id,
+          customer_id: resCustomer.id,
           client_details: data.client_details,
           ip: data.ip,
           payment_details: data.payment_details,

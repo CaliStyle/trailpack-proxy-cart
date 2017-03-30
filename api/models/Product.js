@@ -211,7 +211,7 @@ module.exports = class Product extends Model {
               const resp = this.get({ plain: true })
               // Transform Tags to array on toJSON
               if (resp.tags) {
-                console.log(resp.tags)
+                // console.log(resp.tags)
                 resp.tags = resp.tags.map(tag => {
                   if (tag && _.isString(tag)) {
                     return tag

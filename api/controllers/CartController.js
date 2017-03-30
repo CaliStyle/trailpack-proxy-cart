@@ -155,7 +155,7 @@ module.exports = class CartController extends Controller {
         if (!cart) {
           throw new Error('Unexpected Error while creating cart')
         }
-        console.log('THIS CREATED CART', cart)
+        // console.log('THIS CREATED CART', cart)
         return new Promise((resolve,reject) => {
           req.loginCart(cart, function (err) {
             if (err) {
@@ -169,7 +169,7 @@ module.exports = class CartController extends Controller {
         return res.json(cart)
       })
       .catch(err => {
-        console.log('ProductController.create', err)
+        // console.log('ProductController.create', err)
         return res.serverError(err)
       })
 
@@ -181,32 +181,39 @@ module.exports = class CartController extends Controller {
    * @param res
    */
   checkout(req, res) {
+    if (!req.body.cart) {
+      req.body.cart = {}
+    }
+    if (!req.body.customer) {
+      req.body.customer = {}
+    }
+
     const CartService = this.app.services.CartService
     lib.Validator.validateCart.checkout(req.body)
       .then(values => {
-        if (!req.body.cart) {
-          req.body.cart = {}
+
+        const cartId = req.params.id || req.body.cart.id
+        const customerId = req.params.customer || req.body.customer.id
+
+        if (!cartId && req.cart) {
+          req.body.cart = req.cart
         }
-        if (!req.body.customer) {
-          req.body.customer = {}
+        else if (cartId){
+          req.body.cart.id = cartId
         }
 
-        if (req.cart) {
-          req.body.cart.id = req.cart.id
+        if (!customerId && req.customer) {
+          req.body.customer = req.customer
         }
-        else {
-          req.body.cart.id = req.params.id
+        else if (customerId) {
+          req.body.customer.id = customerId
         }
 
         if (!req.body.cart.id) {
           throw new Error('Checkout requires a cart session or cart id')
         }
-
-        if (req.customer) {
-          req.body.customer.id = req.customer.id
-        }
-
         return CartService.checkout(req.body)
+
       })
       .then(data => {
         // console.log('CartController.checkout Order', data)
