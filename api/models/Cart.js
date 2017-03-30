@@ -50,6 +50,7 @@ module.exports = class Cart extends Model {
               const line = {
                 product_id: data.product_id,
                 variant_id: data.id || data.variant_id,
+                type: data.type,
                 sku: data.sku,
                 title: data.Product.title,
                 variant_title: data.title,

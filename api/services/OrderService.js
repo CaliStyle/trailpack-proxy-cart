@@ -161,7 +161,7 @@ module.exports = class OrderService extends Service {
           resBillingAddress = this.resolveToAddress(resCustomer.billing_address, obj.billing_address)
           // Resolve the Shipping Address
           resShippingAddress = this.resolveToAddress(resCustomer.shipping_address, obj.shipping_address)
-          console.log(resCart)
+
           if (!resShippingAddress && resCart.has_shipping) {
             throw new Error('Order does not have a valid shipping address')
           }

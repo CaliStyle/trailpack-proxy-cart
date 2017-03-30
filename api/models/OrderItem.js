@@ -130,6 +130,10 @@ module.exports = class OrderItem extends Model {
         sku: {
           type: Sequelize.STRING
         },
+        // The type of Product
+        type: {
+          type: Sequelize.STRING
+        },
         // The title of the product.
         title: {
           type: Sequelize.STRING

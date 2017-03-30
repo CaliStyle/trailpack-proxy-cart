@@ -686,7 +686,7 @@ module.exports = class ProductService extends Service {
       variant.requires_tax = product.requires_tax
     }
     // If the requires_subscription set on parent
-    if (product.requires_subscription && !variant.requires_shipping) {
+    if (product.requires_subscription && !variant.requires_subscription) {
       variant.requires_subscription = product.requires_subscription
     }
     // If the subscription_interval set on parent
@@ -712,6 +712,10 @@ module.exports = class ProductService extends Service {
     // If the max_quantity set on parent
     if (product.max_quantity && !variant.max_quantity) {
       variant.max_quantity = product.max_quantity
+    }
+    // Inherit the product type
+    if (product.type && !variant.type) {
+      variant.type = product.type
     }
     // If the max_quantity set on parent
     if (product.tax_code && !variant.tax_code) {

@@ -75,5 +75,22 @@
       "digital"
     ],
     "sku": "download-123"
+  },
+  {
+    "handle": "subscription-test",
+    "title": "Subscription Test!",
+    "body": "<strong>Subscription Test!</strong>",
+    "vendor": "Great Scott Inc",
+    "type": "subscription",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "inventory_quantity": 10000,
+    "tags": [
+      "subscription"
+    ],
+    "sku": "subscription-123"
   }
 ]

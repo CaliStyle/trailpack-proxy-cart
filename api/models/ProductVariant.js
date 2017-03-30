@@ -146,6 +146,10 @@ module.exports = class ProductVariant extends Model {
         title: {
           type: Sequelize.STRING
         },
+        // Variant Title
+        type: {
+          type: Sequelize.STRING
+        },
         // The Barcode of the Variant
         barcode: {
           type: Sequelize.STRING
