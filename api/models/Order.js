@@ -137,7 +137,7 @@ module.exports = class Order extends Model {
                 }
               })
             },
-            findIdDefault: function(criteria, options) {
+            findByIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Order.default(app))
               return this.findById(criteria, options)
             }

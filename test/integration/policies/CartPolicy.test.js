@@ -208,4 +208,14 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
+  it('should get session customer orders', done => {
+    agent
+      .get('/customer/orders')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY ORDERS', res.body)
+        assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
 })

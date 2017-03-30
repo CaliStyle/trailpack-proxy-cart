@@ -172,7 +172,7 @@ module.exports = class Customer extends Model {
               //   }
               // })
             },
-            findIdDefault: function(id, options) {
+            findByIdDefault: function(id, options) {
               options = _.merge(options, {
                 // include: [{ all: true }]
                 attributes: {

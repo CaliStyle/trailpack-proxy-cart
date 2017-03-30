@@ -53,7 +53,7 @@ module.exports = class CustomerController extends Controller {
     if (!id && req.customer) {
       id = req.customer.id
     }
-    Customer.findIdDefault(id, {})
+    Customer.findByIdDefault(id, {})
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error(`Customer id ${id} not found`))
@@ -207,12 +207,23 @@ module.exports = class CustomerController extends Controller {
   exportCustomers(req, res) {
     //
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   login(req, res) {
     let customerId = req.params.id
     const Customer = this.app.orm['Customer']
 
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
+    }
+
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
     }
 
     Customer.findById(customerId)
@@ -237,12 +248,18 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   switchCustomer(req, res) {
     const customerId = req.params.id
     const Customer = this.app.orm['Customer']
     const User = this.app.orm['User']
 
-    if (!customerId || !req.user) {
+    if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
       return res.serverError(err)
     }
@@ -271,9 +288,53 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   logout(req, res) {
     req.logoutCustomer()
     res.ok()
+  }
+
+  orders(req, res) {
+    console.log('I WAS CALLED')
+    const Order = this.app.orm['Order']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Order.findAndCount({
+      order: sort,
+      where: {
+        customer_id: customerId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(orders => {
+        res.set('X-Pagination-Total', orders.count)
+        res.set('X-Pagination-Pages', Math.ceil(orders.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(orders.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 }
 

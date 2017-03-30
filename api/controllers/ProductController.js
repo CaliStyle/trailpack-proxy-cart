@@ -17,7 +17,7 @@ module.exports = class ProductController extends Controller {
   // TODO add Customer Attributes to Product (Previously Purchased, Selected Options, attributes, discounts, etc)
   findById(req, res){
     const Product = this.app.orm['Product']
-    Product.findIdDefault(req.params.id, {})
+    Product.findByIdDefault(req.params.id, {})
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error(`Product id ${ req.params.id } not found`))

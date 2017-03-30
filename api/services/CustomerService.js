@@ -150,7 +150,7 @@ module.exports = class CustomerService extends Service {
         })
         .then(cart => {
           // return resCustomer.reload()
-          return Customer.findIdDefault(resCustomer.id)
+          return Customer.findByIdDefault(resCustomer.id)
         })
         .then(customer => {
           return resolve(customer)
@@ -175,7 +175,7 @@ module.exports = class CustomerService extends Service {
       const Customer = this.app.orm.Customer
       const Tag = this.app.orm.Tag
       let resCustomer = {}
-      Customer.findIdDefault(customer.id)
+      Customer.findByIdDefault(customer.id)
         .then(foundCustomer => {
           resCustomer = foundCustomer
           // console.log('resCustomer',resCustomer)
@@ -225,7 +225,7 @@ module.exports = class CustomerService extends Service {
         })
         .then(addresses => {
           // return resCustomer.reload()
-          return Customer.findIdDefault(resCustomer.id)
+          return Customer.findByIdDefault(resCustomer.id)
         })
         .then(customer => {
           return resolve(customer)

@@ -87,7 +87,7 @@ module.exports = class CartController extends Controller {
     if (!id && req.cart) {
       id = req.cart.id
     }
-    Cart.findIdDefault(id, {})
+    Cart.findByIdDefault(id, {})
       .then(cart => {
         if (!cart) {
           throw new Errors.FoundError(Error(`Cart id ${id} not found`))

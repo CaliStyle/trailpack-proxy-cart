@@ -175,9 +175,9 @@ module.exports = class Product extends Model {
               //   constraints: false
               // })
             },
-            findIdDefault: function(criteria, options) {
+            findByIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Product.default(app))
-              // console.log('Product.findIdDefault', options)
+              // console.log('Product.findByIdDefault', options)
               return this.findById(criteria, options)
             },
             findByHandle: function(handle, options) {

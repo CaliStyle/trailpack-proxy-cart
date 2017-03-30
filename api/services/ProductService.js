@@ -259,7 +259,7 @@ module.exports = class ProductService extends Service {
         })
         .then(createdImages => {
           // Reload
-          return Product.findIdDefault(resProduct.id)
+          return Product.findByIdDefault(resProduct.id)
         })
     })
   }
@@ -298,7 +298,7 @@ module.exports = class ProductService extends Service {
       if (!product.id) {
         throw new Errors.FoundError(Error('Product is missing id'))
       }
-      return Product.findIdDefault(product.id)
+      return Product.findByIdDefault(product.id)
         .then(foundProduct => {
           resProduct = foundProduct
 
@@ -463,7 +463,7 @@ module.exports = class ProductService extends Service {
         })
         .then(variants => {
           // console.log('THESE VARIANTS', variants)
-          // return Product.findIdDefault(resProduct.id)
+          // return Product.findByIdDefault(resProduct.id)
           return Promise.all(resProduct.images.map(image => {
             if (typeof image.variant !== 'undefined') {
               image.product_variant_id = resProduct.variants[image.variant].id
@@ -478,7 +478,7 @@ module.exports = class ProductService extends Service {
           }))
         })
         .then(images => {
-          return Product.findIdDefault(resProduct.id)
+          return Product.findByIdDefault(resProduct.id)
         })
     })
   }

@@ -281,7 +281,7 @@ module.exports = class OrderService extends Service {
           }
         })
         .then(fulfillments => {
-          return Order.findIdDefault(resOrder.id)
+          return Order.findByIdDefault(resOrder.id)
         })
     })
   }
@@ -314,7 +314,7 @@ module.exports = class OrderService extends Service {
         return resOrder.save()
       })
       .then(resOrder => {
-        return Order.findIdDefault(resOrder.id)
+        return Order.findByIdDefault(resOrder.id)
       })
   }
 

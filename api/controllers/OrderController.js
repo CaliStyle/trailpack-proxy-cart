@@ -37,7 +37,7 @@ module.exports = class OrderController extends Controller {
   findById(req, res){
     const orm = this.app.orm
     const Order = orm['Order']
-    Order.findById(req.params.id, {})
+    Order.findByIdDefault(req.params.id, {})
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error(`Order id ${ req.params.id } not found`))
