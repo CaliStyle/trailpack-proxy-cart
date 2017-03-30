@@ -184,7 +184,8 @@ module.exports = class CartService extends Service {
           fulfillment_kind: req.body.fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
           shipping_address: req.body.shipping_address,
-          billing_address: req.body.billing_address
+          billing_address: req.body.billing_address,
+          email: req.body.email || resCustomer.email
         }
         return this.app.services.OrderService.create(newOrder)
       })

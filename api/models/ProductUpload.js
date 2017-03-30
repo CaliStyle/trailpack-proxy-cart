@@ -164,6 +164,10 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.STRING,
         defaultValue: true
       },
+      // 'Variant Tax Code'
+      tax_code: {
+        type: Sequelize.STRING
+      },
       // 'Variant Barcode'
       barcode: {
         type: Sequelize.STRING
@@ -172,10 +176,6 @@ module.exports = class ProductUpload extends Model {
       variant_images: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'variant_images', {
         defaultValue: []
       }),
-      // 'Variant Tax Code'
-      tax_code: {
-        type: Sequelize.STRING
-      },
       // 'Gift Card'
       gift_card: {
         type: Sequelize.STRING

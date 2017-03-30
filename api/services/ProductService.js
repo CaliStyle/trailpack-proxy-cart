@@ -119,7 +119,9 @@ module.exports = class ProductService extends Service {
       weight: product.weight,
       weight_unit: product.weight_unit,
       published: product.published,
-      requires_shipping: product.requires_shipping
+      requires_shipping: product.requires_shipping,
+      // requires_subscription: product.requires_subscription,
+      // tax_code: product.tax_code
     }]
     // Set the published status
     if (product.published) {
@@ -311,7 +313,8 @@ module.exports = class ProductService extends Service {
             published_scope: product.published_scope || resProduct.published_scope,
             weight: product.weight || resProduct.weight,
             weight_unit: product.weight_unit || resProduct.weight_unit,
-            requires_shipping: product.requires_shipping || resProduct.requires_shipping
+            requires_shipping: product.requires_shipping || resProduct.requires_shipping,
+            tax_code: product.tax_code || resProduct.tax_code
           }
           if (product.published) {
             resProduct.published = resProduct.variants[0].published = product.published
@@ -709,6 +712,10 @@ module.exports = class ProductService extends Service {
     // If the max_quantity set on parent
     if (product.max_quantity && !variant.max_quantity) {
       variant.max_quantity = product.max_quantity
+    }
+    // If the max_quantity set on parent
+    if (product.tax_code && !variant.tax_code) {
+      variant.tax_code = product.tax_code
     }
     // If the weight set on parent
     if (product.weight && !variant.weight) {

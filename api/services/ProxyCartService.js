@@ -307,7 +307,14 @@ module.exports = class ProxyCartService extends Service {
               ]
             })
               .then(customer => {
-                const to = customer.shipping_address ? customer.shipping_address.get({plain: true}) : customer.default_address.get({plain: true})
+
+                if ( customer.shipping_address instanceof Address.Instance) {
+                  customer.shipping_address = customer.shipping_address.get({plain: true})
+                }
+                if ( customer.default_address instanceof Address.Instance) {
+                  customer.default_address = customer.default_address.get({plain: true})
+                }
+                const to = customer.shipping_address ? customer.shipping_address : customer.default_address
                 const res = {
                   to: to,
                   from: from
