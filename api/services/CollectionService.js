@@ -129,6 +129,43 @@ module.exports = class CollectionService extends Service {
       })
   }
   cartCollections(cart) {
+  //   const productIds = []
+  //   cart.line_items.forEach(item => {
+  //     productIds.push(item.product_id)
+  //   })
+  //   if (productIds.length == 0) {
+  //     return Promise.resolve([])
+  //   }
+  //   return this.app.orm['Product'].findAll({
+  //     where: {
+  //       id: productIds
+  //     },
+  //     attributes: ['id'],
+  //     include: [{
+  //       model: this.app.orm['Collection'],
+  //       as: 'collections',
+  //       attributes: [
+  //         'id',
+  //         'title',
+  //         'discount_type',
+  //         'discount_scope',
+  //         'discount_rate',
+  //         'discount_percentage'
+  //       ]
+  //     }]
+  //   })
+  //     .then(products => {
+  //       console.log('PRODUCTS',products)
+  //       const collections = []
+  //
+  //       // products.forEach(product => {
+  //       //   console.log('PRODUCT COLLECTION', product.collections)
+  //       //   collections = _.merge(collections, product.collections)
+  //       // })
+  //       console.log('THESE COLLECTIONS', collections)
+  //       return collections
+  //     })
+  // }
     const Collection = this.app.orm['Collection']
     const ItemCollection = this.app.orm['ItemCollection']
     const criteria = []
@@ -143,22 +180,33 @@ module.exports = class CollectionService extends Service {
       criteria.push({model: 'product', model_id: item.product_id})
       productIds.push(item.product_id)
     })
-    // console.log('CRITERIA', criteria)
+
+    if (criteria.length == 0) {
+      return Promise.resolve([])
+    }
+    console.log('CRITERIA ONE', criteria)
 
     return ItemCollection.findAll({
       where: criteria,
-      attributes: ['collection_id']
+      attributes: ['collection_id', 'model', 'model_id']
     })
       .then(itemCollections => {
-        // console.log(itemCollections)
-        const criteria = []
+        // console.log('CRITERIA FOUND',itemCollections)
+        const itemCriteria = []
 
         itemCollections.forEach(item => {
-          criteria.push({id: item.collection_id})
+          console.log('FOUND COLLECTION', item.get({plain: true}))
+          itemCriteria.push({id: item.collection_id})
+          return
         })
+
+        console.log('CRITERIA TWO', itemCriteria)
+        if (itemCriteria.length == 0) {
+          return Promise.resolve([])
+        }
         // console.log('CRITERIA',criteria)
         return Collection.findAll({
-          where: criteria,
+          where: itemCriteria,
           attributes: [
             'id',
             'title',

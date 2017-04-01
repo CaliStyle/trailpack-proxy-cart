@@ -31,3 +31,20 @@ The Order in which the collection sorts products in it (if any). Valid Values ar
 
 ## Published
 States whether or not a collection is published on your storefront. Valid values are TRUE if the collection is published on your storefront, or FALSE if the product is hidden from your storefront. Leaving the field blank will leave the collection unpublished.
+
+
+## Tax Type
+
+## Tax Rate
+
+## Tax Percentage
+
+## Tax Name
+
+## Discount Scope
+
+## Discount Type
+
+## Discount Rate
+
+## Discount Percentage

@@ -269,6 +269,7 @@ describe('ProductController', () => {
         // Metadata
         assert.equal(res.body[0].metadata.test, 'new value')
         // Collections
+        console.log('SET COLLECTIONS', res.body[0].collections)
         assert.equal(res.body[0].collections.length, 1)
         assert.equal(res.body[0].collections[0].title, 'free-shipping')
         assert.equal(res.body[0].collections[0].handle, 'free-shipping')
@@ -308,6 +309,12 @@ describe('ProductController', () => {
         assert.equal(res.body.images[1].position, 2)
         assert.equal(res.body.images[2].position, 3)
         assert.equal(res.body.images[3].position, 4)
+
+        // Collections
+        console.log('SET COLLECTIONS', res.body.collections)
+        assert.equal(res.body.collections.length, 1)
+        assert.equal(res.body.collections[0].title, 'free-shipping')
+        assert.equal(res.body.collections[0].handle, 'free-shipping')
         done(err)
       })
   })

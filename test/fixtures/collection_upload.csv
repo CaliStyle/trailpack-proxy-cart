@@ -1,1 +1,1 @@
-﻿Handle,Title,Body,Primary Purpose,Sort Order,Publishedawesome,Awesome,Everything is Awesome,group,price-asc,TRUE
+﻿Handle,Title,Body,Primary Purpose,Sort Order,Published,Tax Type,Tax Rate,Tax Percentage,Tax Name,Discount Scope,Discount Type,Discount Rate,Discount Percentageawesome,Awesome,Everything is Awesome,group,price-asc,TRUE,,,,,global,fixed,100,

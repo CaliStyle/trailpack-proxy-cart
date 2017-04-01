@@ -96,6 +96,9 @@ describe('CollectionController', () => {
       .end((err, res) => {
         assert.ok(res.body)
         assert.equal(res.body.handle, 'awesome')
+        assert.equal(res.body.discount_scope, 'global')
+        assert.equal(res.body.discount_type, 'fixed')
+        assert.equal(res.body.discount_rate, 100)
         done()
       })
   })

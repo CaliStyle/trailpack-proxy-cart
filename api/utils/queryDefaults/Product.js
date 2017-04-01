@@ -42,7 +42,19 @@ module.exports = {
         {
           model: app.orm['Collection'],
           as: 'collections',
-          attributes: ['id', 'title', 'handle']
+          attributes: [
+            'id',
+            'title',
+            'handle',
+            'tax_type',
+            'tax_rate',
+            'tax_name',
+            'tax_type',
+            'discount_scope',
+            'discount_type',
+            'discount_rate',
+            'discount_percentage'
+          ]
         }
         // app.orm['ProductVariant'].associations.variants
       ],

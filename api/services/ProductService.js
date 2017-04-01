@@ -213,14 +213,14 @@ module.exports = class ProductService extends Service {
           return
         })
         .then(tags => {
-          if (tags) {
+          if (tags && tags.length > 0) {
             // Add Tags
-            return resProduct.setTags(tags)
+            return resProduct.setTags(_.map(tags, tag  => tag.id))
           }
           return
         })
-        .then(tags => {
-          if (product.shops) {
+        .then(productTags => {
+          if (product.shops && product.shops.length > 0) {
             return Promise.all(product.shops.map(shop => {
               return this.app.services.ShopService.resolve(shop)
             }))
@@ -228,13 +228,14 @@ module.exports = class ProductService extends Service {
           return
         })
         .then(shops => {
-          if (shops) {
+          if (shops && shops.length > 0) {
             return resProduct.setShops(shops)
           }
           return
         })
         .then(shops => {
-          if (product.collections) {
+          // console.log('THESE COLLECTIONS', product.collections)
+          if (product.collections && product.collections.length > 0) {
             // Resolve the collections
             return Promise.all(product.collections.map(collection => {
               return this.app.services.CollectionService.resolve(collection)
@@ -243,13 +244,18 @@ module.exports = class ProductService extends Service {
           return
         })
         .then(collections => {
-          // console.log('THESE COLLECTIONS', collections)
-          if (collections) {
-            return resProduct.setCollections(collections)
+          // console.log('THESE COLLECTIONS RESOLVED', collections)
+          if (collections && collections.length > 0) {
+            return resProduct.setCollections(_.map(collections, c => c.id))
           }
           return
         })
-        .then(collections => {
+        .then(productCollections => {
+          // if (productCollections){
+          //   productCollections.forEach(collection => {
+          //     console.log('ADDED COLLECTION', collection)
+          //   })
+          // }
           return Promise.all(images.map(image => {
             // image.product_id = resProduct.id
             if (typeof image.variant !== 'undefined') {
@@ -428,13 +434,13 @@ module.exports = class ProductService extends Service {
           // console.log('THESE TAGS', tags)
           // console.log('THIS PRODUCT TAGS NOW', tags)
           // Set Tags
-          if (tags) {
-            return resProduct.setTags(tags)
+          if (tags && tags.length > 0) {
+            return resProduct.setTags(_.map(tags, tag  => tag.id))
           }
           return
         })
-        .then(tags => {
-          if (product.collections) {
+        .then(productTags => {
+          if (product.collections && product.collections.length > 0) {
             // Resolve the collections
             // console.log('THESE COLLECTIONS', product.collections)
             return Promise.all(product.collections.map(collection => {
@@ -445,8 +451,8 @@ module.exports = class ProductService extends Service {
         })
         .then(collections => {
           // console.log('THESE COLLECTIONS', collections)
-          if (collections) {
-            return resProduct.setCollections(collections)
+          if (collections && collections.length > 0) {
+            return resProduct.setCollections(_.map(collections, c => c.id))
           }
           return
         })

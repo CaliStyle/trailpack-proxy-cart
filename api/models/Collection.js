@@ -183,15 +183,18 @@ module.exports = class Collection extends Model {
         },
         // If the Collection is published
         published: {
-          type: Sequelize.BOOLEAN
+          type: Sequelize.BOOLEAN,
+          defaultValue: true
         },
         // When the Collection was published
         published_at: {
-          type: Sequelize.DATE
+          type: Sequelize.DATE,
+          defaultValue: Sequelize.NOW
         },
         // The scope Collection is published
         published_scope: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          defaultValue: 'global'
         },
         // When the collection was unpublished
         unpublished_at: {

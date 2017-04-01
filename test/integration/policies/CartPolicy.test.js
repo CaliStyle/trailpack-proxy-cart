@@ -124,18 +124,32 @@ describe('CartPolicy', () => {
       .send({
         line_items: [
           {
-            product_id: shopProducts[2].id
+            product_id: shopProducts[3].id
           }
         ]
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
+        console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 1)
-        assert.equal(res.body.line_items[0].product_id, shopProducts[2].id)
-        assert.equal(res.body.subtotal_price, shopProducts[2].price)
+        assert.equal(res.body.line_items[0].product_id, shopProducts[3].id)
+        assert.equal(res.body.subtotal_price, shopProducts[3].price)
+        done(err)
+      })
+  })
+  it('should find product with collection', (done) => {
+    request
+      .get('/product/collection/test-discount')
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body[0].collections[0].handle, 'test-discount')
+        assert.equal(res.body[0].collections[0].title, 'Test Discount')
+        assert.equal(res.body[0].collections[0].discount_scope, 'global')
+        assert.equal(res.body[0].collections[0].discount_type, 'fixed')
+        assert.equal(res.body[0].collections[0].discount_rate, '100')
         done(err)
       })
   })
@@ -148,13 +162,13 @@ describe('CartPolicy', () => {
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 1)
-        assert.equal(res.body.discounted_lines.length, 1)
-        assert.equal(res.body.line_items[0].product_id, shopProducts[2].id)
-        assert.equal(res.body.line_items[0].price, shopProducts[2].price)
-        assert.equal(res.body.line_items[0].calculated_price, shopProducts[2].price - 100)
+        assert.equal(res.body.line_items[0].product_id, shopProducts[3].id)
+        assert.equal(res.body.line_items[0].price, shopProducts[3].price)
+        assert.equal(res.body.line_items[0].calculated_price, shopProducts[3].price - 100)
         assert.equal(res.body.total_discounts, 100)
-        assert.equal(res.body.total_due, shopProducts[2].price - res.body.total_discounts)
-        assert.equal(res.body.subtotal_price, shopProducts[2].price)
+        assert.equal(res.body.discounted_lines.length, 1)
+        assert.equal(res.body.total_due, shopProducts[3].price - res.body.total_discounts)
+        assert.equal(res.body.subtotal_price, shopProducts[3].price)
         done(err)
       })
   })

@@ -51,7 +51,7 @@ module.exports = class Tag extends Model {
               tags = _.map(tags, tag => {
                 if (tag && _.isString(tag)) {
                   tag = { name: tag }
-                  return _.omit(tag, ['created_at','updated_at'])
+                  return tag
                 }
                 else if (tag) {
                   return _.omit(tag, ['created_at','updated_at'])

@@ -97,7 +97,9 @@
         "title": "Test Discount",
         "discount_type": "fixed",
         "discount_scope": "global",
-        "discount_rate": 100
+        "discount_rate": 100,
+        "primary_purpose": "discount",
+        "published": true
       }
     ],
     "sku": "subscription-123"
