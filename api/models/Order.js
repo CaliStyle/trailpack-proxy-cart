@@ -101,6 +101,7 @@ module.exports = class Order extends Model {
                 // as: 'shop_id'
               })
               models.Order.hasMany(models.OrderItem, {
+                foreignKey: 'order_id',
                 as: 'order_items'
               })
               // Applicable discount codes that can be applied to the order. If no codes exist the value will default to blank.
@@ -143,8 +144,12 @@ module.exports = class Order extends Model {
             }
           },
           instanceMethods: {
-            resolveFinancialStatus: function() {
+            saveFinancialStatus: function() {
               const Transaction = app.orm['Transaction']
+
+              if (!this.id) {
+                return Promise.resolve(this)
+              }
               return Transaction.findAll({
                 where: {
                   order_id: this.id
@@ -155,8 +160,11 @@ module.exports = class Order extends Model {
                   return this.save()
                 })
             },
-            resolveFulfillmentStatus: function() {
+            saveFulfillmentStatus: function() {
               const Fulfillment = app.orm['Fulfillment']
+              if (!this.id) {
+                return Promise.resolve(this)
+              }
               return Fulfillment.findAll({
                 where: {
                   order_id: this.id
@@ -197,7 +205,7 @@ module.exports = class Order extends Model {
                 }
               })
               // Total Authorized is the Price of the Order and there are no Capture/Sale transactions and 0 voided
-              if (totalAuthorized == this.total_price && totalSale == 0 && totalVoided == 0) {
+              if (totalAuthorized == this.total_due && totalSale == 0 && totalVoided == 0) {
                 // console.log('SHOULD BE: authorized')
                 financialStatus = ORDER_FINANCIAL.AUTHORIZED
               }
@@ -207,22 +215,22 @@ module.exports = class Order extends Model {
                 financialStatus = ORDER_FINANCIAL.VOIDED
               }
               // Total Sale is the Price of the order and there are no refunds
-              else if (totalSale == this.total_price && totalRefund == 0) {
+              else if (totalSale == this.total_due && totalRefund == 0) {
                 // console.log('SHOULD BE: paid')
                 financialStatus = ORDER_FINANCIAL.PAID
               }
               // Total Sale is not yet the Price of the order and there are no refunds
-              else if (totalSale < this.total_price && totalSale > 0 && totalRefund == 0) {
+              else if (totalSale < this.total_due && totalSale > 0 && totalRefund == 0) {
                 // console.log('SHOULD BE: partially_paid')
                 financialStatus = ORDER_FINANCIAL.PARTIALLY_PAID
               }
               // Total Sale is the Total Price and Total Refund is Total Price
-              else if (totalSale == this.total_price && totalRefund == this.total_price) {
+              else if (totalSale == this.total_due && totalRefund == this.total_due) {
                 // console.log('SHOULD BE: refunded')
                 financialStatus = ORDER_FINANCIAL.REFUNDED
               }
               // Total Sale is the Total Price but Total Refund is less than the Total Price
-              else if (totalSale == this.total_price && totalRefund < this.total_price) {
+              else if (totalSale == this.total_due && totalRefund < this.total_due) {
                 // console.log('SHOULD BE: partially_refunded')
                 financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
               }
@@ -244,7 +252,7 @@ module.exports = class Order extends Model {
               let totalPartialFulfillments = 0
               let totalSentFulfillments = 0
               let totalNonFulfillments = 0
-              _.each(fulfillments, fulfilment => {
+              fulfillments.forEach(fulfilment => {
                 if (fulfilment.status == FULFILLMENT_STATUS.FULFILLED) {
                   totalFulfillments++
                 }

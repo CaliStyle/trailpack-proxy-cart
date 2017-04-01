@@ -58,6 +58,7 @@ module.exports = class Cart extends Model {
                 properties: data.properties,
                 barcode: data.barcode,
                 price: data.price,
+                calculated_price: data.price,
                 compare_at_price: data.compare_at_price,
                 currency: data.currency,
                 fulfillment_service: data.fulfillment_service,
@@ -147,7 +148,7 @@ module.exports = class Cart extends Model {
                     lineItems.push(line)
                     this.line_items = lineItems
                   }
-                  return this.save()
+                  return this
                 })
             },
             removeLine: function(item, qty) {
@@ -165,6 +166,7 @@ module.exports = class Cart extends Model {
                   lineItems.splice(itemIndex, 1)
                 }
                 this.line_items = lineItems
+                return Promise.resolve(this)
               }
             },
             close: function(status) {
@@ -172,6 +174,7 @@ module.exports = class Cart extends Model {
             },
             recalculate: function() {
               // Default Values
+              let collections = []
               let subtotalPrice = 0
               let totalDiscounts = 0
               let totalCoupons = 0
@@ -181,10 +184,6 @@ module.exports = class Cart extends Model {
               let totalDue = 0
               let totalLineItemsPrice = 0
               let totalShipping = 0
-              let taxLines = []
-              let shippingLines = []
-              let discountedLines = []
-              let couponLines = []
               let totalItems = 0
 
               // Reset Globals
@@ -205,50 +204,55 @@ module.exports = class Cart extends Model {
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
               })
-              // Resolve taxes
-              return app.services.TaxService.calculate(this)
+
+              return app.services.CollectionService.cartCollections(this)
+                .then(resCollections => {
+                  collections = resCollections
+                  // Resolve taxes
+                  return app.services.TaxService.calculate(this, collections)
+                })
                 .then(tax => {
                   // Add tax lines
-                  taxLines = tax
-                  // Calculate tax costs
-                  _.each(taxLines, line => {
+                  // taxLines = tax
+                  // // Calculate tax costs
+                  _.each(this.tax_lines, line => {
                     totalTax = totalTax + line.price
                   })
                   // Resolve Shipping
-                  return app.services.ShippingService.calculate(this)
+                  return app.services.ShippingService.calculate(this, collections)
                 })
                 .then(shipping => {
                   // Add shipping lines
-                  shippingLines = shipping
-                  // Calculate shipping costs
-                  _.each(shippingLines, line => {
+                  // shippingLines = shipping
+                  // // Calculate shipping costs
+                  _.each(this.shipping_lines, line => {
                     totalShipping = totalShipping + line.price
                   })
-                  return app.services.DiscountService.calculate(this)
+                  return app.services.DiscountService.calculate(this, collections)
                 })
                 .then(discounts => {
-                  discountedLines = discounts
-                  _.each(discountedLines, line => {
+                  // console.log(discounts)
+                  // discountedLines = discounts
+                  _.each(this.discounted_lines, line => {
                     totalDiscounts = totalDiscounts + line.price
                   })
-                  return app.services.CouponService.calculate(this)
+                  return app.services.CouponService.calculate(this, collections)
                 })
                 .then(coupons => {
-                  couponLines = coupons
-                  _.each(couponLines, line => {
+                  _.each(this.coupon_lines, line => {
                     totalCoupons = totalCoupons + line.price
                   })
 
                   // Finalize Totals
-                  totalPrice = totalTax + totalShipping + subtotalPrice
-                  totalDue = totalPrice - totalDiscounts - totalCoupons
+                  totalPrice = Math.max(0, totalTax + totalShipping + subtotalPrice)
+                  totalDue = Math.max(0, totalPrice - totalDiscounts - totalCoupons)
 
                   // Set Cart values
                   this.total_items = totalItems
-                  this.tax_lines = taxLines
-                  this.shipping_lines = shippingLines
-                  this.discounted_lines = discountedLines
-                  this.coupon_lines = couponLines
+                  // this.tax_lines = taxLines
+                  // this.shipping_lines = shippingLines
+                  // this.discounted_lines = discountedLines
+                  // this.coupon_lines = couponLines
                   this.total_shipping = totalShipping
                   this.subtotal_price = subtotalPrice
                   this.total_discounts = totalDiscounts
@@ -258,7 +262,7 @@ module.exports = class Cart extends Model {
                   this.total_price = totalPrice
                   this.total_due = totalDue
 
-                  return this
+                  return Promise.resolve(this)
                 })
             }
           },
@@ -444,11 +448,6 @@ module.exports = class Cart extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        // The amount left to be paid. This is equal to the cost of the line items, taxes and shipping minus discounts and gift cards.
-        total_due: {
-          type: Sequelize.INTEGER,
-          defaultValue: 0
-        },
         // The total original price of the line items
         total_line_items_price: {
           type: Sequelize.INTEGER,
@@ -456,6 +455,11 @@ module.exports = class Cart extends Model {
         },
         // The sum of all the prices of all the items in the checkout, taxes and discounts included.
         total_price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The amount left to be paid. This is equal to the cost of the line items, taxes and shipping minus discounts and gift cards.
+        total_due: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

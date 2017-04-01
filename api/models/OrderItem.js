@@ -19,6 +19,44 @@ module.exports = class OrderItem extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            beforeCreate(values, options, fn) {
+              app.services.OrderService.itemBeforeCreate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            beforeUpdate(values, options, fn) {
+              app.services.OrderService.itemBeforeUpdate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            afterCreate(values, options, fn) {
+              app.services.OrderService.itemAfterCreate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            afterUpdate(values, options, fn) {
+              app.services.OrderService.itemAfterUpdate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            }
+          },
           classMethods: {
             FULFILLMENT_STATUS: FULFILLMENT_STATUS,
             FULFILLMENT_SERVICE: FULFILLMENT_SERVICE,
@@ -27,6 +65,12 @@ module.exports = class OrderItem extends Model {
              * @param models
              */
             associate: (models) => {
+              // models.OrderItem.belongsTo(models.Order, {
+              //
+              // })
+              // models.OrderItem.belongsTo(models.Fulfillment, {
+              //
+              // })
               // models.OrderItem.belongsTo(models.Product, {
               //
               // })

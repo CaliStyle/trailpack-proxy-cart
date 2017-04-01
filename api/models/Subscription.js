@@ -32,17 +32,17 @@ module.exports = class Subscription extends Model {
                 // as: 'customer_id'
               })
               // The Order that Created this Subscription
-              models.Subscription.belongsTo(models.Order, {
-                // as: 'order_id'
-              })
+              // models.Subscription.belongsTo(models.Order, {
+              //   as: 'original_order_id'
+              // })
               // // The Subscription Product
               // models.Subscription.belongsTo(models.Product, {
               //   // as: 'product_id'
               // })
               // The Subscription Product Variant
-              models.Subscription.belongsTo(models.ProductVariant, {
-                // as: 'product_variant_id'
-              })
+              // models.Subscription.belongsTo(models.ProductVariant, {
+              //   // as: 'product_variant_id'
+              // })
               // The collection of subscriptions for a given customer
               models.Subscription.belongsToMany(models.Collection, {
                 as: 'collections',
@@ -68,10 +68,19 @@ module.exports = class Subscription extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        order_id: {
+        // The Order that generated this subscription
+        original_order_id: {
           type: Sequelize.INTEGER,
           references: {
             model: 'Order',
+            key: 'id'
+          },
+          allowNull: false
+        },
+        customer_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Customer',
             key: 'id'
           },
           allowNull: false
@@ -91,6 +100,11 @@ module.exports = class Subscription extends Model {
         active: {
           type: Sequelize.BOOLEAN,
           defaultValue: true
+        },
+        // The date time that the subscription was last renewed at
+        renewed_at: {
+          type: Sequelize.DATE,
+          defaultValue: Sequelize.NOW
         },
         // The reason why the subscription was cancelled. If the subscription was not cancelled, this value is "null."
         cancel_reason: {

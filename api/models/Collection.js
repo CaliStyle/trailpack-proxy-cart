@@ -4,6 +4,9 @@ const Model = require('trails/model')
 const _ = require('lodash')
 const COLLECTION_SORT_ORDER = require('../utils/enums').COLLECTION_SORT_ORDER
 const COLLECTION_PURPOSE = require('../utils/enums').COLLECTION_PURPOSE
+const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
+const COLLECTION_DISCOUNT_TYPE = require('../utils/enums').COLLECTION_DISCOUNT_TYPE
+const COLLECTION_TAX_TYPE = require('../utils/enums').COLLECTION_TAX_TYPE
 /**
  * @module ProductCollection
  * @description Product Collection Model
@@ -51,17 +54,33 @@ module.exports = class Collection extends Model {
           classMethods: {
             COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
             COLLECTION_PURPOSE: COLLECTION_PURPOSE,
+            COLLECTION_DISCOUNT_SCOPE: COLLECTION_DISCOUNT_SCOPE,
+            COLLECTION_DISCOUNT_TYPE: COLLECTION_DISCOUNT_TYPE,
+            COLLECTION_TAX_TYPE: COLLECTION_TAX_TYPE,
             /**
              *
              * @param models
              */
             associate: (models) => {
               models.Collection.belongsToMany(models.Product, {
+                as: 'products',
                 through: {
                   model: models.ItemCollection,
                   unique: false,
                   scope: {
                     model: 'product'
+                  }
+                },
+                foreignKey: 'collection_id',
+                constraints: false
+              })
+              models.Collection.belongsToMany(models.Customer, {
+                as: 'customer',
+                through: {
+                  model: models.ItemCollection,
+                  unique: false,
+                  scope: {
+                    model: 'customer'
                   }
                 },
                 foreignKey: 'collection_id',
@@ -195,10 +214,30 @@ module.exports = class Collection extends Model {
           defaultValue: 0.0
         },
         tax_type: {
-          type: Sequelize.STRING
+          type: Sequelize.ENUM,
+          values: _.values(COLLECTION_TAX_TYPE),
+          defaultValue: COLLECTION_TAX_TYPE.PERCENTAGE
         },
         tax_name: {
           type: Sequelize.STRING
+        },
+        discount_scope: {
+          type: Sequelize.ENUM,
+          values: _.values(COLLECTION_DISCOUNT_SCOPE),
+          defaultValue: COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL
+        },
+        discount_type: {
+          type: Sequelize.ENUM,
+          values: _.values(COLLECTION_DISCOUNT_TYPE),
+          defaultValue: COLLECTION_DISCOUNT_TYPE.PERCENTAGE
+        },
+        discount_rate: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        discount_percentage: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
         },
         // Live Mode
         live_mode: {

@@ -72,10 +72,8 @@ module.exports = class CartService extends Service {
           return cart.addLine(item, items[index].quantity, items[index].properties)
         }))
       })
-      .then(resolvledItems => {
-        return cart.recalculate()
-      })
-      .then(cart => {
+      .then(resolvedItems => {
+        // console.log('RESOLVED ITEMS', resolvedItems)
         // console.log('THIS CREATED CART', cart)
         return cart.save()
       })
@@ -105,7 +103,7 @@ module.exports = class CartService extends Service {
    * @returns {Promise.<*>}
    */
   checkout(req){
-    const ProductVariant = this.app.orm.ProductVariant
+    // const ProductVariant = this.app.orm.ProductVariant
     const Customer = this.app.orm['Customer']
 
     if (!req.body.cart.id) {
@@ -137,36 +135,8 @@ module.exports = class CartService extends Service {
 
         resCustomer = foundCustomer
 
-        // Resolve all Line Items, Check Restrictions, Check Availability
-        return Promise.all(resCart.line_items.map(item => {
-          return ProductVariant.findById(item.variant_id, {attributes: ['id']})
-            .then(productVariant => {
-              return productVariant.checkRestrictions(resCustomer, req.body.shipping_address)
-                .then(restricted => {
-                  if (restricted) {
-                    throw new Error(`${restricted.title} can not be shipped to ${restricted.city} ${restricted.province} ${restricted.country}`)
-                  }
-                  return restricted
-                })
-                .then(restriction => {
-                  return productVariant.checkAvailability()
-                    .then(availability => {
-                      if (!availability.allowed) {
-                        throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
-                      }
-                      return availability
-                    })
-                })
-            })
-        }))
-      })
-      .then(restrictions => {
-        // Recalculate the Cart
         return resCart.recalculate()
-      })
-      .then(resCart => {
-        // Save the Cart
-        return resCart.save()
+          .then(() => resCart.save())
       })
       .then(resCart => {
         // This not required for POS or Guest Checkout
@@ -303,6 +273,7 @@ module.exports = class CartService extends Service {
     if (items.line_items) {
       items = items.line_items
     }
+    let resCart
     return this.resolve(cart)
       .then(foundCart => {
         if (!foundCart) {
@@ -312,7 +283,7 @@ module.exports = class CartService extends Service {
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
 
-        cart = foundCart
+        resCart = foundCart
         // const minimize = _.unionBy(items, 'product_id')
         return Promise.all(items.map(item => {
           return this.resolveItem(item)
@@ -320,15 +291,12 @@ module.exports = class CartService extends Service {
       })
       .then(resolvedItems => {
         return Promise.all(resolvedItems.map((item, index) => {
-          return cart.addLine(item, items[index].quantity, items[index].properties)
+          return resCart.addLine(item, items[index].quantity, items[index].properties)
         }))
       })
-      .then(resolvledItems => {
-        return cart.recalculate()
-      })
-      .then(cart => {
+      .then(resolvedItems => {
         // console.log('CartService.addItemsToCart', cart)
-        return cart.save()
+        return resCart.save()
       })
   }
 
@@ -342,6 +310,7 @@ module.exports = class CartService extends Service {
     if (items.line_items) {
       items = items.line_items
     }
+    let resCart
     return this.resolve(cart)
       .then(foundCart => {
         if (!foundCart) {
@@ -351,19 +320,18 @@ module.exports = class CartService extends Service {
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
 
-        cart = foundCart
+        resCart = foundCart
         return Promise.all(items.map(item => {
           return this.resolveItem(item)
         }))
       })
       .then(resolvedItems => {
-        _.each(resolvedItems, (item, index) => {
-          cart.removeLine(item, items[index].quantity)
-        })
-        return cart.recalculate()
+        return Promise.all(resolvedItems.map((item, index) => {
+          resCart.removeLine(item, items[index].quantity)
+        }))
       })
-      .then(cart => {
-        return cart.save()
+      .then(resolvedItems => {
+        return resCart.save()
       })
   }
   clearCart(cart){
@@ -380,9 +348,6 @@ module.exports = class CartService extends Service {
           }
           cart = foundCart
           cart = _.extend(cart, { line_items: [] })
-          return cart.recalculate()
-        })
-        .then(cart => {
           return cart.save()
         })
         .then(cart => {
@@ -463,11 +428,11 @@ module.exports = class CartService extends Service {
       .then(shop => {
         // console.log('CartService.beforeCreate', shop)
         cart.shop_id = shop.id
-        return cart
+        return cart.recalculate()
       })
       .catch(err => {
         // console.log('CartService.beforeCreate', err)
-        return cart
+        return cart.recalculate()
       })
   }
 
@@ -480,7 +445,13 @@ module.exports = class CartService extends Service {
     if (cart.ip) {
       cart.update_ip = cart.ip
     }
-    return Promise.resolve(cart)
+    if (cart.status == CART_STATUS.OPEN) {
+      return cart.recalculate()
+    }
+    else {
+      return Promise.resolve(cart)
+    }
+
   }
 }
 

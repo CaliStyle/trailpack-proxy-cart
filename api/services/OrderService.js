@@ -274,7 +274,7 @@ module.exports = class OrderService extends Service {
             orderFulfillment = ORDER_FULFILLMENT_KIND.MANUAL
           }
           if (this.resolveSendImmediately(transactions, orderFulfillment)) {
-            return this.app.services.FulfillmentService.fulfillOrder(resOrder)
+            return this.app.services.FulfillmentService.sendOrderToFulfillment(resOrder)
           }
           else {
             return
@@ -460,6 +460,41 @@ module.exports = class OrderService extends Service {
         return customerAddress
       }
     }
+  }
+
+  /**
+   *
+   * @param item
+   * @returns {Promise.<T>}
+   */
+  itemBeforeCreate(item){
+    return Promise.resolve(item)
+  }
+
+  /**
+   *
+   * @param item
+   * @returns {Promise.<T>}
+   */
+  itemBeforeUpdate(item){
+    return Promise.resolve(item)
+  }
+  /**
+   *
+   * @param item
+   * @returns {Promise.<T>}
+   */
+  itemAfterCreate(item){
+    return Promise.resolve(item)
+  }
+
+  /**
+   *
+   * @param item
+   * @returns {Promise.<T>}
+   */
+  itemAfterUpdate(item){
+    return Promise.resolve(item)
   }
 }
 

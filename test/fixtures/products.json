@@ -91,6 +91,15 @@
     "tags": [
       "subscription"
     ],
+    "collections": [
+      {
+        "handle": "test-discount",
+        "title": "Test Discount",
+        "discount_type": "fixed",
+        "discount_scope": "global",
+        "discount_rate": 100
+      }
+    ],
     "sku": "subscription-123"
   }
 ]

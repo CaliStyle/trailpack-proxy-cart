@@ -86,6 +86,9 @@ describe('OrderController', () => {
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
+        console.log('ORDER ITEMS', res.body.order_items)
+        // Defaults to not immediately fulfilled: fulfillment_status: none
+        assert.equal(res.body.order_items[0].fulfillment_id, null)
         done(err)
       })
   })

@@ -6,6 +6,9 @@ const _ = require('lodash')
 // const helpers = require('proxy-engine-helpers')
 const COLLECTION_SORT_ORDER = require('../utils/enums').COLLECTION_SORT_ORDER
 const COLLECTION_PURPOSE = require('../utils/enums').COLLECTION_PURPOSE
+const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
+const COLLECTION_DISCOUNT_TYPE = require('../utils/enums').COLLECTION_DISCOUNT_TYPE
+const COLLECTION_TAX_TYPE = require('../utils/enums').COLLECTION_TAX_TYPE
 
 /**
  * @module CollectionUpload
@@ -22,6 +25,9 @@ module.exports = class CollectionUpload extends Model {
         classMethods: {
           COLLECTION_PURPOSE: COLLECTION_PURPOSE,
           COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
+          COLLECTION_DISCOUNT_SCOPE: COLLECTION_DISCOUNT_SCOPE,
+          COLLECTION_DISCOUNT_TYPE: COLLECTION_DISCOUNT_TYPE,
+          COLLECTION_TAX_TYPE: COLLECTION_TAX_TYPE,
           /**
            *
            * @param options
@@ -86,6 +92,40 @@ module.exports = class CollectionUpload extends Model {
         type: Sequelize.ENUM,
         values: _.values(COLLECTION_SORT_ORDER),
         defaultValue: COLLECTION_SORT_ORDER.ALPHA_DESC
+      },
+      tax_rate: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
+      },
+      tax_percentage: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
+      },
+      tax_type: {
+        type: Sequelize.ENUM,
+        values: _.values(COLLECTION_TAX_TYPE),
+        defaultValue: COLLECTION_TAX_TYPE.PERCENTAGE
+      },
+      tax_name: {
+        type: Sequelize.STRING
+      },
+      discount_scope: {
+        type: Sequelize.ENUM,
+        values: _.values(COLLECTION_DISCOUNT_SCOPE),
+        defaultValue: COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL
+      },
+      discount_type: {
+        type: Sequelize.ENUM,
+        values: _.values(COLLECTION_DISCOUNT_TYPE),
+        defaultValue: COLLECTION_DISCOUNT_TYPE.PERCENTAGE
+      },
+      discount_rate: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
+      },
+      discount_percentage: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
       }
     }
     return schema

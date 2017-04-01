@@ -144,11 +144,16 @@ describe('CartPolicy', () => {
       .get('/cart/session')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
+        console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 1)
+        assert.equal(res.body.discounted_lines.length, 1)
         assert.equal(res.body.line_items[0].product_id, shopProducts[2].id)
+        assert.equal(res.body.line_items[0].price, shopProducts[2].price)
+        assert.equal(res.body.line_items[0].calculated_price, shopProducts[2].price - 100)
+        assert.equal(res.body.total_discounts, 100)
+        assert.equal(res.body.total_due, shopProducts[2].price - res.body.total_discounts)
         assert.equal(res.body.subtotal_price, shopProducts[2].price)
         done(err)
       })
@@ -169,7 +174,9 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('CHECKOUT', res.body)
+        // console.log('CHECKOUT', res.body)
+        // console.log('ORDER ITEMS', res.body.order_items)
+
         const orderID = res.body.order.id
         cartIDSwitch = res.body.cart.id
         assert.ok(res.body.cart.id)
@@ -185,7 +192,9 @@ describe('CartPolicy', () => {
         // TODO check quantities
         assert.equal(res.body.order.order_items.length, 1)
         assert.equal(res.body.order.order_items[0].order_id, orderID)
-
+        assert.ok(res.body.order.order_items[0].fulfillment_id)
+        assert.equal(res.body.order.order_items[0].fulfillment_status, 'fulfilled')
+        assert.equal(res.body.order.order_items[0].fulfillment_service, 'manual')
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
         assert.equal(res.body.order.transactions[0].kind, 'sale')

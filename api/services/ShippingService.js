@@ -19,7 +19,8 @@ module.exports = class ShippingService extends Service {
         return this.getShipping(sendFromTo)
       })
       .then(taxLines => {
-        return taxLines
+        cart.taxlines = taxLines
+        return cart
       })
   }
   getShipping(sendFromTo) {

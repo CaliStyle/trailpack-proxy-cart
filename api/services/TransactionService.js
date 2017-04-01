@@ -91,5 +91,21 @@ module.exports = class TransactionService extends Service {
   refund(transaction) {
     return Promise.resolve(transaction)
   }
+
+  /**
+   *
+   * @param transaction
+   * @returns {Promise.<TResult>}
+   */
+  afterCreate(transaction) {
+    const Order = this.app.orm['Order']
+    return Order.findById(transaction.order_id)
+      .then(order => {
+        return order.saveFinancialStatus()
+      })
+      .then(order => {
+        return transaction
+      })
+  }
 }
 

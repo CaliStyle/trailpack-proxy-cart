@@ -15,7 +15,8 @@ module.exports = class CouponService extends Service {
   calculate(cart){
     return this.app.services.CartService.resolve(cart)
       .then(cart => {
-        return []
+        cart.coupon_lines = []
+        return cart
       })
   }
 }

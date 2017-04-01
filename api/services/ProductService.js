@@ -669,6 +669,9 @@ module.exports = class ProductService extends Service {
     if (product.compare_at_price  && !variant.compare_at_price) {
       variant.compare_at_price = product.compare_at_price
     }
+    if (variant.price  && !variant.compare_at_price) {
+      variant.compare_at_price = variant.price
+    }
     // If the currency set on parent
     if (product.currency && !variant.currency) {
       variant.currency = product.currency

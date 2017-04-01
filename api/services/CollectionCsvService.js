@@ -119,7 +119,15 @@ module.exports = class CollectionCsvService extends Service {
             body: collection.body,
             primary_purpose: collection.primary_purpose,
             sort_order: collection.sort_order,
-            published: collection.published
+            published: collection.published,
+            tax_rate: collection.tax_rate,
+            tax_percentage: collection.tax_percentage,
+            tax_type: collection.tax_type,
+            tax_name: collection.tax_name,
+            discount_scope: collection.discount_scope,
+            discount_type: collection.discount_type,
+            discount_rate: collection.discount_rate,
+            discount_percentage: collection.discount_percentage
           }
           return this.app.services.CollectionService.resolve(create)
         }))

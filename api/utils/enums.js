@@ -7,7 +7,15 @@ module.exports = {
     body: 'Body',
     primary_purpose: 'Primary Purpose',
     published: 'Published',
-    sort_order: 'Sort Order'
+    sort_order: 'Sort Order',
+    tax_rate: 'Tax Rate',
+    tax_percentage: 'Tax Percentage',
+    tax_type: 'Tax Type',
+    tax_name: 'Tax Name',
+    discount_scope: 'Discount Scope',
+    discount_type: 'Discount Type',
+    discount_rate: 'Discount Rate',
+    discount_percentage: 'Discount Percentage'
   },
   CUSTOMER_UPLOAD: {
     account_balance: 'Account Balance',
@@ -329,5 +337,17 @@ module.exports = {
     PRICE_ASC: 'price-asc',
     // By price, in descending order (highest - lowest).
     PRICE_DESC: 'price-desc'
+  },
+  COLLECTION_DISCOUNT_SCOPE: {
+    INDIVIDUAL: 'individual',
+    GLOBAL: 'global'
+  },
+  COLLECTION_DISCOUNT_TYPE: {
+    PERCENTAGE: 'percentage',
+    FIXED: 'fixed',
+  },
+  COLLECTION_TAX_TYPE: {
+    PERCENTAGE: 'percentage',
+    FIXED: 'fixed',
   }
 }

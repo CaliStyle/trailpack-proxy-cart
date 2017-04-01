@@ -128,5 +128,54 @@ module.exports = class CollectionService extends Service {
         return resCollection.update(update, options)
       })
   }
+  cartCollections(cart) {
+    const Collection = this.app.orm['Collection']
+    const ItemCollection = this.app.orm['ItemCollection']
+    const criteria = []
+    const productIds = []
+    const customerIds = []
+
+    if (cart.customer_id) {
+      criteria.push({model: 'customer', model_id: cart.customer_id})
+      customerIds.push(cart.customer_id)
+    }
+    cart.line_items.forEach(item => {
+      criteria.push({model: 'product', model_id: item.product_id})
+      productIds.push(item.product_id)
+    })
+    // console.log('CRITERIA', criteria)
+
+    return ItemCollection.findAll({
+      where: criteria,
+      attributes: ['collection_id']
+    })
+      .then(itemCollections => {
+        // console.log(itemCollections)
+        const criteria = []
+
+        itemCollections.forEach(item => {
+          criteria.push({id: item.collection_id})
+        })
+        // console.log('CRITERIA',criteria)
+        return Collection.findAll({
+          where: criteria,
+          attributes: [
+            'id',
+            'title',
+            'discount_type',
+            'discount_scope',
+            'discount_rate',
+            'discount_percentage'
+          ]
+          // include: [{
+          //   model: this.app.orm['Product'],
+          //   as: 'products'
+          //   // where: {
+          //   //   id: productIds
+          //   // }
+          // }]
+        })
+      })
+  }
 }
 

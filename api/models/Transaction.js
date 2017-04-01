@@ -23,17 +23,13 @@ module.exports = class Transaction extends Model {
           underscored: true,
           hooks: {
             afterCreate: (values, options, fn) => {
-              const Order = app.orm['Order']
-              Order.findById(values.order_id)
-                  .then(order => {
-                    return order.resolveFinancialStatus()
-                  })
-                  .then(order => {
-                    fn(null, values)
-                  })
-                  .catch(err => {
-                    fn(err, values)
-                  })
+              app.services.TransactionService.afterCreate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             }
           },
           classMethods: {

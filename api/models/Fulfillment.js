@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
@@ -17,17 +18,22 @@ module.exports = class Fulfillment extends Model {
         options: {
           underscored: true,
           hooks: {
-            afterCreate: (values, options, fn) => {
-              const Order = app.orm['Order']
-              Order.findById(values.order_id)
-                .then(order => {
-                  return order.resolveFulfillmentStatus()
-                })
-                .then(order => {
-                  fn(null, values)
+            beforeCreate: (values, options, fn) => {
+              app.services.FulfillmentService.beforeCreate(values)
+                .then(values => {
+                  return fn(null, values)
                 })
                 .catch(err => {
-                  fn(err, values)
+                  return fn(err)
+                })
+            },
+            beforeUpdate: (values, options, fn) => {
+              app.services.FulfillmentService.beforeUpdate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
                 })
             }
           },
@@ -40,8 +46,65 @@ module.exports = class Fulfillment extends Model {
              */
             associate: (models) => {
               models.Fulfillment.hasMany(models.OrderItem, {
+                foreignKey: 'fulfillment_id',
                 as: 'order_items'
               })
+            }
+          },
+          instanceMethods: {
+            resolveFulfillmentStatus: function() {
+              const OrderItem = app.orm['OrderItem']
+              if (!this.id){
+                return Promise.resolve(this)
+              }
+              return OrderItem.findAll({
+                where: {
+                  fulfillment_id: this.id
+                }
+              })
+                .then(orderItems => {
+                  this.setFulfillmentStatus(orderItems)
+                  return this
+                })
+            },
+            setFulfillmentStatus: function(orderItems){
+              console.log('THIS STATUS', this.status)
+              let fulfillmentStatus = FULFILLMENT_STATUS.NONE
+              let totalFulfillments = 0
+              let totalPartialFulfillments = 0
+              let totalSentFulfillments = 0
+              let totalNonFulfillments = 0
+
+              orderItems.forEach(item => {
+                if (item.fulfillment_status == FULFILLMENT_STATUS.FULFILLED) {
+                  totalFulfillments++
+                }
+                else if (item.fulfillment_status == FULFILLMENT_STATUS.PARTIAL) {
+                  totalPartialFulfillments++
+                }
+                else if (item.fulfillment_status == FULFILLMENT_STATUS.SENT) {
+                  totalSentFulfillments++
+                }
+                else if (item.fulfillment_status == FULFILLMENT_STATUS.NONE) {
+                  totalNonFulfillments++
+                }
+              })
+
+              if (totalFulfillments == orderItems.length) {
+                fulfillmentStatus = FULFILLMENT_STATUS.FULFILLED
+              }
+              else if (totalSentFulfillments == orderItems.length) {
+                fulfillmentStatus = FULFILLMENT_STATUS.SENT
+              }
+              else if (totalPartialFulfillments > 0) {
+                fulfillmentStatus = FULFILLMENT_STATUS.PARTIAL
+              }
+              else if (totalNonFulfillments == orderItems.length) {
+                fulfillmentStatus = FULFILLMENT_STATUS.NONE // back to default
+              }
+
+              this.status = fulfillmentStatus
+              return this
             }
           }
         }

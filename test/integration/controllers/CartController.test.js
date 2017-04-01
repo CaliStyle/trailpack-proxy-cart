@@ -248,7 +248,7 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('CHECKOUT', res.body)
+        // console.log('CHECKOUT', res.body)
         orderID = res.body.order.id
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
@@ -263,6 +263,14 @@ describe('CartController', () => {
         assert.equal(res.body.order.order_items[0].order_id, orderID)
         assert.equal(res.body.order.order_items[1].order_id, orderID)
         assert.equal(res.body.order.order_items[2].order_id, orderID)
+
+        assert.ok(res.body.order.order_items[0].fulfillment_id)
+        assert.ok(res.body.order.order_items[1].fulfillment_id)
+        assert.ok(res.body.order.order_items[2].fulfillment_id)
+        assert.equal(res.body.order.order_items[0].fulfillment_status, 'sent')
+        assert.equal(res.body.order.order_items[1].fulfillment_status, 'sent')
+        assert.equal(res.body.order.order_items[2].fulfillment_status, 'sent')
+
         assert.equal(res.body.order.total_items, 4)
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
