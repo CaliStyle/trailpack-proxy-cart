@@ -189,8 +189,17 @@ module.exports = class Cart extends Model {
               // Reset Globals
               this.has_shipping = false
               this.has_subscription = false
+              // Set back to default
+              this.discounted_lines = []
+              this.line_items.map(item => {
+                item.discounted_lines = []
+                item.total_discounts = 0
+                item.calculated_price = item.price
+                return item
+              })
 
-              _.each(this.line_items, item => {
+              // Calculate Totals
+              this.line_items.forEach(item => {
                 // Check if at least one time requires shipping
                 if (item.requires_shipping) {
                   totalWeight = totalWeight + item.grams
@@ -205,6 +214,7 @@ module.exports = class Cart extends Model {
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
               })
 
+              // Get Cart Collections
               return app.services.CollectionService.cartCollections(this)
                 .then(resCollections => {
                   collections = resCollections
@@ -213,8 +223,6 @@ module.exports = class Cart extends Model {
                 })
                 .then(tax => {
                   // Add tax lines
-                  // taxLines = tax
-                  // // Calculate tax costs
                   _.each(this.tax_lines, line => {
                     totalTax = totalTax + line.price
                   })
@@ -249,10 +257,6 @@ module.exports = class Cart extends Model {
 
                   // Set Cart values
                   this.total_items = totalItems
-                  // this.tax_lines = taxLines
-                  // this.shipping_lines = shippingLines
-                  // this.discounted_lines = discountedLines
-                  // this.coupon_lines = couponLines
                   this.total_shipping = totalShipping
                   this.subtotal_price = subtotalPrice
                   this.total_discounts = totalDiscounts

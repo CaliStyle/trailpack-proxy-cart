@@ -125,6 +125,9 @@ describe('CartPolicy', () => {
         line_items: [
           {
             product_id: shopProducts[3].id
+          },
+          {
+            product_id: shopProducts[4].id
           }
         ]
       })
@@ -133,9 +136,10 @@ describe('CartPolicy', () => {
         console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
-        assert.equal(res.body.line_items.length, 1)
+        assert.equal(res.body.line_items.length, 2)
         assert.equal(res.body.line_items[0].product_id, shopProducts[3].id)
-        assert.equal(res.body.subtotal_price, shopProducts[3].price)
+        assert.equal(res.body.line_items[1].product_id, shopProducts[4].id)
+        assert.equal(res.body.subtotal_price, shopProducts[3].price + shopProducts[4].price)
         done(err)
       })
   })
@@ -161,14 +165,17 @@ describe('CartPolicy', () => {
         console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
-        assert.equal(res.body.line_items.length, 1)
+        assert.equal(res.body.line_items.length, 2)
         assert.equal(res.body.line_items[0].product_id, shopProducts[3].id)
         assert.equal(res.body.line_items[0].price, shopProducts[3].price)
         assert.equal(res.body.line_items[0].calculated_price, shopProducts[3].price - 100)
-        assert.equal(res.body.total_discounts, 100)
-        assert.equal(res.body.discounted_lines.length, 1)
-        assert.equal(res.body.total_due, shopProducts[3].price - res.body.total_discounts)
-        assert.equal(res.body.subtotal_price, shopProducts[3].price)
+        assert.equal(res.body.line_items[1].product_id, shopProducts[4].id)
+        assert.equal(res.body.line_items[1].price, shopProducts[4].price)
+        assert.equal(res.body.line_items[1].calculated_price, shopProducts[4].price - 200)
+        assert.equal(res.body.total_discounts, 300)
+        assert.equal(res.body.discounted_lines.length, 2)
+        assert.equal(res.body.total_due, shopProducts[3].price + shopProducts[4].price - res.body.total_discounts)
+        assert.equal(res.body.subtotal_price, shopProducts[3].price + shopProducts[4].price)
         done(err)
       })
   })
@@ -201,14 +208,18 @@ describe('CartPolicy', () => {
         assert.equal(res.body.order.currency, 'USD')
         assert.equal(res.body.order.source_name, 'api')
         assert.equal(res.body.order.processing_method, 'checkout')
-        assert.ok(res.body.order.subtotal_price)
+        assert.equal(res.body.order.subtotal_price, shopProducts[3].price + shopProducts[4].price)
         // Order Items
         // TODO check quantities
-        assert.equal(res.body.order.order_items.length, 1)
+        assert.equal(res.body.order.order_items.length, 2)
         assert.equal(res.body.order.order_items[0].order_id, orderID)
         assert.ok(res.body.order.order_items[0].fulfillment_id)
         assert.equal(res.body.order.order_items[0].fulfillment_status, 'fulfilled')
         assert.equal(res.body.order.order_items[0].fulfillment_service, 'manual')
+        assert.equal(res.body.order.order_items[1].order_id, orderID)
+        assert.ok(res.body.order.order_items[1].fulfillment_id)
+        assert.equal(res.body.order.order_items[1].fulfillment_status, 'fulfilled')
+        assert.equal(res.body.order.order_items[1].fulfillment_service, 'manual')
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
         assert.equal(res.body.order.transactions[0].kind, 'sale')

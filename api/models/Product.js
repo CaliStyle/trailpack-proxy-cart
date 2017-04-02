@@ -251,7 +251,10 @@ module.exports = class Product extends Model {
               }
 
               // TODO loop through collections and produce calculated price
-              resp.calculated_price = resp.price
+              // if (resp.collections) {
+              //   resp.calculated_price = app.services.DiscountService.calculateProduct(resp, resp.collections).calculated_price
+              //   console.log('CALCULATED PRICE', resp.calculated_price)
+              // }
 
               return resp
             }

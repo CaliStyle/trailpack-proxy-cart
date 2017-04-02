@@ -103,5 +103,33 @@
       }
     ],
     "sku": "subscription-123"
+  },
+  {
+    "handle": "discount-test",
+    "title": "Discount Test!",
+    "body": "<strong>Discount Test!</strong>",
+    "vendor": "Great Scott Inc",
+    "type": "subscription",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "inventory_quantity": 10000,
+    "tags": [
+      "subscription"
+    ],
+    "collections": [
+      {
+        "handle": "test-discount-2",
+        "title": "Test Discount 2",
+        "discount_type": "fixed",
+        "discount_scope": "individual",
+        "discount_rate": 100,
+        "primary_purpose": "discount",
+        "published": true
+      }
+    ],
+    "sku": "discount-1234"
   }
 ]
