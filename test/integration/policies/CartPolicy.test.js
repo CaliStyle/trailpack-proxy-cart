@@ -195,7 +195,7 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('CHECKOUT', res.body)
+        console.log('CHECKOUT', res.body.order)
         // console.log('ORDER ITEMS', res.body.order_items)
 
         const orderID = res.body.order.id
@@ -209,6 +209,12 @@ describe('CartPolicy', () => {
         assert.equal(res.body.order.source_name, 'api')
         assert.equal(res.body.order.processing_method, 'checkout')
         assert.equal(res.body.order.subtotal_price, shopProducts[3].price + shopProducts[4].price)
+        assert.equal(res.body.order.total_price, shopProducts[3].price + shopProducts[4].price - res.body.order.total_discounts)
+        assert.equal(res.body.order.total_discounts, 300)
+        assert.equal(res.body.order.discounted_lines.length, 2)
+        assert.equal(res.body.order.total_due, 0)
+
+
         // Order Items
         // TODO check quantities
         assert.equal(res.body.order.order_items.length, 2)
@@ -252,4 +258,24 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
+  // it('should checkout switch cart and create subscription', done => {
+  //   agent
+  //     .post('/cart/checkout')
+  //     .send({
+  //       payment_kind: 'sale',
+  //       payment_details: [
+  //         {
+  //           gateway: 'payment_processor',
+  //           token: '123'
+  //         }
+  //       ],
+  //       fulfillment_kind: 'immediate'
+  //     })
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       console.log('THIS POLICY ORDER', res.body.order)
+  //       // assert.equal(res.body)
+  //       done(err)
+  //     })
+  // })
 })
