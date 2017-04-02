@@ -92,6 +92,7 @@
       "subscription"
     ],
     "collections": [
+      "Dummy Collection",
       {
         "handle": "test-discount",
         "title": "Test Discount",
