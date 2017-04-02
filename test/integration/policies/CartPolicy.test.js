@@ -128,6 +128,32 @@ describe('CartPolicy', () => {
           },
           {
             product_id: shopProducts[4].id
+          },
+          {
+            product_id: shopProducts[2].id
+          }
+        ]
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS POLICY CART', res.body)
+        assert.ok(res.body.id)
+        assert.equal(res.body.id, cartIDSwitch)
+        assert.equal(res.body.line_items.length, 3)
+        assert.equal(res.body.line_items[0].product_id, shopProducts[3].id)
+        assert.equal(res.body.line_items[1].product_id, shopProducts[4].id)
+        assert.equal(res.body.line_items[2].product_id, shopProducts[2].id)
+        assert.equal(res.body.subtotal_price, shopProducts[3].price + shopProducts[4].price + shopProducts[2].price)
+        done(err)
+      })
+  })
+  it('should remove products to switched cart', done => {
+    agent
+      .post('/cart/removeItems')
+      .send({
+        line_items: [
+          {
+            product_id: shopProducts[2].id
           }
         ]
       })
@@ -143,20 +169,20 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
-  it('should find product with collection', (done) => {
-    request
-      .get('/product/collection/test-discount')
-      .expect(200)
-      .end((err, res) => {
-        console.log('THIS COLLECTION',res.body)
-        assert.equal(res.body[0].collections[0].handle, 'test-discount')
-        assert.equal(res.body[0].collections[0].title, 'Test Discount')
-        assert.equal(res.body[0].collections[0].discount_scope, 'global')
-        assert.equal(res.body[0].collections[0].discount_type, 'fixed')
-        assert.equal(res.body[0].collections[0].discount_rate, '100')
-        done(err)
-      })
-  })
+  // it('should find product with collection', (done) => {
+  //   request
+  //     .get('/product/collection/test-discount')
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       console.log('THIS COLLECTION',res.body)
+  //       assert.equal(res.body[0].collections[0].handle, 'test-discount')
+  //       assert.equal(res.body[0].collections[0].title, 'Test Discount')
+  //       assert.equal(res.body[0].collections[0].discount_scope, 'global')
+  //       assert.equal(res.body[0].collections[0].discount_type, 'fixed')
+  //       assert.equal(res.body[0].collections[0].discount_rate, '100')
+  //       done(err)
+  //     })
+  // })
   it('should get cart in session', done => {
     agent
       .get('/cart/session')
@@ -222,10 +248,13 @@ describe('CartPolicy', () => {
         assert.ok(res.body.order.order_items[0].fulfillment_id)
         assert.equal(res.body.order.order_items[0].fulfillment_status, 'fulfilled')
         assert.equal(res.body.order.order_items[0].fulfillment_service, 'manual')
+        assert.ok(res.body.order.order_items[0].calculated_price)
+
         assert.equal(res.body.order.order_items[1].order_id, orderID)
         assert.ok(res.body.order.order_items[1].fulfillment_id)
         assert.equal(res.body.order.order_items[1].fulfillment_status, 'fulfilled')
         assert.equal(res.body.order.order_items[1].fulfillment_service, 'manual')
+        assert.ok(res.body.order.order_items[1].calculated_price)
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
         assert.equal(res.body.order.transactions[0].kind, 'sale')

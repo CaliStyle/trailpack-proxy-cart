@@ -189,9 +189,10 @@ module.exports = class Cart extends Model {
               // Reset Globals
               this.has_shipping = false
               this.has_subscription = false
+
               // Set back to default
               this.discounted_lines = []
-              this.line_items.map(item => {
+              this.line_items = this.line_items.map(item => {
                 item.discounted_lines = []
                 item.total_discounts = 0
                 item.calculated_price = item.price

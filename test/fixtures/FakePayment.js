@@ -50,4 +50,16 @@ module.exports = class FakePaymentProcessor {
     transaction.status = 'success'
     return Promise.resolve(transaction)
   }
+  createCustomer(customer) {
+    return Promise.resolve(customer)
+  }
+  createCustomerSource(source) {
+    return Promise.resolve(source)
+  }
+  updateCustomer(customer) {
+    return Promise.resolve(customer)
+  }
+  updateCustomerSource(source) {
+    return Promise.resolve(source)
+  }
 }

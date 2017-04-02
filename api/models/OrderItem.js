@@ -155,6 +155,10 @@ module.exports = class OrderItem extends Model {
         price: {
           type: Sequelize.INTEGER
         },
+        // The price of the item after discounts have been applied.
+        calculated_price: {
+          type: Sequelize.INTEGER
+        },
         // The unique numeric identifier for the product in the fulfillment. Can be null if the original product associated with the order is deleted at a later date
         // The number of products that were purchased.
         quantity: {
