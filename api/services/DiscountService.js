@@ -30,7 +30,7 @@ module.exports = class DiscountService extends Service {
         // console.log('THESE COLLECTIONS',collections)
         // Loop through collection and apply discounts, stop if there are no line items
         collections.forEach(collection => {
-          console.log('PRODUCT COLLECTIONS', collection.products)
+          // console.log('PRODUCT COLLECTIONS', collection.products)
           if (cart.line_items.length == 0) {
             return
           }
@@ -41,6 +41,9 @@ module.exports = class DiscountService extends Service {
             scope: collection.discount_scope,
             price: 0,
             lines: []
+          }
+          if (!collection.discount_rate > 0 && !collection.percentage > 0) {
+            return
           }
           if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.GLOBAL) {
             // console.log('FIXED', collection.discount_type, COLLECTION_DISCOUNT_TYPE.FIXED)

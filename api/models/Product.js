@@ -208,7 +208,11 @@ module.exports = class Product extends Model {
           },
           instanceMethods: {
             toJSON: function() {
+              // Make JSON
               const resp = this.get({ plain: true })
+              // Set Defaults
+              resp.calculated_price = resp.price
+
               // Transform Tags to array on toJSON
               if (resp.tags) {
                 // console.log(resp.tags)
@@ -239,8 +243,10 @@ module.exports = class Product extends Model {
                       resp.variants[idx].metadata = variant.metadata.data
                     }
                   }
-                  // TODO loop through collections and produce calculated price
+                  // Set Defaults
                   resp.variants[idx].calculated_price = variant.price
+                  // TODO loop through collections and produce calculated price
+
                 })
               }
               // Transform Metadata to plain on toJSON
