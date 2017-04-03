@@ -299,6 +299,36 @@ module.exports = class CustomerController extends Controller {
     res.ok()
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  order(req, res) {
+    console.log('I WAS CALLED')
+    const Order = this.app.orm['Order']
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+    Order.findByIdDefault(req.params.id)
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   orders(req, res) {
     console.log('I WAS CALLED')
     const Order = this.app.orm['Order']
