@@ -129,6 +129,18 @@
         "discount_rate": 100,
         "primary_purpose": "discount",
         "published": true
+      },
+      {
+        "handle": "test-discount-3",
+        "title": "Test Discount 3",
+        "discount_type": "fixed",
+        "discount_scope": "individual",
+        "discount_rate": 100,
+        "primary_purpose": "discount",
+        "published": true,
+        "discount_product_exclude": [
+          "subscription"
+        ]
       }
     ],
     "sku": "discount-1234"

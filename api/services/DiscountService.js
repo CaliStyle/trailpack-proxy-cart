@@ -55,9 +55,13 @@ module.exports = class DiscountService extends Service {
               discountedLine.percentage = collection.discount_percentage
               discountedLine.type = COLLECTION_DISCOUNT_TYPE.PERCENTAGE
             }
-
+            let publish = false
             cart.line_items = _.clone(cart.line_items.map((item, index) => {
-
+              // const product = collection.products.filter(product => product.id == item.product_id)[0]
+              // Search Exclusion
+              if (collection.discount_product_exclude.indexOf(item.type) > -1) {
+                return item
+              }
               const lineDiscountedLine = _.omit(_.clone(discountedLine),'lines')
 
               if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.FIXED) {
@@ -66,7 +70,8 @@ module.exports = class DiscountService extends Service {
               else if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
                 lineDiscountedLine.price = (item.price * discountedLine.percentage)
               }
-              // console.log(lineDiscountedLine)
+
+              publish = true
 
               item.discounted_lines.push(lineDiscountedLine)
               item.calculated_price = Math.max(0, item.calculated_price - lineDiscountedLine.price)
@@ -75,6 +80,11 @@ module.exports = class DiscountService extends Service {
               discountedLine.lines.push(index)
               return item
             }))
+
+            if (publish) {
+              // Add the discounted Line
+              discountedLines.push(discountedLine)
+            }
           }
           else if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL) {
             if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.FIXED) {
@@ -86,19 +96,23 @@ module.exports = class DiscountService extends Service {
               discountedLine.type = COLLECTION_DISCOUNT_TYPE.PERCENTAGE
             }
             const lineDiscountedLine = _.omit(_.clone(discountedLine),'lines')
-
+            let publish = false
             cart.line_items = _.clone(cart.line_items.map((item, index) => {
-
-              if (collection.products.filter(product => product.id == item.product_id).length == 0) {
+              const product = collection.products.filter(product => product.id == item.product_id)[0]
+              if (!product) {
                 return item
               }
-
+              if (collection.discount_product_exclude.indexOf(item.type) > -1) {
+                return item
+              }
               if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.FIXED) {
                 lineDiscountedLine.price =  discountedLine.rate
               }
               else if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
                 lineDiscountedLine.price = (item.price * discountedLine.percentage)
               }
+
+              publish = true
 
               item.discounted_lines.push(lineDiscountedLine)
               item.calculated_price = Math.max(0, item.calculated_price - lineDiscountedLine.price)
@@ -107,10 +121,12 @@ module.exports = class DiscountService extends Service {
               discountedLine.lines.push(index)
               return item
             }))
-          }
 
-          // Add the discounted Line
-          discountedLines.push(discountedLine)
+            if (publish) {
+              // Add the discounted Line
+              discountedLines.push(discountedLine)
+            }
+          }
 
         })
         cart.discounted_lines = discountedLines

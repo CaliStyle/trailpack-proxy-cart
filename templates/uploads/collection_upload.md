@@ -48,3 +48,7 @@ States whether or not a collection is published on your storefront. Valid values
 ## Discount Rate
 
 ## Discount Percentage
+
+## Discount Product Include
+
+## Discount Product Exclude
