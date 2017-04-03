@@ -17,6 +17,18 @@ module.exports = class Account extends Model {
       config = {
         options: {
           underscored: true
+        },
+        classMethods: {
+          associate: (models) => {
+            models.Account.belongsTo(models.Customer, {
+              through: {
+                model: models.CustomerAccount,
+                unique: false
+              },
+              foreignKey: 'account_id',
+              constraints: false
+            })
+          }
         }
       }
     }

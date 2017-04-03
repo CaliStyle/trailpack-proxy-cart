@@ -364,7 +364,24 @@ module.exports = class CustomerService extends Service {
   afterCreate(customer) {
     return this.app.services.PaymentGenericService.createCustomer(customer)
       .then(serviceCustomer => {
-        return customer
+        const Account = this.app.orm['Account']
+        const CustomerAccount = this.app.orm['CustomerAccount']
+        return Account.create({
+          gateway: serviceCustomer.gateway,
+          data: serviceCustomer.data
+        })
+          .then(account => {
+            if (account) {
+              return CustomerAccount.create({
+                customer_id: customer.id,
+                account_id: account.id
+              })
+            }
+            return
+          })
+          .then(account => {
+            return customer
+          })
       })
   }
 

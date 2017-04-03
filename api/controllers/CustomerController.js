@@ -330,7 +330,6 @@ module.exports = class CustomerController extends Controller {
    * @param res
    */
   orders(req, res) {
-    console.log('I WAS CALLED')
     const Order = this.app.orm['Order']
     let customerId = req.params.id
 
@@ -365,6 +364,113 @@ module.exports = class CustomerController extends Controller {
       .catch(err => {
         return res.serverError(err)
       })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  subscription(req, res) {
+    const Subscription = this.app.orm['Subscription']
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+    Subscription.findByIdDefault(req.params.id)
+      .then(subscription => {
+        return res.json(subscription)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  subscriptions(req, res) {
+    console.log('I WAS CALLED')
+    const Subscription = this.app.orm['Subscription']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Subscription.findAndCount({
+      subscription: sort,
+      where: {
+        customer_id: customerId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(subscriptions => {
+        res.set('X-Pagination-Total', subscriptions.count)
+        res.set('X-Pagination-Pages', Math.ceil(subscriptions.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(subscriptions.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  updateAccount(req, res) {
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+  }
+  addSource(req, res) {
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+  }
+  updateSource(req, res) {
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+  }
+  removeSource(req, res) {
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
   }
 }
 

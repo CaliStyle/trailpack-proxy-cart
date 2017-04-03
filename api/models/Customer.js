@@ -71,6 +71,7 @@ module.exports = class Customer extends Model {
                 as: 'owners',
                 through: 'UserItem'//If many to many is needed
               })
+
               // models.Customer.belongsToMany(models.Cart, {
               //   as: 'carts',
               //   through: {
@@ -176,6 +177,15 @@ module.exports = class Customer extends Model {
                   foreignKey: 'model_id',
                   constraints: false
                 }
+              })
+              models.Customer.belongsToMany(models.Account, {
+                as: 'accounts',
+                through: {
+                  model: models.CustomerAccount,
+                  unique: false
+                },
+                foreignKey: 'customer_id',
+                constraints: false
               })
               // models.Customer.hasMany(models.User, {
               //   as: 'users',

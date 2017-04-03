@@ -13,6 +13,27 @@ module.exports = class SubscriptionService extends Service {
   create() {
     //
   }
+  update() {
+    //
+  }
+  addItems() {
+    //
+  }
+  addItem() {
+    //
+  }
+  removeItems() {
+    //
+  }
+  removeItem() {
+    //
+  }
 
+  beforeCreate(subscription) {
+    return Promise.resolve(subscription)
+  }
+  beforeUpdate(subscription) {
+    return Promise.resolve(subscription)
+  }
 }
 

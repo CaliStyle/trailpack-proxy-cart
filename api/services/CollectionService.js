@@ -199,5 +199,76 @@ module.exports = class CollectionService extends Service {
         })
       })
   }
+
+  /**
+   *
+   * @param cart
+   * @returns {*}
+   */
+  subscriptionCollections(subscription) {
+    const Collection = this.app.orm['Collection']
+    const ItemCollection = this.app.orm['ItemCollection']
+    const criteria = []
+    const productIds = []
+    const customerIds = []
+
+    if (subscription.customer_id) {
+      criteria.push({model: 'customer', model_id: subscription.customer_id})
+      customerIds.push(subscription.customer_id)
+    }
+    subscription.line_items.forEach(item => {
+      criteria.push({model: 'product', model_id: item.product_id})
+      productIds.push(item.product_id)
+    })
+
+    if (criteria.length == 0) {
+      return Promise.resolve([])
+    }
+    // console.log('CRITERIA ONE', criteria)
+
+    return ItemCollection.findAll({
+      where: { $or: criteria},
+      attributes: ['collection_id', 'model', 'model_id']
+    })
+      .then(itemCollections => {
+        // console.log('CRITERIA FOUND',itemCollections)
+        const itemCriteria = []
+
+        itemCollections.forEach(item => {
+          // console.log('FOUND COLLECTION', item.get({plain: true}))
+          itemCriteria.push(item.collection_id)
+          return
+        })
+
+        // console.log('CRITERIA TWO', itemCriteria)
+        if (itemCriteria.length == 0) {
+          return Promise.resolve([])
+        }
+        // console.log('CRITERIA',criteria)
+        return Collection.findAll({
+          where: {
+            id: itemCriteria
+          },
+          attributes: [
+            'id',
+            'title',
+            'discount_type',
+            'discount_scope',
+            'discount_rate',
+            'discount_percentage',
+            'discount_product_include',
+            'discount_product_exclude'
+          ],
+          include: [{
+            model: this.app.orm['Product'],
+            as: 'products',
+            where: {
+              id: productIds
+            },
+            attributes: ['id','type']
+          }]
+        })
+      })
+  }
 }
 

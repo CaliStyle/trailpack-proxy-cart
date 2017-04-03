@@ -51,7 +51,11 @@ module.exports = class FakePaymentProcessor {
     return Promise.resolve(transaction)
   }
   createCustomer(customer) {
-    return Promise.resolve(customer)
+    const res = {
+      gateway: 'default',
+      data: customer
+    }
+    return Promise.resolve(res)
   }
   createCustomerSource(source) {
     return Promise.resolve(source)
