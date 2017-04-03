@@ -184,7 +184,9 @@ module.exports = class CollectionService extends Service {
             'discount_type',
             'discount_scope',
             'discount_rate',
-            'discount_percentage'
+            'discount_percentage',
+            'discount_product_include',
+            'discount_product_exclude'
           ],
           include: [{
             model: this.app.orm['Product'],
@@ -192,7 +194,7 @@ module.exports = class CollectionService extends Service {
             where: {
               id: productIds
             },
-            attributes: ['id']
+            attributes: ['id','type']
           }]
         })
       })

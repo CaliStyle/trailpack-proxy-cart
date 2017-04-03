@@ -297,27 +297,100 @@ module.exports = class CustomerService extends Service {
   }
   // TODO addAddress
   addAddress(customer, address){
-
+    return this.resolve(customer)
   }
   // TODO removeAddress
   removeAddress(customer, address){
-
+    return this.resolve(customer)
   }
   // TODO addTag
   addTag(customer, tag){
+    // const Customer = this.app.orm['Customer']
+    // const Tag = this.app.orm['Tag']
 
+    let resCustomer
+    return this.resolve(customer)
+      .then(customer => {
+        resCustomer = customer
+        // return this.
+        return resCustomer
+      })
   }
   // TODO removeTag
   removeTag(customer, tag){
+    // const Customer = this.app.orm['Customer']
+    // const Tag = this.app.orm['Tag']
 
+    let resCustomer
+    return this.resolve(customer)
+      .then(customer => {
+        resCustomer = customer
+        // return this.
+        return resCustomer
+      })
   }
   // TODO addCollection
-  addCollection(customer, tag){
+  addCollection(customer, collection){
+    // const Customer = this.app.orm['Customer']
+    // const Collection = this.app.orm['Collection']
 
+    let resCustomer
+    return this.resolve(customer)
+      .then(customer => {
+        resCustomer = customer
+        // return this.
+        return resCustomer
+      })
   }
   // TODO removeCollection
-  removeCollection(customer, tag){
+  removeCollection(customer, collection){
+    // const Customer = this.app.orm['Customer']
+    // const Collection = this.app.orm['Collection']
 
+    let resCustomer
+    return this.resolve(customer)
+      .then(customer => {
+        resCustomer = customer
+        // return this.
+        return resCustomer
+      })
   }
+
+  /**
+   *
+   * @param customer
+   * @returns {Promise.<TResult>}
+   */
+  afterCreate(customer) {
+    return this.app.services.PaymentGenericService.createCustomer(customer)
+      .then(serviceCustomer => {
+        return customer
+      })
+  }
+
+  /**
+   *
+   * @param customer
+   * @returns {Promise.<TResult>}
+   */
+  afterUpdate(customer) {
+    return this.app.services.PaymentGenericService.updateCustomer(customer)
+      .then(serviceCustomer => {
+        return customer
+      })
+  }
+  createCustomerSource(customer, source) {
+    return this.app.services.PaymentGenericService.createCustomerSource(source)
+      .then(serviceCustomerSource => {
+        return source
+      })
+  }
+  updateCustomerSource(customer, source) {
+    return this.app.services.PaymentGenericService.updateCustomerSource(source)
+      .then(serviceCustomerSource => {
+        return source
+      })
+  }
+
 }
 

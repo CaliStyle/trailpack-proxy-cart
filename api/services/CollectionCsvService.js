@@ -89,7 +89,19 @@ module.exports = class CollectionCsvService extends Service {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
-          upload[k] = data
+          if (k == 'discount_product_include') {
+            upload[k] = data.split(',').map(discount => {
+              return discount.trim()
+            })
+          }
+          else if (k == 'discount_product_exclude') {
+            upload[k] = data.split(',').map(discount => {
+              return discount.trim()
+            })
+          }
+          else {
+            upload[k] = data
+          }
         }
       }
     })
@@ -127,7 +139,9 @@ module.exports = class CollectionCsvService extends Service {
             discount_scope: collection.discount_scope,
             discount_type: collection.discount_type,
             discount_rate: collection.discount_rate,
-            discount_percentage: collection.discount_percentage
+            discount_percentage: collection.discount_percentage,
+            discount_product_include: collection.discount_product_include,
+            discount_product_exclude: collection.discount_product_exclude
           }
           return this.app.services.CollectionService.resolve(create)
         }))

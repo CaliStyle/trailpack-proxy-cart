@@ -35,6 +35,24 @@ module.exports = class Customer extends Model {
                 values.update_ip = values.ip
               }
               fn()
+            },
+            afterCreate: (values, options, fn) => {
+              app.services.CustomerService.afterCreate(values)
+                .then(values => {
+                  fn(null, values)
+                })
+                .catch(err => {
+                  fn(err)
+                })
+            },
+            afterUpdate: (values, options, fn) => {
+              app.services.CustomerService.afterUpdate(values)
+                .then(values => {
+                  fn(null, values)
+                })
+                .catch(err => {
+                  fn(err)
+                })
             }
           },
           getterMethods: {

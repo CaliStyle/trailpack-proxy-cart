@@ -15,7 +15,9 @@ module.exports = {
     discount_scope: 'Discount Scope',
     discount_type: 'Discount Type',
     discount_rate: 'Discount Rate',
-    discount_percentage: 'Discount Percentage'
+    discount_percentage: 'Discount Percentage',
+    discount_product_include: 'Discount Product Include',
+    discount_product_exclude: 'Discount Product Exclude'
   },
   CUSTOMER_UPLOAD: {
     account_balance: 'Account Balance',

@@ -1,6 +1,9 @@
+/* eslint new-cap: [0] */
+
 'use strict'
 
 const Model = require('trails/model')
+const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const COLLECTION_SORT_ORDER = require('../utils/enums').COLLECTION_SORT_ORDER
 const COLLECTION_PURPOSE = require('../utils/enums').COLLECTION_PURPOSE
@@ -238,10 +241,19 @@ module.exports = class Collection extends Model {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },
+        // A percentage to apply
         discount_percentage: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },
+        // List of product types allowed to discount
+        discount_product_include: helpers.ARRAY('collection', app, Sequelize, Sequelize.STRING, 'discount_product_include', {
+          defaultValue: []
+        }),
+        // List of product types to forcefully excluded from discount
+        discount_product_exclude: helpers.ARRAY('collection', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
+          defaultValue: []
+        }),
         // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,

@@ -1,7 +1,9 @@
 /* eslint new-cap: [0] */
 
 'use strict'
+
 const Model = require('trails/model')
+const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 // const helpers = require('proxy-engine-helpers')
 const COLLECTION_SORT_ORDER = require('../utils/enums').COLLECTION_SORT_ORDER
@@ -126,7 +128,15 @@ module.exports = class CollectionUpload extends Model {
       discount_percentage: {
         type: Sequelize.FLOAT,
         defaultValue: 0.0
-      }
+      },
+      // List of product types allowed to discount
+      discount_product_include: helpers.ARRAY('collectionupload', app, Sequelize, Sequelize.STRING, 'discount_product_include', {
+        defaultValue: []
+      }),
+      // List of product types to forcefully excluded from discount
+      discount_product_exclude: helpers.ARRAY('collectionupload', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
+        defaultValue: []
+      }),
     }
     return schema
   }
