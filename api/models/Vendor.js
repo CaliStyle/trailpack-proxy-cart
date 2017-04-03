@@ -32,6 +32,7 @@ module.exports = class Vendor extends Model {
                   foreignKey: 'model_id',
                   unique: true,
                   scope: {
+                    address: 'address',
                     model: 'vendor'
                   },
                   constraints: false
@@ -47,6 +48,7 @@ module.exports = class Vendor extends Model {
 
   static schema (app, Sequelize) {
     const schema = {
+      // The vendor handle
       handle: {
         type: Sequelize.STRING,
         notNull: true,
@@ -55,9 +57,16 @@ module.exports = class Vendor extends Model {
           this.setDataValue('handle', app.services.ProxyCartService.slug(val))
         }
       },
+      // The name of the vendor
       name: {
         type: Sequelize.STRING,
         notNull: true
+      },
+
+      // Live Mode
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
       }
     }
     return schema

@@ -7,6 +7,12 @@ const Service = require('trails/service')
  * @description Subscription Service
  */
 module.exports = class SubscriptionService extends Service {
+  resolve(subscription, options){
+    //
+  }
+  create() {
+    //
+  }
 
 }
 

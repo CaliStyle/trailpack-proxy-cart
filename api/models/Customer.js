@@ -95,11 +95,12 @@ module.exports = class Customer extends Model {
               models.Customer.belongsTo(models.Address, {
                 as: 'shipping_address',
                 through: {
-                  model: models.CustomerAddress,
-                  foreignKey: 'customer_id',
+                  model: models.ItemAddress,
+                  foreignKey: 'model_id',
                   unique: true,
                   scope: {
-                    address: 'shipping_address'
+                    address: 'shipping_address',
+                    model: 'customer'
                   },
                   constraints: false
                 }
@@ -107,11 +108,12 @@ module.exports = class Customer extends Model {
               models.Customer.belongsTo(models.Address, {
                 as: 'billing_address',
                 through: {
-                  model: models.CustomerAddress,
-                  foreignKey: 'customer_id',
+                  model: models.ItemAddress,
+                  foreignKey: 'model_id',
                   unique: true,
                   scope: {
-                    address: 'billing_address'
+                    address: 'billing_address',
+                    model: 'customer'
                   },
                   constraints: false
                 }
@@ -119,11 +121,12 @@ module.exports = class Customer extends Model {
               models.Customer.belongsTo(models.Address, {
                 as: 'default_address',
                 through: {
-                  model: models.CustomerAddress,
-                  foreignKey: 'customer_id',
+                  model: models.ItemAddress,
+                  foreignKey: 'model_id',
                   unique: true,
                   scope: {
-                    address: 'default_address'
+                    address: 'default_address',
+                    model: 'customer'
                   },
                   constraints: false
                 }

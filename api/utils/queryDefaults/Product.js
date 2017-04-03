@@ -40,6 +40,11 @@ module.exports = {
           attributes: ['data', 'id']
         },
         {
+          model: app.orm['Vendor'],
+          as: 'vendor',
+          attributes: ['name', 'id']
+        },
+        {
           model: app.orm['Collection'],
           as: 'collections',
           attributes: [

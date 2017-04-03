@@ -63,6 +63,7 @@ module.exports = class ProductService extends Service {
     const Image = this.app.orm.ProductImage
     const Metadata = this.app.orm.Metadata
     const Collection = this.app.orm.Collection
+    const Vendor = this.app.orm.Vendor
 
     // The Default Product
     const create = {
@@ -197,6 +198,10 @@ module.exports = class ProductService extends Service {
             as: 'metadata'
           },
           {
+            model: Vendor,
+            as: 'vendor'
+          },
+          {
             model: Collection,
             as: 'collections'
           }
@@ -251,11 +256,18 @@ module.exports = class ProductService extends Service {
           return
         })
         .then(productCollections => {
-          // if (productCollections){
-          //   productCollections.forEach(collection => {
-          //     console.log('ADDED COLLECTION', collection)
-          //   })
-          // }
+          if (product.vendor) {
+            return this.app.services.VendorService.resolve(product.vendor)
+          }
+          return
+        })
+        .then(vendor => {
+          if (vendor) {
+            return resProduct.setVendor(vendor.id)
+          }
+          return
+        })
+        .then(vendor => {
           return Promise.all(images.map(image => {
             // image.product_id = resProduct.id
             if (typeof image.variant !== 'undefined') {
@@ -461,6 +473,18 @@ module.exports = class ProductService extends Service {
           return resProduct.metadata.save()
         })
         .then(metadata => {
+          if (product.vendor) {
+            return this.app.services.VendorService.resolve(product.vendor)
+          }
+          return
+        })
+        .then(vendor => {
+          if (vendor) {
+            resProduct.setVendor(vendor.id)
+          }
+          return
+        })
+        .then(vendor => {
           return Promise.all(resProduct.variants.map(variant => {
             if (variant.id) {
               return variant.save()

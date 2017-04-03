@@ -159,6 +159,14 @@ module.exports = class Product extends Model {
                 foreignKey: 'associated_product_id',
                 constraints: false
               })
+              models.Product.belongsTo(models.Vendor, {
+                // foreignKey: 'variant_id',
+                as: 'vendor',
+                onDelete: 'CASCADE'
+                // foreignKey: {
+                //   allowNull: false
+                // }
+              })
               // models.Product.belongsToMany(models.OrderItem, {
               //   as: 'order_items',
               //   through: 'OrderItemProduct'
@@ -253,6 +261,12 @@ module.exports = class Product extends Model {
               if (resp.metadata) {
                 if (typeof resp.metadata.data !== 'undefined') {
                   resp.metadata = resp.metadata.data
+                }
+              }
+              // Transform Metadata to plain on toJSON
+              if (resp.vendor) {
+                if (typeof resp.vendor.name !== 'undefined') {
+                  resp.vendor = resp.vendor.name
                 }
               }
 
@@ -370,10 +384,10 @@ module.exports = class Product extends Model {
           values: _.values(UNITS),
           defaultValue: UNITS.G
         },
-        // Vendor of the product
-        vendor: {
-          type: Sequelize.STRING
-        },
+        // // Vendor of the product
+        // vendor: {
+        //   type: Sequelize.STRING
+        // },
         // The Average Score of Reviews
         review_score: {
           type: Sequelize.INTEGER,
