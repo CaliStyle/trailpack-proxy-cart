@@ -1,7 +1,7 @@
 'use strict'
 
 const Controller = require('trails/controller')
-// const Errors = require('proxy-engine-errors')
+const Errors = require('proxy-engine-errors')
 const lib = require('../../lib')
 
 /**
@@ -22,6 +22,62 @@ module.exports = class SubscriptionController extends Controller {
           subscriptions: count
         }
         return res.json(counts)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findById(req, res){
+    const orm = this.app.orm
+    const Subscription = orm['Subscription']
+    let id = req.params.id
+    if (!id && req.subscription) {
+      id = req.subscription.id
+    }
+    Subscription.findById(id, {})
+      .then(subscription => {
+        if (!subscription) {
+          throw new Errors.FoundError(Error(`Subscription id ${id} not found`))
+        }
+        return res.json(subscription)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findAll(req, res){
+    const orm = this.app.orm
+    const Subscription = orm['Subscription']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+
+    Subscription.findAndCount({
+      order: sort,
+      offset: offset,
+      limit: limit,
+      where: where
+    })
+      .then(subscriptions => {
+        res.set('X-Pagination-Total', subscriptions.count)
+        res.set('X-Pagination-Pages', Math.ceil(subscriptions.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(subscriptions.rows)
       })
       .catch(err => {
         return res.serverError(err)

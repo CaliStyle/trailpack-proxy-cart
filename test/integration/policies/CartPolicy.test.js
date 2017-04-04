@@ -33,7 +33,7 @@ describe('CartPolicy', () => {
       .send({ })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY CART', res.body)
+        // console.log('THIS POLICY CART', res.body)
         cartIDSwitch = res.body.id
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
@@ -332,6 +332,7 @@ describe('CartPolicy', () => {
         assert.equal(res.body.active, false)
         assert.equal(res.body.cancel_reason, 'customer')
         assert.ok(res.body.cancelled_at)
+        assert.ok(res.body.renews_on)
         done(err)
       })
   })
@@ -358,11 +359,12 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY subscription', res.body)
+        // console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
         assert.equal(res.body.active, true)
         assert.equal(res.body.interval, 2)
         assert.equal(res.body.unit, 'd')
+        assert.ok(res.body.renews_on)
         done(err)
       })
   })

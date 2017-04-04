@@ -38,7 +38,7 @@ describe('CustomerPolicy', () => {
       .get('/customer/session')
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY CUSTOMER', res.body)
+        // console.log('THIS POLICY CUSTOMER', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, customerID)
         // assert.equal(res.body.line_items.length, 1)

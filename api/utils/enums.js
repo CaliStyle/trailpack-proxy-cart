@@ -79,7 +79,7 @@ module.exports = {
     tax_code: 'Variant Tax Code',
     gift_card: 'Gift Card',
     metadata: 'Metadata',
-    subscription: 'Subscription',
+    requires_subscription: 'Subscription',
     subscription_unit: 'Subscription Unit',
     subscription_interval: 'Subscription Interval',
     shops: 'Shops',

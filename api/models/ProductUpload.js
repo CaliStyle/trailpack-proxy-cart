@@ -185,7 +185,7 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Subscription'
-      subscription: {
+      requires_subscription: {
         type: Sequelize.STRING
       },
       // 'Subscription Unit'

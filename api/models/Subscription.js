@@ -299,9 +299,36 @@ module.exports = class Subscription extends Model {
                   this.total_line_items_price = totalLineItemsPrice
                   this.total_price = totalPrice
                   this.total_due = totalDue
-                  console.log('SUBSCRIPTION CALCULATION', this)
+                  // console.log('SUBSCRIPTION CALCULATION', this)
                   return Promise.resolve(this)
                 })
+            },
+            toJSON: function() {
+              const resp = this.get({ plain: true })
+
+              const d = new Date(this.renewed_at)
+              if (this.unit == INTERVALS.DAY) {
+                d.setMonth(d.getDay() + this.interval)
+              }
+              // else if (this.unit == INTERVALS.WEEK) {
+              //   d.setMonth(d.getWeek() + this.interval);
+              // }
+              else if (this.unit == INTERVALS.MONTH) {
+                d.setMonth(d.getMonth() + this.interval)
+              }
+              else if (this.unit == INTERVALS.BIMONTH) {
+                d.setMonth(d.getMonth() + this.interval * 2)
+              }
+              else if (this.unit == INTERVALS.YEAR) {
+                d.setMonth(d.getYear() + this.interval)
+              }
+              else if (this.unit == INTERVALS.BIYEAR) {
+                d.setMonth(d.getYear() + this.interval * 2)
+              }
+
+              resp.renews_on = d
+
+              return resp
             }
           }
         }

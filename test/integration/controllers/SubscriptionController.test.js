@@ -22,4 +22,17 @@ describe('SubscriptionController', () => {
         done(err)
       })
   })
+  it('It should get subscriptions', (done) => {
+    request
+      .get('/subscription')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.body)
+        done()
+      })
+  })
 })
