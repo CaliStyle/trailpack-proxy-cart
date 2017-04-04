@@ -303,7 +303,7 @@ describe('CartPolicy', () => {
       .get('/customer/subscriptions')
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY subscriptions', res.body)
+        // console.log('THIS POLICY subscriptions', res.body)
         subscriptionID = res.body[0].id
         assert.equal(res.body.length, 1)
         done(err)
@@ -314,8 +314,55 @@ describe('CartPolicy', () => {
       .get(`/customer/subscription/${ subscriptionID }`)
       .expect(200)
       .end((err, res) => {
+        // console.log('THIS POLICY subscription', res.body)
+        assert.equal(res.body.id, subscriptionID)
+        done(err)
+      })
+  })
+  it('should cancel customer subscription by id', done => {
+    agent
+      .post(`/subscription/${ subscriptionID }/cancel`)
+      .send({
+        reason: 'customer'
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY subscription', res.body)
+        assert.equal(res.body.id, subscriptionID)
+        assert.equal(res.body.active, false)
+        assert.equal(res.body.cancel_reason, 'customer')
+        assert.ok(res.body.cancelled_at)
+        done(err)
+      })
+  })
+  it('should activate customer subscription by id', done => {
+    agent
+      .post(`/subscription/${ subscriptionID }/activate`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY subscription', res.body)
+        assert.equal(res.body.id, subscriptionID)
+        assert.equal(res.body.active, true)
+        assert.equal(res.body.cancel_reason, null)
+        assert.equal(res.body.cancelled_at, null)
+        done(err)
+      })
+  })
+  it('should update customer subscription by id', done => {
+    agent
+      .post(`/subscription/${ subscriptionID }`)
+      .send({
+        interval: 2,
+        unit: 'd'
+      })
+      .expect(200)
+      .end((err, res) => {
         console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
+        assert.equal(res.body.active, true)
+        assert.equal(res.body.interval, 2)
+        assert.equal(res.body.unit, 'd')
         done(err)
       })
   })

@@ -4,6 +4,7 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
+const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
 /**
  * @module SubscriptionService
  * @description Subscription Service
@@ -117,8 +118,37 @@ module.exports = class SubscriptionService extends Service {
         return resSubscription.update(update, options)
       })
   }
-  cancel(reason, subscription) {
-    return Promise.resolve({})
+
+  /**
+   *
+   * @param body
+   * @param subscription
+   * @returns {*|Promise.<TResult>}
+   */
+  cancel(body, subscription) {
+    return this.resolve(subscription)
+      .then(resSubscription => {
+        resSubscription.cancel_reason = body.reason || SUBSCRIPTION_CANCEL.OTHER
+        resSubscription.cancelled_at = new Date()
+        resSubscription.active = false
+        return resSubscription.save()
+      })
+  }
+
+  /**
+   *
+   * @param body
+   * @param subscription
+   * @returns {*|Promise.<TResult>}
+   */
+  activate(body, subscription) {
+    return this.resolve(subscription)
+      .then(resSubscription => {
+        resSubscription.cancel_reason = null
+        resSubscription.cancelled_at = null
+        resSubscription.active = true
+        return resSubscription.save()
+      })
   }
 
   /**

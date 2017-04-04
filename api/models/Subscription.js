@@ -299,7 +299,7 @@ module.exports = class Subscription extends Model {
                   this.total_line_items_price = totalLineItemsPrice
                   this.total_price = totalPrice
                   this.total_due = totalDue
-
+                  console.log('SUBSCRIPTION CALCULATION', this)
                   return Promise.resolve(this)
                 })
             }
