@@ -396,7 +396,7 @@ module.exports = class CustomerController extends Controller {
    * @param res
    */
   subscriptions(req, res) {
-    console.log('I WAS CALLED')
+    // console.log('I WAS CALLED')
     const Subscription = this.app.orm['Subscription']
     let customerId = req.params.id
 

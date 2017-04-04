@@ -5,8 +5,10 @@
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
+const INTERVALS = require('../utils/enums').INTERVALS
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
+
 /**
  * @module OrderItem
  * @description Order Item Model
@@ -58,6 +60,7 @@ module.exports = class OrderItem extends Model {
             }
           },
           classMethods: {
+            INTERVALS: INTERVALS,
             FULFILLMENT_STATUS: FULFILLMENT_STATUS,
             FULFILLMENT_SERVICE: FULFILLMENT_SERVICE,
             /**
@@ -173,6 +176,17 @@ module.exports = class OrderItem extends Model {
         requires_subscription: {
           type: Sequelize.BOOLEAN,
           defaultValue: true
+        },
+        // If Product has subscription, the interval of the subscription, defaults to 0 months
+        subscription_interval: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // If product has subscription, the unit of the interval
+        subscription_unit: {
+          type: Sequelize.ENUM,
+          values: _.values(INTERVALS),
+          defaultValue: INTERVALS.NONE
         },
         // A unique identifier of the item in the fulfillment.
         sku: {

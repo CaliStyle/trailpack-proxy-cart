@@ -43,7 +43,7 @@ module.exports = class CartService extends Service {
     else {
       // TODO create proper error
       const err = new Error(`Unable to resolve Cart ${cart}`)
-      Promise.reject(err)
+      return Promise.reject(err)
     }
   }
 

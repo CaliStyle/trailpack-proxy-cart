@@ -110,6 +110,7 @@ module.exports = class OrderService extends Service {
     let resCustomer = {}
     let resBillingAddress = {}
     let resShippingAddress = {}
+    let resTransactions = []
 
     return Order.sequelize.transaction(t => {
       return Cart.find({where: {token: obj.cart_token}})
@@ -270,12 +271,13 @@ module.exports = class OrderService extends Service {
           }))
         })
         .then(transactions => {
+          resTransactions = transactions
           let orderFulfillment = obj.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind
           if (!orderFulfillment) {
             this.app.log.debug(`Order does not have a fulfillment function, defaulting to ${ORDER_FULFILLMENT_KIND.MANUAL}`)
             orderFulfillment = ORDER_FULFILLMENT_KIND.MANUAL
           }
-          if (this.resolveSendImmediately(transactions, orderFulfillment)) {
+          if (this.resolveSendImmediately(resTransactions, orderFulfillment)) {
             return this.app.services.FulfillmentService.sendOrderToFulfillment(resOrder)
           }
           else {
@@ -283,6 +285,12 @@ module.exports = class OrderService extends Service {
           }
         })
         .then(fulfillments => {
+          if (this.resolveSubscribeImmediately(resTransactions, resOrder.has_subscription)) {
+            return this.app.services.SubscriptionService.setupSubscriptions(resOrder)
+          }
+          return
+        })
+        .then(subscriptions => {
           return Order.findByIdDefault(resOrder.id)
         })
     })
@@ -428,6 +436,23 @@ module.exports = class OrderService extends Service {
   resolveSendImmediately(transactions, orderFulfillmentKind) {
     let immediate = false
     if (orderFulfillmentKind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
+      return immediate
+    }
+    const successes = _.map(transactions, transaction => {
+      return transaction.status == TRANSACTION_STATUS.SUCCESS
+    })
+    const sales = _.map(transactions, transaction => {
+      return transaction.kind == TRANSACTION_KIND.SALE
+    })
+    if (successes.length == transactions.length && sales.length == transactions.length) {
+      immediate = true
+    }
+    return immediate
+  }
+
+  resolveSubscribeImmediately(transactions, hasSubscription) {
+    let immediate = false
+    if (!hasSubscription) {
       return immediate
     }
     const successes = _.map(transactions, transaction => {

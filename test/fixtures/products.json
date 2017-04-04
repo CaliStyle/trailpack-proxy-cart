@@ -87,6 +87,8 @@
     "inventory_policy": "continue",
     "requires_shipping": false,
     "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
     "inventory_quantity": 10000,
     "tags": [
       "subscription"
@@ -116,6 +118,8 @@
     "inventory_policy": "continue",
     "requires_shipping": false,
     "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
     "inventory_quantity": 10000,
     "tags": [
       "subscription"

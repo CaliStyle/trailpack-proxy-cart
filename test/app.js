@@ -266,11 +266,11 @@ const App = {
   }
 }
 
-const dbPath = __dirname + './test.sqlite'
+const dbPath = './test.sqlite'
 if (fs.existsSync(dbPath)) {
   fs.unlinkSync(dbPath)
 }
-const uploadPath = __dirname + './test.uploads.sqlite'
+const uploadPath = './test.uploads.sqlite'
 if (fs.existsSync(uploadPath)) {
   fs.unlinkSync(uploadPath)
 }

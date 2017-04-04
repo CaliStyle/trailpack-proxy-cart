@@ -5,7 +5,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 
 describe('CartPolicy', () => {
-  let request, agent, cartID, cartIDSwitch, orderID
+  let request, agent, cartID, cartIDSwitch, orderID, subscriptionID
   let shopProducts
 
   before(done => {
@@ -288,13 +288,34 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
-  it('should get session customer orders', done => {
+  it('should get session customer order by id', done => {
     agent
       .get(`/customer/order/${ orderID }`)
       .expect(200)
       .end((err, res) => {
         // console.log('THIS POLICY ORDERS', res.body)
         assert.equal(res.body.id, orderID)
+        done(err)
+      })
+  })
+  it('should get session customer subscriptions', done => {
+    agent
+      .get('/customer/subscriptions')
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS POLICY subscriptions', res.body)
+        subscriptionID = res.body[0].id
+        assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
+  it('should get session customer subscription by id', done => {
+    agent
+      .get(`/customer/subscription/${ subscriptionID }`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS POLICY subscription', res.body)
+        assert.equal(res.body.id, subscriptionID)
         done(err)
       })
   })

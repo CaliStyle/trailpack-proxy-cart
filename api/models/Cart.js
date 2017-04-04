@@ -81,7 +81,7 @@ module.exports = class Cart extends Model {
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
                 // TODO handle discounts
                 total_discounts: 0,
-                vendor: data.Product.vendor,
+                vendor: data.Product.vendor ? data.Product.vendor.name || data.Product.vendor : data.Product.vendor,
                 live_mode: data.live_mode
               }
               return line
