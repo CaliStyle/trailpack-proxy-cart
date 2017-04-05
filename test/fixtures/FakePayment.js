@@ -53,17 +53,55 @@ module.exports = class FakePaymentProcessor {
   createCustomer(customer) {
     const res = {
       gateway: 'default',
+      foreign_key: 'customer',
+      foreign_id: customer.id,
       data: customer
     }
     return Promise.resolve(res)
   }
   createCustomerSource(source) {
-    return Promise.resolve(source)
+    const res = {
+      gateway: 'default',
+      foreign_key: 'customer',
+      foreign_id: source.id,
+      data: source
+    }
+    return Promise.resolve(res)
+  }
+  findCustomerSource(source) {
+    const res = {
+      gateway: 'default',
+      foreign_key: 'customer',
+      foreign_id: source.id,
+      data: source
+    }
+    return Promise.resolve(res)
   }
   updateCustomer(customer) {
-    return Promise.resolve(customer)
+    const res = {
+      gateway: 'default',
+      foreign_key: 'customer',
+      foreign_id: customer.id,
+      data: customer
+    }
+    return Promise.resolve(res)
+  }
+  findCustomer(customer) {
+    const res = {
+      gateway: 'default',
+      foreign_key: 'customer',
+      foreign_id: customer.id,
+      data: customer
+    }
+    return Promise.resolve(res)
   }
   updateCustomerSource(source) {
-    return Promise.resolve(source)
+    const res = {
+      gateway: 'default',
+      foreign_key: 'customer',
+      foreign_id: source.id,
+      data: source
+    }
+    return Promise.resolve(res)
   }
 }

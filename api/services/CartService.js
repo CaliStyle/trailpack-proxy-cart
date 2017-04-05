@@ -65,6 +65,8 @@ module.exports = class CartService extends Service {
    */
   create(data, options){
     const Cart = this.app.orm.Cart
+
+    // If line items is empty
     if (!data.line_items) {
       data.line_items = []
     }
@@ -100,11 +102,12 @@ module.exports = class CartService extends Service {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
-    const Cart =  this.app.orm.Cart
+
     const update = _.omit(cart,['id','created_at','updated_at'])
-    return Cart.findById(cart.id)
-      .then(resCart => {
-        return resCart.update(update, options)
+    return this.resolve(cart)
+      .then(cart => {
+        cart = _.extend(cart, update)
+        return cart.save()
       })
   }
 

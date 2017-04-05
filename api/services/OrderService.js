@@ -125,20 +125,25 @@ module.exports = class OrderService extends Service {
         ]
       })
         .then(customer => {
-          if (customer && !customer.billing_address && !obj.billing_address && obj.has_shipping) {
-            throw new Errors.FoundError(Error(`Could not find customer billing address for id '${obj.customer_id}'`))
-          }
+          // The customer exist, the order requires shipping, but no shipping information
           if (customer && !customer.shipping_address && !obj.shipping_address && obj.has_shipping) {
             throw new Errors.FoundError(Error(`Could not find customer shipping address for id '${obj.customer_id}'`))
           }
+          // The customer exist, the order requires shipping, but no billing information
+          if (customer && !customer.billing_address && !obj.billing_address && obj.has_shipping) {
+            throw new Errors.FoundError(Error(`Could not find customer billing address for id '${obj.customer_id}'`))
+          }
+          // Set a blank customer object if there isn't one for this order
           if (!customer) {
             resCustomer = {
               id: null,
+              email: null,
               account_balance: 0,
               billing_address: null,
               shipping_address: null
             }
           }
+          // Return this resolved customer
           else {
             resCustomer = customer
           }
@@ -238,6 +243,8 @@ module.exports = class OrderService extends Service {
 
           return Promise.all(obj.payment_details.map((detail, index) => {
             const transaction = {
+              // Set the customer id (in case we can save this source)
+              customer_id: resCustomer.id,
               // Set the order id
               order_id: resOrder.id,
               // Set the order currency

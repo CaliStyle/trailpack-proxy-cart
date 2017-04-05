@@ -42,6 +42,7 @@ module.exports = class TransactionService extends Service {
    * @param options
    * @returns {transaction}
    */
+  // TODO
   create(transaction, options) {
     const Transaction = this.app.orm.Transaction
     return Transaction.create(transaction, options)
@@ -52,6 +53,7 @@ module.exports = class TransactionService extends Service {
    * @param transaction
    * @returns {Promise.<T>}
    */
+  // TODO
   authorize(transaction) {
     return Promise.resolve(transaction)
   }
@@ -61,6 +63,7 @@ module.exports = class TransactionService extends Service {
    * @param transaction
    * @returns {Promise.<T>}
    */
+  // TODO
   capture(transaction) {
     return Promise.resolve(transaction)
   }
@@ -70,6 +73,7 @@ module.exports = class TransactionService extends Service {
    * @param transaction
    * @returns {Promise.<T>}
    */
+  //TODO
   sale(transaction) {
     return Promise.resolve(transaction)
   }
@@ -79,6 +83,7 @@ module.exports = class TransactionService extends Service {
    * @param transaction
    * @returns {Promise.<T>}
    */
+  // TODO
   void(transaction) {
     return Promise.resolve(transaction)
   }
@@ -88,6 +93,7 @@ module.exports = class TransactionService extends Service {
    * @param transaction
    * @returns {Promise.<T>}
    */
+  // TODO
   refund(transaction) {
     return Promise.resolve(transaction)
   }

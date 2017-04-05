@@ -368,18 +368,21 @@ module.exports = class CustomerService extends Service {
         const CustomerAccount = this.app.orm['CustomerAccount']
         return Account.create({
           gateway: serviceCustomer.gateway,
+          foreign_id: serviceCustomer.foreign_id,
+          foreign_key: serviceCustomer.foreign_key,
           data: serviceCustomer.data
         })
           .then(account => {
             if (account) {
               return CustomerAccount.create({
                 customer_id: customer.id,
-                account_id: account.id
+                account_id: account.id,
+                is_default: true
               })
             }
             return
           })
-          .then(account => {
+          .then(customerAccount => {
             return customer
           })
       })
@@ -391,23 +394,86 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   afterUpdate(customer) {
-    return this.app.services.PaymentGenericService.updateCustomer(customer)
-      .then(serviceCustomer => {
-        return customer
+    let updateAccounts = false
+    const accountUpdates = {}
+
+    if (customer.changed('email')) {
+      updateAccounts = true
+      accountUpdates.email = customer.email
+    }
+    // If no account updates just return
+    if (!updateAccounts) {
+      return Promise.resolve(customer)
+    }
+    // If there are account updates, update all 3rd party accounts
+    else {
+      return this.app.orm['Account'].findAll({
+        where: {
+          customer_id: customer.id
+        }
       })
-  }
-  createCustomerSource(customer, source) {
-    return this.app.services.PaymentGenericService.createCustomerSource(source)
-      .then(serviceCustomerSource => {
-        return source
-      })
-  }
-  updateCustomerSource(customer, source) {
-    return this.app.services.PaymentGenericService.updateCustomerSource(source)
-      .then(serviceCustomerSource => {
-        return source
-      })
+         .then(accounts => {
+           return Promise.all(accounts.map(account => {
+             return this.app.services.AccountService.update(account, accountUpdates)
+           }))
+         })
+         .then(updatedAccounts => {
+           return customer
+         })
+    }
   }
 
+  /**
+   *
+   * @param customer
+   * @param source
+   * @returns {*|Promise.<TResult>}
+   */
+  createCustomerSource(customer, source) {
+    const Account = this.app.orm['Account']
+    return Account.findOne({
+      where: {
+        customer_id: customer.id,
+        gateway: source.gateway
+      }
+    })
+      .then(account => {
+        source.account_id = account.id
+        return this.app.services.AccountService.addSource(account, source)
+      })
+  }
+  findSource(customer, source){
+    const Account = this.app.orm['Account']
+    return Account.findOne({
+      where: {
+        customer_id: customer.id,
+        gateway: source.gateway
+      }
+    })
+      .then(account => {
+        source.account_id = account.id
+        return this.app.services.AccountService.findCustomerSource(account, source)
+      })
+  }
+  /**
+   *
+   * @param customer
+   * @param source
+   * @param updates
+   * @returns {*|Promise.<TResult>}
+   */
+  updateCustomerSource(customer, source, updates) {
+    const Account = this.app.orm['Account']
+    return Account.findOne({
+      where: {
+        customer_id: customer.id,
+        gateway: source.gateway
+      }
+    })
+      .then(account => {
+        source.account_id = account.id
+        return this.app.services.AccountService.updateSource(account, source, updates)
+      })
+  }
 }
 

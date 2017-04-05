@@ -56,6 +56,14 @@ module.exports = class Transaction extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        customer_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Customer',
+            key: 'id'
+          },
+          allowNull: true
+        },
         order_id: {
           type: Sequelize.INTEGER,
           references: {
