@@ -300,6 +300,13 @@ module.exports = class Order extends Model {
             key: 'token'
           }
         },
+        subscription_token: {
+          type: Sequelize.STRING,
+          references: {
+            model: 'Subscription',
+            key: 'token'
+          }
+        },
         customer_id: {
           type: Sequelize.INTEGER,
           references: {

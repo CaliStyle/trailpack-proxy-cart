@@ -7,10 +7,10 @@ const Service = require('trails/service')
  * @description Tax Service
  */
 module.exports = class TaxService extends Service {
-  calculate(cart, shippingAddress){
-    return this.app.services.CartService.resolve(cart)
-      .then(cart => {
-        return this.app.services.ProxyCartService.resolveSendFromTo(cart, shippingAddress)
+  calculate(obj, shippingAddress, resolver){
+    return resolver.resolve(obj)
+      .then(obj => {
+        return this.app.services.ProxyCartService.resolveSendFromTo(obj, shippingAddress)
       })
       .then(sendFromTo => {
         if (!sendFromTo) {
@@ -19,7 +19,8 @@ module.exports = class TaxService extends Service {
         return this.getTaxes(sendFromTo)
       })
       .then(taxLines => {
-        return taxLines
+        obj.tax_lines = taxLines
+        return obj
       })
   }
   getTaxes(sendFromTo) {

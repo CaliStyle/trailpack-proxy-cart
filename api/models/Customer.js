@@ -344,6 +344,14 @@ module.exports = class Customer extends Model {
         company: {
           type: Sequelize.STRING
         },
+
+        // Customers Email if there is one
+        email: {
+          type: Sequelize.STRING,
+          validate: {
+            isEmail: true
+          }
+        },
         //
         note: {
           type: Sequelize.STRING

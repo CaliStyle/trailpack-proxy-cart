@@ -16,22 +16,16 @@ module.exports = class DiscountService extends Service {
    * @param cart Instance
    * @returns {Promise.<TResult>}
    */
-  calculate(cart, collections){
-    // const Collection = this.app.orm['Collection']
-    // const ItemCollection = this.app.orm['ItemCollection']
-    // const Product = this.app.orm['Product']
-    // const productIds = []
-    // const customerIds = []
-    // console.log('DISCOUNTING COLLECTIONS',collections)
-    return this.app.services.CartService.resolve(cart)
-      .then(cart => {
+  calculate(obj, collections, resolver){
+    return resolver.resolve(obj)
+      .then(obj => {
         const discountedLines = []
 
         // console.log('THESE COLLECTIONS',collections)
         // Loop through collection and apply discounts, stop if there are no line items
         collections.forEach(collection => {
           // console.log('PRODUCT COLLECTIONS', collection.products)
-          if (cart.line_items.length == 0) {
+          if (obj.line_items.length == 0) {
             return
           }
           // Set the default
@@ -56,7 +50,7 @@ module.exports = class DiscountService extends Service {
               discountedLine.type = COLLECTION_DISCOUNT_TYPE.PERCENTAGE
             }
             let publish = false
-            cart.line_items = _.clone(cart.line_items.map((item, index) => {
+            obj.line_items = _.clone(obj.line_items.map((item, index) => {
               // const product = collection.products.filter(product => product.id == item.product_id)[0]
               // Search Exclusion
               if (collection.discount_product_exclude.indexOf(item.type) > -1) {
@@ -97,7 +91,7 @@ module.exports = class DiscountService extends Service {
             }
             const lineDiscountedLine = _.omit(_.clone(discountedLine),'lines')
             let publish = false
-            cart.line_items = _.clone(cart.line_items.map((item, index) => {
+            obj.line_items = _.clone(obj.line_items.map((item, index) => {
               const product = collection.products.filter(product => product.id == item.product_id)[0]
               if (!product) {
                 return item
@@ -129,9 +123,9 @@ module.exports = class DiscountService extends Service {
           }
 
         })
-        cart.discounted_lines = discountedLines
-        // console.log('DISCOUNTED CART',cart)
-        return cart
+        obj.discounted_lines = discountedLines
+        // console.log('DISCOUNTED OBJ',obj)
+        return obj
       })
   }
 

@@ -188,14 +188,24 @@ module.exports = class CollectionService extends Service {
             'discount_product_include',
             'discount_product_exclude'
           ],
-          include: [{
-            model: this.app.orm['Product'],
-            as: 'products',
-            where: {
-              id: productIds
-            },
-            attributes: ['id','type']
-          }]
+          include: [
+            {
+              model: this.app.orm['Product'],
+              as: 'products',
+              where: {
+                id: productIds
+              },
+              attributes: ['id','type']
+            }
+            // {
+            //   model: this.app.orm['Customer'],
+            //   as: 'customer',
+            //   where: {
+            //     id: customerIds[0]
+            //   },
+            //   attributes: ['id']
+            // }
+          ]
         })
       })
   }
@@ -259,14 +269,24 @@ module.exports = class CollectionService extends Service {
             'discount_product_include',
             'discount_product_exclude'
           ],
-          include: [{
-            model: this.app.orm['Product'],
-            as: 'products',
-            where: {
-              id: productIds
-            },
-            attributes: ['id','type']
-          }]
+          include: [
+            {
+              model: this.app.orm['Product'],
+              as: 'products',
+              where: {
+                id: productIds
+              },
+              attributes: ['id','type']
+            }
+            // {
+            //   model: this.app.orm['Customer'],
+            //   as: 'customer',
+            //   where: {
+            //     id: customerIds[0]
+            //   },
+            //   attributes: ['id']
+            // }
+          ]
         })
       })
   }

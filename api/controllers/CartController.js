@@ -210,13 +210,13 @@ module.exports = class CartController extends Controller {
         }
 
         if (!req.body.cart.id) {
-          throw new Error('Checkout requires a cart session or cart id')
+          throw new Error('Checkout requires a cart session or cart id, or token')
         }
         return CartService.checkout(req)
 
       })
       .then(data => {
-        // console.log('CartController.checkout Order', data)
+        // console.log('cart checkout CartController.checkout', data)
         if (!data || !data.cart || !data.order) {
           throw new Error('Unexpected Error while checking out')
         }

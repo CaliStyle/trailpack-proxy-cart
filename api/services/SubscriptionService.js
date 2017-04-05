@@ -3,6 +3,7 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
+const shortid = require('shortid')
 const Errors = require('proxy-engine-errors')
 const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
 /**
@@ -10,9 +11,16 @@ const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
  * @description Subscription Service
  */
 module.exports = class SubscriptionService extends Service {
+  /**
+   *
+   * @param subscription
+   * @param options
+   * @returns {*}
+   */
   resolve(subscription, options){
     // console.log('TYPEOF subscription',typeof subscription)
-    const Subscription =  this.app.orm.Subscription
+    const Subscription =  this.app.orm['Subscription']
+
     if (subscription instanceof Subscription.Instance){
       return Promise.resolve(subscription, options)
     }
@@ -21,6 +29,19 @@ module.exports = class SubscriptionService extends Service {
         .then(resSubscription => {
           if (!resSubscription) {
             throw new Errors.FoundError(Error(`Subscription ${subscription.id} not found`))
+          }
+          return resSubscription
+        })
+    }
+    else if (subscription && _.isObject(subscription) && subscription.token) {
+      return Subscription.findOne({
+        where: {
+          token: subscription.token
+        }
+      }, options)
+        .then(resSubscription => {
+          if (!resSubscription) {
+            throw new Errors.FoundError(Error(`Subscription ${subscription.token} not found`))
           }
           return resSubscription
         })
@@ -40,7 +61,14 @@ module.exports = class SubscriptionService extends Service {
       return Promise.reject(err)
     }
   }
-  setupSubscriptions(order) {
+
+  /**
+   *
+   * @param order
+   * @param active
+   * @returns {Promise.<TResult>}
+   */
+  setupSubscriptions(order, active) {
     return this.app.services.OrderService.resolve(order)
       .then(order => {
         if (!order.order_items || order.order_items.length == 0) {
@@ -68,11 +96,11 @@ module.exports = class SubscriptionService extends Service {
         // console.log('the groups',groups)
         return Promise.all(groups.map((group) => {
           // console.log('this group',group)
-          return this.create(order, group.items, group.unit, group.interval)
+          return this.create(order, group.items, group.unit, group.interval, active)
         }))
       })
   }
-  create(order, items, unit, interval) {
+  create(order, items, unit, interval, active) {
     const Subscription = this.app.orm['Subscription']
     const create = {
       original_order_id: order.id,
@@ -90,7 +118,7 @@ module.exports = class SubscriptionService extends Service {
       }),
       unit: unit,
       interval: interval,
-      active: true
+      active: active
     }
     // console.log('this subscription', create)
     let resSubscription
@@ -268,7 +296,27 @@ module.exports = class SubscriptionService extends Service {
       })
   }
 
+  renew(subscription) {
+    let resSubscription
+    return this.resolve(subscription)
+      .then(foundSubscription => {
+        if (!foundSubscription) {
+          throw new Errors.FoundError(Error('Subscription Not Found'))
+        }
+        resSubscription = foundSubscription
+        return resSubscription
+      })
+  }
+
+  prepareForOrder(req) {
+    return Promise.resolve({})
+  }
+
   beforeCreate(subscription) {
+    // If not token was already created, create it
+    if (!subscription.token) {
+      subscription.token = `subscription_${shortid.generate()}`
+    }
     return subscription.recalculate()
   }
   beforeUpdate(subscription) {

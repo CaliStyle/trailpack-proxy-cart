@@ -255,18 +255,19 @@ module.exports = class ProxyCartService extends Service {
    * @returns {Promise}
    */
   // TODO
-  resolveSendFromTo(cart, shippingAddress) {
+  resolveSendFromTo(obj, shippingAddress) {
     return new Promise((resolve, reject) => {
       const Cart = this.app.orm.Cart
+      const Subscription = this.app.orm.Subscription
       const Customer = this.app.orm.Customer
       const Shop = this.app.orm.Shop
       const Address = this.app.orm.Address
 
-      if (!(cart instanceof Cart.Instance)) {
-        const err = new Error('Cart must be an instance!')
+      if (!(obj instanceof Cart.Instance) && !(obj instanceof Subscription.Instance)) {
+        const err = new Error('Object must be an instance!')
         return reject(err)
       }
-      Shop.findById(cart.shop_id)
+      Shop.findById(obj.shop_id)
         .then(shop => {
           if (!shop) {
             return resolve(null)
@@ -292,8 +293,8 @@ module.exports = class ProxyCartService extends Service {
             }
             return resolve(res)
           }
-          else if (cart.customer_id) {
-            Customer.findById(cart.customer_id, {
+          else if (obj.customer_id) {
+            Customer.findById(obj.customer_id, {
               attributes: ['id'],
               include: [
                 {

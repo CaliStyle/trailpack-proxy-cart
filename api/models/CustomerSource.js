@@ -32,6 +32,11 @@ module.exports = class CustomerSource extends Model {
           type: Sequelize.STRING,
           unique: 'customersource_source'
         },
+        account_id: {
+          type: Sequelize.INTEGER,
+          unique: 'customersource_source',
+          references: null
+        },
         customer_id: {
           type: Sequelize.INTEGER,
           unique: 'customersource_source',

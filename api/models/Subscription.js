@@ -87,7 +87,7 @@ module.exports = class Subscription extends Model {
           instanceMethods: {
             line: function(data){
               const line = {
-                subscription_id: data.subscription_id,
+                subscription_id: this.id,
                 product_id: data.product_id,
                 variant_id: data.id || data.variant_id,
                 type: data.type,
@@ -223,6 +223,30 @@ module.exports = class Subscription extends Model {
               let totalShipping = 0
               let totalItems = 0
 
+              // Set Renewal Date
+              const d = new Date(this.renewed_at)
+              if (this.unit == INTERVALS.DAY) {
+                d.setMonth(d.getDay() + this.interval)
+              }
+              // else if (this.unit == INTERVALS.WEEK) {
+              //   d.setMonth(d.getWeek() + this.interval);
+              // }
+              else if (this.unit == INTERVALS.MONTH) {
+                d.setMonth(d.getMonth() + this.interval)
+              }
+              else if (this.unit == INTERVALS.BIMONTH) {
+                d.setMonth(d.getMonth() + this.interval * 2)
+              }
+              else if (this.unit == INTERVALS.YEAR) {
+                d.setMonth(d.getYear() + this.interval)
+              }
+              else if (this.unit == INTERVALS.BIYEAR) {
+                d.setMonth(d.getYear() + this.interval * 2)
+              }
+
+              this.renews_on = d
+
+
               // Reset Globals
               this.has_shipping = false
 
@@ -253,7 +277,7 @@ module.exports = class Subscription extends Model {
                 .then(resCollections => {
                   collections = resCollections
                   // Resolve taxes
-                  return app.services.TaxService.calculate(this, collections)
+                  return app.services.TaxService.calculate(this, collections, app.services.SubscriptionService)
                 })
                 .then(tax => {
                   // Add tax lines
@@ -261,7 +285,7 @@ module.exports = class Subscription extends Model {
                     totalTax = totalTax + line.price
                   })
                   // Resolve Shipping
-                  return app.services.ShippingService.calculate(this, collections)
+                  return app.services.ShippingService.calculate(this, collections, app.services.SubscriptionService)
                 })
                 .then(shipping => {
                   // Add shipping lines
@@ -270,7 +294,7 @@ module.exports = class Subscription extends Model {
                   _.each(this.shipping_lines, line => {
                     totalShipping = totalShipping + line.price
                   })
-                  return app.services.DiscountService.calculate(this, collections)
+                  return app.services.DiscountService.calculate(this, collections, app.services.SubscriptionService)
                 })
                 .then(discounts => {
                   // console.log(discounts)
@@ -278,7 +302,7 @@ module.exports = class Subscription extends Model {
                   _.each(this.discounted_lines, line => {
                     totalDiscounts = totalDiscounts + line.price
                   })
-                  return app.services.CouponService.calculate(this, collections)
+                  return app.services.CouponService.calculate(this, collections, app.services.SubscriptionService)
                 })
                 .then(coupons => {
                   _.each(this.coupon_lines, line => {
@@ -300,35 +324,11 @@ module.exports = class Subscription extends Model {
                   this.total_price = totalPrice
                   this.total_due = totalDue
                   // console.log('SUBSCRIPTION CALCULATION', this)
-                  return Promise.resolve(this)
+                  return this
                 })
-            },
-            toJSON: function() {
-              const resp = this.get({ plain: true })
-
-              const d = new Date(this.renewed_at)
-              if (this.unit == INTERVALS.DAY) {
-                d.setMonth(d.getDay() + this.interval)
-              }
-              // else if (this.unit == INTERVALS.WEEK) {
-              //   d.setMonth(d.getWeek() + this.interval);
-              // }
-              else if (this.unit == INTERVALS.MONTH) {
-                d.setMonth(d.getMonth() + this.interval)
-              }
-              else if (this.unit == INTERVALS.BIMONTH) {
-                d.setMonth(d.getMonth() + this.interval * 2)
-              }
-              else if (this.unit == INTERVALS.YEAR) {
-                d.setMonth(d.getYear() + this.interval)
-              }
-              else if (this.unit == INTERVALS.BIYEAR) {
-                d.setMonth(d.getYear() + this.interval * 2)
-              }
-
-              resp.renews_on = d
-
-              return resp
+                .catch(err => {
+                  return this
+                })
             }
           }
         }
@@ -358,6 +358,11 @@ module.exports = class Subscription extends Model {
           },
           allowNull: false
         },
+        // Unique identifier for a particular cart.
+        token: {
+          type: Sequelize.STRING,
+          unique: true
+        },
         // The interval of the subscription, defaults to 0 months
         interval: {
           type: Sequelize.INTEGER,
@@ -378,6 +383,9 @@ module.exports = class Subscription extends Model {
         renewed_at: {
           type: Sequelize.DATE,
           defaultValue: Sequelize.NOW
+        },
+        renews_on: {
+          type: Sequelize.DATE
         },
         // The reason why the subscription was cancelled. If the subscription was not cancelled, this value is "null."
         cancel_reason: {

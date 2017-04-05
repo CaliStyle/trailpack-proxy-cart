@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Controller = require('trails/controller')
@@ -88,14 +89,50 @@ module.exports = class OrderController extends Controller {
    */
   create(req, res) {
     const OrderService = this.app.services.OrderService
+    const CartService = this.app.services.CartService
+    const SubscriptionService = this.app.services.SubscriptionService
+
     lib.Validator.validateOrder.create(req.body)
       .then(values => {
-        return OrderService.create(req.body)
+        if (req.body.cart || req.body.cart_token) {
+          if (!req.body.cart) {
+            req.body.cart = {}
+          }
+          if (req.body.cart_token) {
+            req.body.cart.token = req.body.cart_token
+          }
+          // console.log('cart checkout order.create', req.body.cart)
+          return CartService.prepareForOrder(req)
+        }
+        else if (req.body.subscription || req.body.subscription_token) {
+          if (!req.body.subscription) {
+            req.body.subscription = {}
+          }
+          if (req.body.subscription_token) {
+            req.body.subscription.token = req.body.subscription_token
+          }
+          return SubscriptionService.prepareForOrder(req.body.subscription)
+        }
+        else {
+          throw new Error('Requires a Cart or Subscription to create Order')
+        }
       })
-      .then(order => {
-        return res.json(order)
+      .then(preparedOrder => {
+        if (!preparedOrder) {
+          throw new Error('Not Ready For Order')
+        }
+        // console.log('cart checkout order.create', preparedOrder)
+        return OrderService.create(preparedOrder)
+      })
+      .then(data => {
+        // console.log('CartController.checkout Order', data)
+        if (!data) {
+          throw new Error('Unexpected Error while creating order')
+        }
+        return res.json(data)
       })
       .catch(err => {
+        // console.log('cart checkout order.create', err)
         return res.serverError(err)
       })
   }

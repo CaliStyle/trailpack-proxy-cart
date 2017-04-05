@@ -12,11 +12,11 @@ module.exports = class CouponService extends Service {
   expire(data){}
   redeem(data){}
   validate(data){}
-  calculate(cart){
-    return this.app.services.CartService.resolve(cart)
-      .then(cart => {
-        cart.coupon_lines = []
-        return cart
+  calculate(obj, collections, resolver){
+    return resolver.resolve(obj)
+      .then(obj => {
+        obj.coupon_lines = []
+        return obj
       })
   }
 }

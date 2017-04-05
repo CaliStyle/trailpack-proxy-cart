@@ -16,7 +16,29 @@ module.exports = class Source extends Model {
     if (app.config.database.orm === 'sequelize') {
       config = {
         options: {
-          underscored: true
+          underscored: true,
+          classMethods: {
+            associate: (models) => {
+              models.Source.belongsTo(models.Account, {
+                as: 'account',
+                through: {
+                  model: models.CustomerSource,
+                  unique: false,
+                  foreignKey: 'account_id',
+                  constraints: false
+                }
+              })
+              models.Source.belongsTo(models.Customer, {
+                as: 'account',
+                through: {
+                  model: models.CustomerSource,
+                  unique: false,
+                  foreignKey: 'customer_id',
+                  constraints: false
+                }
+              })
+            }
+          }
         }
       }
     }
@@ -34,6 +56,11 @@ module.exports = class Source extends Model {
       foreign_id: {
         type: Sequelize.STRING,
         allowNull: false
+      },
+      // If this is the default payment source for an account
+      is_default: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
 
       // An object containing information about the credit card used for this transaction. Normally It has the following properties:

@@ -40,7 +40,7 @@ describe('OrderController', () => {
       .get('/order/count')
       .expect(200)
       .end((err, res) => {
-        console.log('COUNT ORDERS', res.body.orders)
+        // console.log('COUNT ORDERS', res.body.orders)
         assert.ok(_.isNumber(res.body.orders))
         done(err)
       })
@@ -70,6 +70,7 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
+        // console.log('CART TOKEN', cartToken)
         // console.log('THIS ORDER', res.body)
         assert.ok(res.body.id)
         orderID = res.body.id
@@ -86,7 +87,7 @@ describe('OrderController', () => {
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
-        console.log('ORDER ITEMS', res.body.order_items)
+        // console.log('ORDER ITEMS', res.body.order_items)
         // Defaults to not immediately fulfilled: fulfillment_status: none
         assert.equal(res.body.order_items[0].fulfillment_id, null)
         done(err)

@@ -23,7 +23,7 @@ module.exports = class OrderService extends Service {
    * @returns {Promise}
    */
   resolve(order, options) {
-    const Order =  this.app.orm.Order
+    const Order =  this.app.orm['Order']
     if (order instanceof Order.Instance){
       return Promise.resolve(order)
     }
@@ -85,19 +85,17 @@ module.exports = class OrderService extends Service {
    * @param obj
    * @returns {Promise}
    */
-  // TODO handle taxes, shipping, subscriptions
   // TODO handle inventory policy and coupon policy
   create(obj) {
     const Address = this.app.orm.Address
     const Customer = this.app.orm.Customer
-    const Cart = this.app.orm.Cart
     const Order = this.app.orm.Order
     const OrderItem = this.app.orm.OrderItem
     const PaymentService = this.app.services.PaymentService
 
     // Validate obj cart and customer
-    if (!obj.cart_token) {
-      const err = new Errors.FoundError(Error('Missing Cart token'))
+    if (!obj.cart_token && !obj.subscription_token) {
+      const err = new Errors.FoundError(Error('Missing a Cart token or a Subscription token'))
       return Promise.reject(err)
     }
     if (!obj.payment_details) {
@@ -106,46 +104,29 @@ module.exports = class OrderService extends Service {
     }
 
     let resOrder = {}
-    let resCart = {}
     let resCustomer = {}
     let resBillingAddress = {}
     let resShippingAddress = {}
     let resTransactions = []
 
     return Order.sequelize.transaction(t => {
-      return Cart.find({where: {token: obj.cart_token}})
-        .then(cart => {
-          if (!cart) {
-            throw new Errors.FoundError(Error(`Could not find cart by token '${obj.cart_token}'`))
+      return Customer.findById(obj.customer_id, {
+        include: [
+          {
+            model: Address,
+            as: 'shipping_address'
+          },
+          {
+            model: Address,
+            as: 'billing_address'
           }
-          if (cart.status !== Cart.CART_STATUS.OPEN) {
-            throw new Errors.ConflictError(Error(`Cart status '${cart.status}' is not '${Cart.CART_STATUS.OPEN}'`))
-          }
-          resCart = cart
-          // If a customer is attached to this order
-          if (obj.customer_id) {
-            return Customer.findById(obj.customer_id, {
-              include: [
-                {
-                  model: Address,
-                  as: 'shipping_address'
-                },
-                {
-                  model: Address,
-                  as: 'billing_address'
-                }
-              ]
-            })
-          }
-          else {
-            return null
-          }
-        })
+        ]
+      })
         .then(customer => {
-          if (customer && !customer.billing_address && !obj.billing_address && resCart.has_shipping) {
+          if (customer && !customer.billing_address && !obj.billing_address && obj.has_shipping) {
             throw new Errors.FoundError(Error(`Could not find customer billing address for id '${obj.customer_id}'`))
           }
-          if (customer && !customer.shipping_address && !obj.shipping_address && resCart.has_shipping) {
+          if (customer && !customer.shipping_address && !obj.shipping_address && obj.has_shipping) {
             throw new Errors.FoundError(Error(`Could not find customer shipping address for id '${obj.customer_id}'`))
           }
           if (!customer) {
@@ -163,7 +144,7 @@ module.exports = class OrderService extends Service {
           // Resolve the Shipping Address
           resShippingAddress = this.resolveToAddress(resCustomer.shipping_address, obj.shipping_address)
 
-          if (!resShippingAddress && resCart.has_shipping) {
+          if (!resShippingAddress && obj.has_shipping) {
             throw new Error('Order does not have a valid shipping address')
           }
 
@@ -177,28 +158,30 @@ module.exports = class OrderService extends Service {
             processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
             processed_at: new Date(),
 
-            // Cart Info
-            cart_token: resCart.token,
-            currency: resCart.currency,
-            order_items: resCart.line_items,
-            tax_lines: resCart.tax_lines,
-            shipping_lines: resCart.shipping_lines,
-            discounted_lines: resCart.discounted_lines,
-            coupon_lines: resCart.coupon_lines,
-            subtotal_price: resCart.subtotal_price,
-            taxes_included: resCart.taxes_included,
-            total_discounts: resCart.total_discounts,
-            total_line_items_price: resCart.total_line_items_price,
-            total_price: resCart.total_due,
-            total_due: resCart.total_due,
-            total_tax: resCart.total_tax,
-            total_weight: resCart.total_weight,
-            total_items: resCart.total_items,
+            // Cart/Subscription Info
+            cart_token: obj.cart_token,
+            subscription_token: obj.subscription_token,
+            currency: obj.currency,
+            order_items: obj.line_items,
+            tax_lines: obj.tax_lines,
+            shipping_lines: obj.shipping_lines,
+            discounted_lines: obj.discounted_lines,
+            coupon_lines: obj.coupon_lines,
+            subtotal_price: obj.subtotal_price,
+            taxes_included: obj.taxes_included,
+            total_discounts: obj.total_discounts,
+            total_line_items_price: obj.total_line_items_price,
+            total_price: obj.total_due,
+            total_due: obj.total_due,
+            total_tax: obj.total_tax,
+            total_weight: obj.total_weight,
+            total_items: obj.total_items,
+            shop_id: obj.shop_id,
+            has_shipping: obj.has_shipping,
+            has_subscription: obj.has_subscription,
+
+            // Gateway
             payment_gateway_names: paymentGatewayNames,
-            requires_shipping: resCart.requires_shipping,
-            shop_id: resCart.shop_id,
-            has_shipping: resCart.has_shipping,
-            has_subscription: resCart.has_subscription,
 
             // Client Info
             client_details: obj.client_details,
@@ -207,7 +190,7 @@ module.exports = class OrderService extends Service {
             // Customer Info
             customer_id: resCustomer.id, // (May Be Null)
             buyer_accepts_marketing: resCustomer.accepts_marketing || obj.buyer_accepts_marketing,
-            email: resCustomer.email || obj.email,
+            email: resCustomer.email || obj.email || null,
             billing_address: resBillingAddress,
             shipping_address: resShippingAddress
           }
@@ -222,20 +205,13 @@ module.exports = class OrderService extends Service {
           })
         })
         .then(order => {
+          if (!order) {
+            throw new Error('Unexpected Error while creating order')
+          }
           resOrder = order
-          // Close the Cart
-          resCart.close(Cart.CART_STATUS.ORDERED)
-          return resCart.save()
-        })
-        .then(cart => {
-          // TODO set inventory of products in cart
-          return
-        })
-        .then(inventories => {
+
           if (resCustomer instanceof Customer.Instance) {
             resCustomer.setLastOrder(resOrder)
-            // TODO create a blank new cart for customer
-            // resCustomer.newCart()
             return resCustomer.save()
           }
           else {
@@ -277,20 +253,25 @@ module.exports = class OrderService extends Service {
             this.app.log.debug(`Order does not have a fulfillment function, defaulting to ${ORDER_FULFILLMENT_KIND.MANUAL}`)
             orderFulfillment = ORDER_FULFILLMENT_KIND.MANUAL
           }
+
+          // Determine if this can be fulfilled immediately
           if (this.resolveSendImmediately(resTransactions, orderFulfillment)) {
             return this.app.services.FulfillmentService.sendOrderToFulfillment(resOrder)
           }
           else {
-            return
+            return []
           }
         })
         .then(fulfillments => {
-          if (this.resolveSubscribeImmediately(resTransactions, resOrder.has_subscription)) {
-            return this.app.services.SubscriptionService.setupSubscriptions(resOrder)
+          // Determine if this subscription should be created immediately
+          const subscribe = this.resolveSubscribeImmediately(resTransactions, resOrder.has_subscription)
+          if (resOrder.has_subscription) {
+            return this.app.services.SubscriptionService.setupSubscriptions(resOrder, subscribe)
           }
-          return
+          return []
         })
         .then(subscriptions => {
+
           return Order.findByIdDefault(resOrder.id)
         })
     })

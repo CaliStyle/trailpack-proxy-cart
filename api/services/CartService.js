@@ -28,6 +28,17 @@ module.exports = class CartService extends Service {
           return resCart
         })
     }
+    else if (cart && _.isObject(cart) && cart.token) {
+      return Cart.findOne({
+        where: { token: cart.token }
+      }, options)
+        .then(resCart => {
+          if (!resCart) {
+            throw new Errors.FoundError(Error(`Cart ${cart.token} not found`))
+          }
+          return resCart
+        })
+    }
     else if (cart && _.isObject(cart)) {
       return this.create(cart, options)
     }
@@ -103,50 +114,76 @@ module.exports = class CartService extends Service {
    * @returns {Promise.<*>}
    */
   checkout(req){
-    // const ProductVariant = this.app.orm.ProductVariant
-    const Customer = this.app.orm['Customer']
+    // const Cart = this.app.orm['Cart']
 
-    if (!req.body.cart.id) {
-      const err = new Errors.FoundError(Error('Cart is missing id'))
+    if (!req.body.cart) {
+      const err = new Errors.FoundError(Error('Cart is missing in request'))
       return Promise.reject(err)
     }
 
-    let resCart, resCustomer, resOrder
-    return this.resolve(req.body.cart)
-      .then(foundCart => {
+    let resOrder
+    return this.prepareForOrder(req)
+      .then(newOrder => {
+        return this.app.services.OrderService.create(newOrder)
+      })
+      .then(order => {
+        if (!order) {
+          throw new Error('Unexpected error during checkout')
+        }
+        resOrder = order
+        // Close the Cart
+        // resCart.close(Cart.CART_STATUS.ORDERED)
+        // return resCart.save()
 
-        if (!foundCart) {
+        return this.createAndSwitch(req)
+      })
+      .then(newCart => {
+        return {
+          cart: newCart,
+          order: resOrder
+        }
+      })
+  }
+
+  prepareForOrder(req) {
+    let resCart
+    return this.resolve(req.body.cart)
+      .then(cart => {
+        if (!cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
 
-        if (foundCart.status !== CART_STATUS.OPEN) {
+        if (cart.status !== CART_STATUS.OPEN) {
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
 
-        resCart = foundCart
-        // console.log('CART CUSTOMER',data.customer)
-        return Customer.findById(req.body.customer.id || resCart.customer_id)
+        resCart = cart
+        resCart.recalculate()
+        return resCart.save()
       })
-      .then(foundCustomer => {
-        if (!foundCustomer) {
-          this.app.log.info('Checkout without Customer')
-          throw new Errors.FoundError(Error('Customer Not Found'))
+      .then(cart => {
+        let customerID
+
+        if (req.body.customer && req.body.customer.id) {
+          customerID = req.body.customer.id
+        }
+        else if (req.body.customer_id) {
+          customerID = req.body.customer_id
+        }
+        else {
+          customerID = resCart.customer_id
         }
 
-        resCustomer = foundCustomer
-
-        return resCart.recalculate()
-          .then(() => resCart.save())
+        if (customerID) {
+          return this.app.orm['Customer'].findById(customerID, {
+            attributes: ['id', 'email']
+          })
+        }
+        return {}
       })
-      .then(resCart => {
-        // This not required for POS or Guest Checkout
-        // if (!resCart.customer_id) {
-        //   throw new Errors.FoundError(Error('Cart is missing customer_id'))
-        // }
-        // Create new Order constraints
+      .then(resCustomer => {
         const newOrder = {
-          cart_token: resCart.token,
-          customer_id: resCustomer.id,
+          // Request info
           client_details: req.body.client_details,
           ip: req.body.ip,
           payment_details: req.body.payment_details,
@@ -155,23 +192,34 @@ module.exports = class CartService extends Service {
           processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
           shipping_address: req.body.shipping_address,
           billing_address: req.body.billing_address,
-          email: req.body.email || resCustomer.email
-        }
-        return this.app.services.OrderService.create(newOrder)
-      })
-      .then(order => {
-        if (!order) {
-          throw new Error('Unexpected error during checkout')
-        }
-        resOrder = order
 
-        return this.createAndSwitch(req)
-      })
-      .then(cart => {
-        return {
-          cart: cart,
-          order: resOrder
+          // Customer Info
+          customer_id: resCustomer.id || resCart.customer_id,
+          email: req.body.email || resCustomer.email,
+
+          // Cart Info
+          cart_token: resCart.token,
+          currency: resCart.currency,
+          line_items: resCart.line_items,
+          tax_lines: resCart.tax_lines,
+          shipping_lines: resCart.shipping_lines,
+          discounted_lines: resCart.discounted_lines,
+          coupon_lines: resCart.coupon_lines,
+          subtotal_price: resCart.subtotal_price,
+          taxes_included: resCart.taxes_included,
+          total_discounts: resCart.total_discounts,
+          total_line_items_price: resCart.total_line_items_price,
+          total_price: resCart.total_due,
+          total_due: resCart.total_due,
+          total_tax: resCart.total_tax,
+          total_weight: resCart.total_weight,
+          total_items: resCart.total_items,
+          shop_id: resCart.shop_id,
+          has_shipping: resCart.has_shipping,
+          has_subscription: resCart.has_subscription,
         }
+        // console.log('cart checkout prepare', newOrder)
+        return newOrder
       })
   }
 

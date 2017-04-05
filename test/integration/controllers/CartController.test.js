@@ -51,7 +51,7 @@ describe('CartController', () => {
         cartID = res.body.id
         assert.equal(res.body.line_items.length, 1)
         assert.equal(res.body.total_items, 1)
-        console.log('THIS CART', res.body)
+        // console.log('THIS CART', res.body)
         done(err)
       })
   })

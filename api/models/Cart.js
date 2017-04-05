@@ -220,7 +220,7 @@ module.exports = class Cart extends Model {
                 .then(resCollections => {
                   collections = resCollections
                   // Resolve taxes
-                  return app.services.TaxService.calculate(this, collections)
+                  return app.services.TaxService.calculate(this, collections, app.services.CartService)
                 })
                 .then(tax => {
                   // Add tax lines
@@ -228,7 +228,7 @@ module.exports = class Cart extends Model {
                     totalTax = totalTax + line.price
                   })
                   // Resolve Shipping
-                  return app.services.ShippingService.calculate(this, collections)
+                  return app.services.ShippingService.calculate(this, collections, app.services.CartService)
                 })
                 .then(shipping => {
                   // Add shipping lines
@@ -237,7 +237,7 @@ module.exports = class Cart extends Model {
                   _.each(this.shipping_lines, line => {
                     totalShipping = totalShipping + line.price
                   })
-                  return app.services.DiscountService.calculate(this, collections)
+                  return app.services.DiscountService.calculate(this, collections, app.services.CartService)
                 })
                 .then(discounts => {
                   // console.log(discounts)
@@ -245,7 +245,7 @@ module.exports = class Cart extends Model {
                   _.each(this.discounted_lines, line => {
                     totalDiscounts = totalDiscounts + line.price
                   })
-                  return app.services.CouponService.calculate(this, collections)
+                  return app.services.CouponService.calculate(this, collections, app.services.CartService)
                 })
                 .then(coupons => {
                   _.each(this.coupon_lines, line => {
@@ -267,7 +267,7 @@ module.exports = class Cart extends Model {
                   this.total_price = totalPrice
                   this.total_due = totalDue
 
-                  return Promise.resolve(this)
+                  return this
                 })
             }
           },
