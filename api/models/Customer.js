@@ -285,10 +285,14 @@ module.exports = class Customer extends Model {
             }
           },
           instanceMethods: {
-            // TODO Discussion: should this be pulled with each query or set after order?
             setLastOrder: function(order){
               this.last_order_name = order.name
               this.last_order_id = order.id
+              return
+            },
+            // TODO Discussion: should this be pulled with each query or set after order?
+            setAccountBalance: function(balance){
+              this.account_balance = balance
               return
             },
             toJSON: function() {

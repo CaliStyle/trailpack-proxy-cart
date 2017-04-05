@@ -103,6 +103,8 @@ module.exports = class OrderService extends Service {
       return Promise.reject(err)
     }
 
+    // Set the initial total amount due for this order
+    let totalDue = obj.total_due
     let resOrder = {}
     let resCustomer = {}
     let resBillingAddress = {}
@@ -132,6 +134,7 @@ module.exports = class OrderService extends Service {
           if (!customer) {
             resCustomer = {
               id: null,
+              account_balance: 0,
               billing_address: null,
               shipping_address: null
             }
@@ -151,8 +154,13 @@ module.exports = class OrderService extends Service {
           if (!resBillingAddress) {
             resBillingAddress = resShippingAddress
           }
+          // Map the gateway names being used
           const paymentGatewayNames = obj.payment_details.map(detail => { return detail.gateway })
           // console.log('OrderService.create', resShippingAddress, resBillingAddress)
+
+          // Apply Customer Account balance
+          totalDue = Math.max(0, totalDue - resCustomer.account_balance)
+
           const order = {
             // Order Info
             processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
@@ -172,7 +180,7 @@ module.exports = class OrderService extends Service {
             total_discounts: obj.total_discounts,
             total_line_items_price: obj.total_line_items_price,
             total_price: obj.total_due,
-            total_due: obj.total_due,
+            total_due: totalDue,
             total_tax: obj.total_tax,
             total_weight: obj.total_weight,
             total_items: obj.total_items,
@@ -211,6 +219,7 @@ module.exports = class OrderService extends Service {
           resOrder = order
 
           if (resCustomer instanceof Customer.Instance) {
+            resCustomer.setAccountBalance(Math.max(0, resCustomer.account_balance - totalDue))
             resCustomer.setLastOrder(resOrder)
             return resCustomer.save()
           }
