@@ -245,7 +245,7 @@ module.exports = class Subscription extends Model {
               else if (this.unit == INTERVALS.BIYEAR) {
                 d.setYear(d.getYear() + this.interval * 2)
               }
-              this.renews_on = d
+              this.renews_on = new Date(d)
 
 
               // Reset Globals
@@ -398,8 +398,10 @@ module.exports = class Subscription extends Model {
           type: Sequelize.DATE,
           defaultValue: Sequelize.NOW
         },
+        // The next date time subscription will renew on
         renews_on: {
-          type: Sequelize.DATE
+          type: Sequelize.DATE,
+          defaultValue: Sequelize.NOW
         },
         total_renewals: {
           type: Sequelize.INTEGER,
