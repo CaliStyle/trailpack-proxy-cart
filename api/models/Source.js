@@ -55,6 +55,11 @@ module.exports = class Source extends Model {
         },
         allowNull: false
       },
+      // The gateway used to create this source
+      gateway: {
+        type: Sequelize.STRING,
+        defaultValue: 'payment_processor'
+      },
       // The foreign key attribute on the 3rd party provider
       account_foreign_key: {
         type: Sequelize.STRING,

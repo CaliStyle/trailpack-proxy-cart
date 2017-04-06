@@ -109,6 +109,7 @@ module.exports = class SubscriptionService extends Service {
       customer_id: order.customer_id,
       line_items: items.map(item => {
         item =  _.omit(item.get({plain: true}), [
+          'id',
           'requires_subscription',
           'subscription_unit',
           'subscription_interval',
@@ -348,12 +349,10 @@ module.exports = class SubscriptionService extends Service {
             return {
               payment_kind: 'sale',
               payment_details: [
-                [
-                  {
-                    gateway: source.gateway,
-                    source: source,
-                  }
-                ]
+                {
+                  gateway: source.gateway,
+                  source: source,
+                }
               ],
               fulfillment_kind: 'immediate'
             }
@@ -363,9 +362,9 @@ module.exports = class SubscriptionService extends Service {
 
         const newOrder = {
           // Request info
-          payment_details: paymentDetails,
-          payment_kind: this.app.config.proxyCart.order_payment_kind,
-          fulfillment_kind: this.app.config.proxyCart.order_fulfillment_kind,
+          payment_details: paymentDetails.payment_details,
+          payment_kind: paymentDetails.payment_kind || this.app.config.proxyCart.order_payment_kind,
+          fulfillment_kind: paymentDetails.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
           shipping_address: resCustomer.shipping_address,
           billing_address: resCustomer.billing_address,
@@ -392,7 +391,8 @@ module.exports = class SubscriptionService extends Service {
           total_weight: resSubscription.total_weight,
           total_items: resSubscription.total_items,
           shop_id: resSubscription.shop_id,
-          has_shipping: resSubscription.has_shipping
+          has_shipping: resSubscription.has_shipping,
+          has_subscription: false
         }
         // console.log('cart checkout prepare', newOrder)
         return newOrder
@@ -404,7 +404,16 @@ module.exports = class SubscriptionService extends Service {
     if (!subscription.token) {
       subscription.token = `subscription_${shortid.generate()}`
     }
-    return subscription.recalculate()
+    return this.app.services.ShopService.resolve(subscription.shop_id)
+      .then(shop => {
+        // console.log('SubscriptionService.beforeCreate', shop)
+        subscription.shop_id = shop.id
+        return subscription.recalculate()
+      })
+      .catch(err => {
+        // console.log('SubscriptionService.beforeCreate', err)
+        return subscription.recalculate()
+      })
   }
   beforeUpdate(subscription) {
     return subscription.recalculate()

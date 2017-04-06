@@ -253,12 +253,18 @@ module.exports = class Subscription extends Model {
 
               // Set back to default
               this.discounted_lines = []
-              this.line_items = this.line_items.map(item => {
+              this.shipping_lines = []
+              this.tax_lines = []
+
+              const lineItems = this.line_items.map(item => {
+                item.shipping_lines = []
                 item.discounted_lines = []
+                item.tax_lines = []
                 item.total_discounts = 0
                 item.calculated_price = item.price
                 return item
               })
+              this.line_items = lineItems
 
               // Calculate Totals
               this.line_items.forEach(item => {
@@ -342,6 +348,13 @@ module.exports = class Subscription extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        shop_id: {
+          type: Sequelize.INTEGER,
+          references: {
+            model: 'Shop',
+            key: 'id'
+          }
+        },
         // The Order that generated this subscription
         original_order_id: {
           type: Sequelize.INTEGER,

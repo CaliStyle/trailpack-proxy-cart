@@ -364,7 +364,7 @@ describe('CartPolicy', () => {
       .post(`/subscription/${ subscriptionID }`)
       .send({
         interval: 2,
-        unit: 'd'
+        unit: 'm'
       })
       .expect(200)
       .end((err, res) => {
@@ -372,8 +372,64 @@ describe('CartPolicy', () => {
         assert.equal(res.body.id, subscriptionID)
         assert.equal(res.body.active, true)
         assert.equal(res.body.interval, 2)
-        assert.equal(res.body.unit, 'd')
+        assert.equal(res.body.unit, 'm')
         assert.ok(res.body.renews_on)
+        done(err)
+      })
+  })
+  it('should renew subscription', done => {
+    global.app.services.SubscriptionService.renew(subscriptionID)
+      .then(body => {
+        console.log('THIS RENEW', body.subscription)
+        const orderID = body.order.id
+        assert.ok(body.subscription.id)
+        assert.ok(body.order.id)
+        assert.ok(body.order.token)
+        assert.equal(body.subscription.total_renewals, 1)
+
+        assert.equal(body.order.financial_status, 'paid')
+        assert.equal(body.order.currency, 'USD')
+        assert.equal(body.order.source_name, 'api')
+        assert.equal(body.order.processing_method, 'subscription')
+        assert.equal(body.order.subtotal_price, shopProducts[3].price + shopProducts[4].price)
+        assert.equal(body.order.total_price, shopProducts[3].price + shopProducts[4].price - body.order.total_discounts)
+        assert.equal(body.order.total_discounts, 300)
+        assert.equal(body.order.discounted_lines.length, 2)
+        assert.equal(body.order.total_due, 0)
+
+        assert.equal(body.order.order_items.length, 2)
+
+        assert.equal(body.order.order_items[0].order_id, orderID)
+        assert.ok(body.order.order_items[0].fulfillment_id)
+        assert.equal(body.order.order_items[0].fulfillment_status, 'fulfilled')
+        assert.equal(body.order.order_items[0].fulfillment_service, 'manual')
+        assert.equal(body.order.order_items[0].product_id, shopProducts[3].id)
+        assert.equal(body.order.order_items[0].price, shopProducts[3].price)
+        assert.equal(body.order.order_items[0].total_discounts, 100)
+        assert.equal(body.order.order_items[0].calculated_price, shopProducts[3].price - 100)
+        assert.equal(body.order.order_items[0].product_id, shopProducts[3].id)
+
+        assert.equal(body.order.order_items[1].order_id, orderID)
+        assert.ok(body.order.order_items[1].fulfillment_id)
+        assert.equal(body.order.order_items[1].fulfillment_status, 'fulfilled')
+        assert.equal(body.order.order_items[1].fulfillment_service, 'manual')
+        assert.equal(body.order.order_items[1].product_id, shopProducts[4].id)
+        assert.equal(body.order.order_items[1].price, shopProducts[4].price)
+        assert.equal(body.order.order_items[1].total_discounts, 200)
+        assert.equal(body.order.order_items[1].calculated_price, shopProducts[4].price - 200)
+        assert.equal(body.order.order_items[1].product_id, shopProducts[4].id)
+
+        // Transactions
+        assert.equal(body.order.transactions.length, 1)
+        assert.equal(body.order.transactions[0].kind, 'sale')
+        assert.equal(body.order.transactions[0].status, 'success')
+        assert.equal(body.order.transactions[0].source_name, 'web')
+        assert.equal(body.order.transactions[0].order_id, orderID)
+
+        done()
+      })
+      .catch(err => {
+        console.log(err)
         done(err)
       })
   })
