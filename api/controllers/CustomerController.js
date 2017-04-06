@@ -329,6 +329,47 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  accounts(req, res) {
+    const Account = this.app.orm['Account']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Account.findAndCount({
+      account: sort,
+      where: {
+        customer_id: customerId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(accounts => {
+        res.set('X-Pagination-Total', accounts.count)
+        res.set('X-Pagination-Pages', Math.ceil(accounts.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(accounts.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
   orders(req, res) {
     const Order = this.app.orm['Order']
     let customerId = req.params.id
@@ -360,6 +401,48 @@ module.exports = class CustomerController extends Controller {
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)
         return res.json(orders.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  sources(req, res) {
+    const Source = this.app.orm['Source']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Source.findAndCount({
+      source: sort,
+      where: {
+        customer_id: customerId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(sources => {
+        res.set('X-Pagination-Total', sources.count)
+        res.set('X-Pagination-Pages', Math.ceil(sources.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(sources.rows)
       })
       .catch(err => {
         return res.serverError(err)

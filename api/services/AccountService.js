@@ -137,7 +137,6 @@ module.exports = class AccountService extends Service {
         serviceCustomerSource.account_id = resAccount.id
         serviceCustomerSource.customer_id = resAccount.customer_id
         return Source.create(serviceCustomerSource)
-        // return resAccount.addSource(serviceCustomerSource)
       })
   }
 

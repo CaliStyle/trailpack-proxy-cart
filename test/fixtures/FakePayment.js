@@ -63,7 +63,7 @@ module.exports = class FakePaymentProcessor {
   createCustomerSource(source) {
     const res = {
       gateway: 'payment_processor',
-      account_foreign_key: source.account_foreign_key,
+      account_foreign_key: 'customer',
       account_foreign_id: source.account_foreign_id,
       foreign_key: 'customer',
       foreign_id: 'source_' + shortid.generate(),
@@ -83,9 +83,9 @@ module.exports = class FakePaymentProcessor {
   findCustomerSource(source) {
     const res = {
       gateway: 'payment_processor',
-      account_foreign_key: source.account_foreign_key,
+      account_foreign_key: 'customer',
       account_foreign_id: source.account_foreign_id,
-      foreign_key: 'customer',
+      foreign_key: 'source',
       foreign_id: source.foreign_key,
       payment_details: source
     }
@@ -103,8 +103,8 @@ module.exports = class FakePaymentProcessor {
   updateCustomerSource(source) {
     const res = {
       gateway: 'payment_processor',
-      account_foreign_key: source.account_foreign_key,
       account_foreign_id: source.account_foreign_id,
+      account_foreign_key: 'customer',
       foreign_key: 'source',
       foreign_id: source.foreign_id,
       payment_details: source

@@ -47,6 +47,14 @@ module.exports = class Source extends Model {
 
   static schema (app, Sequelize) {
     const schema = {
+      customer_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Customer',
+          key: 'id'
+        },
+        allowNull: false
+      },
       // The foreign key attribute on the 3rd party provider
       account_foreign_key: {
         type: Sequelize.STRING,

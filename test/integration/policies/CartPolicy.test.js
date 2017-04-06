@@ -368,6 +368,26 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
+  it('should get session customer accounts', done => {
+    agent
+      .get('/customer/accounts')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY subscriptions', res.body)
+        assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
+  it('should get session customer sources', done => {
+    agent
+      .get('/customer/sources')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY subscriptions', res.body)
+        assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
   // it('should checkout switch cart and create subscription', done => {
   //   agent
   //     .post('/cart/checkout')
