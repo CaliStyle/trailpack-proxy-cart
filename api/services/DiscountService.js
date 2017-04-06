@@ -79,12 +79,15 @@ module.exports = class DiscountService extends Service {
               lineDiscountedLine.price = (item.price * discountedLine.percentage)
             }
 
+            const calculatedPrice = Math.max(0, item.calculated_price - lineDiscountedLine.price)
+            const totalDeducted = Math.min(item.price,(item.price - (item.price - lineDiscountedLine.price)))
+            // console.log('cart checkout', item.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
             // Publish this to the parent discounted lines
             publish = true
             item.discounted_lines.push(lineDiscountedLine)
-            item.calculated_price = Math.max(0, item.calculated_price - lineDiscountedLine.price)
-            item.total_discounts = item.total_discounts + (lineDiscountedLine.price)
-            discountedLine.price = discountedLine.price + lineDiscountedLine.price
+            item.calculated_price = calculatedPrice
+            item.total_discounts = item.total_discounts + totalDeducted
+            discountedLine.price = discountedLine.price + totalDeducted
             discountedLine.lines.push(index)
             return item
           })
