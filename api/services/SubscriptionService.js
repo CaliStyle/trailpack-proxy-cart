@@ -6,6 +6,8 @@ const _ = require('lodash')
 const shortid = require('shortid')
 const Errors = require('proxy-engine-errors')
 const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
+const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
+
 /**
  * @module SubscriptionService
  * @description Subscription Service
@@ -297,19 +299,104 @@ module.exports = class SubscriptionService extends Service {
   }
 
   renew(subscription) {
-    let resSubscription
+    let resSubscription, resOrder
     return this.resolve(subscription)
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(subscription => {
+        if (!subscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-        resSubscription = foundSubscription
+        resSubscription = subscription
         return resSubscription
+      })
+      .then(subscription => {
+        return this.prepareForOrder(subscription)
+      })
+      .then(newOrder => {
+        return this.app.services.OrderService.create(newOrder)
+      })
+      .then(order => {
+        if (!order) {
+          throw new Error('Unexpected error during checkout')
+        }
+        resOrder = order
+        // Renew the Subscription
+        resSubscription.renew()
+        return resSubscription.save()
+      })
+      .then(newSubscription => {
+        return {
+          subscription: newSubscription,
+          order: resOrder
+        }
       })
   }
 
-  prepareForOrder(req) {
-    return Promise.resolve({})
+  prepareForOrder(subscription) {
+    let resSubscription, resCustomer
+
+    return this.resolve(subscription)
+      .then(subscription => {
+        resSubscription = subscription
+        return this.app.orm['Customer'].findById(resSubscription.customer_id, {
+          attributes: ['id', 'email']
+        })
+      })
+      .then(customer => {
+        resCustomer = customer
+        return this.app.services.AccountService.getDefaultSource(resCustomer)
+          .then(source => {
+            return {
+              payment_kind: 'sale',
+              payment_details: [
+                [
+                  {
+                    gateway: source.gateway,
+                    source: source,
+                  }
+                ]
+              ],
+              fulfillment_kind: 'immediate'
+            }
+          })
+      })
+      .then(paymentDetails => {
+
+        const newOrder = {
+          // Request info
+          payment_details: paymentDetails,
+          payment_kind: this.app.config.proxyCart.order_payment_kind,
+          fulfillment_kind: this.app.config.proxyCart.order_fulfillment_kind,
+          processing_method: PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
+          shipping_address: resCustomer.shipping_address,
+          billing_address: resCustomer.billing_address,
+
+          // Customer Info
+          customer_id: resCustomer.id,
+          email: resCustomer.email,
+
+          // Subscription Info
+          subscription_token: resSubscription.token,
+          currency: resSubscription.currency,
+          line_items: resSubscription.line_items,
+          tax_lines: resSubscription.tax_lines,
+          shipping_lines: resSubscription.shipping_lines,
+          discounted_lines: resSubscription.discounted_lines,
+          coupon_lines: resSubscription.coupon_lines,
+          subtotal_price: resSubscription.subtotal_price,
+          taxes_included: resSubscription.taxes_included,
+          total_discounts: resSubscription.total_discounts,
+          total_line_items_price: resSubscription.total_line_items_price,
+          total_price: resSubscription.total_due,
+          total_due: resSubscription.total_due,
+          total_tax: resSubscription.total_tax,
+          total_weight: resSubscription.total_weight,
+          total_items: resSubscription.total_items,
+          shop_id: resSubscription.shop_id,
+          has_shipping: resSubscription.has_shipping
+        }
+        // console.log('cart checkout prepare', newOrder)
+        return newOrder
+      })
   }
 
   beforeCreate(subscription) {

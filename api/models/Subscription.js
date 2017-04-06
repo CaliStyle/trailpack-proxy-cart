@@ -206,8 +206,9 @@ module.exports = class Subscription extends Model {
                 return Promise.resolve(this)
               }
             },
-            close: function(status) {
-              this.status = status
+            renew: function() {
+              this.renewed_at = new Date()
+              this.total_renewals++
             },
             recalculate: function() {
               // Default Values
@@ -225,8 +226,9 @@ module.exports = class Subscription extends Model {
 
               // Set Renewal Date
               const d = new Date(this.renewed_at)
+
               if (this.unit == INTERVALS.DAY) {
-                d.setMonth(d.getDay() + this.interval)
+                d.setDate(d.getDay() + this.interval)
               }
               // else if (this.unit == INTERVALS.WEEK) {
               //   d.setMonth(d.getWeek() + this.interval);
@@ -238,12 +240,11 @@ module.exports = class Subscription extends Model {
                 d.setMonth(d.getMonth() + this.interval * 2)
               }
               else if (this.unit == INTERVALS.YEAR) {
-                d.setMonth(d.getYear() + this.interval)
+                d.setYear(d.getYear() + this.interval)
               }
               else if (this.unit == INTERVALS.BIYEAR) {
-                d.setMonth(d.getYear() + this.interval * 2)
+                d.setYear(d.getYear() + this.interval * 2)
               }
-
               this.renews_on = d
 
 
@@ -386,6 +387,10 @@ module.exports = class Subscription extends Model {
         },
         renews_on: {
           type: Sequelize.DATE
+        },
+        total_renewals: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
         // The reason why the subscription was cancelled. If the subscription was not cancelled, this value is "null."
         cancel_reason: {

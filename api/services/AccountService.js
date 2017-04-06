@@ -83,6 +83,19 @@ module.exports = class AccountService extends Service {
     }))
   }
 
+  /**
+   *
+   * @param customer
+   * @returns {*}
+   */
+  getDefaultSource(customer) {
+    const Source = this.app.orm['Source']
+    return Source.findOne({
+      customer_id: customer.id,
+      is_default: true
+    })
+  }
+
   updateAll(customer) {
     //
   }
@@ -136,6 +149,7 @@ module.exports = class AccountService extends Service {
         console.log('cart checkout serviceCustomerSource', serviceCustomerSource)
         serviceCustomerSource.account_id = resAccount.id
         serviceCustomerSource.customer_id = resAccount.customer_id
+        serviceCustomerSource.is_default = true
         return Source.create(serviceCustomerSource)
       })
   }

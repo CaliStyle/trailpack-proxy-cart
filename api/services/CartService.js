@@ -196,7 +196,7 @@ module.exports = class CartService extends Service {
         }
       })
       .then(paymentDetails => {
-        console.log('cart checkout paymentDetails', paymentDetails)
+        // console.log('cart checkout paymentDetails', paymentDetails)
         const newOrder = {
           // Request info
           client_details: req.body.client_details,

@@ -253,6 +253,8 @@ module.exports = {
   PAYMENT_PROCESSING_METHOD: {
     // Payment processed at digital checkout
     CHECKOUT: 'checkout',
+    // Payment processed at digital subscription
+    SUBSCRIPTION: 'subscription',
     // Payment processed default
     DIRECT: 'direct',
     // Payment processed by means other than digital
