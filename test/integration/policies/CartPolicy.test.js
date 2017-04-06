@@ -221,8 +221,7 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('CHECKOUT', res.body.order)
-        // console.log('ORDER ITEMS', res.body.order_items)
+        console.log('ORDER ITEMS', res.body.order.order_items)
 
         const orderID = res.body.order.id
         cartIDSwitch = res.body.cart.id
@@ -244,17 +243,27 @@ describe('CartPolicy', () => {
         // Order Items
         // TODO check quantities
         assert.equal(res.body.order.order_items.length, 2)
+
         assert.equal(res.body.order.order_items[0].order_id, orderID)
         assert.ok(res.body.order.order_items[0].fulfillment_id)
         assert.equal(res.body.order.order_items[0].fulfillment_status, 'fulfilled')
         assert.equal(res.body.order.order_items[0].fulfillment_service, 'manual')
-        assert.ok(res.body.order.order_items[0].calculated_price)
+        assert.equal(res.body.order.order_items[0].product_id, shopProducts[3].id)
+        assert.equal(res.body.order.order_items[0].price, shopProducts[3].price)
+        assert.equal(res.body.order.order_items[0].total_discounts, 100)
+        assert.equal(res.body.order.order_items[0].calculated_price, shopProducts[3].price - 100)
+        assert.equal(res.body.order.order_items[0].product_id, shopProducts[3].id)
 
         assert.equal(res.body.order.order_items[1].order_id, orderID)
         assert.ok(res.body.order.order_items[1].fulfillment_id)
         assert.equal(res.body.order.order_items[1].fulfillment_status, 'fulfilled')
         assert.equal(res.body.order.order_items[1].fulfillment_service, 'manual')
-        assert.ok(res.body.order.order_items[1].calculated_price)
+        assert.equal(res.body.order.order_items[1].product_id, shopProducts[4].id)
+        assert.equal(res.body.order.order_items[1].price, shopProducts[4].price)
+        assert.equal(res.body.order.order_items[1].total_discounts, 200)
+        assert.equal(res.body.order.order_items[1].calculated_price, shopProducts[4].price - 200)
+        assert.equal(res.body.order.order_items[1].product_id, shopProducts[4].id)
+
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
         assert.equal(res.body.order.transactions[0].kind, 'sale')

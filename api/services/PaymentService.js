@@ -90,7 +90,7 @@ module.exports = class PaymentService extends Service {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-    console.log('cart checkout', transaction)
+    // console.log('cart checkout', transaction)
     let resTransaction
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)

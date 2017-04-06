@@ -146,7 +146,7 @@ module.exports = class AccountService extends Service {
         })
       })
       .then(serviceCustomerSource => {
-        console.log('cart checkout serviceCustomerSource', serviceCustomerSource)
+        // console.log('cart checkout serviceCustomerSource', serviceCustomerSource)
         serviceCustomerSource.account_id = resAccount.id
         serviceCustomerSource.customer_id = resAccount.customer_id
         serviceCustomerSource.is_default = true

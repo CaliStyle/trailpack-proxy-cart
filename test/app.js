@@ -262,16 +262,19 @@ const App = {
       // }
     },
     proxyEngine: {
-      live_mode: false
+      live_mode: false,
+      worker: 'testProfile'
     }
   }
 }
 
 const dbPath = path.resolve(__dirname, './test.sqlite')
+// console.log(dbPath)
 if (fs.existsSync(dbPath)) {
   fs.unlinkSync(dbPath)
 }
 const uploadPath = path.resolve(__dirname, './test.uploads.sqlite')
+// console.log(uploadPath)
 if (fs.existsSync(uploadPath)) {
   fs.unlinkSync(uploadPath)
 }

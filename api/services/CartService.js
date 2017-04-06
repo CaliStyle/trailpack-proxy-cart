@@ -162,8 +162,8 @@ module.exports = class CartService extends Service {
         }
 
         resCart = cart
-        resCart.recalculate()
-        return resCart.save()
+        // resCart.recalculate()
+        // return resCart.save()
       })
       .then(cart => {
         if (req.body.customer && req.body.customer.id) {
