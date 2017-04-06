@@ -1,5 +1,6 @@
 'use strict'
 const _ = require('lodash')
+const shortid = require('shortid')
 module.exports = class FakePaymentProcessor {
   constructor(options) {
     this.options = options
@@ -52,43 +53,47 @@ module.exports = class FakePaymentProcessor {
   }
   createCustomer(customer) {
     const res = {
-      gateway: 'default',
+      gateway: 'payment_processor',
       foreign_key: 'customer',
-      foreign_id: customer.id,
+      foreign_id: 'customer_' + shortid.generate(),
       data: customer
     }
     return Promise.resolve(res)
   }
   createCustomerSource(source) {
     const res = {
-      gateway: 'default',
+      gateway: 'payment_processor',
+      account_foreign_key: source.account_foreign_key,
+      account_foreign_id: source.account_foreign_id,
       foreign_key: 'customer',
-      foreign_id: source.id,
-      data: source
+      foreign_id: 'source_' + shortid.generate(),
+      payment_details: source
     }
     return Promise.resolve(res)
   }
-  findCustomerSource(source) {
+  findCustomer(customer) {
     const res = {
-      gateway: 'default',
-      foreign_key: 'customer',
-      foreign_id: source.id,
-      data: source
-    }
-    return Promise.resolve(res)
-  }
-  updateCustomer(customer) {
-    const res = {
-      gateway: 'default',
+      gateway: 'payment_processor',
       foreign_key: 'customer',
       foreign_id: customer.id,
       data: customer
     }
     return Promise.resolve(res)
   }
-  findCustomer(customer) {
+  findCustomerSource(source) {
     const res = {
-      gateway: 'default',
+      gateway: 'payment_processor',
+      account_foreign_key: source.account_foreign_key,
+      account_foreign_id: source.account_foreign_id,
+      foreign_key: 'customer',
+      foreign_id: source.foreign_key,
+      payment_details: source
+    }
+    return Promise.resolve(res)
+  }
+  updateCustomer(customer) {
+    const res = {
+      gateway: 'payment_processor',
       foreign_key: 'customer',
       foreign_id: customer.id,
       data: customer
@@ -97,10 +102,12 @@ module.exports = class FakePaymentProcessor {
   }
   updateCustomerSource(source) {
     const res = {
-      gateway: 'default',
-      foreign_key: 'customer',
-      foreign_id: source.id,
-      data: source
+      gateway: 'payment_processor',
+      account_foreign_key: source.account_foreign_key,
+      account_foreign_id: source.account_foreign_id,
+      foreign_key: 'source',
+      foreign_id: source.foreign_id,
+      payment_details: source
     }
     return Promise.resolve(res)
   }

@@ -28,6 +28,16 @@ module.exports = class Account extends Model {
               foreignKey: 'account_id',
               constraints: false
             })
+
+            models.Account.belongsToMany(models.Source, {
+              as: 'sources',
+              through: {
+                model: models.CustomerSource,
+                foreignKey: 'account_id',
+                unique: false
+              },
+              constraints: false
+            })
           }
         }
       }
@@ -37,8 +47,17 @@ module.exports = class Account extends Model {
 
   static schema (app, Sequelize) {
     return {
+      customer_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Customer',
+          key: 'id'
+        },
+        allowNull: false
+      },
       gateway: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        defaultValue: 'payment_processor'
       },
       // The foreign key attribute on the 3rd party provider
       foreign_key: {

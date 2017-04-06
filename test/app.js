@@ -2,6 +2,7 @@
 const _ = require('lodash')
 const smokesignals = require('smokesignals')
 const fs = require('fs')
+const path = require('path')
 // const bodyParser = require('body-parser')
 // const lib = require('../lib')
 
@@ -266,11 +267,11 @@ const App = {
   }
 }
 
-const dbPath = './test.sqlite'
+const dbPath = path.resolve(__dirname, './test.sqlite')
 if (fs.existsSync(dbPath)) {
   fs.unlinkSync(dbPath)
 }
-const uploadPath = './test.uploads.sqlite'
+const uploadPath = path.resolve(__dirname, './test.uploads.sqlite')
 if (fs.existsSync(uploadPath)) {
   fs.unlinkSync(uploadPath)
 }

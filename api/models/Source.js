@@ -29,7 +29,7 @@ module.exports = class Source extends Model {
                 }
               })
               models.Source.belongsTo(models.Customer, {
-                as: 'account',
+                as: 'customer',
                 through: {
                   model: models.CustomerSource,
                   unique: false,
@@ -47,6 +47,16 @@ module.exports = class Source extends Model {
 
   static schema (app, Sequelize) {
     const schema = {
+      // The foreign key attribute on the 3rd party provider
+      account_foreign_key: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      // The foreign id on the 3rd party provider
+      account_foreign_id: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       // The foreign key attribute on the 3rd party provider
       foreign_key: {
         type: Sequelize.STRING,

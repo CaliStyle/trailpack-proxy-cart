@@ -149,7 +149,8 @@ module.exports = class CartService extends Service {
   }
 
   prepareForOrder(req) {
-    let resCart
+    const AccountService = this.app.services.AccountService
+    let resCart, resCustomer, customerID
     return this.resolve(req.body.cart)
       .then(cart => {
         if (!cart) {
@@ -165,8 +166,6 @@ module.exports = class CartService extends Service {
         return resCart.save()
       })
       .then(cart => {
-        let customerID
-
         if (req.body.customer && req.body.customer.id) {
           customerID = req.body.customer.id
         }
@@ -182,14 +181,27 @@ module.exports = class CartService extends Service {
             attributes: ['id', 'email']
           })
         }
-        return {}
+        return
       })
-      .then(resCustomer => {
+      .then(customer => {
+        resCustomer = customer
+        if (resCustomer && req.body.payment_details.length > 0) {
+          return AccountService.resolvePaymentDetailsToSources(resCustomer, req.body.payment_details)
+            .then(paymentDetails => {
+              return paymentDetails
+            })
+        }
+        else {
+          return req.body.payment_details
+        }
+      })
+      .then(paymentDetails => {
+        console.log('cart checkout paymentDetails', paymentDetails)
         const newOrder = {
           // Request info
           client_details: req.body.client_details,
           ip: req.body.ip,
-          payment_details: req.body.payment_details,
+          payment_details: paymentDetails,
           payment_kind: req.body.payment_kind,
           fulfillment_kind: req.body.fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
@@ -197,7 +209,7 @@ module.exports = class CartService extends Service {
           billing_address: req.body.billing_address,
 
           // Customer Info
-          customer_id: resCustomer.id || resCart.customer_id,
+          customer_id: customerID,
           email: req.body.email || resCustomer.email,
 
           // Cart Info

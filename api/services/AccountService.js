@@ -1,6 +1,8 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Service = require('trails/service')
+const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 /**
  * @module AccountService
@@ -11,6 +13,29 @@ module.exports = class AccountService extends Service {
     const Account =  this.app.orm['Account']
     if (account instanceof Account.Instance){
       return Promise.resolve(account)
+    }
+    else if (account && _.isObject(account) && account.id) {
+      return Account.findById(account.id, options)
+        .then(resAccount => {
+          if (!resAccount) {
+            throw new Errors.FoundError(Error(`Account ${account.id} not found`))
+          }
+          return resAccount
+        })
+    }
+    else if (account && _.isObject(account) && account.gateway && account.customer_id) {
+      return Account.findOne({
+        where: {
+          gateway: account.gateway,
+          customer_id: account.customer_id
+        }
+      }, options)
+        .then(resAccount => {
+          if (!resAccount) {
+            throw new Errors.FoundError(Error(`Account with customer id ${account.customer_id} not found`))
+          }
+          return resAccount
+        })
     }
     else {
       // TODO create proper error
@@ -29,6 +54,35 @@ module.exports = class AccountService extends Service {
       return Promise.reject(err)
     }
   }
+
+  /**
+   *
+   * @param customer
+   * @param paymentDetails
+   * @returns {Promise.<*>}
+   */
+  resolvePaymentDetailsToSources(customer, paymentDetails) {
+    return Promise.all(paymentDetails.map(detail => {
+      if (detail.token) {
+        return this.addSource({
+          customer_id: customer.id,
+          gateway: detail.gateway
+        }, detail.token)
+         .then(source => {
+           delete detail.token
+           detail.source = source.get({ plain: true })
+           return detail
+         })
+         .catch(err => {
+           return detail
+         })
+      }
+      else {
+        return detail
+      }
+    }))
+  }
+
   updateAll(customer) {
     //
   }
@@ -65,18 +119,25 @@ module.exports = class AccountService extends Service {
    * @returns {Promise.<TResult>}
    */
   addSource(account, token) {
-    // const Source = this.app.orm['Source']
+    const Source = this.app.orm['Source']
     let resAccount
     return this.resolve(account)
       .then(account => {
+        if (!account) {
+          throw new Error('Account did not resolve')
+        }
         resAccount = account
         return this.app.services.PaymentGenericService.createCustomerSource({
-          account_foreign_id: account.foreign_id,
+          account_foreign_id: resAccount.foreign_id,
           token: token
         })
       })
       .then(serviceCustomerSource => {
-        return resAccount.addSource(serviceCustomerSource)
+        console.log('cart checkout serviceCustomerSource', serviceCustomerSource)
+        serviceCustomerSource.account_id = resAccount.id
+        serviceCustomerSource.customer_id = resAccount.customer_id
+        return Source.create(serviceCustomerSource)
+        // return resAccount.addSource(serviceCustomerSource)
       })
   }
 
