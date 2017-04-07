@@ -78,7 +78,7 @@ module.exports = class Collection extends Model {
                 constraints: false
               })
               models.Collection.belongsToMany(models.Customer, {
-                as: 'customer',
+                as: 'customers',
                 through: {
                   model: models.ItemCollection,
                   unique: false,

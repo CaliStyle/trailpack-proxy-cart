@@ -24,7 +24,8 @@ module.exports = class ItemCollection extends Model {
     const schema = {
       collection_id: {
         type: Sequelize.INTEGER,
-        unique: 'collection_model'
+        unique: 'collection_model',
+        notNull: true
       },
       model: {
         type: Sequelize.STRING,
@@ -33,6 +34,7 @@ module.exports = class ItemCollection extends Model {
       model_id: {
         type: Sequelize.INTEGER,
         unique: 'collection_model',
+        notNull: true,
         references: null
       }
     }

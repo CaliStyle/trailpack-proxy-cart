@@ -267,6 +267,10 @@ module.exports = class Customer extends Model {
                   {
                     model: app.orm['Cart'],
                     as: 'default_cart'
+                  },
+                  {
+                    model: app.orm['Collection'],
+                    as: 'collections'
                   }
                   // ,
                   // {

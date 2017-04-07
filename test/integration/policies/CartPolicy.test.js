@@ -5,7 +5,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 
 describe('CartPolicy', () => {
-  let request, agent, cartID, cartIDSwitch, orderID, subscriptionID
+  let request, agent, customerID, cartID, cartIDSwitch, orderID, subscriptionID
   let shopProducts
 
   before(done => {
@@ -54,6 +54,7 @@ describe('CartPolicy', () => {
       .set('Accept', 'application/json')
       .expect(200)
       .end((err, res) => {
+        customerID = res.body.user.current_customer_id
         assert.ok(res.body.user.id)
         assert.equal(res.body.user.current_cart_id, cartID)
         done(err)
@@ -205,7 +206,31 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
-
+  // it('should add customer to collection', (done) => {
+  //   global.app.orm['Collection']
+  //     .findByHandle('test-discount-2')
+  //     .then(collection => {
+  //       if (!collection) {
+  //         const err = 'Not Found'
+  //         done(err)
+  //       }
+  //       console.log('CUSTOMER WITH DISCOUNT', customerID, collection.id)
+  //       return collection.hasCustomer(customerID)
+  //     })
+  //     .then(customer => {
+  //       if (!customer) {
+  //         return col
+  //       }
+  //     })
+  //     .then(customer => {
+  //       console.log('CUSTOMER WITH DISCOUNT COLLECTION', customer)
+  //       done()
+  //     })
+  //     .catch(err => {
+  //       console.log('Customer with handle', err)
+  //       done(err)
+  //     })
+  // })
   it('should make checkout post request', (done) => {
     agent
       .post('/cart/checkout')
