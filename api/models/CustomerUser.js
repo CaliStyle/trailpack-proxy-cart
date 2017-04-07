@@ -21,6 +21,10 @@ module.exports = class CustomerUser extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+        },
         user_id: {
           type: Sequelize.INTEGER,
           unique: 'customeruser_user'

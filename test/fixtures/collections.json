@@ -5,5 +5,19 @@
     "body": "# Honey, have you seen my Pants?",
     "published": true,
     "sort_order": "price-desc"
+  },
+  {
+    "handle": "customer-discount-test",
+    "title": "Customer Discount",
+    "body": "# Customer Discount",
+    "published": true,
+    "sort_order": "price-desc",
+    "discount_type": "fixed",
+    "discount_scope": "global",
+    "discount_rate": 100,
+    "primary_purpose": "discount",
+    "discount_product_exclude": [
+      "subscription"
+    ]
   }
 ]

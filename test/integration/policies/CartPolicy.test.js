@@ -65,7 +65,26 @@ describe('CartPolicy', () => {
     assert(global.app.api.policies['CartPolicy'])
     assert(global.app.policies['CartPolicy'])
   })
-
+  it('should add customer to collection', (done) => {
+    global.app.orm['Collection']
+      .findByHandle('customer-discount-test')
+      .then(collection => {
+        if (!collection) {
+          const err = 'Not Found'
+          done(err)
+        }
+        // console.log('CUSTOMER WITH DISCOUNT', customerID, collection.id)
+        return collection.addCustomer(customerID)
+      })
+      .then(customer => {
+        // console.log('CUSTOMER WITH DISCOUNT COLLECTION', customer)
+        done()
+      })
+      .catch(err => {
+        console.log('Customer with handle', err)
+        done(err)
+      })
+  })
   it('should login to cart', done => {
     agent
       .post('/cart/login')
@@ -74,7 +93,7 @@ describe('CartPolicy', () => {
       .end((err, res) => {
         // console.log('THIS POLICY CART', res.body)
         cartID = res.body.id
-
+        assert.equal(res.body.customer_id, customerID)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.line_items.length, 0)
@@ -97,6 +116,7 @@ describe('CartPolicy', () => {
         // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartID)
+        assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.line_items.length, 1)
         assert.equal(res.body.line_items[0].product_id, shopProducts[1].id)
         assert.equal(res.body.subtotal_price, shopProducts[1].price)
@@ -113,6 +133,7 @@ describe('CartPolicy', () => {
         // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
+        assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.line_items.length, 0)
         // assert.equal(res.body.line_items[0].product_id, shopProducts[1].id)
         assert.equal(res.body.subtotal_price, 0)
@@ -206,31 +227,6 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
-  // it('should add customer to collection', (done) => {
-  //   global.app.orm['Collection']
-  //     .findByHandle('test-discount-2')
-  //     .then(collection => {
-  //       if (!collection) {
-  //         const err = 'Not Found'
-  //         done(err)
-  //       }
-  //       console.log('CUSTOMER WITH DISCOUNT', customerID, collection.id)
-  //       return collection.hasCustomer(customerID)
-  //     })
-  //     .then(customer => {
-  //       if (!customer) {
-  //         return col
-  //       }
-  //     })
-  //     .then(customer => {
-  //       console.log('CUSTOMER WITH DISCOUNT COLLECTION', customer)
-  //       done()
-  //     })
-  //     .catch(err => {
-  //       console.log('Customer with handle', err)
-  //       done(err)
-  //     })
-  // })
   it('should make checkout post request', (done) => {
     agent
       .post('/cart/checkout')

@@ -321,10 +321,14 @@ module.exports = class CartController extends Controller {
    */
   login(req, res) {
     let cartId = req.params.id
+    let customerId
     const Cart = this.app.orm['Cart']
 
     if (!cartId && req.user) {
       cartId = req.user.current_cart_id
+    }
+    if (req.user) {
+      customerId = req.user.current_customer_id
     }
 
     Cart.findById(cartId)
@@ -332,6 +336,13 @@ module.exports = class CartController extends Controller {
         if (!cart) {
           throw new Error('Unexpected Error while authenticating cart')
         }
+        if (customerId) {
+          cart.customer_id = customerId
+          return cart.save()
+        }
+        return cart
+      })
+      .then(cart => {
         return new Promise((resolve,reject) => {
           req.loginCart(cart, function (err) {
             if (err) {
@@ -370,7 +381,12 @@ module.exports = class CartController extends Controller {
         return user.save()
       })
       .then(user => {
+        req.user.current_cart_id = cartId
         return Cart.findById(cartId)
+      })
+      .then(cart => {
+        cart.customer_id = req.user.current_customer_id
+        return cart.save()
       })
       .then(cart => {
         return new Promise((resolve, reject) => {

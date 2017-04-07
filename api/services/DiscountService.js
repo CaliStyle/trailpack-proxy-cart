@@ -17,15 +17,15 @@ module.exports = class DiscountService extends Service {
    * @returns {Promise.<TResult>}
    */
   calculate(obj, collections, resolver){
+    // Set the default
+    const discountedLines = []
+
     return resolver.resolve(obj)
       .then(obj => {
-        // Set the default
-        const discountedLines = []
 
-        // console.log('THESE COLLECTIONS',collections)
+        // console.log('cart checkout', collections.map(collection => { return collection.title + ' ' + collection.id + ' ' + collection.discount_scope + ' products: ' + collection.products.length }))
         // Loop through collection and apply discounts, stop if there are no line items
         collections.forEach(collection => {
-          // console.log('PRODUCT COLLECTIONS', collection.products)
           // If object line items is empty ignore
           if (obj.line_items.length == 0) {
             return
@@ -62,9 +62,10 @@ module.exports = class DiscountService extends Service {
             if (collection.discount_product_exclude.indexOf(item.type) > -1) {
               return item
             }
-
+            // console.log('cart checkout products', collection.products)
             // Check if Individual Scope
             const inProducts = collection.products.some(product => product.id == item.product_id)
+            // console.log('cart checkout apply individual', inProducts)
             if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts == false){
               return item
             }

@@ -4,6 +4,8 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
+// const COLLECTION_DISCOUNT_TYPE = require('../utils/enums').COLLECTION_DISCOUNT_TYPE
+const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
 
 /**
  * @module CollectionService
@@ -145,6 +147,7 @@ module.exports = class CollectionService extends Service {
       criteria.push({model: 'customer', model_id: cart.customer_id})
       customerIds.push(cart.customer_id)
     }
+
     cart.line_items.forEach(item => {
       criteria.push({model: 'product', model_id: item.product_id})
       productIds.push(item.product_id)
@@ -154,29 +157,43 @@ module.exports = class CollectionService extends Service {
       return Promise.resolve([])
     }
     // console.log('CRITERIA ONE', criteria)
-
     return ItemCollection.findAll({
-      where: { $or: criteria},
+      where: {
+        $or: criteria
+      },
       attributes: ['collection_id', 'model', 'model_id']
     })
       .then(itemCollections => {
+        // console.log('cart checkout', itemCollections)
         // console.log('CRITERIA FOUND',itemCollections)
         const itemCriteria = []
 
         itemCollections.forEach(item => {
           // console.log('FOUND COLLECTION', item.get({plain: true}))
-          itemCriteria.push(item.collection_id)
-          return
+          if (itemCriteria.indexOf(item.collection_id) == -1) {
+            itemCriteria.push(item.collection_id)
+          }
         })
 
         // console.log('CRITERIA TWO', itemCriteria)
         if (itemCriteria.length == 0) {
           return Promise.resolve([])
         }
+        // console.log('cart checkout', itemCriteria)
         // console.log('CRITERIA',criteria)
         return Collection.findAll({
           where: {
-            id: itemCriteria
+            id: itemCriteria,
+            $and: {
+              $or: {
+                discount_rate: {
+                  $gt: 0
+                },
+                discount_percentage: {
+                  $gt: 0
+                }
+              }
+            }
           },
           attributes: [
             'id',
@@ -187,26 +204,46 @@ module.exports = class CollectionService extends Service {
             'discount_percentage',
             'discount_product_include',
             'discount_product_exclude'
-          ],
-          include: [
-            {
-              model: this.app.orm['Product'],
-              as: 'products',
-              where: {
-                id: productIds
-              },
-              attributes: ['id','type']
-            }
-            // {
-            //   model: this.app.orm['Customer'],
-            //   as: 'customer',
-            //   where: {
-            //     id: customerIds[0]
-            //   },
-            //   attributes: ['id']
-            // }
           ]
         })
+          .then(collections => {
+            return Promise.all(collections.map(collection => {
+              if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL) {
+                // console.log('cart checkout Needs Products', collection.id)
+                return Collection.findOne({
+                  where: {
+                    id: collection.id
+                  },
+                  attributes: [
+                    'id',
+                    'title',
+                    'discount_type',
+                    'discount_scope',
+                    'discount_rate',
+                    'discount_percentage',
+                    'discount_product_include',
+                    'discount_product_exclude'
+                  ],
+                  include: [
+                    {
+                      model: this.app.orm['Product'],
+                      as: 'products',
+                      where: {
+                        $or: {
+                          id: productIds
+                        }
+                      },
+                      attributes: ['id','type']
+                    }
+                  ]
+                })
+              }
+              else {
+                collection.products = []
+                return collection
+              }
+            }))
+          })
       })
   }
 
@@ -226,6 +263,7 @@ module.exports = class CollectionService extends Service {
       criteria.push({model: 'customer', model_id: subscription.customer_id})
       customerIds.push(subscription.customer_id)
     }
+
     subscription.line_items.forEach(item => {
       criteria.push({model: 'product', model_id: item.product_id})
       productIds.push(item.product_id)
@@ -241,12 +279,14 @@ module.exports = class CollectionService extends Service {
       attributes: ['collection_id', 'model', 'model_id']
     })
       .then(itemCollections => {
-        // console.log('CRITERIA FOUND',itemCollections)
+        // console.log('cart checkout',itemCollections)
         const itemCriteria = []
 
         itemCollections.forEach(item => {
           // console.log('FOUND COLLECTION', item.get({plain: true}))
-          itemCriteria.push(item.collection_id)
+          if (itemCriteria.indexOf(item.collection_id) == -1) {
+            itemCriteria.push(item.collection_id)
+          }
           return
         })
 
@@ -257,7 +297,17 @@ module.exports = class CollectionService extends Service {
         // console.log('CRITERIA',criteria)
         return Collection.findAll({
           where: {
-            id: itemCriteria
+            id: itemCriteria,
+            $and: {
+              $or: {
+                discount_rate: {
+                  $gt: 0
+                },
+                discount_percentage: {
+                  $gt: 0
+                }
+              }
+            }
           },
           attributes: [
             'id',
@@ -268,26 +318,46 @@ module.exports = class CollectionService extends Service {
             'discount_percentage',
             'discount_product_include',
             'discount_product_exclude'
-          ],
-          include: [
-            {
-              model: this.app.orm['Product'],
-              as: 'products',
-              where: {
-                id: productIds
-              },
-              attributes: ['id','type']
-            }
-            // {
-            //   model: this.app.orm['Customer'],
-            //   as: 'customer',
-            //   where: {
-            //     id: customerIds[0]
-            //   },
-            //   attributes: ['id']
-            // }
           ]
         })
+          .then(collections => {
+            return Promise.all(collections.map(collection => {
+              if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL) {
+                // console.log('cart checkout Needs Products', collection.id)
+                return Collection.findOne({
+                  where: {
+                    id: collection.id
+                  },
+                  attributes: [
+                    'id',
+                    'title',
+                    'discount_type',
+                    'discount_scope',
+                    'discount_rate',
+                    'discount_percentage',
+                    'discount_product_include',
+                    'discount_product_exclude'
+                  ],
+                  include: [
+                    {
+                      model: this.app.orm['Product'],
+                      as: 'products',
+                      where: {
+                        $or: {
+                          id: productIds
+                        }
+                      },
+                      attributes: ['id','type']
+                    }
+                  ]
+                })
+              }
+              else {
+                collection.products = []
+                return collection
+              }
+            }))
+          })
       })
   }
 }

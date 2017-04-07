@@ -27,6 +27,16 @@ describe('CollectionController', () => {
         done(err)
       })
   })
+  it('should create another collection collection', (done) => {
+    const collection = collections[1]
+    request
+      .post('/collection')
+      .send(collection)
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
   it('should find created collection', (done) => {
     request
       .get(`/collection/${collectionID}`)

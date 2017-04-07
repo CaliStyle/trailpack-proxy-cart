@@ -24,6 +24,10 @@ module.exports = class CustomerSource extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+        },
         source_id: {
           type: Sequelize.INTEGER,
           unique: 'customersource_source'

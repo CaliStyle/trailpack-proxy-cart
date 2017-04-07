@@ -22,6 +22,11 @@ module.exports = class ItemMetadata extends Model {
 
   static schema (app, Sequelize) {
     const schema = {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+      },
       metadata_id: {
         type: Sequelize.INTEGER,
         unique: 'metadata_model'

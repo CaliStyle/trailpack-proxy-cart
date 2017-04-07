@@ -136,6 +136,13 @@ module.exports = class Collection extends Model {
             }
           }
           // instanceMethods: {
+          //   getProductIds: function () {
+          //     return models.Product.findAll({
+          //
+          //     })
+          //   }
+          // }
+          // instanceMethods: {
           //   toJSON: function () {
           //     const resp = this.get({ plain: true })
           //     return resp

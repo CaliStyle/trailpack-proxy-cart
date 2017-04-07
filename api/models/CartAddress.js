@@ -24,6 +24,10 @@ module.exports = class CartAddress extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+        },
         address_id: {
           type: Sequelize.INTEGER,
           unique: 'cartaddress_address'

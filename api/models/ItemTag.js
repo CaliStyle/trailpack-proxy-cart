@@ -22,6 +22,11 @@ module.exports = class ItemTag extends Model {
 
   static schema (app, Sequelize) {
     const schema = {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+      },
       tag_id: {
         type: Sequelize.INTEGER,
         unique: 'tag_model',
