@@ -39,6 +39,27 @@ module.exports = class Subscription extends Model {
                 .catch(err => {
                   return fn(err)
                 })
+            },
+            afterUpdate: (values, options, fn) => {
+              app.services.SubscriptionService.afterCreate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            afterCreate: (values, options, fn) => {
+              app.services.SubscriptionService.afterCreate(values, options)
+                .then(values => {
+                  return values.save()
+                })
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             }
           },
           classMethods: {

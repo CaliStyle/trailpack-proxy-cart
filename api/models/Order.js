@@ -44,25 +44,33 @@ module.exports = class Order extends Model {
               }
               fn()
             },
-            // TODO connect to Shop
             beforeUpdate: (values, options, fn) => {
               if (values.ip) {
                 values.update_ip = values.ip
               }
               fn()
             },
-            // TODO, send receipt, other webhooks stuff
-            afterCreate: (values, options, fn) => {
-              values.number = `${values.shop_id}-${values.id}`
-              if (!values.name && values.number) {
-                values.name = `#${values.number}`
-              }
-              values.save(options)
+
+            // Will not save updates from hooks!
+            afterUpdate: (values, options, fn) => {
+              app.services.OrderService.afterUpdate(values, options)
                 .then(values => {
-                  fn()
+                  return fn(null, values)
                 })
                 .catch(err => {
-                  fn(err)
+                  return fn(err)
+                })
+            },
+            afterCreate: (values, options, fn) => {
+              app.services.OrderService.afterCreate(values, options)
+                .then(values => {
+                  return values.save()
+                })
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
                 })
             }
           },

@@ -362,6 +362,7 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   afterCreate(customer) {
+    this.app.services.ProxyEngineService.publish('customer.created', customer)
     return this.app.services.PaymentGenericService.createCustomer(customer)
       .then(serviceCustomer => {
         const Account = this.app.orm['Account']
@@ -392,6 +393,7 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   afterUpdate(customer) {
+    this.app.services.ProxyEngineService.publish('customer.updated', customer)
     let updateAccounts = false
     const accountUpdates = {}
 

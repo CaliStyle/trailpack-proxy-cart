@@ -418,5 +418,13 @@ module.exports = class SubscriptionService extends Service {
   beforeUpdate(subscription) {
     return subscription.recalculate()
   }
+  afterCreate(subscription) {
+    this.app.services.ProxyEngineService.publish('subscription.created', subscription)
+    return Promise.resolve(subscription)
+  }
+  afterUpdate(subscription) {
+    this.app.services.ProxyEngineService.publish('subscription.updated', subscription)
+    return Promise.resolve(subscription)
+  }
 }
 

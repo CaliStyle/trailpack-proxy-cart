@@ -520,5 +520,19 @@ module.exports = class OrderService extends Service {
   itemAfterUpdate(item){
     return Promise.resolve(item)
   }
+
+  afterCreate(order, options) {
+    order.number = `${order.shop_id}-${order.id}`
+    if (!order.name && order.number) {
+      order.name = `#${order.number}`
+    }
+    this.app.services.ProxyEngineService.publish('order.created', order)
+    return Promise.resolve(order)
+  }
+
+  afterUpdate(order, options) {
+    this.app.services.ProxyEngineService.publish('order.update', order)
+    return Promise.resolve(order)
+  }
 }
 
