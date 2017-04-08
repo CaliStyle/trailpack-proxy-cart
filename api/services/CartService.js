@@ -223,7 +223,7 @@ module.exports = class CartService extends Service {
 
           // Customer Info
           customer_id: customerID,
-          email: req.body.email || resCustomer.email,
+          email: req.body.email || resCustomer['email'] || null,
 
           // Cart Info
           cart_token: resCart.token,
