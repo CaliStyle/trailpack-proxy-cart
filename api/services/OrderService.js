@@ -156,8 +156,14 @@ module.exports = class OrderService extends Service {
             throw new Error('Order does not have a valid shipping address')
           }
 
+          // If not Billing Address, add Shipping Address
           if (!resBillingAddress) {
             resBillingAddress = resShippingAddress
+          }
+
+          // If not payment_details, make blank array
+          if (!obj.payment_details){
+            obj.payment_details = []
           }
           // Map the gateway names being used
           const paymentGatewayNames = obj.payment_details.map(detail => { return detail.gateway })

@@ -185,15 +185,20 @@ module.exports = class CartService extends Service {
       })
       .then(customer => {
         resCustomer = customer
-        if (resCustomer && req.body.payment_details.length > 0) {
+        if (resCustomer && (req.body.payment_details && req.body.payment_details.length > 0)) {
           return AccountService.resolvePaymentDetailsToSources(resCustomer, req.body.payment_details)
             .then(paymentDetails => {
               return paymentDetails
             })
         }
-        else if (resCustomer && req.body.payment_details.length == 0) {
+        else if (resCustomer && (req.body.payment_details && req.body.payment_details.length == 0)) {
           return AccountService.getDefaultSource(resCustomer)
             .then(source => {
+              if (!source) {
+                return {
+                  payment_details: []
+                }
+              }
               return {
                 payment_details: [
                   {

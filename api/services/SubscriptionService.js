@@ -346,15 +346,22 @@ module.exports = class SubscriptionService extends Service {
         resCustomer = customer
         return this.app.services.AccountService.getDefaultSource(resCustomer)
           .then(source => {
+            if (!source) {
+              return {
+                payment_kind: 'sale' || this.app.config.proxyCart.order_payment_kind,
+                payment_details: [],
+                fulfillment_kind: 'immediate' || this.app.config.proxyCart.order_fulfillment_kind
+              }
+            }
             return {
-              payment_kind: 'sale',
+              payment_kind: 'sale' || this.app.config.proxyCart.order_payment_kind,
               payment_details: [
                 {
                   gateway: source.gateway,
                   source: source,
                 }
               ],
-              fulfillment_kind: 'immediate'
+              fulfillment_kind: 'immediate' || this.app.config.proxyCart.order_fulfillment_kind
             }
           })
       })
