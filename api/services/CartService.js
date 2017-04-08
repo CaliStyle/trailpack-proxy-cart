@@ -191,6 +191,19 @@ module.exports = class CartService extends Service {
               return paymentDetails
             })
         }
+        else if (resCustomer && req.body.payment_details.length == 0) {
+          return AccountService.getDefaultSource(resCustomer)
+            .then(source => {
+              return {
+                payment_details: [
+                  {
+                    gateway: source.gateway,
+                    source: source,
+                  }
+                ]
+              }
+            })
+        }
         else {
           return req.body.payment_details
         }
@@ -202,8 +215,8 @@ module.exports = class CartService extends Service {
           client_details: req.body.client_details,
           ip: req.body.ip,
           payment_details: paymentDetails,
-          payment_kind: req.body.payment_kind,
-          fulfillment_kind: req.body.fulfillment_kind,
+          payment_kind: req.body.payment_kind || this.app.config.proxyCart.order_payment_kind,
+          fulfillment_kind: req.body.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
           shipping_address: req.body.shipping_address,
           billing_address: req.body.billing_address,

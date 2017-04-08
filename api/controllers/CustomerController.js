@@ -515,6 +515,12 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   updateAccount(req, res) {
     let customerId = req.params.id
     if (!customerId && req.user) {
@@ -525,6 +531,12 @@ module.exports = class CustomerController extends Controller {
       return res.serverError(err)
     }
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   addSource(req, res) {
     let customerId = req.params.id
     if (!customerId && req.user) {
@@ -535,6 +547,12 @@ module.exports = class CustomerController extends Controller {
       return res.serverError(err)
     }
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   updateSource(req, res) {
     let customerId = req.params.id
     if (!customerId && req.user) {
@@ -545,6 +563,12 @@ module.exports = class CustomerController extends Controller {
       return res.serverError(err)
     }
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   removeSource(req, res) {
     let customerId = req.params.id
     if (!customerId && req.user) {
