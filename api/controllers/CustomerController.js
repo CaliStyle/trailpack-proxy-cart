@@ -313,7 +313,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
+      return res.forbidden(err)
     }
     Order.findByIdDefault(req.params.id)
       .then(order => {
@@ -338,7 +338,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
+      return res.forbidden(err)
     }
 
     const limit = req.query.limit || 10
@@ -379,7 +379,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
+      return res.forbidden(err)
     }
 
     const limit = req.query.limit || 10
@@ -421,7 +421,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
+      return res.forbidden(err)
     }
 
     const limit = req.query.limit || 10
@@ -462,7 +462,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
+      return res.forbidden(err)
     }
     Subscription.findByIdDefault(req.params.id)
       .then(subscription => {
@@ -488,7 +488,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
+      return res.forbidden(err)
     }
 
     const limit = req.query.limit || 10
