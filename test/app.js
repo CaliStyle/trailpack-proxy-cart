@@ -19,7 +19,7 @@ const packs = [
 
 const SERVER = process.env.SERVER || 'express'
 const ORM = process.env.ORM || 'sequelize'
-// const DIALECT = process.env.ORM || 'sqlite'
+const DIALECT = process.env.DIALECT || 'sqlite'
 
 let web = {}
 
@@ -42,7 +42,7 @@ else if (ORM === 'sequelize') {
   packs.push(require('trailpack-sequelize'))
   if (DIALECT == 'postgres') {
     stores.sqlitedev = {
-      database: 'underbuilt-local',
+      database: 'ProxyCart',
       host: '127.0.0.1',
       dialect: 'postgres',
       username: 'scott'
