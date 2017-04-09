@@ -191,15 +191,15 @@ const App = {
       fixtures: {
         roles: [{
           name: 'admin',
-          publicName: 'Admin'
+          public_name: 'Admin'
         }, {
           name: 'public' ,
-          publicName: 'Public'
+          public_name: 'Public'
         }],
         resources: [{
           type: 'route',
           name: 'fixture',
-          publicName: 'fixture'
+          public_name: 'fixture'
         }],
         permissions: []
       },

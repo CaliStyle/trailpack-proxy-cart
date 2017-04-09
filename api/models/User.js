@@ -10,9 +10,14 @@ module.exports = class User extends Model {
   static config(app, Sequelize) {
     return {
       options: {
+        underscored: true,
+        defaultScope: {
+          where: {
+            live_mode: app.config.proxyEngine.live_mode
+          }
+        },
         hooks: {
           afterCreate: (values, options, fn) => {
-
             app.services.ProxyCartService.afterUserCreate(values)
               .then(values => {
                 return fn(null, values)
@@ -120,6 +125,11 @@ module.exports = class User extends Model {
         //   key: 'id'
         // },
         allowNull: true
+      },
+      // Live Mode
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
       }
     }
     return _.defaults(PassportTrailpackSchema, PermissionsTrailpackSchema, schema)

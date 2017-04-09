@@ -39,11 +39,12 @@ module.exports = class Shop extends Model {
               models.Shop.belongsTo(models.Shop, {
                 as: 'address',
                 through: {
-                  model: models.ShopAddress,
+                  model: models.ItemAddress,
                   foreignKey: 'shop_id',
                   unique: true,
                   scope: {
-                    address: 'address'
+                    address: 'address',
+                    model: 'shop'
                   },
                   constraints: false
                 }

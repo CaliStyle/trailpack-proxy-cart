@@ -302,10 +302,11 @@ module.exports = class Cart extends Model {
               models.Cart.belongsTo(models.Address, {
                 as: 'shipping_address',
                 through: {
-                  model: models.CartAddress,
-                  foreignKey: 'cart_id',
+                  model: models.ItemAddress,
+                  foreignKey: 'model_id',
                   unique: true,
                   scope: {
+                    model: 'cart',
                     address: 'shipping_address'
                   },
                   constraints: false
@@ -314,10 +315,11 @@ module.exports = class Cart extends Model {
               models.Cart.belongsTo(models.Address, {
                 as: 'billing_address',
                 through: {
-                  model: models.CartAddress,
-                  foreignKey: 'cart_id',
+                  model: models.ItemAddress,
+                  foreignKey: 'model_id',
                   unique: true,
                   scope: {
+                    model: 'cart',
                     address: 'billing_address'
                   },
                   constraints: false

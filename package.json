@@ -34,7 +34,7 @@
     "trailpack-proxy-cart-countries": "^0.0.4",
     "trailpack-proxy-generics": "^0.0.30",
     "trailpack-proxy-passport": "^0.0.6",
-    "trailpack-proxy-permissions": "^0.0.19"
+    "trailpack-proxy-permissions": "^0.0.21"
   },
   "devDependencies": {
     "eslint": "^3.17.1",
@@ -47,7 +47,7 @@
     "smokesignals": "^2.0.0",
     "supertest": "^2.0.1",
     "trailpack-express": "^2.0.3",
-    "trailpack-proxy-engine": "^0.0.16",
+    "trailpack-proxy-engine": "^0.0.17",
     "trailpack-router": "^2.0.0",
     "trailpack-sequelize": "^2.0.0",
     "trails": "^2.0.0"

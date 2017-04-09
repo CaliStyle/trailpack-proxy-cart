@@ -102,6 +102,16 @@ module.exports = class SubscriptionService extends Service {
         }))
       })
   }
+
+  /**
+   *
+   * @param order
+   * @param items
+   * @param unit
+   * @param interval
+   * @param active
+   * @returns {Promise.<TResult>}
+   */
   create(order, items, unit, interval, active) {
     const Subscription = this.app.orm['Subscription']
     const create = {
@@ -134,9 +144,17 @@ module.exports = class SubscriptionService extends Service {
         }))
       })
       .then(orderItems => {
+        this.app.services.ProxyEngineService.publish('subscription.subscribed', resSubscription)
         return resSubscription
       })
   }
+
+  /**
+   *
+   * @param subscription
+   * @param options
+   * @returns {*}
+   */
   update(subscription, options){
     if (!subscription.id) {
       const err = new Errors.FoundError(Error('Subscription is missing id'))
@@ -164,6 +182,10 @@ module.exports = class SubscriptionService extends Service {
         resSubscription.active = false
         return resSubscription.save()
       })
+      .then(resSubscription => {
+        this.app.services.ProxyEngineService.publish('subscription.cancelled', resSubscription)
+        return resSubscription
+      })
   }
 
   /**
@@ -179,6 +201,10 @@ module.exports = class SubscriptionService extends Service {
         resSubscription.cancelled_at = null
         resSubscription.active = true
         return resSubscription.save()
+      })
+      .then(resSubscription => {
+        this.app.services.ProxyEngineService.publish('subscription.activated', resSubscription)
+        return resSubscription
       })
   }
 
@@ -325,6 +351,7 @@ module.exports = class SubscriptionService extends Service {
         return resSubscription.save()
       })
       .then(newSubscription => {
+        this.app.services.ProxyEngineService.publish('subscription.renewed', newSubscription)
         return {
           subscription: newSubscription,
           order: resOrder

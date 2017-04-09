@@ -73,7 +73,7 @@ module.exports = class Product extends Model {
             associate: (models) => {
               models.Product.belongsToMany(models.Shop, {
                 as: 'shops',
-                through: 'ShopProducts'
+                through: 'ShopProduct'
               })
               models.Product.hasMany(models.ProductImage, {
                 as: 'images',
