@@ -27,6 +27,7 @@ module.exports = class CustomerSource extends Model {
         id: {
           type: Sequelize.INTEGER,
           primaryKey: true,
+          autoIncrement: true
         },
         source_id: {
           type: Sequelize.INTEGER,

@@ -35,6 +35,24 @@ module.exports = class Fulfillment extends Model {
                 .catch(err => {
                   return fn(err)
                 })
+            },
+            afterCreate: (values, options, fn) => {
+              app.services.FulfillmentService.afterCreate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            afterUpdate: (values, options, fn) => {
+              app.services.FulfillmentService.afterUpdate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             }
           },
           classMethods: {
@@ -45,6 +63,10 @@ module.exports = class Fulfillment extends Model {
              * @param models
              */
             associate: (models) => {
+              // models.Fulfillment.belongsTo(models.Order, {
+              //   // as: 'order_id',
+              //   // allowNull: false
+              // })
               models.Fulfillment.hasMany(models.OrderItem, {
                 foreignKey: 'fulfillment_id',
                 as: 'order_items'
@@ -119,10 +141,10 @@ module.exports = class Fulfillment extends Model {
       schema = {
         order_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Order',
-            key: 'id'
-          },
+          // references: {
+          //   model: 'Order',
+          //   key: 'id'
+          // },
           allowNull: false
         },
         receipt: {

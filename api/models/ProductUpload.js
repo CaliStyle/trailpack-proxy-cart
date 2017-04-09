@@ -87,27 +87,28 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Tags'
-      tags: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'tags', {
+      tags: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'tags', {
         defaultValue: []
       }),
       // 'Collections'
-      collections: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'collections', {
+      collections: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'collections', {
         defaultValue: []
       }),
       // 'Associations'
-      associations: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'associations', {
+      associations: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'associations', {
         defaultValue: []
       }),
       // 'Published'
       published: {
-        type: Sequelize.STRING
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
       },
       // { 'Option / * Name' : 'Option / * Value' }
-      options: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'options', {
+      options: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'options', {
         defaultValue: []
       }),
       // 'Images Sources'
-      images: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'images', {
+      images: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'images', {
         defaultValue: []
       }),
       // 'Variant SKU'
@@ -116,7 +117,7 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Variant Weight'
       weight: {
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
       // 'Variant Weight Unit'
       weight_unit: {
@@ -128,7 +129,7 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Variant Inventory Quantity'
       inventory_quantity: {
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
       // 'Variant Inventory Policy'
       inventory_policy: {
@@ -156,12 +157,12 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Variant Requires Shipping'
       requires_shipping: {
-        type: Sequelize.STRING,
+        type: Sequelize.BOOLEAN,
         defaultValue: true
       },
       // 'Variant Taxable'
       taxable: {
-        type: Sequelize.STRING,
+        type: Sequelize.BOOLEAN,
         defaultValue: true
       },
       // 'Variant Tax Code'
@@ -173,7 +174,7 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Variant Images'
-      variant_images: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'variant_images', {
+      variant_images: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'variant_images', {
         defaultValue: []
       }),
       // 'Gift Card'
@@ -186,7 +187,7 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Subscription'
       requires_subscription: {
-        type: Sequelize.STRING
+        type: Sequelize.BOOLEAN
       },
       // 'Subscription Unit'
       subscription_unit: {
@@ -194,14 +195,14 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Subscription Interval'
       subscription_interval: {
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
-      // 'Shops'
-      shops: helpers.ARRAY('productupload', app, Sequelize, Sequelize.STRING, 'shops', {
+      // 'Shops' Shop handles
+      shops: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'shops', {
         defaultValue: []
       }),
       // 'Shops Quantity'
-      shops_quantity: helpers.ARRAY('productupload', app, Sequelize, Sequelize.INTEGER, 'shops_quantity', {
+      shops_quantity: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.INTEGER, 'shops_quantity', {
         defaultValue: []
       }),
       // 'Google Shopping / Google Product Category'

@@ -12,6 +12,8 @@ module.exports = class ProductMetaUpload extends Model {
 
   static config (app, Sequelize) {
     const config = {
+      migrate: 'drop', //override default models configurations if needed
+      store: 'uploads',
       options: {
         underscored: true,
         classMethods: {
@@ -44,6 +46,17 @@ module.exports = class ProductMetaUpload extends Model {
                 })
             }
             return recursiveQuery(options)
+          },
+          associate: (models) => {
+            // models.ProductMetaUpload.belongsTo(models.Product, {
+            //   as: 'handle',
+            //   // targetKey: 'handle',
+            //   foreignKey: 'handle',
+            //   onDelete: 'CASCADE'
+            //   // foreignKey: {
+            //   //   allowNull: true
+            //   // }
+            // })
           }
         }
       }
@@ -57,13 +70,13 @@ module.exports = class ProductMetaUpload extends Model {
         type: Sequelize.STRING
       },
       handle: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Product',
-          key: 'handle'
-        }
+        type: Sequelize.STRING,
+        // references: {
+        //   model: 'Product',
+        //   key: 'handle'
+        // }
       },
-      data: helpers.JSON('productmetaupload', app, Sequelize, 'data', {
+      data: helpers.JSONB('ProductMetaUpload', app, Sequelize, 'data', {
         defaultValue: {}
       })
     }

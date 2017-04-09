@@ -58,24 +58,24 @@ module.exports = class Tag extends Model {
                 }
               })
               // console.log('THESE TAGS', tags)
-              return Tag.sequelize.transaction(t => {
-                return Promise.all(tags.map((tag, index) => {
-                  return Tag.findOne({
-                    where: tag,
-                    attributes: ['id', 'name']
+              // return Tag.sequelize.transaction(t => {
+              return Promise.all(tags.map((tag, index) => {
+                return Tag.findOne({
+                  where: tag,
+                  attributes: ['id', 'name']
+                })
+                  .then(tag => {
+                    if (tag) {
+                      // console.log('TAG', tag.get({ plain: true }))
+                      return tag
+                    }
+                    else {
+                      // console.log('CREATING TAG',tags[index])
+                      return Tag.create(tags[index])
+                    }
                   })
-                    .then(tag => {
-                      if (tag) {
-                        // console.log('TAG', tag.get({ plain: true }))
-                        return tag
-                      }
-                      else {
-                        // console.log('CREATING TAG',tags[index])
-                        return Tag.create(tags[index])
-                      }
-                    })
-                }))
-              })
+              }))
+              // })
             },
             reverseTransformTags: (tags) => {
               tags = _.map(tags, tag => {

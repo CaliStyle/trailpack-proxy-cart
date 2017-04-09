@@ -133,6 +133,48 @@ module.exports = class Collection extends Model {
               options = _.merge(options, {})
 
               return this.findAndCount(options)
+            },
+            transformCollections: (collections) => {
+              const Collection = app.orm['Collection']
+              collections = _.map(collections, collection => {
+                if (collection && _.isString(collection)) {
+                  collection = { title: collection }
+                  return collection
+                }
+                else if (collection) {
+                  return _.omit(collection, ['created_at','updated_at'])
+                }
+              })
+              // console.log('THESE COLLECTIONS', collections)
+              // return Collection.sequelize.transaction(t => {
+              return Promise.all(collections.map((collection, index) => {
+                return Collection.findOne({
+                  where: collection
+                  // attributes: ['id', 'title', '']
+                })
+                  .then(collection => {
+                    if (collection) {
+                      // console.log('COLLECTION', collection.get({ plain: true }))
+                      return collection
+                    }
+                    else {
+                      // console.log('CREATING COLLECTION',collections[index])
+                      return Collection.create(collections[index])
+                    }
+                  })
+              }))
+              // })
+            },
+            reverseTransformCollections: (collections) => {
+              collections = _.map(collections, collection => {
+                if (collection && _.isString(collection)) {
+                  return collection
+                }
+                else if (collection && collection.title) {
+                  return collection.title
+                }
+              })
+              return collections
             }
           }
           // instanceMethods: {
@@ -254,11 +296,11 @@ module.exports = class Collection extends Model {
           defaultValue: 0.0
         },
         // List of product types allowed to discount
-        discount_product_include: helpers.ARRAY('collection', app, Sequelize, Sequelize.STRING, 'discount_product_include', {
+        discount_product_include: helpers.ARRAY('Collection', app, Sequelize, Sequelize.STRING, 'discount_product_include', {
           defaultValue: []
         }),
         // List of product types to forcefully excluded from discount
-        discount_product_exclude: helpers.ARRAY('collection', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
+        discount_product_exclude: helpers.ARRAY('Collection', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
           defaultValue: []
         }),
         // Live Mode

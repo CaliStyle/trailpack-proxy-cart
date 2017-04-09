@@ -138,6 +138,11 @@ module.exports = class Customer extends Model {
                   model: models.CustomerOrder
                 }
               })
+              // models.Customer.belongsTo(models.Order, {
+              //   as: 'last_order_id',
+              //   // foreignKey: 'id',
+              //   constraints: false
+              // })
               // models.Customer.hasOne(models.Order, {
               //   as: 'last_order_id'
               // })
@@ -364,13 +369,13 @@ module.exports = class Customer extends Model {
         note: {
           type: Sequelize.STRING
         },
-        // The name of the Last order this Customer Placed
+        // // The name of the Last order this Customer Placed
         last_order_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Order',
-            key: 'id'
-          }
+          // references: {
+          //   model: 'Order',
+          //   key: 'id'
+          // }
         },
         last_order_name: {
           type: Sequelize.STRING

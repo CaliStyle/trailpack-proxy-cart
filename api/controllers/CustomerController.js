@@ -223,7 +223,7 @@ module.exports = class CustomerController extends Controller {
 
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
+      return res.send(401, err)
     }
 
     Customer.findById(customerId)
@@ -261,7 +261,7 @@ module.exports = class CustomerController extends Controller {
 
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
+      return res.send(401, err)
     }
     User.findById(req.user.id)
       .then(user => {
@@ -313,7 +313,8 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.forbidden(err)
+      res.send(401, err)
+
     }
     Order.findByIdDefault(req.params.id)
       .then(order => {
@@ -338,7 +339,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.forbidden(err)
+      return res.send(401, err)
     }
 
     const limit = req.query.limit || 10
@@ -379,7 +380,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.forbidden(err)
+      return res.send(401, err)
     }
 
     const limit = req.query.limit || 10
@@ -421,7 +422,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.forbidden(err)
+      return res.send(401, err)
     }
 
     const limit = req.query.limit || 10
@@ -488,7 +489,7 @@ module.exports = class CustomerController extends Controller {
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
-      return res.forbidden(err)
+      return res.send(401,err)
     }
 
     const limit = req.query.limit || 10

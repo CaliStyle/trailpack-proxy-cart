@@ -71,7 +71,7 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log('THIS PRODUCT TAGS', res.body[0].tags)
+        // console.log('BREAKING', res.body[0])
         // console.log('THESE COLLECTIONS',res.body[0].collections)
         // console.log('THIS METADATA',res.body[0].metadata)
         // console.log('PRODUCT Variants',res.body[0].variants)
@@ -397,7 +397,7 @@ describe('ProductController', () => {
       .attach('csv', 'test/fixtures/product_upload.csv')
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        console.log('BROKE',res.body)
         assert.ok(res.body.result.upload_id)
         uploadID = res.body.result.upload_id
         assert.equal(res.body.result.products, 2)

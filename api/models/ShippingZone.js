@@ -47,15 +47,15 @@ module.exports = class ShippingZone extends Model {
           notNull: true
         },
         //
-        carrier_shipping_rate_providers: helpers.ARRAY('shippingzone', app, Sequelize, Sequelize.STRING, 'carrier_shipping_rate_providers', {
+        carrier_shipping_rate_providers: helpers.ARRAY('ShippingZone', app, Sequelize, Sequelize.STRING, 'carrier_shipping_rate_providers', {
           defaultValue: []
         }),
         //
-        price_based_shipping_rates: helpers.ARRAY('shippingzone', app, Sequelize, Sequelize.STRING, 'price_based_shipping_rates', {
+        price_based_shipping_rates: helpers.ARRAY('ShippingZone', app, Sequelize, Sequelize.STRING, 'price_based_shipping_rates', {
           defaultValue: []
         }),
         //
-        weight_based_shipping_rates: helpers.ARRAY('shippingzone', app, Sequelize, Sequelize.STRING, 'weight_based_shipping_rates', {
+        weight_based_shipping_rates: helpers.ARRAY('ShippingZone', app, Sequelize, Sequelize.STRING, 'weight_based_shipping_rates', {
           defaultValue: []
         }),
         // Live Mode

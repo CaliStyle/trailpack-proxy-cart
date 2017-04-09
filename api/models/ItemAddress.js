@@ -27,6 +27,7 @@ module.exports = class ItemAddress extends Model {
         id: {
           type: Sequelize.INTEGER,
           primaryKey: true,
+          autoIncrement: true
         },
         address_id: {
           type: Sequelize.INTEGER,

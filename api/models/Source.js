@@ -25,8 +25,9 @@ module.exports = class Source extends Model {
                   model: models.CustomerSource,
                   unique: false,
                   foreignKey: 'account_id',
-                  constraints: false
-                }
+
+                },
+                constraints: false
               })
               models.Source.belongsTo(models.Customer, {
                 as: 'customer',
@@ -34,8 +35,8 @@ module.exports = class Source extends Model {
                   model: models.CustomerSource,
                   unique: false,
                   foreignKey: 'customer_id',
-                  constraints: false
-                }
+                },
+                constraints: false
               })
             }
           }
@@ -49,10 +50,10 @@ module.exports = class Source extends Model {
     const schema = {
       customer_id: {
         type: Sequelize.INTEGER,
-        references: {
-          model: 'Customer',
-          key: 'id'
-        },
+        // references: {
+        //   model: 'Customer',
+        //   key: 'id'
+        // },
         allowNull: false
       },
       // The gateway used to create this source
@@ -95,8 +96,8 @@ module.exports = class Source extends Model {
       // credit_card_number: The customer's credit card number, with most of the leading digits redacted with Xs.
       // cvv_result_code: The Response code from the credit card company indicating whether the customer entered the card security code, a.k.a. card verification value, correctly. The code is a single letter or empty string; see this chart http://www.emsecommerce.net/avs_cvv2_response_codes.htm for the codes and their definitions.
       // token: The card token from the Gateway
-      payment_details: helpers.ARRAY('source', app, Sequelize, Sequelize.JSON, 'payment_details', {
-        defaultValue: []
+      payment_details: helpers.JSONB('Source', app, Sequelize, 'payment_details', {
+        defaultValue: {}
       })
 
     }

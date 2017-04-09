@@ -49,10 +49,10 @@ module.exports = class Account extends Model {
     return {
       customer_id: {
         type: Sequelize.INTEGER,
-        references: {
-          model: 'Customer',
-          key: 'id'
-        },
+        // references: {
+        //   model: 'Customer',
+        //   key: 'id'
+        // },
         allowNull: false
       },
       gateway: {
@@ -75,7 +75,7 @@ module.exports = class Account extends Model {
         defaultValue: false
       },
       // The data from the 3rd party response
-      data: helpers.JSONB('account', app, Sequelize, 'data', {
+      data: helpers.JSONB('Account', app, Sequelize, 'data', {
         defaultValue: {}
       }),
     }

@@ -73,7 +73,7 @@ module.exports = class Metadata extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        data: helpers.JSONB('metadata', app, Sequelize, 'data', {
+        data: helpers.JSONB('Metadata', app, Sequelize, 'data', {
           defaultValue: {}
         }),
         live_mode: {

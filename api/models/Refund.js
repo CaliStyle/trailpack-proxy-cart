@@ -49,9 +49,9 @@ module.exports = class Refund extends Model {
         processed_at: {
           type: Sequelize.DATE
         },
-        // refund_order_items: {
-        //
-        // },
+        // refund_order_items: helpers.ARRAY('Refund', app, Sequelize, Sequelize.JSON, 'refund_order_items', {
+        //   defaultValue: []
+        // }),
         restock: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyCart.refund_restock

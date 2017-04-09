@@ -26,6 +26,11 @@ module.exports = class ShopProduct extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
         variant_id: {
           type: Sequelize.INTEGER,
           unique: 'shopproduct_variant'

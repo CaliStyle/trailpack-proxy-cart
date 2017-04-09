@@ -231,7 +231,7 @@ module.exports = class OrderService extends Service {
 
           if (resCustomer instanceof Customer.Instance) {
             resCustomer.setAccountBalance(Math.max(0, resCustomer.account_balance - totalDue))
-            resCustomer.setLastOrder(resOrder)
+            resCustomer.setLastOrder(resOrder.id)
             return resCustomer.save()
           }
           else {
@@ -293,7 +293,7 @@ module.exports = class OrderService extends Service {
           return []
         })
         .then(subscriptions => {
-
+          //console.log('BROKE', subscriptions)
           return Order.findByIdDefault(resOrder.id)
         })
     })
@@ -528,7 +528,7 @@ module.exports = class OrderService extends Service {
   }
 
   afterCreate(order, options) {
-    order.number = `${order.shop_id}-${order.id}`
+    order.number = `${order.shop_id}-${order.id + 1000}`
     if (!order.name && order.number) {
       order.name = `#${order.number}`
     }

@@ -38,6 +38,14 @@ module.exports = class User extends Model {
                 constraints: false
               }
             })
+            // models.User.belongsTo(models.Customer, {
+            //   as: 'current_customer_id',
+            //   // foreign_key: 'id'
+            // })
+            // models.User.belongsTo(models.Cart, {
+            //   as: 'current_cart_id',
+            //   // foreign_key: 'id'
+            // })
             // models.User.belongsToMany(models.Cart, {
             //   as: 'carts',
             //   through: {
@@ -99,18 +107,18 @@ module.exports = class User extends Model {
       },
       current_customer_id: {
         type: Sequelize.INTEGER,
-        references: {
-          model: 'Customer',
-          key: 'id'
-        },
+        // references: {
+        //   model: 'Customer',
+        //   key: 'id'
+        // },
         allowNull: true
       },
       current_cart_id: {
         type: Sequelize.INTEGER,
-        references: {
-          model: 'Cart',
-          key: 'id'
-        },
+        // references: {
+        //   model: 'Cart',
+        //   key: 'id'
+        // },
         allowNull: true
       }
     }

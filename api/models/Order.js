@@ -88,7 +88,24 @@ module.exports = class Order extends Model {
              */
             associate: (models) => {
               // models.Order.belongsTo(models.Cart, {
-              //   as: 'cart_token'
+              //   as: 'cart_token',
+              //   // targetKey: 'token',
+              //   foreignKey: 'token',
+              //   constraints: false
+              // })
+              // models.Order.belongsTo(models.Subscription, {
+              //   as: 'subscription_token',
+              //   // targetKey: 'token',
+              //   foreignKey: 'token',
+              //   constraints: false
+              // })
+              // models.Order.belongsTo(models.Customer, {
+              //   as: 'customer_id',
+              //   constraints: false
+              // })
+              // models.Order.belongsTo(models.Shop, {
+              //   as: 'shop_id',
+              //   constraints: false
               // })
               // models.Order.belongsTo(models.Customer, {
               //   // through: {
@@ -105,26 +122,27 @@ module.exports = class Order extends Model {
               // models.Order.belongsTo(models.Customer, {
               //   foreignKey: 'last_order_id'
               // })
-              models.Order.belongsTo(models.Shop, {
-                // as: 'shop_id'
-              })
+
               models.Order.hasMany(models.OrderItem, {
-                foreignKey: 'order_id',
-                as: 'order_items'
+                as: 'order_items',
+                foreignKey: 'order_id'
               })
               // Applicable discount codes that can be applied to the order. If no codes exist the value will default to blank.
               models.Order.hasMany(models.Discount, {
                 as: 'discount_codes'
               })
               models.Order.hasMany(models.Fulfillment, {
-                as: 'fulfillments'
+                as: 'fulfillments',
+                foreignKey: 'order_id'
               })
               models.Order.hasMany(models.Transaction, {
-                as: 'transactions'
+                as: 'transactions',
+                foreignKey: 'order_id'
               })
               // The list of refunds applied to the order.
               models.Order.hasMany(models.Refund, {
-                as: 'refunds'
+                as: 'refunds',
+                foreignKey: 'order_id'
               })
               models.Order.belongsToMany(models.Tag, {
                 as: 'tags',
@@ -143,7 +161,19 @@ module.exports = class Order extends Model {
                 foreignKey: 'object_id',
                 scope: {
                   object: 'order'
-                }
+                },
+                // through: {
+                //   model: models.EventItem,
+                //   unique: false,
+                //   scope: {
+                //     object: 'order'
+                //   }
+                // },
+                // foreignKey: 'object_id',
+                // scope: {
+                //   object: 'order'
+                // },
+                constraints: false
               })
             },
             findByIdDefault: function(criteria, options) {
@@ -303,31 +333,40 @@ module.exports = class Order extends Model {
         // Unique identifier for a particular cart that is attached to a particular order.
         cart_token: {
           type: Sequelize.STRING,
-          references: {
-            model: 'Cart',
-            key: 'token'
-          }
+          // references: {
+          //   model: app.models['Cart'],
+          //   key: 'token'
+          // }
         },
         subscription_token: {
           type: Sequelize.STRING,
-          references: {
-            model: 'Subscription',
-            key: 'token'
-          }
+          // references: {
+          //   model: app.models['Subscription'],
+          //   key: 'token'
+          // }
         },
         customer_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Customer',
-            key: 'id'
-          }
+          // references: {
+          //   model: app.models['Customer'],
+          //   key: 'id'
+          // }
         },
         shop_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Shop',
-            key: 'id'
-          }
+          // references: {
+          //   model: app.models['Shop'],
+          //   key: 'id'
+          // }
+        },
+        // TODO Enable User or Owner
+        // Only present on orders processed at point of sale. The unique numerical identifier for the user logged into the terminal at the time the order was processed at.
+        user_id: {
+          type: Sequelize.INTEGER,
+          // references: {
+          //   model: 'User',
+          //   key: 'id'
+          // }
         },
         // If this order contains an item that requires shipping
         has_shipping: {
@@ -344,11 +383,11 @@ module.exports = class Order extends Model {
           defaultValue: 0
         },
         // Billing Address on Order
-        billing_address: helpers.JSONB('order', app, Sequelize, 'billing_address', {
+        billing_address: helpers.JSONB('Order', app, Sequelize, 'billing_address', {
           defaultValue: {}
         }),
         // Shipping Address on Order
-        shipping_address: helpers.JSONB('order', app, Sequelize, 'shipping_address', {
+        shipping_address: helpers.JSONB('Order', app, Sequelize, 'shipping_address', {
           defaultValue: {}
         }),
         // If Buyer Accepts marketing
@@ -366,7 +405,7 @@ module.exports = class Order extends Model {
           type: Sequelize.DATE
         },
         // The details from the browser that placed the order
-        client_details: helpers.JSONB('order', app, Sequelize, 'client_details', {
+        client_details: helpers.JSONB('Order', app, Sequelize, 'client_details', {
           defaultValue: {
             'host': null,
             'accept_language': null,
@@ -426,21 +465,21 @@ module.exports = class Order extends Model {
         name: {
           type: Sequelize.STRING
         },
+        //identifier unique to the shop. A number is a shop and order sequential and starts at 1.
+        number: {
+          type: Sequelize.STRING
+        },
         // The text of an optional note that a shop owner can attach to the order.
         note: {
           type: Sequelize.STRING
         },
         // "note_attributes": ["name": "custom name","value": "custom value"]
         // Extra information that is added to the order. Each array entry must contain a hash with "name" and "value" keys as shown above.
-        note_attributes: helpers.JSONB('order', app, Sequelize, 'note_attributes', {
+        note_attributes: helpers.JSONB('Order', app, Sequelize, 'note_attributes', {
           defaultValue: {}
         }),
-        // Numerical identifier unique to the shop. A number is sequential and starts at 1000.
-        number: {
-          type: Sequelize.INTEGER
-        },
         // The list of all payment gateways used for the order.
-        payment_gateway_names: helpers.ARRAY('order', app, Sequelize, Sequelize.STRING, 'payment_gateway_names', {
+        payment_gateway_names: helpers.ARRAY('Order', app, Sequelize, Sequelize.STRING, 'payment_gateway_names', {
           defaultValue: []
         }),
         // The date and time when the order was imported, in ISO 8601 format. This value can be set to dates in the past when importing from other systems. If no value is provided, it will be auto-generated.
@@ -457,15 +496,15 @@ module.exports = class Order extends Model {
           type: Sequelize.STRING
         },
         // An array of shipping_line objects, each of which details the shipping methods used.
-        shipping_lines: helpers.ARRAY('order', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
+        shipping_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
           defaultValue: []
         }),
         // The line_items that have discounts
-        discounted_lines: helpers.ARRAY('order', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+        discounted_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
           defaultValue: []
         }),
         // The line_items that have coupons
-        coupon_lines: helpers.ARRAY('orderitem', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+        coupon_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
           defaultValue: []
         }),
         // Where the order originated. May only be set during creation, and is not writable thereafter. Orders created through official Proxy Engine channels have protected values that cannot be assigned by other API clients during order creation. These protected values are: "web", "pos", "iphone", and "android" Orders created via the API may be assigned any other string of your choice. If source_name is unspecified, new orders are assigned the value "api".
@@ -479,7 +518,7 @@ module.exports = class Order extends Model {
           defaultValue: 0
         },
         // An array of tax_line objects, each of which details the total taxes applicable to the order.
-        tax_lines: helpers.ARRAY('order', app, Sequelize, Sequelize.JSON, 'tax_lines', {
+        tax_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'tax_lines', {
           defaultValue: []
         }),
         // States whether or not taxes are included in the order subtotal. Valid values are "true" or "false".
@@ -524,15 +563,6 @@ module.exports = class Order extends Model {
         status_url: {
           type: Sequelize.STRING
         },
-        // TODO Enable User or Owner
-        // Only present on orders processed at point of sale. The unique numerical identifier for the user logged into the terminal at the time the order was processed at.
-        // user_id: {
-        //   type: Sequelize.INTEGER,
-        //   references: {
-        //     model: 'User',
-        //     key: 'id'
-        //   }
-        // },
         // IP addresses
         ip: {
           type: Sequelize.STRING

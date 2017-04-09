@@ -146,11 +146,11 @@ module.exports = class CustomerUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Collections'
-      collections: helpers.ARRAY('customerupload', app, Sequelize, Sequelize.STRING, 'collections', {
+      collections: helpers.ARRAY('CustomerUpload', app, Sequelize, Sequelize.STRING, 'collections', {
         defaultValue: []
       }),
       // 'Tags'
-      tags: helpers.ARRAY('customerupload', app, Sequelize, Sequelize.STRING, 'tags', {
+      tags: helpers.ARRAY('CustomerUpload', app, Sequelize, Sequelize.STRING, 'tags', {
         defaultValue: []
       })
     }

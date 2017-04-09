@@ -47,33 +47,40 @@ module.exports = class Coupon extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-
+        //
         balance: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // Currency of Coupon
         currency: {
           type: Sequelize.STRING
         },
+        // Physical copon code
         code: {
           type: Sequelize.STRING
         },
+        // Physical coupon code with a mask
         code_masked: {
           type: Sequelize.STRING
         },
+        // Last characters of the coupon code
         last_characters: {
           type: Sequelize.STRING
         },
+        // Note about coupon
         note: {
           type: Sequelize.STRING
         },
+        // Date to disable
         disabled_at: {
           type: Sequelize.DATE
         },
+        // Date to expire
         expires_on: {
           type: Sequelize.DATE
         },
-
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode

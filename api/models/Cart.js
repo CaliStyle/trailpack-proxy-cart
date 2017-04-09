@@ -284,6 +284,13 @@ module.exports = class Cart extends Model {
              * @param models
              */
             associate: (models) => {
+              // models.Cart.belongsTo(models.Customer, {
+              //   as: 'customer_id',
+              // })
+              // models.Cart.belongsTo(models.Shop, {
+              //   as: 'shop_id',
+              // })
+
               models.Cart.belongsToMany(models.User, {
                 as: 'owners',
                 through: 'UserItem'//If many to many is needed
@@ -354,17 +361,17 @@ module.exports = class Cart extends Model {
       schema = {
         customer_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Customer',
-            key: 'id'
-          }
+          // references: {
+          //   model: 'Customer',
+          //   key: 'id'
+          // }
         },
         shop_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Shop',
-            key: 'id'
-          }
+          // references: {
+          //   model: 'Shop',
+          //   key: 'id'
+          // }
         },
         // Unique identifier for a particular cart.
         token: {
@@ -383,7 +390,7 @@ module.exports = class Cart extends Model {
           defaultValue: 'USD'
         },
         // The items in the cart
-        line_items: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'line_items', {
+        line_items: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'line_items', {
           defaultValue: []
         }),
         // Price of the checkout before shipping and taxes
@@ -392,15 +399,15 @@ module.exports = class Cart extends Model {
           defaultValue: 0
         },
         // The line_items that have discounts
-        discounted_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+        discounted_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
           defaultValue: []
         }),
         // The line_items that have discounts
-        coupon_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+        coupon_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
           defaultValue: []
         }),
         // The line_items that require shipping
-        shipping_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
+        shipping_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
           defaultValue: []
         }),
         // If the cost of shipping is included
@@ -409,11 +416,11 @@ module.exports = class Cart extends Model {
           defaultValue: false
         },
         // An array of selected shipping_rates
-        shipping_rate: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_rate', {
+        shipping_rate: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'shipping_rate', {
           defaultValue: []
         }),
         // An array of shipping_rate objects, each of which details the shipping methods available.
-        shipping_rates: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'shipping_rates', {
+        shipping_rates: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'shipping_rates', {
           defaultValue: []
         }),
         // If this cart contains an item that requires a subscription
@@ -436,7 +443,7 @@ module.exports = class Cart extends Model {
           defaultValue: false
         },
         // The line_items that have taxes
-        tax_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'tax_lines', {
+        tax_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'tax_lines', {
           defaultValue: []
         }),
         // The rate at which taxes are applied
@@ -500,7 +507,7 @@ module.exports = class Cart extends Model {
           type: Sequelize.STRING
         },
         // The request details of the customer you are processing the checkout on behalf of.
-        client_details: helpers.JSONB('cart', app, Sequelize, 'client_details', {
+        client_details: helpers.JSONB('Cart', app, Sequelize, 'client_details', {
           defaultValue: {
             'accept_language': null,
             'browser_height': null,

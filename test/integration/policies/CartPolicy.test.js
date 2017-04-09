@@ -292,6 +292,9 @@ describe('CartPolicy', () => {
         assert.equal(res.body.order.transactions[0].source_name, 'web')
         assert.equal(res.body.order.transactions[0].order_id, orderID)
 
+        // Events
+        assert.equal(res.body.order.events.length, 2)
+
         done(err)
       })
   })
@@ -401,7 +404,7 @@ describe('CartPolicy', () => {
   it('should renew subscription', done => {
     global.app.services.SubscriptionService.renew(subscriptionID)
       .then(body => {
-        console.log('THIS RENEW', body.subscription)
+        console.log('THIS RENEW', body.order)
         const orderID = body.order.id
         assert.ok(body.subscription.id)
         assert.ok(body.order.id)
@@ -446,6 +449,8 @@ describe('CartPolicy', () => {
         assert.equal(body.order.transactions[0].status, 'success')
         assert.equal(body.order.transactions[0].source_name, 'web')
         assert.equal(body.order.transactions[0].order_id, orderID)
+        // Events
+        assert.equal(body.order.events.length, 2)
 
         done()
       })

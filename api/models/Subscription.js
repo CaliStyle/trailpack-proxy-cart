@@ -71,10 +71,14 @@ module.exports = class Subscription extends Model {
              */
             associate: (models) => {
               // The customer this subscription belongs to
-              models.Subscription.belongsTo(models.Customer, {
-                // as: 'customer_id'
-              })
-              // The Order that Created this Subscription
+              // models.Subscription.belongsTo(models.Customer, {
+              //   // as: 'customer_id'
+              // })
+              // // The Shop that originated this order
+              // models.Subscription.belongsTo(models.Shop, {
+              //   // as: 'shop_id'
+              // })
+              // // The Order that Created this Subscription
               // models.Subscription.belongsTo(models.Order, {
               //   as: 'original_order_id'
               // })
@@ -371,26 +375,26 @@ module.exports = class Subscription extends Model {
       schema = {
         shop_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Shop',
-            key: 'id'
-          }
+          // references: {
+          //   model: 'Shop',
+          //   key: 'id'
+          // }
         },
         // The Order that generated this subscription
         original_order_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Order',
-            key: 'id'
-          },
+          // references: {
+          //   model: 'Order',
+          //   key: 'id'
+          // },
           allowNull: false
         },
         customer_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Customer',
-            key: 'id'
-          },
+          // references: {
+          //   model: 'Customer',
+          //   key: 'id'
+          // },
           allowNull: false
         },
         // Unique identifier for a particular cart.
@@ -440,7 +444,7 @@ module.exports = class Subscription extends Model {
           type: Sequelize.STRING,
           defaultValue: 'USD'
         },
-        line_items: helpers.ARRAY('subscription', app, Sequelize, Sequelize.JSON, 'line_items', {
+        line_items: helpers.ARRAY('Subscription', app, Sequelize, Sequelize.JSON, 'line_items', {
           defaultValue: []
         }),
         subtotal_price: {
@@ -448,15 +452,15 @@ module.exports = class Subscription extends Model {
           defaultValue: 0
         },
         // The line_items that have discounts
-        discounted_lines: helpers.ARRAY('subscription', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+        discounted_lines: helpers.ARRAY('Subscription', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
           defaultValue: []
         }),
         // The line_items that have discounts
-        coupon_lines: helpers.ARRAY('subscription', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+        coupon_lines: helpers.ARRAY('Subscription', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
           defaultValue: []
         }),
         // The line_items that require shipping
-        shipping_lines: helpers.ARRAY('subscription', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
+        shipping_lines: helpers.ARRAY('Subscription', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
           defaultValue: []
         }),
         // If the cost of shipping is included
@@ -465,11 +469,11 @@ module.exports = class Subscription extends Model {
           defaultValue: false
         },
         // An array of selected shipping_rates
-        shipping_rate: helpers.ARRAY('subscription', app, Sequelize, Sequelize.JSON, 'shipping_rate', {
+        shipping_rate: helpers.ARRAY('Subscription', app, Sequelize, Sequelize.JSON, 'shipping_rate', {
           defaultValue: []
         }),
         // An array of shipping_rate objects, each of which details the shipping methods available.
-        shipping_rates: helpers.ARRAY('subscription', app, Sequelize, Sequelize.JSON, 'shipping_rates', {
+        shipping_rates: helpers.ARRAY('Subscription', app, Sequelize, Sequelize.JSON, 'shipping_rates', {
           defaultValue: []
         }),
         // If this cart contains an item that requires shipping
@@ -487,7 +491,7 @@ module.exports = class Subscription extends Model {
           defaultValue: false
         },
         // The line_items that have taxes
-        tax_lines: helpers.ARRAY('cart', app, Sequelize, Sequelize.JSON, 'tax_lines', {
+        tax_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'tax_lines', {
           defaultValue: []
         }),
         // The rate at which taxes are applied

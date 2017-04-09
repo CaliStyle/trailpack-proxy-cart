@@ -5,7 +5,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 
 before(function(done) {
-  this.timeout(5000)
+  this.timeout(10000)
 
   global.app = new TrailsApp(require('./app'))
   // return global.app.start().catch(global.app.stop)
@@ -24,6 +24,7 @@ before(function(done) {
     })
     .then(products => {
       products = products.map(product => {
+        // console.log('BEFORE ALL',product)
         return product.get({plain: true})
       })
       global.app.shopProducts = products

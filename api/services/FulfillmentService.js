@@ -152,10 +152,17 @@ module.exports = class FulfillmentService extends Service {
   }
   beforeCreate(fulfillment){
     const Order = this.app.orm['Order']
-
+    // console.log('BROKE', fulfillment)
     return fulfillment.resolveFulfillmentStatus()
       .then(fulfillment => {
-        return Order.findById(fulfillment.order_id)
+        return Order.findById(fulfillment.order_id, {
+          attributes: [
+            'id',
+            'financial_status',
+            'total_due',
+            'total_price'
+          ]
+        })
       })
       .then(order => {
         return order.saveFulfillmentStatus()
@@ -169,7 +176,14 @@ module.exports = class FulfillmentService extends Service {
 
     return fulfillment.resolveFulfillmentStatus()
       .then(fulfillment => {
-        return Order.findById(fulfillment.order_id)
+        return Order.findById(fulfillment.order_id, {
+          attributes: [
+            'id',
+            'financial_status',
+            'total_due',
+            'total_price'
+          ]
+        })
       })
       .then(order => {
         return order.saveFulfillmentStatus()
@@ -177,6 +191,12 @@ module.exports = class FulfillmentService extends Service {
       .then(order => {
         return fulfillment
       })
+  }
+  afterCreate(fulfillment) {
+    return Promise.resolve(fulfillment)
+  }
+  afterUpdate(fulfillment) {
+    return Promise.resolve(fulfillment)
   }
 }
 

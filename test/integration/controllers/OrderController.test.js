@@ -70,7 +70,6 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('CART TOKEN', cartToken)
         // console.log('THIS ORDER', res.body)
         assert.ok(res.body.id)
         orderID = res.body.id

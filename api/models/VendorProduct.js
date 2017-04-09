@@ -1,15 +1,12 @@
-/* eslint new-cap: [0] */
-/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
-// const helpers = require('proxy-engine-helpers')
 
 /**
- * @module CustomerAccount
- * @description Customer Account
+ * @module VendorProduct
+ * @description Vendor Product Join Table
  */
-module.exports = class CustomerAccount extends Model {
+module.exports = class VendorProduct extends Model {
 
   static config (app, Sequelize) {
     let config = {}
@@ -32,14 +29,13 @@ module.exports = class CustomerAccount extends Model {
           primaryKey: true,
           autoIncrement: true
         },
-        account_id: {
+        vendor_id: {
           type: Sequelize.INTEGER,
-          unique: 'customeraccount_account'
+          unique: 'vendor_product'
         },
-        customer_id: {
-          type: Sequelize.INTEGER,
-          unique: 'customeraccount_account',
-          references: null
+        product_id: {
+          type: Sequelize.STRING,
+          unique: 'vendor_product'
         }
       }
     }

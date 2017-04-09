@@ -71,7 +71,6 @@ module.exports = class ProductService extends Service {
       handle: product.handle,
       title: product.title,
       body: product.body,
-      vendor: product.vendor,
       type: product.type,
       price: product.price,
       published: product.published,
@@ -170,43 +169,43 @@ module.exports = class ProductService extends Service {
     })
 
     // Setup Transaction
-    return Product.sequelize.transaction(t => {
+    // return Product.sequelize.transaction(t => {
       // Set the resulting Product
-      let resProduct = {}
-      return Product.create(create, {
-        include: [
-          {
-            model: Tag,
-            as: 'tags'
-          },
-          {
-            model: Image,
-            as: 'images'
-          },
-          {
-            model: Variant,
-            as: 'variants'
+    let resProduct = {}
+    return Product.create(create, {
+      include: [
+        {
+          model: Tag,
+          as: 'tags'
+        },
+        {
+          model: Image,
+          as: 'images'
+        },
+        {
+          model: Variant,
+          as: 'variants'
             // include: [
             //   {
             //     model: Image,
             //     as: 'images'
             //   }
             // ]
-          },
-          {
-            model: Metadata,
-            as: 'metadata'
-          },
-          {
-            model: Vendor,
-            as: 'vendor'
-          },
-          {
-            model: Collection,
-            as: 'collections'
-          }
-        ]
-      })
+        },
+        {
+          model: Metadata,
+          as: 'metadata'
+        },
+        {
+          model: Vendor,
+          as: 'vendor'
+        },
+        {
+          model: Collection,
+          as: 'collections'
+        }
+      ]
+    })
         .then(createdProduct => {
           resProduct = createdProduct
           // console.log('createdProduct',createdProduct)
@@ -242,9 +241,9 @@ module.exports = class ProductService extends Service {
           // console.log('THESE COLLECTIONS', product.collections)
           if (product.collections && product.collections.length > 0) {
             // Resolve the collections
-            return Promise.all(product.collections.map(collection => {
-              return this.app.services.CollectionService.resolve(collection)
-            }))
+            product.collections = product.collections.filter(n => n)
+            // console.log('THIS PRODUCT COLLECTIONS NOW', product.collections)
+            return Collection.transformCollections(product.collections)
           }
           return
         })
@@ -257,12 +256,13 @@ module.exports = class ProductService extends Service {
         })
         .then(productCollections => {
           if (product.vendor) {
-            return this.app.services.VendorService.resolve(product.vendor)
+            return Vendor.transformVendor(product.vendor)
           }
           return
         })
         .then(vendor => {
           if (vendor) {
+            // console.log('THIS VENDOR', vendor)
             return resProduct.setVendor(vendor.id)
           }
           return
@@ -279,9 +279,11 @@ module.exports = class ProductService extends Service {
         })
         .then(createdImages => {
           // Reload
+          // console.log(resProduct)
+          // return resProduct
           return Product.findByIdDefault(resProduct.id)
         })
-    })
+    // })
   }
   /**
    *
@@ -309,16 +311,17 @@ module.exports = class ProductService extends Service {
     const Variant = this.app.orm.ProductVariant
     const Image = this.app.orm.ProductImage
     const Tag = this.app.orm.Tag
-    // const Collection = this.app.orm.Collection
+    const Collection = this.app.orm.Collection
+    const Vendor = this.app.orm.Vendor
     // const Metadata = this.app.orm.Metadata
 
     // let newTags = []
-    return Product.sequelize.transaction(t => {
-      let resProduct = {}
-      if (!product.id) {
-        throw new Errors.FoundError(Error('Product is missing id'))
-      }
-      return Product.findByIdDefault(product.id)
+    // return Product.sequelize.transaction(t => {
+    let resProduct = {}
+    if (!product.id) {
+      throw new Errors.FoundError(Error('Product is missing id'))
+    }
+    return Product.findByIdDefault(product.id)
         .then(foundProduct => {
           resProduct = foundProduct
 
@@ -326,7 +329,7 @@ module.exports = class ProductService extends Service {
             host: product.host || resProduct.host,
             handle: product.handle || resProduct.handle,
             body: product.body || resProduct.body,
-            vendor: product.vendor || resProduct.vendor,
+            // vendor: product.vendor || resProduct.vendor,
             type: product.type || resProduct.type,
             published_scope: product.published_scope || resProduct.published_scope,
             weight: product.weight || resProduct.weight,
@@ -455,9 +458,8 @@ module.exports = class ProductService extends Service {
           if (product.collections && product.collections.length > 0) {
             // Resolve the collections
             // console.log('THESE COLLECTIONS', product.collections)
-            return Promise.all(product.collections.map(collection => {
-              return this.app.services.CollectionService.resolve(collection)
-            }))
+            product.collections = product.collections.filter(n => n)
+            return Collection.transformCollections(product.collections)
           }
           return
         })
@@ -474,7 +476,8 @@ module.exports = class ProductService extends Service {
         })
         .then(metadata => {
           if (product.vendor) {
-            return this.app.services.VendorService.resolve(product.vendor)
+            return Vendor.transformVendor(product.vendor)
+            // return this.app.services.VendorService.resolve(product.vendor)
           }
           return
         })
@@ -513,7 +516,7 @@ module.exports = class ProductService extends Service {
         .then(images => {
           return Product.findByIdDefault(resProduct.id)
         })
-    })
+    // })
   }
   /**
    *

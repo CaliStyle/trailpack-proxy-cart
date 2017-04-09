@@ -42,7 +42,7 @@ module.exports = {
         {
           model: app.orm['Vendor'],
           as: 'vendor',
-          attributes: ['name', 'id']
+          attributes: ['id','name']
         },
         {
           model: app.orm['Collection'],

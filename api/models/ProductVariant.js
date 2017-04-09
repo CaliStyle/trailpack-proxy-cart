@@ -54,6 +54,9 @@ module.exports = class ProductVariant extends Model {
              */
             associate: (models) => {
               models.ProductVariant.belongsTo(models.Product, {
+                // as: 'product_id',
+                // foreign_key: 'id',
+                // notNull: true
                 // onDelete: 'CASCADE'
               })
               // models.ProductVariant.belongsTo(models.Product, {
@@ -131,10 +134,10 @@ module.exports = class ProductVariant extends Model {
         product_id: {
           type: Sequelize.INTEGER,
           unique: 'productvariant_sku',
-          references: {
-            model: 'Product',
-            key: 'id'
-          }
+          // references: {
+          //   model: 'Product',
+          //   key: 'id'
+          // }
         },
         // The SKU for this Variation
         sku: {

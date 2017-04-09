@@ -21,6 +21,11 @@ module.exports = class CustomerCart extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
         cart_id: {
           type: Sequelize.INTEGER,
           unique: 'customercart_cart'

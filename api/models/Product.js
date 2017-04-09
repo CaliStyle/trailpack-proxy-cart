@@ -123,6 +123,15 @@ module.exports = class Product extends Model {
                   constraints: false
                 }
               })
+              models.Product.belongsTo(models.Vendor, {
+                as: 'vendor',
+                through: {
+                  model: models.VendorProduct,
+                  unique: false,
+                },
+                foreignKey: 'product_id',
+                constraints: false
+              })
               models.Product.belongsToMany(models.Tag, {
                 as: 'tags',
                 through: {
@@ -159,14 +168,14 @@ module.exports = class Product extends Model {
                 foreignKey: 'associated_product_id',
                 constraints: false
               })
-              models.Product.belongsTo(models.Vendor, {
-                // foreignKey: 'variant_id',
-                as: 'vendor',
-                onDelete: 'CASCADE'
-                // foreignKey: {
-                //   allowNull: false
-                // }
-              })
+              // models.Product.belongsTo(models.Vendor, {
+              //   as: 'vendor',
+              //   // foreignKey: 'id',
+              //   // onDelete: 'CASCADE'
+              //   // foreignKey: {
+              //   //   allowNull: false
+              //   // }
+              // })
               // models.Product.belongsToMany(models.OrderItem, {
               //   as: 'order_items',
               //   through: 'OrderItemProduct'
@@ -184,11 +193,26 @@ module.exports = class Product extends Model {
               // })
             },
             findByIdDefault: function(criteria, options) {
+              if (!options) {
+                options = {}
+              }
               options = _.merge(options, queryDefaults.Product.default(app))
               // console.log('Product.findByIdDefault', options)
+              // console.log(criteria, options)
               return this.findById(criteria, options)
+                // .then(product => {
+                //   console.log('BEFORE ALL', product)
+                //   return product
+                // })
+                // .catch(err =>{
+                //   console.log('BEFORE ALL', err)
+                //   return Promise.reject(err)
+                // })
             },
             findByHandle: function(handle, options) {
+              if (!options) {
+                options = {}
+              }
               options = _.merge(options, queryDefaults.Product.default(app))
               options = _.merge(options, {
                 where: {
@@ -199,16 +223,25 @@ module.exports = class Product extends Model {
               return this.findOne(options)
             },
             findOneDefault: function(criteria, options) {
+              if (!options) {
+                options = {}
+              }
               options = _.merge(options, queryDefaults.Product.default(app))
               // console.log('Product.findOneDefault', options)
               return this.findOne(criteria, options)
             },
             findAllDefault: function(options) {
+              if (!options) {
+                options = {}
+              }
               options = _.merge(options, queryDefaults.Product.default(app))
               // console.log('Product.findAllDefault', options)
               return this.findAll(options)
             },
             findAndCountDefault: function(options) {
+              if (!options) {
+                options = {}
+              }
               options = _.merge(options, queryDefaults.Product.default(app))
               // console.log('Product.findAndCountDefault', options)
               return this.findAndCount(options)
@@ -263,7 +296,7 @@ module.exports = class Product extends Model {
                   resp.metadata = resp.metadata.data
                 }
               }
-              // Transform Metadata to plain on toJSON
+              // Transform Vendor to string
               if (resp.vendor) {
                 if (typeof resp.vendor.name !== 'undefined') {
                   resp.vendor = resp.vendor.name
@@ -289,7 +322,14 @@ module.exports = class Product extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-
+        // vendor_id: {
+        //   type: Sequelize.STRING,
+        //   // references: {
+        //   //   model: 'Vendor',
+        //   //   key: 'id'
+        //   // },
+        //   allowNull: true
+        // },
         // TODO Multi-Site Support. Change to domain?
         host: {
           type: Sequelize.STRING,
@@ -370,7 +410,7 @@ module.exports = class Product extends Model {
           type: Sequelize.DATE
         },
         // Options for the product (size, color, etc.)
-        options: helpers.ARRAY('product', app, Sequelize, Sequelize.STRING, 'options', {
+        options: helpers.ARRAY('Product', app, Sequelize, Sequelize.STRING, 'options', {
           defaultValue: []
         }),
         // Weight of the product, defaults to grams

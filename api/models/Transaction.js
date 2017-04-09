@@ -42,7 +42,12 @@ module.exports = class Transaction extends Model {
              */
             associate: (models) => {
               // models.Transaction.belongsTo(models.Order, {
-              //   // as: 'order_id'
+              //   // as: 'order_id',
+              //   allowNull: false
+              // })
+              // models.Transaction.belongsTo(models.Customer, {
+              //   // as: 'customer_id',
+              //   allowNull: true
               // })
             }
           }
@@ -58,20 +63,29 @@ module.exports = class Transaction extends Model {
       schema = {
         customer_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Customer',
-            key: 'id'
-          },
+          // references: {
+          //   model: 'Customer',
+          //   key: 'id'
+          // },
           allowNull: true
         },
         order_id: {
           type: Sequelize.INTEGER,
-          references: {
-            model: 'Order',
-            key: 'id'
-          },
+          // references: {
+          //   model: 'Order',
+          //   key: 'id'
+          // },
           allowNull: false
         },
+        // TODO Enable User
+        // The unique identifier for the user.
+        // user_id: {
+        //   type: Sequelize.INTEGER,
+        //   references: {
+        //     model: 'User',
+        //     key: 'id'
+        //   }
+        // },
         // The amount of money that the transaction was for.
         amount: {
           type: Sequelize.INTEGER,
@@ -108,7 +122,7 @@ module.exports = class Transaction extends Model {
         // credit_card_number: The customer's credit card number, with most of the leading digits redacted with Xs.
         // cvv_result_code: The Response code from the credit card company indicating whether the customer entered the card security code, a.k.a. card verification value, correctly. The code is a single letter or empty string; see this chart http://www.emsecommerce.net/avs_cvv2_response_codes.htm for the codes and their definitions.
         // token: The card token from the Gateway
-        payment_details: helpers.JSONB('transaction', app, Sequelize, 'payment_details', {
+        payment_details: helpers.JSONB('Transaction', app, Sequelize, 'payment_details', {
           defaultValue: {}
         }),
         // The kind of transaction:
@@ -117,7 +131,7 @@ module.exports = class Transaction extends Model {
           values: _.values(TRANSACTION_KIND)
         },
         // A transaction reciept attached to the transaction by the gateway. The value of this field will vary depending on which gateway the shop is using.
-        receipt: helpers.JSONB('transaction', app, Sequelize, 'receipt', {
+        receipt: helpers.JSONB('Transaction', app, Sequelize, 'receipt', {
           defaultValue: {}
         }),
         // A standardized error code, independent of the payment provider. Value can be null.
@@ -136,15 +150,6 @@ module.exports = class Transaction extends Model {
           type: Sequelize.STRING,
           defaultValue: 'USD'
         },
-        // TODO Enable User
-        // The unique identifier for the user.
-        // user_id: {
-        //   type: Sequelize.INTEGER,
-        //   references: {
-        //     model: 'User',
-        //     key: 'id'
-        //   }
-        // },
         // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,

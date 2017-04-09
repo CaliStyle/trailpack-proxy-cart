@@ -114,7 +114,7 @@ module.exports = {
     LB: 'lb'
   },
   INTERVALS: {
-    NONE: 0,
+    NONE: null,
     // Every Day
     DAY: 'd',
     // Every Week
