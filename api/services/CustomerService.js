@@ -438,11 +438,14 @@ module.exports = class CustomerService extends Service {
       }
     })
       .then(account => {
+        if (!account) {
+          throw new Error('Account not found')
+        }
         source.account_id = account.id
         return this.app.services.AccountService.addSource(account, source)
       })
   }
-  findSource(customer, source){
+  findCustomerSource(customer, source){
     const Account = this.app.orm['Account']
     return Account.findOne({
       where: {
@@ -452,7 +455,7 @@ module.exports = class CustomerService extends Service {
     })
       .then(account => {
         source.account_id = account.id
-        return this.app.services.AccountService.findCustomerSource(account, source)
+        return this.app.services.AccountService.findSource(account, source)
       })
   }
   /**

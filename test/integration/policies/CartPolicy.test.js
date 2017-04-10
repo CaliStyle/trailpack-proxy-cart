@@ -5,7 +5,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 
 describe('CartPolicy', () => {
-  let request, agent, customerID, cartID, cartIDSwitch, orderID, subscriptionID
+  let request, agent, customerID, cartID, cartIDSwitch, orderID, subscriptionID, sourceID
   let shopProducts
 
   before(done => {
@@ -479,24 +479,40 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
-  // it('should checkout switch cart and create subscription', done => {
-  //   agent
-  //     .post('/cart/checkout')
-  //     .send({
-  //       payment_kind: 'sale',
-  //       payment_details: [
-  //         {
-  //           gateway: 'payment_processor',
-  //           token: '123'
-  //         }
-  //       ],
-  //       fulfillment_kind: 'immediate'
-  //     })
-  //     .expect(200)
-  //     .end((err, res) => {
-  //       console.log('THIS POLICY ORDER', res.body.order)
-  //       // assert.equal(res.body)
-  //       done(err)
-  //     })
-  // })
+  it('should add session customer source', done => {
+    agent
+      .post('/customer/source')
+      .send({
+        source: {
+          gateway: 'payment_processor',
+          token: 'abc123'
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY SOURCE', res.body)
+        sourceID = res.body.id
+        assert.ok(res.body.id)
+        assert.ok(res.body.payment_details)
+        done(err)
+      })
+  })
+  it('should update session customer source', done => {
+    agent
+      .post(`/customer/source/${ sourceID }`)
+      .send({
+        source: {
+          gateway: 'payment_processor',
+          exp_month: '12',
+          exp_year: '2018'
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS POLICY SOURCE', res.body)
+        sourceID = res.body.id
+        assert.ok(res.body.id)
+        done(err)
+      })
+  })
 })

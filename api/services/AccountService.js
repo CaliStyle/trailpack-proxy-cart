@@ -48,6 +48,15 @@ module.exports = class AccountService extends Service {
     if (source instanceof Source.Instance){
       return Promise.resolve(source)
     }
+    else if (source && _.isObject(source) && source.id) {
+      return Source.findById(source.id, options)
+        .then(resSource => {
+          if (!resSource) {
+            throw new Errors.FoundError(Error(`Source ${source.id} not found`))
+          }
+          return resSource
+        })
+    }
     else {
       // TODO create proper error
       const err = new Error(`Unable to resolve Source ${source}`)
@@ -125,6 +134,25 @@ module.exports = class AccountService extends Service {
       })
   }
 
+  find(account, updates) {
+    let resAccount
+    return this.resolve(account)
+      .then(account => {
+        resAccount = account
+        let update = {
+          foreign_id: resAccount.foreign_id,
+          foreign_key: resAccount.foreign_key
+        }
+        // Merge the updates
+        update = _.merge(update, updates)
+        return this.app.services.PaymentGenericService.findCustomer(update)
+          .then(updatedAccount => {
+            resAccount  = _.extend(resAccount, updatedAccount)
+            return resAccount.save()
+          })
+      })
+  }
+
   /**
    *
    * @param account
@@ -161,7 +189,7 @@ module.exports = class AccountService extends Service {
    * @param source
    * @returns {Promise.<TResult>}
    */
-  findCustomerSource(account, source) {
+  findSource(account, source) {
     // const Source = this.app.orm['Source']
     let resAccount, resSource
     return this.resolve(account)
@@ -178,7 +206,8 @@ module.exports = class AccountService extends Service {
         return this.app.services.PaymentGenericService.findCustomerSource(find)
       })
       .then(serviceCustomerSource => {
-        resSource.update(serviceCustomerSource)
+        resSource = _.extend(resSource, serviceCustomerSource)
+        return resSource.save()
       })
   }
 
@@ -207,7 +236,8 @@ module.exports = class AccountService extends Service {
         return this.app.services.PaymentGenericService.updateCustomerSource(update)
       })
       .then(serviceCustomerSource => {
-        resSource.update(serviceCustomerSource)
+        resSource = _.extend(resSource, serviceCustomerSource)
+        return resSource.save()
       })
   }
 }

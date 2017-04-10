@@ -298,33 +298,26 @@ module.exports = class CustomerController extends Controller {
     req.logoutCustomer()
     res.ok()
   }
-
-  /**
-   *
-   * @param req
-   * @param res
-   */
-  order(req, res) {
-    console.log('I WAS CALLED')
-    const Order = this.app.orm['Order']
+  account(req, res) {
+    const Account = this.app.orm['Account']
+    const accountId = req.params.account
     let customerId = req.params.id
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
-    if (!customerId && !req.user) {
+    if (!customerId || !accountId || !req.user) {
       const err = new Error('A customer id and a user in session are required')
       res.send(401, err)
 
     }
-    Order.findByIdDefault(req.params.id)
-      .then(order => {
-        return res.json(order)
+    Account.findByIdDefault(accountId)
+      .then(account => {
+        return res.json(account)
       })
       .catch(err => {
         return res.serverError(err)
       })
   }
-
   /**
    *
    * @param req
@@ -371,6 +364,31 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  order(req, res) {
+    const Order = this.app.orm['Order']
+    const orderId = req.params.order
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !orderId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      res.send(401, err)
+
+    }
+    Order.findByIdDefault(orderId)
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
   orders(req, res) {
     const Order = this.app.orm['Order']
     let customerId = req.params.id
@@ -378,7 +396,7 @@ module.exports = class CustomerController extends Controller {
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
-    if (!customerId && !req.user) {
+    if (!customerId || !req.user) {
       const err = new Error('A customer id and a user in session are required')
       return res.send(401, err)
     }
@@ -413,59 +431,18 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
-  sources(req, res) {
-    const Source = this.app.orm['Source']
-    let customerId = req.params.id
-
-    if (!customerId && req.user) {
-      customerId = req.user.current_customer_id
-    }
-    if (!customerId && !req.user) {
-      const err = new Error('A customer id and a user in session are required')
-      return res.send(401, err)
-    }
-
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
-    const sort = req.query.sort || 'created_at DESC'
-
-    Source.findAndCount({
-      source: sort,
-      where: {
-        customer_id: customerId
-      },
-      offset: offset,
-      limit: limit
-    })
-      .then(sources => {
-        res.set('X-Pagination-Total', sources.count)
-        res.set('X-Pagination-Pages', Math.ceil(sources.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
-        return res.json(sources.rows)
-      })
-      .catch(err => {
-        return res.serverError(err)
-      })
-  }
-
-  /**
-   *
-   * @param req
-   * @param res
-   */
   subscription(req, res) {
     const Subscription = this.app.orm['Subscription']
+    const subscriptionId = req.params.subscription
     let customerId = req.params.id
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
-    if (!customerId && !req.user) {
-      const err = new Error('A customer id and a user in session are required')
+    if (!customerId || !subscriptionId ||  !req.user) {
+      const err = new Error('A customer id, subscription id, and a user in session are required')
       return res.forbidden(err)
     }
-    Subscription.findByIdDefault(req.params.id)
+    Subscription.findByIdDefault(subscriptionId)
       .then(subscription => {
         return res.json(subscription)
       })
@@ -538,15 +515,102 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
-  addSource(req, res) {
+  source(req, res) {
+    const Source = this.app.orm['Source']
+    const sourceId = req.params.source
     let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !sourceId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      res.send(401, err)
+
+    }
+    Source.findById(sourceId)
+      .then(source => {
+        return res.json(source)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  sources(req, res) {
+    const Source = this.app.orm['Source']
+    let customerId = req.params.id
+
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Source.findAndCount({
+      source: sort,
+      where: {
+        customer_id: customerId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(sources => {
+        res.set('X-Pagination-Total', sources.count)
+        res.set('X-Pagination-Pages', Math.ceil(sources.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(sources.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addSource(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    // const source = req.params.source
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
       return res.serverError(err)
     }
+    if (!req.body.customer) {
+      req.body.customer = {}
+    }
+    req.body.customer.id = customerId
+    // req.body.source.id = source
+
+    lib.Validator.validateSource.add(req.body.source)
+      .then(values => {
+        return CustomerService.createCustomerSource(req.body.customer, req.body.source)
+      })
+      .then(source => {
+        return res.json(source)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+
   }
 
   /**
@@ -555,14 +619,34 @@ module.exports = class CustomerController extends Controller {
    * @param res
    */
   updateSource(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    const sourceId = req.params.source
     let customerId = req.params.id
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
-    if (!customerId && !req.user) {
-      const err = new Error('A customer id and a user in session are required')
+    if (!customerId || !req.user || !sourceId) {
+      const err = new Error('A customer id, source id, and a user in session are required')
       return res.serverError(err)
     }
+    if (!req.body.customer) {
+      req.body.customer = {}
+    }
+    req.body.customer.id = customerId
+
+    req.body.source.id = sourceId
+
+    lib.Validator.validateSource.add(req.body.source)
+      .then(values => {
+        return CustomerService.updateCustomerSource(req.body.customer, req.body.source)
+      })
+      .then(source => {
+        return res.json(source)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
   }
 
   /**
@@ -571,14 +655,35 @@ module.exports = class CustomerController extends Controller {
    * @param res
    */
   removeSource(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    const sourceId = req.params.source
     let customerId = req.params.id
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
-    if (!customerId && !req.user) {
-      const err = new Error('A customer id and a user in session are required')
+    if (!customerId || !req.user || !sourceId) {
+      const err = new Error('A customer id, source id, and a user in session are required')
       return res.serverError(err)
     }
+    if (!req.body.customer) {
+      req.body.customer = {}
+    }
+    req.body.customer.id = customerId
+
+    req.body.source.id = sourceId
+
+    lib.Validator.validateSource.remove(req.body.source)
+      .then(values => {
+
+        return CustomerService.removeCustomerSource(req.body.customer, req.body.source)
+      })
+      .then(source => {
+        return res.json(source)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
   }
 }
 
