@@ -110,13 +110,14 @@ describe('CustomerController', () => {
       .get('/customer')
       .expect(200)
       .end((err, res) => {
-        console.log('UPLOADED CUSTOMER', res.body)
+        // console.log('UPLOADED CUSTOMER', res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
         assert.ok(res.body)
-        customerID = res.body[res.body.length - 1].id
+        // Most Freshly added customer
+        customerID = res.body[0].id
         done()
       })
   })
@@ -127,7 +128,13 @@ describe('CustomerController', () => {
       .end((err, res) => {
         console.log('UPLOADED CUSTOMER', res.body)
         assert.equal(res.body.id, customerID)
+        assert.ok(res.body.default_address.address_1)
+        assert.ok(res.body.default_address.city)
+        assert.ok(res.body.shipping_address.address_1)
+        assert.ok(res.body.shipping_address.city)
+
         assert.equal(res.body.accounts.length, 1)
+
         done()
       })
   })

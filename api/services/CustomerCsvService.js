@@ -140,6 +140,7 @@ module.exports = class CustomerCsvService extends Service {
             account_balance: customer.account_balance,
             first_name: customer.first_name,
             last_name: customer.last_name,
+            email: customer.email,
             company: customer.company,
             phone: customer.phone,
             shipping_address: {},
@@ -151,17 +152,21 @@ module.exports = class CustomerCsvService extends Service {
           _.each(customer.get({plain: true}), (value, key) => {
             if (key.indexOf('shipping_') > -1) {
               const newKey = key.replace('shipping_', '')
-              create.shipping_address[newKey] = value
+              if (value && value != '') {
+                create.shipping_address[newKey] = value
+              }
             }
             if (key.indexOf('billing_') > -1) {
               const newKey = key.replace('billing_', '')
-              create.billing_address[newKey] = value
+              if (value && value != '') {
+                create.billing_address[newKey] = value
+              }
             }
           })
-          if (create.shipping_address.length == 0) {
+          if (_.isEmpty(create.shipping_address)) {
             delete create.shipping_address
           }
-          if (create.billing_address.length == 0) {
+          if (_.isEmpty(create.billing_address)) {
             delete create.billing_address
           }
           // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)

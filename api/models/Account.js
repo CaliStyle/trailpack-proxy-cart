@@ -55,6 +55,9 @@ module.exports = class Account extends Model {
         // },
         allowNull: false
       },
+      email: {
+        type: Sequelize.STRING
+      },
       gateway: {
         type: Sequelize.STRING,
         defaultValue: 'payment_processor'

@@ -21,6 +21,7 @@ module.exports = {
   },
   CUSTOMER_UPLOAD: {
     account_balance: 'Account Balance',
+    email: 'Email',
     first_name: 'First Name',
     last_name: 'Last Name',
     company: 'Company',

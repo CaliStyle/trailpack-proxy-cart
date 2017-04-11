@@ -71,6 +71,7 @@ module.exports = class CustomerService extends Service {
       const create = {
         first_name: customer.first_name,
         last_name: customer.last_name,
+        email: customer.email,
         note: customer.note,
         accepts_marketing: customer.accepts_marketing,
         state: customer.state,
@@ -157,6 +158,7 @@ module.exports = class CustomerService extends Service {
           if (customer.accounts && customer.accounts.length > 0) {
             return Promise.all(customer.accounts.map(account => {
               account.customer_id = resCustomer.id
+              account.email = resCustomer.email
               return this.app.services.AccountService.find(account)
             }))
           }
@@ -167,6 +169,7 @@ module.exports = class CustomerService extends Service {
                 // const CustomerAccount = this.app.orm['CustomerAccount']
                 return Account.create({
                   customer_id: resCustomer.id,
+                  email: resCustomer.email,
                   is_default: true,
                   gateway: serviceCustomer.gateway,
                   foreign_id: serviceCustomer.foreign_id,

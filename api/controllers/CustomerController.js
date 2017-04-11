@@ -654,7 +654,7 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
-  removeSource(req, res) {
+  destroySource(req, res) {
     const CustomerService = this.app.services.CustomerService
     const sourceId = req.params.source
     let customerId = req.params.id

@@ -64,6 +64,10 @@ module.exports = class CustomerUpload extends Model {
       account_balance: {
         type: Sequelize.INTEGER
       },
+      // email
+      email: {
+        type: Sequelize.STRING
+      },
       // First Name
       first_name: {
         type: Sequelize.STRING

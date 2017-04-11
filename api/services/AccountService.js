@@ -142,6 +142,7 @@ module.exports = class AccountService extends Service {
         // Set the default
         const create = {
           customer_id: account.customer_id,
+          email: account.email,
           is_default: true,
           gateway: serviceCustomer.gateway,
           foreign_id: serviceCustomer.foreign_id,

@@ -33,22 +33,27 @@ The Order in which the collection sorts products in it (if any). Valid Values ar
 States whether or not a collection is published on your storefront. Valid values are TRUE if the collection is published on your storefront, or FALSE if the product is hidden from your storefront. Leaving the field blank will leave the collection unpublished.
 
 
-## Tax Type
+## Tax Type (can be left blank)
 
-## Tax Rate
+## Tax Rate (can be left blank)
 
-## Tax Percentage
+## Tax Percentage (can be left blank)
 
-## Tax Name
+## Tax Name (can be left blank)
 
-## Discount Scope
+## Discount Scope (can be left blank)
+`global` or `individual`
 
-## Discount Type
+## Discount Type (can be left blank)
+`fixed` or `percentage`
 
-## Discount Rate
+## Discount Rate (can be left blank)
+A whole number to discount product prices by
 
-## Discount Percentage
+## Discount Percentage (can be left blank)
+A percentage to discount product prices by
 
-## Discount Product Include
+## Discount Product Include (can be left blank)
 
-## Discount Product Exclude
+## Discount Product Exclude (can be left blank)
+A comma separated list of Product Types to exclude from a discount
