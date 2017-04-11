@@ -193,6 +193,15 @@ module.exports = class Customer extends Model {
                 foreignKey: 'customer_id',
                 constraints: false
               })
+              models.Customer.belongsToMany(models.User, {
+                as: 'users',
+                through: {
+                  model: models.CustomerUser,
+                  unique: true,
+                },
+                foreignKey: 'customer_id',
+                constraints: false
+              })
               // models.Customer.hasMany(models.User, {
               //   as: 'users',
               //   foreignKey: {

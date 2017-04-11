@@ -44,7 +44,8 @@ module.exports = {
     shipping_country: 'Shipping Country',
     tags: 'Tags',
     collections: 'Collections',
-    accounts: 'Accounts'
+    accounts: 'Accounts',
+    users: 'Users'
   },
   PRODUCT_UPLOAD: {
     handle: 'Handle',

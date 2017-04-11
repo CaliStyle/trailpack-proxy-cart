@@ -75,7 +75,7 @@ module.exports = class FakePaymentProcessor {
     const res = {
       gateway: 'payment_processor',
       foreign_key: 'customer',
-      foreign_id: customer.id,
+      foreign_id: customer.foreign_id,
       data: customer
     }
     return Promise.resolve(res)

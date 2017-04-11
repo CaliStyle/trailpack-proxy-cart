@@ -98,6 +98,9 @@ module.exports = class CustomerCsvService extends Service {
           else if (k == 'accounts') {
             upload[k] = data.split(',').map(account => { return account.trim()})
           }
+          else if (k == 'users') {
+            upload[k] = data.split(',').map(user => { return user.trim()})
+          }
           else {
             upload[k] = data
           }
@@ -110,10 +113,15 @@ module.exports = class CustomerCsvService extends Service {
         title: collection
       }
     })
-    upload.accounts = _.map(upload.collections, (account, index) => {
+    upload.accounts = _.map(upload.accounts, (account, index) => {
       return {
         gateway: account.split(/:(.+)/)[0],
         foreign_id: account.split(/:(.+)/)[1]
+      }
+    })
+    upload.users = _.map(upload.users, (user, index) => {
+      return {
+        email: user
       }
     })
 
@@ -147,7 +155,8 @@ module.exports = class CustomerCsvService extends Service {
             billing_address: {},
             collections: customer.collections,
             tags: customer.tags,
-            accounts: customer.accounts
+            accounts: customer.accounts,
+            users: customer.users
           }
           _.each(customer.get({plain: true}), (value, key) => {
             if (key.indexOf('shipping_') > -1) {

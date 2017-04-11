@@ -16,16 +16,15 @@ module.exports = class VendorService extends Service {
     }
     else if (vendor && _.isObject(vendor) && vendor.id) {
       return Vendor.findById(vendor.id, options)
-          .then(foundVendor => {
-            if (!foundVendor) {
-              // TODO create proper error
-              throw new Error(`Vendor with ${vendor.id} not found`)
-            }
-            return foundVendor
-          })
+        .then(foundVendor => {
+          if (!foundVendor) {
+            // TODO create proper error
+            throw new Error(`Vendor with ${vendor.id} not found`)
+          }
+          return foundVendor
+        })
     }
     else if (vendor && _.isObject(vendor) && (vendor.handle || vendor.name)) {
-        // Sequelize.transaction(t => {
       return Vendor.find({
         where: {
           $or: {
@@ -34,25 +33,14 @@ module.exports = class VendorService extends Service {
           }
         }
       }, options)
-            .then(resVendor => {
-              if (resVendor) {
-                return resVendor
-              }
-              return Vendor.create(vendor, options)
-            })
-        // })
-        //   .then(result => {
-        //     // console.log(result)
-        //     return resolve(result)
-        //   })
-        //   .catch(err => {
-        //     return reject(err)
-        //   })
+        .then(resVendor => {
+          if (resVendor) {
+            return resVendor
+          }
+          return Vendor.create(vendor, options)
+        })
     }
     else if (vendor && _.isString(vendor)) {
-        // return Vendor.create({title: vendor})
-        // Make this a transaction
-        // Sequelize.transaction(t => {
       return Vendor.find({
         where: {
           $or: {
@@ -62,25 +50,24 @@ module.exports = class VendorService extends Service {
           }
         }
       }, options)
-            .then(resVendor => {
-              if (resVendor) {
-                return resVendor
-              }
-              return Vendor.create({name: vendor})
-            })
-        // })
-        //   .then(result => {
-        //     return resolve(result)
-        //   })
-        //   .catch(err => {
-        //     return reject(err)
-        //   })
+        .then(resVendor => {
+          if (resVendor) {
+            return resVendor
+          }
+          const err = new Error(`Not able to resolve vendor ${vendor}`)
+          return Promise.reject(err)
+        })
     }
     else {
         // TODO make Proper Error
       const err = new Error(`Not able to resolve vendor ${vendor}`)
       return Promise.reject(err)
     }
+  }
+
+  // TODO if this drop shipping, we need to resolve the vendors address
+  getVendorAddress(address) {
+    //
   }
 }
 

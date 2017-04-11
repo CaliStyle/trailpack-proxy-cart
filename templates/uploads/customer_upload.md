@@ -53,3 +53,7 @@ Enter the name of the collection handles separated by a comma character `,` you 
 
 ## Accounts(can be left blank)
 Comma-separated list of accounts for the customer on 3rd Party services. For example, `stripe:cust_xxxxxxx, stripe:cust_xxxxxxx, stripe:cust_xxxxxxx`.
+Otherwise, a default account is created for the customer with the default payment provider.
+
+## Users(can be left blank)
+Comma-separated list of user emails for the customer. For example, `example@example.com, example1@example.com, example2@example.com`. If the user with the associated email does not exist, one will be created.

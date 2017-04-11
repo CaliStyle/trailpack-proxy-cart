@@ -363,9 +363,17 @@ module.exports = class ProxyCartService extends Service {
       accepts_marketing: user.accepts_marketing
     })
       .then(customer => {
+        if (!customer) {
+          return {
+            id: null
+          }
+        }
+        // Set the user's current customer id
         user.current_customer_id = customer.id
-        // Update the customer email address
-        customer.email = user.email || customer.email
+        // Update the customer email address if it doesn't already have one
+        if (!customer.email && user.email) {
+          customer.email = user.email
+        }
         return customer.save()
       })
       .then(customer => {
@@ -375,7 +383,7 @@ module.exports = class ProxyCartService extends Service {
         })
       })
       .then(cart => {
-        // console.log(cart)
+        // Set the user's current cart id
         user.current_cart_id = cart.id
         return user.save()
       })

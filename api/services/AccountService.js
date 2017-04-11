@@ -122,7 +122,8 @@ module.exports = class AccountService extends Service {
         resAccount = account
         let update = {
           foreign_id: resAccount.foreign_id,
-          foreign_key: resAccount.foreign_key
+          foreign_key: resAccount.foreign_key,
+          email: resAccount.email
         }
         // Merge the updates
         update = _.merge(update, updates)
@@ -134,9 +135,10 @@ module.exports = class AccountService extends Service {
       })
   }
 
-  find(account) {
+  findAndCreate(account) {
     const Account = this.app.orm['Account']
     // let resAccount
+
     return this.app.services.PaymentGenericService.findCustomer(account)
       .then(serviceCustomer => {
         // Set the default
@@ -149,15 +151,15 @@ module.exports = class AccountService extends Service {
           foreign_key: serviceCustomer.foreign_key,
           data: serviceCustomer.data
         }
-
-        return Account.findOrCreate({
-          where: {
-            customer_id: account.customer_id,
-            foreign_id: serviceCustomer.foreign_id,
-            gateway: serviceCustomer.gateway
-          },
-          defaults: create
-        })
+        return Account.create(create)
+        // return Account.findOrCreate({
+        //   where: {
+        //     customer_id: account.customer_id,
+        //     foreign_id: serviceCustomer.foreign_id,
+        //     gateway: serviceCustomer.gateway
+        //   },
+        //   defaults: create
+        // })
       })
   }
 
@@ -246,6 +248,36 @@ module.exports = class AccountService extends Service {
       .then(serviceCustomerSource => {
         resSource = _.extend(resSource, serviceCustomerSource)
         return resSource.save()
+      })
+  }
+
+  /**
+   *
+   * @param account
+   * @returns {Promise.<TResult>}
+   */
+  syncSources(account) {
+    let resAccount
+
+    return this.resolve(account)
+      .then(account => {
+        resAccount = account
+        return this.app.services.PaymentGenericService.findCustomerSources(account)
+      })
+      .then(serviceCustomerSources => {
+        return Promise.all(serviceCustomerSources.map(source => {
+          source.gateway = resAccount.gateway
+          source.account_id = resAccount.id
+          source.customer_id = resAccount.customer_id
+          return this.app.orm['Source'].findOrCreate({
+            where: {
+              customer_id: source.customer_id,
+              account_id: source.account_id,
+              foreign_id: source.foreign_id
+            },
+            defaults: source
+          })
+        }))
       })
   }
 }

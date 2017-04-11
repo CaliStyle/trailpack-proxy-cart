@@ -43,162 +43,181 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise}
    */
   create(customer) {
-    return new Promise((resolve, reject) => {
-      const Customer = this.app.orm.Customer
-      const Tag = this.app.orm.Tag
-      const Cart = this.app.orm.Cart
-      const Metadata = this.app.orm.Metadata
-      const Address = this.app.orm.Address
-      const Account = this.app.orm.Account
+    const Customer = this.app.orm.Customer
+    const Tag = this.app.orm.Tag
+    const Cart = this.app.orm.Cart
+    const Metadata = this.app.orm.Metadata
+    const Address = this.app.orm.Address
+    const Account = this.app.orm.Account
+    const User = this.app.orm.User
 
-      if (customer.cart) {
-        customer.default_cart = customer.cart
-        delete customer.cart
-      }
+    if (customer.cart) {
+      customer.default_cart = customer.cart
+      delete customer.cart
+    }
 
-      // Resolve all Address if any are provided
-      if (!customer.default_address && customer.shipping_address) {
-        customer.default_address = customer.shipping_address
-      }
-      if (!customer.shipping_address && customer.default_address) {
-        customer.shipping_address = customer.default_address
-      }
-      if (!customer.billing_address && customer.default_address) {
-        customer.billing_address = customer.default_address
-      }
+    // Resolve all Address if any are provided
+    if (!customer.default_address && customer.shipping_address) {
+      customer.default_address = customer.shipping_address
+    }
+    if (!customer.shipping_address && customer.default_address) {
+      customer.shipping_address = customer.default_address
+    }
+    if (!customer.billing_address && customer.default_address) {
+      customer.billing_address = customer.default_address
+    }
 
-      let resCustomer = {}
-      const create = {
-        first_name: customer.first_name,
-        last_name: customer.last_name,
-        email: customer.email,
-        note: customer.note,
-        accepts_marketing: customer.accepts_marketing,
-        state: customer.state,
-        tax_exempt: customer.tax_exempt,
-        verified_email: customer.verified_email,
-        metadata: Metadata.transform(customer.metadata || {})
-      }
-      if (customer.shipping_address) {
-        create.shipping_address = customer.shipping_address
-      }
-      if (customer.billing_address) {
-        create.billing_address = customer.billing_address
-      }
-      if (customer.default_address) {
-        create.default_address = customer.default_address
-      }
+    let resCustomer = {}
+    const create = {
+      first_name: customer.first_name,
+      last_name: customer.last_name,
+      email: customer.email,
+      note: customer.note,
+      accepts_marketing: customer.accepts_marketing,
+      state: customer.state,
+      tax_exempt: customer.tax_exempt,
+      verified_email: customer.verified_email,
+      metadata: Metadata.transform(customer.metadata || {})
+    }
+    if (customer.shipping_address) {
+      create.shipping_address = customer.shipping_address
+    }
+    if (customer.billing_address) {
+      create.billing_address = customer.billing_address
+    }
+    if (customer.default_address) {
+      create.default_address = customer.default_address
+    }
 
-      Customer.create(create, {
-        include: [
-          {
-            model: Cart,
-            as: 'default_cart'
-          },
-          // {
-          //   model: Cart,
-          //   as: 'carts'
-          // },
-          {
-            model: Address,
-            as: 'default_address'
-          },
-          {
-            model: Address,
-            as: 'shipping_address'
-          },
-          {
-            model: Address,
-            as: 'billing_address'
-          },
-          {
-            model: Tag,
-            as: 'tags'
-          },
-          {
-            model: Metadata,
-            as: 'metadata'
-          }
-          // {
-          //   model: Account,
-          //   as: 'accounts'
-          // }
-        ]
-      })
-        .then(createdCustomer => {
-          resCustomer = createdCustomer
-          if (customer.tags && customer.tags.length > 0) {
-            customer.tags = _.sortedUniq(customer.tags.filter(n => n))
-            return Tag.transformTags(customer.tags)
-          }
-          return
-        })
-        .then(tags => {
-          // Add Tags
-          if (tags && tags.length > 0) {
-            return resCustomer.setTags(tags)
-          }
-          return
-        })
-        .then(tags => {
-          if (customer.default_cart) {
-            // Resolve the Cart
-            // console.log('DEFAULT CART', customer.default_cart)
-            return this.app.services.CartService.resolve(customer.default_cart)
-          }
-          return
-        })
-        .then(cart => {
-          if (cart) {
-            // Set this cart as the default cart
-            return resCustomer.setDefault_cart(cart)
-          }
-        })
-        .then(cart => {
-          if (customer.accounts && customer.accounts.length > 0) {
-            return Promise.all(customer.accounts.map(account => {
-              account.customer_id = resCustomer.id
-              account.email = resCustomer.email
-              return this.app.services.AccountService.find(account)
-            }))
-          }
-          else {
-            return this.app.services.PaymentGenericService.createCustomer(resCustomer)
-              .then(serviceCustomer => {
-                //const Account = this.app.orm['Account']
-                // const CustomerAccount = this.app.orm['CustomerAccount']
-                return Account.create({
-                  customer_id: resCustomer.id,
-                  email: resCustomer.email,
-                  is_default: true,
-                  gateway: serviceCustomer.gateway,
-                  foreign_id: serviceCustomer.foreign_id,
-                  foreign_key: serviceCustomer.foreign_key,
-                  data: serviceCustomer.data
-                })
-                  .then(account => {
-                    return [account]
-                  })
-              })
-          }
-        })
-        .then(accounts => {
-          if (accounts && accounts.length > 0) {
-            return resCustomer.setAccounts(accounts.map(account => account.id))
-          }
-          return
-        })
-        .then(accounts => {
-          // return resCustomer.reload()
-          return Customer.findByIdDefault(resCustomer.id)
-        })
-        .then(customer => {
-          return resolve(customer)
-        })
-        .catch(err => {
-          return reject(err)
-        })
+    return Customer.create(create, {
+      include: [
+        {
+          model: Cart,
+          as: 'default_cart'
+        },
+        // {
+        //   model: Cart,
+        //   as: 'carts'
+        // },
+        {
+          model: Address,
+          as: 'default_address'
+        },
+        {
+          model: Address,
+          as: 'shipping_address'
+        },
+        {
+          model: Address,
+          as: 'billing_address'
+        },
+        {
+          model: Tag,
+          as: 'tags'
+        },
+        {
+          model: Metadata,
+          as: 'metadata'
+        }
+        // {
+        //   model: Account,
+        //   as: 'accounts'
+        // }
+      ]
     })
+      .then(createdCustomer => {
+        resCustomer = createdCustomer
+        if (customer.tags && customer.tags.length > 0) {
+          customer.tags = _.sortedUniq(customer.tags.filter(n => n))
+          return Tag.transformTags(customer.tags)
+        }
+        return
+      })
+      .then(tags => {
+        // Add Tags
+        if (tags && tags.length > 0) {
+          return resCustomer.setTags(tags)
+        }
+        return
+      })
+      .then(tags => {
+        if (customer.default_cart) {
+          // Resolve the Cart
+          // console.log('DEFAULT CART', customer.default_cart)
+          return this.app.services.CartService.resolve(customer.default_cart)
+        }
+        return
+      })
+      .then(cart => {
+        if (cart) {
+          // Set this cart as the default cart
+          return resCustomer.setDefault_cart(cart)
+        }
+      })
+      .then(cart => {
+        if (customer.accounts && customer.accounts.length > 0) {
+          return Promise.all(customer.accounts.map(account => {
+            account.customer_id = resCustomer.id
+            account.email = resCustomer.email
+            return this.app.services.AccountService.findAndCreate(account)
+          }))
+        }
+        else {
+          return this.app.services.PaymentGenericService.createCustomer(resCustomer)
+            .then(serviceCustomer => {
+              //const Account = this.app.orm['Account']
+              // const CustomerAccount = this.app.orm['CustomerAccount']
+              return Account.create({
+                customer_id: resCustomer.id,
+                email: resCustomer.email,
+                is_default: true,
+                gateway: serviceCustomer.gateway,
+                foreign_id: serviceCustomer.foreign_id,
+                foreign_key: serviceCustomer.foreign_key,
+                data: serviceCustomer.data
+              })
+                .then(account => {
+                  return [account]
+                })
+            })
+        }
+      })
+      .then(accounts => {
+        if (accounts && accounts.length > 0) {
+          return resCustomer.setAccounts(accounts.map(account => account.id))
+        }
+        return
+      })
+      .then(accounts => {
+        if (customer.users && customer.users.length > 0) {
+          return Promise.all(customer.users.map(user => {
+            // Setup some defaults
+            user.current_customer_id = resCustomer.id
+            user.passports = {
+              protocol: 'local'
+            }
+            return User.create(user, {
+              include: [
+                {
+                  model: this.app.orm['Passport'],
+                  as: 'passports'
+                }
+              ]
+            })
+          }))
+        }
+        return
+      })
+      .then(users => {
+        if (users && users.length > 0) {
+          return resCustomer.setUsers(users.map(user => user.id))
+        }
+        return
+      })
+      .then(users => {
+        // return resCustomer.reload()
+        return Customer.findByIdDefault(resCustomer.id)
+      })
   }
 
   /**
@@ -475,6 +494,19 @@ module.exports = class CustomerService extends Service {
       .then(account => {
         source.account_id = account.id
         return this.app.services.AccountService.findSource(account, source)
+      })
+  }
+
+  syncCustomerSources(customer, account){
+    const Account = this.app.orm['Account']
+    return Account.findOne({
+      where: {
+        customer_id: customer.id,
+        gateway: account.gateway
+      }
+    })
+      .then(account => {
+        return this.app.services.AccountService.syncSources(account)
       })
   }
   /**

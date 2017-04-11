@@ -38,10 +38,10 @@ module.exports = class User extends Model {
               as: 'customers',
               through: {
                 model: models.CustomerUser,
-                foreignKey: 'user_id',
-                unique: true,
-                constraints: false
-              }
+                unique: true
+              },
+              foreignKey: 'user_id',
+              constraints: false
             })
             // models.User.belongsTo(models.Customer, {
             //   as: 'current_customer_id',
