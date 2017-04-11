@@ -137,7 +137,7 @@ module.exports = class AccountService extends Service {
 
   findAndCreate(account) {
     const Account = this.app.orm['Account']
-    // let resAccount
+    let resAccount
 
     return this.app.services.PaymentGenericService.findCustomer(account)
       .then(serviceCustomer => {
@@ -152,6 +152,19 @@ module.exports = class AccountService extends Service {
           data: serviceCustomer.data
         }
         return Account.create(create)
+          .then(account => {
+            resAccount = account
+            return this.app.services.PaymentGenericService.getCustomerSources(resAccount)
+          })
+          .then(accountWithSources => {
+            return Promise.all(accountWithSources.sources.map(source => {
+              source.customer_id = resAccount.customer_id
+              return this.app.orm['Source'].create(source)
+            }))
+          })
+          .then(sources => {
+            return resAccount
+          })
         // return Account.findOrCreate({
         //   where: {
         //     customer_id: account.customer_id,
