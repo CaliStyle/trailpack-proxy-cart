@@ -152,6 +152,10 @@ module.exports = class CustomerUpload extends Model {
       // 'Tags'
       tags: helpers.ARRAY('CustomerUpload', app, Sequelize, Sequelize.STRING, 'tags', {
         defaultValue: []
+      }),
+      // 'Accounts'
+      accounts: helpers.ARRAY('CustomerUpload', app, Sequelize, Sequelize.JSON, 'accounts', {
+        defaultValue: []
       })
     }
     return schema

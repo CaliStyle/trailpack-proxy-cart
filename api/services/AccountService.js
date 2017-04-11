@@ -134,22 +134,29 @@ module.exports = class AccountService extends Service {
       })
   }
 
-  find(account, updates) {
-    let resAccount
-    return this.resolve(account)
-      .then(account => {
-        resAccount = account
-        let update = {
-          foreign_id: resAccount.foreign_id,
-          foreign_key: resAccount.foreign_key
+  find(account) {
+    const Account = this.app.orm['Account']
+    // let resAccount
+    return this.app.services.PaymentGenericService.findCustomer(account)
+      .then(serviceCustomer => {
+        // Set the default
+        const create = {
+          customer_id: account.customer_id,
+          is_default: true,
+          gateway: serviceCustomer.gateway,
+          foreign_id: serviceCustomer.foreign_id,
+          foreign_key: serviceCustomer.foreign_key,
+          data: serviceCustomer.data
         }
-        // Merge the updates
-        update = _.merge(update, updates)
-        return this.app.services.PaymentGenericService.findCustomer(update)
-          .then(updatedAccount => {
-            resAccount  = _.extend(resAccount, updatedAccount)
-            return resAccount.save()
-          })
+
+        return Account.findOrCreate({
+          where: {
+            customer_id: account.customer_id,
+            foreign_id: serviceCustomer.foreign_id,
+            gateway: serviceCustomer.gateway
+          },
+          defaults: create
+        })
       })
   }
 

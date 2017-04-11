@@ -42,7 +42,8 @@ module.exports = {
     shipping_postal_code: 'Shipping Postal Code',
     shipping_country: 'Shipping Country',
     tags: 'Tags',
-    collections: 'Collections'
+    collections: 'Collections',
+    accounts: 'Accounts'
   },
   PRODUCT_UPLOAD: {
     handle: 'Handle',

@@ -105,4 +105,30 @@ describe('CustomerController', () => {
         done()
       })
   })
+  it('It should get customers', (done) => {
+    request
+      .get('/customer')
+      .expect(200)
+      .end((err, res) => {
+        console.log('UPLOADED CUSTOMER', res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.body)
+        customerID = res.body[res.body.length - 1].id
+        done()
+      })
+  })
+  it('It should find uploaded customer', (done) => {
+    request
+      .get(`/customer/${customerID}`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('UPLOADED CUSTOMER', res.body)
+        assert.equal(res.body.id, customerID)
+        assert.equal(res.body.accounts.length, 1)
+        done()
+      })
+  })
 })

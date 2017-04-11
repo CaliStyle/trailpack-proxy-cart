@@ -49,6 +49,7 @@ module.exports = class CustomerService extends Service {
       const Cart = this.app.orm.Cart
       const Metadata = this.app.orm.Metadata
       const Address = this.app.orm.Address
+      const Account = this.app.orm.Account
 
       if (customer.cart) {
         customer.default_cart = customer.cart
@@ -117,19 +118,23 @@ module.exports = class CustomerService extends Service {
             model: Metadata,
             as: 'metadata'
           }
+          // {
+          //   model: Account,
+          //   as: 'accounts'
+          // }
         ]
       })
         .then(createdCustomer => {
           resCustomer = createdCustomer
           if (customer.tags && customer.tags.length > 0) {
-            customer.tags = customer.tags.filter(n => n)
+            customer.tags = _.sortedUniq(customer.tags.filter(n => n))
             return Tag.transformTags(customer.tags)
           }
           return
         })
         .then(tags => {
           // Add Tags
-          if (tags) {
+          if (tags && tags.length > 0) {
             return resCustomer.setTags(tags)
           }
           return
@@ -149,6 +154,38 @@ module.exports = class CustomerService extends Service {
           }
         })
         .then(cart => {
+          if (customer.accounts && customer.accounts.length > 0) {
+            return Promise.all(customer.accounts.map(account => {
+              account.customer_id = resCustomer.id
+              return this.app.services.AccountService.find(account)
+            }))
+          }
+          else {
+            return this.app.services.PaymentGenericService.createCustomer(resCustomer)
+              .then(serviceCustomer => {
+                //const Account = this.app.orm['Account']
+                // const CustomerAccount = this.app.orm['CustomerAccount']
+                return Account.create({
+                  customer_id: resCustomer.id,
+                  is_default: true,
+                  gateway: serviceCustomer.gateway,
+                  foreign_id: serviceCustomer.foreign_id,
+                  foreign_key: serviceCustomer.foreign_key,
+                  data: serviceCustomer.data
+                })
+                  .then(account => {
+                    return [account]
+                  })
+              })
+          }
+        })
+        .then(accounts => {
+          if (accounts && accounts.length > 0) {
+            return resCustomer.setAccounts(accounts.map(account => account.id))
+          }
+          return
+        })
+        .then(accounts => {
           // return resCustomer.reload()
           return Customer.findByIdDefault(resCustomer.id)
         })
@@ -201,13 +238,13 @@ module.exports = class CustomerService extends Service {
         })
         .then(updatedCustomer => {
           if (customer.tags && customer.tags.length > 0) {
-            customer.tags = customer.tags.filter(n => n)
+            customer.tags = _.sortedUniq(customer.tags.filter(n => n))
             return Tag.transformTags(customer.tags)
           }
           return
         })
         .then(tags => {
-          if (tags) {
+          if (tags && tags.length > 0) {
             return resCustomer.setTags(tags)
           }
           return
@@ -363,28 +400,7 @@ module.exports = class CustomerService extends Service {
    */
   afterCreate(customer) {
     this.app.services.ProxyEngineService.publish('customer.created', customer)
-    return this.app.services.PaymentGenericService.createCustomer(customer)
-      .then(serviceCustomer => {
-        const Account = this.app.orm['Account']
-        // const CustomerAccount = this.app.orm['CustomerAccount']
-        return Account.create({
-          customer_id: customer.id,
-          is_default: true,
-          gateway: serviceCustomer.gateway,
-          foreign_id: serviceCustomer.foreign_id,
-          foreign_key: serviceCustomer.foreign_key,
-          data: serviceCustomer.data
-        })
-          .then(account => {
-            if (account) {
-              return customer.addAccount(account)
-            }
-            return
-          })
-          .then(customerAccount => {
-            return customer
-          })
-      })
+    return Promise.resolve(customer)
   }
 
   /**
