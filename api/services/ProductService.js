@@ -210,7 +210,7 @@ module.exports = class ProductService extends Service {
           resProduct = createdProduct
           // console.log('createdProduct',createdProduct)
           if (product.tags && product.tags.length > 0) {
-            product.tags = product.tags.filter(n => n)
+            product.tags = _.sortedUniq(product.tags.filter(n => n))
             // console.log('THIS PRODUCT TAGS NOW', product.tags)
             return Tag.transformTags(product.tags)
           }
@@ -241,7 +241,7 @@ module.exports = class ProductService extends Service {
           // console.log('THESE COLLECTIONS', product.collections)
           if (product.collections && product.collections.length > 0) {
             // Resolve the collections
-            product.collections = product.collections.filter(n => n)
+            product.collections = _.sortedUniq(product.collections.filter(n => n))
             // console.log('THIS PRODUCT COLLECTIONS NOW', product.collections)
             return Collection.transformCollections(product.collections)
           }
@@ -439,7 +439,7 @@ module.exports = class ProductService extends Service {
         .then(updateProduct => {
           // Transform any new Tags
           if (product.tags && product.tags.length > 0) {
-            product.tags = product.tags.filter(n => n)
+            product.tags = _.sortedUniq(product.tags.filter(n => n))
             // console.log('THIS PRODUCT TAGS NOW', product.tags)
             return Tag.transformTags(product.tags)
           }
@@ -458,7 +458,7 @@ module.exports = class ProductService extends Service {
           if (product.collections && product.collections.length > 0) {
             // Resolve the collections
             // console.log('THESE COLLECTIONS', product.collections)
-            product.collections = product.collections.filter(n => n)
+            product.collections = _.sortedUniq(product.collections.filter(n => n))
             return Collection.transformCollections(product.collections)
           }
           return

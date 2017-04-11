@@ -148,20 +148,24 @@ module.exports = class Collection extends Model {
               // console.log('THESE COLLECTIONS', collections)
               // return Collection.sequelize.transaction(t => {
               return Promise.all(collections.map((collection, index) => {
+                  // return Collection.findOrCreate({
+                  //   where: collection,
+                  //   defaults: collection
+                  // })
                 return Collection.findOne({
                   where: collection
                   // attributes: ['id', 'title', '']
                 })
-                  .then(collection => {
-                    if (collection) {
-                      // console.log('COLLECTION', collection.get({ plain: true }))
-                      return collection
-                    }
-                    else {
-                      // console.log('CREATING COLLECTION',collections[index])
-                      return Collection.create(collections[index])
-                    }
-                  })
+                    .then(collection => {
+                      if (collection) {
+                        // console.log('COLLECTION', collection.get({ plain: true }))
+                        return collection
+                      }
+                      else {
+                        // console.log('CREATING COLLECTION',collections[index])
+                        return Collection.create(collections[index])
+                      }
+                    })
               }))
               // })
             },

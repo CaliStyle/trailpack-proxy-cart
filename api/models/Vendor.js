@@ -60,13 +60,13 @@ module.exports = class Vendor extends Model {
               else {
                 return Promise.resolve(null)
               }
-              // return Tag.sequelize.transaction(t => {
-              return Vendor.findOne({
-                where: resVendor,
-                attributes: ['id', 'name']
-              })
+              return Vendor.sequelize.transaction(t => {
+                return Vendor.findOne({
+                  where: resVendor,
+                  attributes: ['id', 'name']
+                })
                   .then(vendor => {
-                    console.log('THIS VENDOR', vendor)
+                    // console.log('THIS VENDOR', vendor)
                     if (vendor) {
                       return vendor
                     }
@@ -74,7 +74,7 @@ module.exports = class Vendor extends Model {
                       return Vendor.create(resVendor)
                     }
                   })
-              // })
+              })
             },
             transform: function (vendor) {
               if (typeof vendor.name !== 'undefined') {
