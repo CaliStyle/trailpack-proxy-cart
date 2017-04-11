@@ -638,7 +638,7 @@ module.exports = class CustomerController extends Controller {
 
     lib.Validator.validateSource.add(req.body.source)
       .then(values => {
-        return CustomerService.updateCustomerSource(req.body.customer, req.body.source)
+        return CustomerService.updateCustomerSource(req.body.customer, req.body.source, req.body.source)
       })
       .then(source => {
         return res.json(source)
