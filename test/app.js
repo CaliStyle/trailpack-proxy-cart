@@ -193,13 +193,11 @@ const App = {
           name: 'admin',
           public_name: 'Admin'
         }, {
+          name: 'registered' ,
+          public_name: 'Registered'
+        }, {
           name: 'public' ,
           public_name: 'Public'
-        }],
-        resources: [{
-          type: 'route',
-          name: 'fixture',
-          public_name: 'fixture'
         }],
         permissions: []
       },

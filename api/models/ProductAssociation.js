@@ -24,6 +24,11 @@ module.exports = class ProductAssociation extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
         product_id: {
           type: Sequelize.INTEGER,
           unique: 'productassociation_association'

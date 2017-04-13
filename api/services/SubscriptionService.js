@@ -208,70 +208,6 @@ module.exports = class SubscriptionService extends Service {
       })
   }
 
-  /**
-   *
-   * @param item
-   * @returns {*}
-   */
-  resolveItem(item){
-    // const FootprintService = this.app.services.FootprintService
-    const Product = this.app.orm.Product
-    const ProductVariant = this.app.orm.ProductVariant
-    const Image = this.app.orm.ProductImage
-
-    if (item.id || item.variant_id || item.product_variant_id) {
-      const id = item.id || item.variant_id || item.product_variant_id
-      return ProductVariant.findById(id, {
-        include: [
-          {
-            model: Product,
-            include: [
-              {
-                model: Image,
-                as: 'images',
-                attributes: ['src','full','thumbnail','small','medium','large','alt','position']
-              }
-            ]
-          },
-          {
-            model: Image,
-            as: 'images',
-            attributes: ['src','full','thumbnail','small','medium','large','alt','position']
-          }
-        ]
-      })
-    }
-    else if (item.product_id) {
-      return ProductVariant.find({
-        where: {
-          product_id: item.product_id,
-          position: 1
-        },
-        include: [
-          {
-            model: Product,
-            include: [
-              {
-                model: Image,
-                as: 'images',
-                attributes: ['src','full','thumbnail','small','medium','large','alt','position']
-              }
-            ]
-          },
-          {
-            model: Image,
-            as: 'images',
-            attributes: ['src','full','thumbnail','small','medium','large','alt','position']
-          }
-        ]
-      })
-    }
-    else {
-      const err = new Errors.FoundError(Error(`${item} not found`))
-      return Promise.reject(err)
-    }
-  }
-
   addItems(items, subscription) {
     if (items.line_items) {
       items = items.line_items
@@ -286,7 +222,7 @@ module.exports = class SubscriptionService extends Service {
         resSubscription = foundSubscription
         // const minimize = _.unionBy(items, 'product_id')
         return Promise.all(items.map(item => {
-          return this.resolveItem(item)
+          return this.app.services.ProductService.resolveItem(item)
         }))
       })
       .then(resolvedItems => {
@@ -312,7 +248,7 @@ module.exports = class SubscriptionService extends Service {
 
         resSubscription = foundSubscription
         return Promise.all(items.map(item => {
-          return this.resolveItem(item)
+          return this.app.services.ProductService.resolveItem(item)
         }))
       })
       .then(resolvedItems => {

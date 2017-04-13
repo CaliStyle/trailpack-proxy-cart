@@ -30,7 +30,7 @@ module.exports = {
       listen: [
         'trailpack:sequelize:initialized',
         'trailpack:proxy-engine:initialized',
-        'trailpack:proxy-permissions:initialized',
+        // 'trailpack:proxy-permissions:initialized',
         'trailpack:proxy-generics:initialized'
       ],
       emit: [

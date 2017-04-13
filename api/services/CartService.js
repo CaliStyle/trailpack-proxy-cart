@@ -17,7 +17,7 @@ module.exports = class CartService extends Service {
     // console.log('TYPEOF cart',typeof cart)
     const Cart =  this.app.orm.Cart
     if (cart instanceof Cart.Instance){
-      return Promise.resolve(cart, options)
+      return Promise.resolve(cart)
     }
     else if (cart && _.isObject(cart) && cart.id) {
       return Cart.findById(cart.id, options)
@@ -78,7 +78,7 @@ module.exports = class CartService extends Service {
     const cart = Cart.build(data)
 
     return Promise.all(items.map(item => {
-      return this.resolveItem(item)
+      return this.app.services.ProductService.resolveItem(item)
     }))
       .then(resolvedItems => {
         return Promise.all(resolvedItems.map((item, index) => {
@@ -210,6 +210,7 @@ module.exports = class CartService extends Service {
             })
         }
         else {
+          resCustomer = {}
           return req.body.payment_details
         }
       })
@@ -228,7 +229,7 @@ module.exports = class CartService extends Service {
 
           // Customer Info
           customer_id: customerID,
-          email: req.body.email || resCustomer['email'] || null,
+          email: req.body['email'] || resCustomer['email'] || null,
 
           // Cart Info
           cart_token: resCart.token,
@@ -282,70 +283,6 @@ module.exports = class CartService extends Service {
 
   /**
    *
-   * @param item
-   * @returns {*}
-   */
-  resolveItem(item){
-    // const FootprintService = this.app.services.FootprintService
-    const Product = this.app.orm.Product
-    const ProductVariant = this.app.orm.ProductVariant
-    const Image = this.app.orm.ProductImage
-
-    if (item.id || item.variant_id || item.product_variant_id) {
-      const id = item.id || item.variant_id || item.product_variant_id
-      return ProductVariant.findById(id, {
-        include: [
-          {
-            model: Product,
-            include: [
-              {
-                model: Image,
-                as: 'images',
-                attributes: ['src','full','thumbnail','small','medium','large','alt','position']
-              }
-            ]
-          },
-          {
-            model: Image,
-            as: 'images',
-            attributes: ['src','full','thumbnail','small','medium','large','alt','position']
-          }
-        ]
-      })
-    }
-    else if (item.product_id) {
-      return ProductVariant.find({
-        where: {
-          product_id: item.product_id,
-          position: 1
-        },
-        include: [
-          {
-            model: Product,
-            include: [
-              {
-                model: Image,
-                as: 'images',
-                attributes: ['src','full','thumbnail','small','medium','large','alt','position']
-              }
-            ]
-          },
-          {
-            model: Image,
-            as: 'images',
-            attributes: ['src','full','thumbnail','small','medium','large','alt','position']
-          }
-        ]
-      })
-    }
-    else {
-      const err = new Errors.FoundError(Error(`${item} not found`))
-      return Promise.reject(err)
-    }
-  }
-
-  /**
-   *
    * @param items
    * @param cart
    * @returns {Promise}
@@ -367,7 +304,7 @@ module.exports = class CartService extends Service {
         resCart = foundCart
         // const minimize = _.unionBy(items, 'product_id')
         return Promise.all(items.map(item => {
-          return this.resolveItem(item)
+          return this.app.services.ProductService.resolveItem(item)
         }))
       })
       .then(resolvedItems => {
@@ -403,7 +340,7 @@ module.exports = class CartService extends Service {
 
         resCart = foundCart
         return Promise.all(items.map(item => {
-          return this.resolveItem(item)
+          return this.app.services.ProductService.resolveItem(item)
         }))
       })
       .then(resolvedItems => {

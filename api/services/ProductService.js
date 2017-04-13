@@ -10,7 +10,68 @@ const Errors = require('proxy-engine-errors')
  * @description Product Service
  */
 module.exports = class ProductService extends Service {
+  /**
+   *
+   * @param item
+   * @returns {*}
+   */
+  resolveItem(item){
+    const Product = this.app.orm.Product
+    const ProductVariant = this.app.orm.ProductVariant
+    const Image = this.app.orm.ProductImage
 
+    if (item.id || item.variant_id || item.product_variant_id) {
+      const id = item.id || item.variant_id || item.product_variant_id
+      return ProductVariant.findById(id, {
+        include: [
+          {
+            model: Product,
+            include: [
+              {
+                model: Image,
+                as: 'images',
+                attributes: ['src','full','thumbnail','small','medium','large','alt','position']
+              }
+            ]
+          },
+          {
+            model: Image,
+            as: 'images',
+            attributes: ['src','full','thumbnail','small','medium','large','alt','position']
+          }
+        ]
+      })
+    }
+    else if (item.product_id) {
+      return ProductVariant.find({
+        where: {
+          product_id: item.product_id,
+          position: 1
+        },
+        include: [
+          {
+            model: Product,
+            include: [
+              {
+                model: Image,
+                as: 'images',
+                attributes: ['src','full','thumbnail','small','medium','large','alt','position']
+              }
+            ]
+          },
+          {
+            model: Image,
+            as: 'images',
+            attributes: ['src','full','thumbnail','small','medium','large','alt','position']
+          }
+        ]
+      })
+    }
+    else {
+      const err = new Errors.FoundError(Error(`${item} not found`))
+      return Promise.reject(err)
+    }
+  }
   /**
    * Add Multiple Products
    * @param products

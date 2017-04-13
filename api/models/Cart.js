@@ -293,7 +293,14 @@ module.exports = class Cart extends Model {
 
               models.Cart.belongsToMany(models.User, {
                 as: 'owners',
-                through: 'UserItem'//If many to many is needed
+                through: {
+                  model: models.UserItem,
+                  foreign_id: 'user_id',
+                  scope: {
+                    item: 'cart'
+                  }
+                },
+                constraints: false
               })
               // models.Cart.belongsTo(models.Customer, {
               //   // as: 'customer'
