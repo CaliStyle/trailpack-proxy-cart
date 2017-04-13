@@ -36,18 +36,17 @@ module.exports = class Shop extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Shop.belongsTo(models.Shop, {
+              models.Shop.hasOne(models.Address, {
                 as: 'address',
                 through: {
                   model: models.ItemAddress,
-                  foreignKey: 'shop_id',
-                  unique: true,
+                  foreignKey: 'model_id',
+                  unique: false,
                   scope: {
-                    address: 'address',
                     model: 'shop'
-                  },
-                  constraints: false
-                }
+                  }
+                },
+                constraints: false
               })
             }
           }

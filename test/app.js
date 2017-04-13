@@ -187,6 +187,7 @@ const App = {
     },
     proxyPermissions: {
       defaultRole: 'public',
+      defaultRegisteredRole: 'registered',
       modelsAsResources: true,
       fixtures: {
         roles: [{
@@ -208,6 +209,7 @@ const App = {
       // The default Shop address (Nexus)
       nexus: {
         name: 'Test Shop',
+        email: 'example@example.com',
         host: 'localhost',
         address: {
           address_1: '1 Infinite Loop',

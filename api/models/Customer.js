@@ -70,7 +70,13 @@ module.exports = class Customer extends Model {
             associate: (models) => {
               models.Customer.belongsToMany(models.User, {
                 as: 'owners',
-                through: 'UserItem'//If many to many is needed
+                through: {
+                  model: models.UserItem,
+                  foreignKey: 'item_id',
+                  scope: {
+                    item: 'cart'
+                  }
+                }
               })
 
               // models.Customer.belongsToMany(models.Cart, {

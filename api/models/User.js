@@ -17,15 +17,17 @@ module.exports = class User extends Model {
           }
         },
         hooks: {
-          afterCreate: (values, options, fn) => {
-            app.services.ProxyCartService.afterUserCreate(values)
-              .then(values => {
-                return fn(null, values)
-              })
-              .catch(err => {
-                return fn(err)
-              })
-          }
+          afterCreate: [
+            (values, options, fn) => {
+              app.services.ProxyCartService.afterUserCreate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            }
+          ].concat(ModelPermissions.config(app, Sequelize).options.hooks.afterCreate)
         },
         classMethods: {
           associate: (models) => {

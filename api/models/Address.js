@@ -53,7 +53,56 @@ module.exports = class Address extends Model {
              * @param models
              */
             associate: (models) => {
-
+              models.Address.belongsTo(models.Shop, {
+                // as: 'shop',
+                through: {
+                  model: models.ItemAddress,
+                  foreignKey: 'address_id',
+                  targetKey: 'model_id',
+                  unique: false,
+                  scope: {
+                    model: 'shop'
+                  }
+                },
+                constraints: false
+              })
+              models.Address.belongsTo(models.Cart, {
+                through: {
+                  model: models.ItemAddress,
+                  foreignKey: 'address_id',
+                  targetKey: 'model_id',
+                  unique: false,
+                  scope: {
+                    model: 'cart'
+                  }
+                },
+                constraints: false
+              })
+              models.Address.belongsToMany(models.Customer, {
+                as: 'customers',
+                through: {
+                  model: models.ItemAddress,
+                  foreignKey: 'address_id',
+                  targetKey: 'model_id',
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  }
+                },
+                constraints: false
+              })
+              models.Address.belongsTo(models.Vendor, {
+                through: {
+                  model: models.ItemAddress,
+                  foreignKey: 'address_id',
+                  targetKey: 'model_id',
+                  unique: false,
+                  scope: {
+                    model: 'vendor'
+                  }
+                },
+                constraints: false
+              })
             }
           }
         }
