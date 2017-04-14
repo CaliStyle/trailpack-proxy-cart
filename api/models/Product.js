@@ -9,6 +9,7 @@ const queryDefaults = require('../utils/queryDefaults')
 const _ = require('lodash')
 const removeMd = require('remove-markdown')
 const striptags = require('striptags')
+const Errors = require('proxy-engine-errors')
 
 /**
  * @module Product
@@ -202,6 +203,9 @@ module.exports = class Product extends Model {
               let resProduct
               return this.findById(criteria, options)
                 .then(product => {
+                  if (!product) {
+                    throw new Errors.FoundError(Error(`${criteria} not found`))
+                  }
                   resProduct = product
                   if (resProduct && options.req && options.req.customer) {
                     return app.services.CollectionService.customerCollections(options.req.customers, [resProduct])
@@ -239,6 +243,9 @@ module.exports = class Product extends Model {
               let resProduct
               return this.findOne(options)
                 .then(product => {
+                  if (!product) {
+                    throw new Errors.FoundError(Error(`${handle} not found`))
+                  }
                   resProduct = product
                   if (resProduct && options.req && options.req.customer) {
                     return app.services.CollectionService.customerCollections(options.req.customers, [resProduct])
@@ -271,6 +278,9 @@ module.exports = class Product extends Model {
               let resProduct
               return this.findOne(criteria, options)
                 .then(product => {
+                  if (!product) {
+                    throw new Errors.FoundError(Error(`${criteria} not found`))
+                  }
                   resProduct = product
                   if (resProduct && options.req && options.req.customer) {
                     return app.services.CollectionService.customerCollections(options.req.customers, [resProduct])
