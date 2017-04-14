@@ -210,9 +210,13 @@ module.exports = class Product extends Model {
                   if (resProduct && options.req && options.req.customer) {
                     return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
                       .then(collections => {
-                        return _.map(product.collections, function(collection){
-                          return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
-                        })
+                        return resProduct.collections = collections
+                      })
+                  }
+                  else if (resProduct) {
+                    return app.services.CollectionService.customerCollections(null, [resProduct])
+                      .then(collections => {
+                        return resProduct.collections = collections
                       })
                   }
                   else {
@@ -220,12 +224,6 @@ module.exports = class Product extends Model {
                   }
                 })
                 .then(collections => {
-                  if (resProduct && resProduct.collections && collections && collections.length > 0) {
-                    resProduct.collections = _.assign(resProduct.collections, collections)
-                  }
-                  else if (resProduct && !resProduct.collections && collections && collections.length > 0) {
-                    resProduct.collections = _.assign([], collections)
-                  }
                   if (resProduct) {
                     return resProduct.calculate()
                   }
@@ -255,9 +253,13 @@ module.exports = class Product extends Model {
                   if (resProduct && options.req && options.req.customer) {
                     return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
                       .then(collections => {
-                        return _.map(product.collections, function(collection){
-                          return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
-                        })
+                        return resProduct.collections = collections
+                      })
+                  }
+                  else if (resProduct) {
+                    return app.services.CollectionService.customerCollections(null, [resProduct])
+                      .then(collections => {
+                        return resProduct.collections = collections
                       })
                   }
                   else {
@@ -265,19 +267,12 @@ module.exports = class Product extends Model {
                   }
                 })
                 .then(collections => {
-                  if (resProduct && resProduct.collections && collections && collections.length > 0) {
-                    resProduct.collections = _.assign(resProduct.collections, collections)
-                  }
-                  else if (resProduct && !resProduct.collections && collections && collections.length > 0) {
-                    resProduct.collections = _.assign([], collections)
-                  }
                   if (resProduct) {
                     return resProduct.calculate()
                   }
                   else {
                     return resProduct
                   }
-
                 })
             },
             findOneDefault: function(criteria, options) {
@@ -294,12 +289,16 @@ module.exports = class Product extends Model {
                     // throw new Errors.FoundError(Error(`${criteria} not found`))
                   }
                   resProduct = product
-                  if (resProduct.id && options.req && options.req.customer) {
+                  if (resProduct && options.req && options.req.customer) {
                     return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
                       .then(collections => {
-                        return _.map(product.collections, function(collection){
-                          return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
-                        })
+                        return resProduct.collections = collections
+                      })
+                  }
+                  else if (resProduct) {
+                    return app.services.CollectionService.customerCollections(null, [resProduct])
+                      .then(collections => {
+                        return resProduct.collections = collections
                       })
                   }
                   else {
@@ -307,12 +306,6 @@ module.exports = class Product extends Model {
                   }
                 })
                 .then(collections => {
-                  if (resProduct && resProduct.collections && collections && collections.length > 0) {
-                    resProduct.collections = _.assign(resProduct.collections, collections)
-                  }
-                  else if (resProduct && !resProduct.collections && collections && collections.length > 0) {
-                    resProduct.collections = _.assign([], collections)
-                  }
                   if (resProduct) {
                     return resProduct.calculate()
                   }

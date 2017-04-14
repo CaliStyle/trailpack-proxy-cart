@@ -517,7 +517,7 @@ describe('CartPolicy', () => {
   })
 
   it('It should get product by handle with calculated prices', (done) => {
-    request
+    agent
       .get('/product/handle/discount-test')
       .expect(200)
       .end((err, res) => {
