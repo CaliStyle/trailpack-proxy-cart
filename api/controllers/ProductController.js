@@ -17,7 +17,7 @@ module.exports = class ProductController extends Controller {
   // TODO add Customer Attributes to Product (Previously Purchased, Selected Options, attributes, discounts, etc)
   findById(req, res){
     const Product = this.app.orm['Product']
-    Product.findByIdDefault(req.params.id, {})
+    Product.findByIdDefault(req.params.id, {req: req})
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error(`Product id ${ req.params.id } not found`))
@@ -37,7 +37,7 @@ module.exports = class ProductController extends Controller {
   findByHandle(req, res){
     const Product = this.app.orm['Product']
     // console.log('ProductController.findByHandle', req.params.handle)
-    Product.findByHandle(req.params.handle)
+    Product.findByHandleDefault(req.params.handle, {req: req})
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error(`Product handle ${ req.params.handle } not found`))
@@ -85,7 +85,8 @@ module.exports = class ProductController extends Controller {
         ]
       },
       order: sort,
-      offset: offset
+      offset: offset,
+      req: req
       // limit: limit // TODO: Sequelize breaks with limit here
     })
       .then(products => {
@@ -111,7 +112,8 @@ module.exports = class ProductController extends Controller {
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Product.findOneDefault({
-      where: where
+      where: where,
+      req: req
     })
       .then(product => {
         return res.json(product)
@@ -136,7 +138,8 @@ module.exports = class ProductController extends Controller {
       where: where,
       order: sort,
       offset: offset,
-      limit: limit
+      limit: limit,
+      req: req
     })
       .then(products => {
         res.set('X-Pagination-Total', products.count)
@@ -167,7 +170,8 @@ module.exports = class ProductController extends Controller {
         '$tags.name$': req.params.tag
       },
       order: sort,
-      offset: offset
+      offset: offset,
+      req: req
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(products => {
@@ -199,7 +203,8 @@ module.exports = class ProductController extends Controller {
         '$collections.handle$': req.params.handle
       },
       order: sort,
-      offset: offset
+      offset: offset,
+      req: req
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(products => {

@@ -106,28 +106,68 @@ module.exports = class DiscountService extends Service {
   }
 
   calculateProduct(product, collections){
-    // Set to original price in case it's already set
-    product.calculated_price = product.price
+    if (!product || !collections || collections.length == 0) {
+      return product
+    }
+    // Set the default
+    const discountedLines = []
+    let totalDiscounts = 0
 
     collections.forEach(collection => {
-      if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.GLOBAL) {
-        // console.log('FIXED', collection.discount_type, COLLECTION_DISCOUNT_TYPE.FIXED)
-        if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.FIXED) {
-          product.calculated_price = product.calculated_price - collection.rate
-        }
-        else if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
-          product.calculated_price = product.calculated_price - (product.price * collection.percentage)
-        }
+      // If the collection doesn't have a discount ignore
+      if (!collection || (!collection.discount_rate > 0 && !collection.percentage > 0)) {
+        return
       }
-      // else if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL) {
-      //   if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.FIXED) {
-      //
-      //   }
-      //   else if(collection.discount_type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
-      //
-      //   }
-      // }
+
+      // Set the default
+      const discountedLine = {
+        id: collection.id,
+        name: collection.title,
+        scope: collection.discount_scope,
+        price: 0
+      }
+      if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.FIXED) {
+        discountedLine.rate = collection.discount_rate
+        discountedLine.type = COLLECTION_DISCOUNT_TYPE.FIXED
+      }
+      else if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
+        discountedLine.percentage = collection.discount_percentage
+        discountedLine.type = COLLECTION_DISCOUNT_TYPE.PERCENTAGE
+      }
+
+      if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.FIXED) {
+        discountedLine.price =  discountedLine.rate
+      }
+      else if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
+        discountedLine.price = (product.price * discountedLine.percentage)
+      }
+
+      if (collection.discount_product_exclude && collection.discount_product_exclude.indexOf(product.type) > -1) {
+        return product
+      }
+      // console.log('cart checkout products', collection.products)
+      // Check if Individual Scope
+      const inProducts = collection.products && collection.products.some(colProduct => colProduct.id == product.id)
+      // console.log('cart checkout apply individual', inProducts)
+      if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts == false){
+        return product
+      }
+
+      const calculatedPrice = Math.max(0, product.calculated_price - discountedLine.price)
+      const totalDeducted = Math.min(product.price,(product.price - (product.price - discountedLine.price)))
+      // console.log('cart checkout', item.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
+      // Publish this to the parent discounted lines
+      product.calculated_price = calculatedPrice
+      totalDiscounts = totalDiscounts + totalDeducted
+      discountedLine.price = discountedLine.price + totalDeducted
+
+      discountedLines.push(discountedLine)
+
     })
+
+    product.discounted_lines = discountedLines
+    product.total_discounts = totalDiscounts
+
     return product
   }
 }

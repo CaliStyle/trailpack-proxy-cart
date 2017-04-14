@@ -515,4 +515,18 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
+
+  it('It should get product by handle with calculated prices', (done) => {
+    request
+      .get('/product/handle/discount-test')
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS DISCOUNT TEST', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.handle, 'discount-test')
+        assert.ok(res.body.calculated_price)
+        assert.ok(res.body.total_discounts)
+        done()
+      })
+  })
 })

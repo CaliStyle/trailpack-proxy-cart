@@ -199,17 +199,33 @@ module.exports = class Product extends Model {
               options = _.merge(options, queryDefaults.Product.default(app))
               // console.log('Product.findByIdDefault', options)
               // console.log(criteria, options)
+              let resProduct
               return this.findById(criteria, options)
-                // .then(product => {
-                //   console.log('BEFORE ALL', product)
-                //   return product
-                // })
-                // .catch(err =>{
-                //   console.log('BEFORE ALL', err)
-                //   return Promise.reject(err)
-                // })
+                .then(product => {
+                  resProduct = product
+                  if (resProduct && options.req && options.req.customer) {
+                    return app.services.CollectionService.customerCollections(options.req.customers)
+                      .then(collections => {
+                        return _.map(product.collections, function(collection){
+                          return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
+                        })
+                      })
+                  }
+                  else {
+                    return []
+                  }
+                })
+                .then(collections => {
+                  if (resProduct.collections && collections && collections.length > 0) {
+                    resProduct.collections = _.assign(resProduct.collections, collections)
+                  }
+                  else if (!resProduct.collections && collections && collections.length > 0) {
+                    resProduct.collections = _.assign([], collections)
+                  }
+                  return resProduct.calculate()
+                })
             },
-            findByHandle: function(handle, options) {
+            findByHandleDefault: function(handle, options) {
               if (!options) {
                 options = {}
               }
@@ -220,7 +236,31 @@ module.exports = class Product extends Model {
                 }
               })
               // console.log('Product.findByHandle', options)
+              let resProduct
               return this.findOne(options)
+                .then(product => {
+                  resProduct = product
+                  if (resProduct && options.req && options.req.customer) {
+                    return app.services.CollectionService.customerCollections(options.req.customers)
+                      .then(collections => {
+                        return _.map(product.collections, function(collection){
+                          return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
+                        })
+                      })
+                  }
+                  else {
+                    return []
+                  }
+                })
+                .then(collections => {
+                  if (resProduct.collections && collections && collections.length > 0) {
+                    resProduct.collections = _.assign(resProduct.collections, collections)
+                  }
+                  else if (!resProduct.collections && collections && collections.length > 0) {
+                    resProduct.collections = _.assign([], collections)
+                  }
+                  return resProduct.calculate()
+                })
             },
             findOneDefault: function(criteria, options) {
               if (!options) {
@@ -228,7 +268,31 @@ module.exports = class Product extends Model {
               }
               options = _.merge(options, queryDefaults.Product.default(app))
               // console.log('Product.findOneDefault', options)
+              let resProduct
               return this.findOne(criteria, options)
+                .then(product => {
+                  resProduct = product
+                  if (resProduct && options.req && options.req.customer) {
+                    return app.services.CollectionService.customerCollections(options.req.customers)
+                      .then(collections => {
+                        return _.map(product.collections, function(collection){
+                          return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
+                        })
+                      })
+                  }
+                  else {
+                    return []
+                  }
+                })
+                .then(collections => {
+                  if (resProduct.collections && collections && collections.length > 0) {
+                    resProduct.collections = _.assign(resProduct.collections, collections)
+                  }
+                  else if (!resProduct.collections && collections && collections.length > 0) {
+                    resProduct.collections = _.assign([], collections)
+                  }
+                  return resProduct.calculate()
+                })
             },
             findAllDefault: function(options) {
               if (!options) {
@@ -248,11 +312,18 @@ module.exports = class Product extends Model {
             }
           },
           instanceMethods: {
+            calculate: function () {
+              // Set defaults
+              this.calculated_price = this.price
+              // Modify defaults
+              app.services.DiscountService.calculateProduct(this, this.collections)
+              return this
+            },
             toJSON: function() {
               // Make JSON
               const resp = this.get({ plain: true })
               // Set Defaults
-              resp.calculated_price = resp.price
+              // resp.calculated_price = resp.price
 
               // Transform Tags to array on toJSON
               if (resp.tags) {
@@ -302,12 +373,6 @@ module.exports = class Product extends Model {
                   resp.vendor = resp.vendor.name
                 }
               }
-
-              // TODO loop through collections and produce calculated price
-              // if (resp.collections) {
-              //   resp.calculated_price = app.services.DiscountService.calculateProduct(resp, resp.collections).calculated_price
-              //   console.log('CALCULATED PRICE', resp.calculated_price)
-              // }
 
               return resp
             }
@@ -383,6 +448,17 @@ module.exports = class Product extends Model {
         // TODO convert to Model tags for the product
         // Default price of the product in cents
         price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        calculated_price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        discounted_lines: helpers.ARRAY('Product', app, Sequelize, Sequelize.JSON, 'discounted_lines', {
+          defaultValue: []
+        }),
+        total_discounts: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

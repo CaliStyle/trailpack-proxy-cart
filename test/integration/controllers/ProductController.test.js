@@ -483,11 +483,12 @@ describe('ProductController', () => {
   })
   it('It should get product by handle', (done) => {
     request
-      .get('/product/handle/hydroflask')
+      .get('/product/handle/discount-test')
       .expect(200)
       .end((err, res) => {
+        // console.log('THIS DISCOUNT TEST', res.body)
         assert.ok(res.body)
-        assert.equal(res.body.handle, 'hydroflask')
+        assert.equal(res.body.handle, 'discount-test')
         done()
       })
   })
