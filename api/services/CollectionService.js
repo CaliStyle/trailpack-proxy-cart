@@ -366,6 +366,9 @@ module.exports = class CollectionService extends Service {
     const productIds = []
     const customerIds = []
 
+    if (!customer) {
+      customer = {}
+    }
     if (!products) {
       products = []
     }

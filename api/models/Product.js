@@ -208,7 +208,7 @@ module.exports = class Product extends Model {
                   }
                   resProduct = product
                   if (resProduct && options.req && options.req.customer) {
-                    return app.services.CollectionService.customerCollections(options.req.customers, [resProduct])
+                    return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
                       .then(collections => {
                         return _.map(product.collections, function(collection){
                           return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
@@ -253,7 +253,7 @@ module.exports = class Product extends Model {
                   }
                   resProduct = product
                   if (resProduct && options.req && options.req.customer) {
-                    return app.services.CollectionService.customerCollections(options.req.customers, [resProduct])
+                    return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
                       .then(collections => {
                         return _.map(product.collections, function(collection){
                           return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
@@ -295,7 +295,7 @@ module.exports = class Product extends Model {
                   }
                   resProduct = product
                   if (resProduct.id && options.req && options.req.customer) {
-                    return app.services.CollectionService.customerCollections(options.req.customers, [resProduct])
+                    return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
                       .then(collections => {
                         return _.map(product.collections, function(collection){
                           return _.assign(collection, _.find(collections, [ 'id', collection.id ]))
