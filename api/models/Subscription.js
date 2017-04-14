@@ -4,6 +4,7 @@
 
 const Model = require('trails/model')
 const _ = require('lodash')
+const moment = require('moment')
 const helpers = require('proxy-engine-helpers')
 const queryDefaults = require('../utils/queryDefaults')
 const INTERVALS = require('../utils/enums').INTERVALS
@@ -232,7 +233,7 @@ module.exports = class Subscription extends Model {
               }
             },
             renew: function() {
-              this.renewed_at = new Date()
+              this.renewed_at = new Date(Date.now())
               this.total_renewals++
             },
             recalculate: function() {
@@ -250,28 +251,36 @@ module.exports = class Subscription extends Model {
               let totalItems = 0
 
               // Set Renewal Date
-              const d = new Date(this.renewed_at)
-
+              const d = moment(this.renewed_at)
+              // console.log('CHECK DATE', d, this.renewed_at, this.renews_on)
               if (this.unit == INTERVALS.DAY) {
-                d.setDate(d.getDay() + this.interval)
+                // d.setDate(d.getDay() + this.interval)
+                d.add(this.interval, 'D')
               }
-              // else if (this.unit == INTERVALS.WEEK) {
-              //   d.setMonth(d.getWeek() + this.interval);
-              // }
+              else if (this.unit == INTERVALS.WEEK) {
+                // d.setMonth(d.getWeek() + this.interval);
+                d.add(this.interval, 'W')
+              }
               else if (this.unit == INTERVALS.MONTH) {
-                d.setMonth(d.getMonth() + this.interval)
+                // d.setMonth(d.getMonth() + this.interval)
+                d.add(this.interval, 'M')
+                // console.log(d)
               }
               else if (this.unit == INTERVALS.BIMONTH) {
-                d.setMonth(d.getMonth() + this.interval * 2)
+                d.add(this.interval * 2, 'M')
+                // d.setMonth(d.getMonth() + this.interval * 2)
               }
               else if (this.unit == INTERVALS.YEAR) {
-                d.setYear(d.getYear() + this.interval)
+                d.add(this.interval, 'Y')
+                // d.setYear(d.getYear() + this.interval)
               }
               else if (this.unit == INTERVALS.BIYEAR) {
-                d.setYear(d.getYear() + this.interval * 2)
+                d.add(this.interval * 2, 'Y')
+                // d.setYear(d.getYear() + this.interval * 2)
               }
-              this.renews_on = new Date(d)
+              this.renews_on = d.format('YYYY-MM-DD HH:mm:ss')
 
+              // console.log('CHECK DATE', this.renews_on, this.interval, this.unit)
 
               // Reset Globals
               this.has_shipping = false

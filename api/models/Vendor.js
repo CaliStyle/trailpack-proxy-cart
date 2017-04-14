@@ -20,6 +20,14 @@ module.exports = class Vendor extends Model {
               live_mode: app.config.proxyEngine.live_mode
             }
           },
+          hooks: {
+            beforeValidate(values, options, fn) {
+              if (!values.handle && values.name) {
+                values.handle = values.name
+              }
+              fn()
+            }
+          },
           classMethods: {
             /**
              * Associate the Model
