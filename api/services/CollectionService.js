@@ -359,17 +359,26 @@ module.exports = class CollectionService extends Service {
    * @param customer
    * @returns {*}
    */
-  customerCollections(customer) {
+  customerCollections(customer, products) {
     const Collection = this.app.orm['Collection']
     const ItemCollection = this.app.orm['ItemCollection']
     const criteria = []
     const productIds = []
     const customerIds = []
 
+    if (!products) {
+      products = []
+    }
+
     if (customer.id) {
       criteria.push({model: 'customer', model_id: customer.id})
       customerIds.push(customer.id)
     }
+
+    products.forEach(item => {
+      criteria.push({model: 'product', model_id: item.id})
+      productIds.push(item.id)
+    })
 
     if (criteria.length == 0) {
       return Promise.resolve([])
