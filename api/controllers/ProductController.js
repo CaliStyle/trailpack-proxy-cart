@@ -116,6 +116,9 @@ module.exports = class ProductController extends Controller {
       req: req
     })
       .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
         return res.json(product)
       })
       .catch(err => {

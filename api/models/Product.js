@@ -9,7 +9,7 @@ const queryDefaults = require('../utils/queryDefaults')
 const _ = require('lodash')
 const removeMd = require('remove-markdown')
 const striptags = require('striptags')
-const Errors = require('proxy-engine-errors')
+// const Errors = require('proxy-engine-errors')
 
 /**
  * @module Product
@@ -204,7 +204,7 @@ module.exports = class Product extends Model {
               return this.findById(criteria, options)
                 .then(product => {
                   if (!product) {
-                    throw new Errors.FoundError(Error(`${criteria} not found`))
+                    // throw new Errors.FoundError(Error(`${criteria} not found`))
                   }
                   resProduct = product
                   if (resProduct && options.req && options.req.customer) {
@@ -220,13 +220,18 @@ module.exports = class Product extends Model {
                   }
                 })
                 .then(collections => {
-                  if (resProduct.collections && collections && collections.length > 0) {
+                  if (resProduct && resProduct.collections && collections && collections.length > 0) {
                     resProduct.collections = _.assign(resProduct.collections, collections)
                   }
-                  else if (!resProduct.collections && collections && collections.length > 0) {
+                  else if (resProduct && !resProduct.collections && collections && collections.length > 0) {
                     resProduct.collections = _.assign([], collections)
                   }
-                  return resProduct.calculate()
+                  if (resProduct) {
+                    return resProduct.calculate()
+                  }
+                  else {
+                    return resProduct
+                  }
                 })
             },
             findByHandleDefault: function(handle, options) {
@@ -244,7 +249,7 @@ module.exports = class Product extends Model {
               return this.findOne(options)
                 .then(product => {
                   if (!product) {
-                    throw new Errors.FoundError(Error(`${handle} not found`))
+                    // throw new Errors.FoundError(Error(`${handle} not found`))
                   }
                   resProduct = product
                   if (resProduct && options.req && options.req.customer) {
@@ -260,13 +265,19 @@ module.exports = class Product extends Model {
                   }
                 })
                 .then(collections => {
-                  if (resProduct.collections && collections && collections.length > 0) {
+                  if (resProduct && resProduct.collections && collections && collections.length > 0) {
                     resProduct.collections = _.assign(resProduct.collections, collections)
                   }
-                  else if (!resProduct.collections && collections && collections.length > 0) {
+                  else if (resProduct && !resProduct.collections && collections && collections.length > 0) {
                     resProduct.collections = _.assign([], collections)
                   }
-                  return resProduct.calculate()
+                  if (resProduct) {
+                    return resProduct.calculate()
+                  }
+                  else {
+                    return resProduct
+                  }
+
                 })
             },
             findOneDefault: function(criteria, options) {
@@ -279,10 +290,11 @@ module.exports = class Product extends Model {
               return this.findOne(criteria, options)
                 .then(product => {
                   if (!product) {
-                    throw new Errors.FoundError(Error(`${criteria} not found`))
+                    // resProduct = app.orm['Product'].build()
+                    // throw new Errors.FoundError(Error(`${criteria} not found`))
                   }
                   resProduct = product
-                  if (resProduct && options.req && options.req.customer) {
+                  if (resProduct.id && options.req && options.req.customer) {
                     return app.services.CollectionService.customerCollections(options.req.customers, [resProduct])
                       .then(collections => {
                         return _.map(product.collections, function(collection){
@@ -295,13 +307,19 @@ module.exports = class Product extends Model {
                   }
                 })
                 .then(collections => {
-                  if (resProduct.collections && collections && collections.length > 0) {
+                  if (resProduct && resProduct.collections && collections && collections.length > 0) {
                     resProduct.collections = _.assign(resProduct.collections, collections)
                   }
-                  else if (!resProduct.collections && collections && collections.length > 0) {
+                  else if (resProduct && !resProduct.collections && collections && collections.length > 0) {
                     resProduct.collections = _.assign([], collections)
                   }
-                  return resProduct.calculate()
+                  if (resProduct) {
+                    return resProduct.calculate()
+                  }
+                  else {
+                    return resProduct
+                  }
+
                 })
             },
             findAllDefault: function(options) {
@@ -323,6 +341,9 @@ module.exports = class Product extends Model {
           },
           instanceMethods: {
             calculate: function () {
+              if (!this) {
+                return
+              }
               // Set defaults
               this.calculated_price = this.price
               // Modify defaults
