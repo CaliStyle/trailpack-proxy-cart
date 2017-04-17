@@ -231,7 +231,8 @@ module.exports = class OrderService extends Service {
 
           if (resCustomer instanceof Customer.Instance) {
             resCustomer.setAccountBalance(Math.max(0, resCustomer.account_balance - totalDue))
-            resCustomer.setLastOrder(resOrder.id)
+            resCustomer.setTotalSpent(totalDue)
+            resCustomer.setLastOrder(resOrder)
             return resCustomer.save()
           }
           else {

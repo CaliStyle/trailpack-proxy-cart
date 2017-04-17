@@ -521,6 +521,10 @@ module.exports = class Order extends Model {
         tax_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'tax_lines', {
           defaultValue: []
         }),
+        // An array of refund_line objects, each of which details the total refunds applicable to the order.
+        refunded_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'refunded_lines', {
+          defaultValue: []
+        }),
         // States whether or not taxes are included in the order subtotal. Valid values are "true" or "false".
         taxes_included: {
           type: Sequelize.BOOLEAN
@@ -536,6 +540,10 @@ module.exports = class Order extends Model {
           defaultValue: 0
         },
         total_due: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        total_refunds: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

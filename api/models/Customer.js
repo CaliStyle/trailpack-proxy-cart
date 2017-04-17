@@ -236,12 +236,16 @@ module.exports = class Customer extends Model {
             setLastOrder: function(order){
               this.last_order_name = order.name
               this.last_order_id = order.id
-              return
+              return this
+            },
+            setTotalSpent: function(orderTotalDue) {
+              this.total_spent = this.total_spent + orderTotalDue
+              return this
             },
             // TODO Discussion: should this be pulled with each query or set after order?
-            setAccountBalance: function(balance){
-              this.account_balance = balance
-              return
+            setAccountBalance: function(newBalance){
+              this.account_balance = newBalance
+              return this
             },
             toJSON: function() {
               const resp = this.get({ plain: true })
