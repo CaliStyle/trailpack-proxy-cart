@@ -46,6 +46,57 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  search(req, res) {
+    const orm = this.app.orm
+    const Customer = orm['Customer']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'last_name DESC'
+    const term = req.query.term
+    // console.log('CustomerController.search', term)
+    Customer.findAndCountDefault({
+      where: {
+        $or: [
+          {
+            first_name: {
+              $like: `%${term}%`
+            }
+          },
+          {
+            last_name: {
+              $like: `%${term}%`
+            }
+          },
+          {
+            email: {
+              $like: `%${term}%`
+            }
+          }
+        ]
+      },
+      order: sort,
+      offset: offset,
+      req: req
+      // limit: limit // TODO: Sequelize breaks with limit here
+    })
+      .then(customers => {
+        res.set('X-Pagination-Total', customers.count)
+        res.set('X-Pagination-Pages', Math.ceil(customers.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(customers.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findById(req, res){
     const orm = this.app.orm
     const Customer = orm['Customer']
@@ -759,4 +810,3 @@ module.exports = class CustomerController extends Controller {
       })
   }
 }
-
