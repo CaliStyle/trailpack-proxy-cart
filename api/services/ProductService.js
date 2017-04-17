@@ -116,15 +116,18 @@ module.exports = class ProductService extends Service {
         host: product.host ? product.host : 'localhost',
         handle: product.handle
       },
+      attributes: ['id'],
       transaction: options.transaction || null
     })
       .then(resProduct => {
         if (!resProduct) {
+          // Create a new Product
           return this.createProduct(product, options)
         }
         else {
           // Set ID in case it's missing in this transaction
           product.id = resProduct.id
+          // Update the existing product
           return this.updateProduct(product, options)
         }
       })
