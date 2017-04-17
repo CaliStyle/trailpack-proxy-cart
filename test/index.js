@@ -23,9 +23,9 @@ before(function(done) {
       return global.app.services.ProductService.addProducts(products)
     })
     .then(products => {
-      console.log('BEFORE ALL', products)
+      // console.log('BEFORE ALL', products)
       products = products.map(product => {
-        console.log('BEFORE ALL',product)
+        // console.log('BEFORE ALL',product)
         return product.get({plain: true})
       })
       global.app.shopProducts = products

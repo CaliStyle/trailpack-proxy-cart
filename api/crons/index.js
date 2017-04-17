@@ -1,1 +1,1 @@
-// exports.RenewSubscriptionCron = require('./RenewSubscriptionsCron')
+exports.RenewSubscriptionCron = require('./RenewSubscriptionsCron')

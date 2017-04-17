@@ -558,7 +558,7 @@ module.exports = class CustomerController extends Controller {
     const sort = req.query.sort || 'created_at DESC'
 
     Source.findAndCount({
-      source: sort,
+      order: sort,
       where: {
         customer_id: customerId
       },
@@ -682,6 +682,79 @@ module.exports = class CustomerController extends Controller {
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  user(req, res) {
+    const User = this.app.orm['User']
+    const userId = req.params.user
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !userId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      res.send(401, err)
+
+    }
+    User.findById(userId)
+      .then(user => {
+        return res.json(user)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  users(req, res) {
+    const User = this.app.orm['User']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    User.findAndCount({
+      order: sort,
+      where: {
+        '$customers.id$': customerId
+      },
+      include: [{
+        model: this.app.orm['Customer'],
+        as: 'customers',
+        attributes: ['id']
+      }],
+      offset: offset,
+      limit: limit
+    })
+      .then(users => {
+        res.set('X-Pagination-Total', users.count)
+        res.set('X-Pagination-Pages', Math.ceil(users.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(users.rows)
+      })
+      .catch(err => {
         return res.serverError(err)
       })
   }
