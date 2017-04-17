@@ -53,8 +53,8 @@ module.exports = class CustomerController extends Controller {
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'last_name DESC'
     const term = req.query.term
-    // console.log('CustomerController.search', term)
-    Customer.findAndCountDefault({
+    console.log('CustomerController.search', term)
+    Customer.findAndCount({
       where: {
         $or: [
           {
@@ -71,13 +71,18 @@ module.exports = class CustomerController extends Controller {
             email: {
               $like: `%${term}%`
             }
+          },
+          {
+            company: {
+              $like: `%${term}%`
+            }
           }
         ]
       },
       order: sort,
       offset: offset,
-      req: req
-      // limit: limit // TODO: Sequelize breaks with limit here
+      req: req,
+      limit: limit
     })
       .then(customers => {
         res.set('X-Pagination-Total', customers.count)

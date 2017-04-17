@@ -138,4 +138,17 @@ describe('CustomerController', () => {
         done()
       })
   })
+  it('It should search customer', (done) => {
+    request
+      .get('/customer/search')
+      .query('term=scott')
+      .expect(200)
+      .end((err, res) => {
+        console.log('SEARCH CUSTOMER', res.body)
+
+        assert.ok(res.body)
+
+        done()
+      })
+  })
 })
