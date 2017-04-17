@@ -107,11 +107,19 @@ module.exports = class Collection extends Model {
               // })
             },
             findByIdDefault: function(criteria, options) {
+              if (!options) {
+                options = {}
+              }
+
               options = _.merge(options, {})
 
               return this.findById(criteria, options)
             },
             findByHandle: function(handle, options) {
+              if (!options) {
+                options = {}
+              }
+
               options = _.merge(options, {
                 where: {
                   handle: handle
@@ -120,25 +128,47 @@ module.exports = class Collection extends Model {
               return this.findOne(options)
             },
             findOneDefault: function(options) {
+              if (!options) {
+                options = {}
+              }
+
               options = _.merge(options, {})
 
               return this.findOne(options)
             },
             findAllDefault: function(options) {
+              if (!options) {
+                options = {}
+              }
+
               options = _.merge(options, {})
 
               return this.findAll(options)
             },
             findAndCountDefault: function(options) {
+              if (!options) {
+                options = {}
+              }
               options = _.merge(options, {})
-
               return this.findAndCount(options)
             },
-            transformCollections: (collections) => {
+            transformCollections: (collections, options) => {
               const Collection = app.orm['Collection']
+
+              if (!options) {
+                options = {}
+              }
+              if (!collections) {
+                collections = []
+              }
+
+              // Transform if necessary to objects
               collections = _.map(collections, collection => {
                 if (collection && _.isString(collection)) {
-                  collection = { title: collection }
+                  collection = {
+                    handle: app.services.ProxyCartService.slug(collection),
+                    title: collection
+                  }
                   return collection
                 }
                 else if (collection) {
@@ -146,28 +176,25 @@ module.exports = class Collection extends Model {
                 }
               })
               // console.log('THESE COLLECTIONS', collections)
-              // return Collection.sequelize.transaction(t => {
               return Promise.all(collections.map((collection, index) => {
-                  // return Collection.findOrCreate({
-                  //   where: collection,
-                  //   defaults: collection
-                  // })
                 return Collection.findOne({
-                  where: collection
-                  // attributes: ['id', 'title', '']
+                  where: collection,
+                  attributes: ['id', 'title', 'handle'],
+                  transaction: options.transaction || null
                 })
-                    .then(collection => {
-                      if (collection) {
-                        // console.log('COLLECTION', collection.get({ plain: true }))
-                        return collection
-                      }
-                      else {
-                        // console.log('CREATING COLLECTION',collections[index])
-                        return Collection.create(collections[index])
-                      }
-                    })
+                  .then(collection => {
+                    if (collection) {
+                      // console.log('COLLECTION', collection.get({ plain: true }))
+                      return collection
+                    }
+                    else {
+                      // console.log('CREATING COLLECTION',collections[index])
+                      return Collection.create(collections[index], {
+                        transaction: options.transaction || null
+                      })
+                    }
+                  })
               }))
-              // })
             },
             reverseTransformCollections: (collections) => {
               collections = _.map(collections, collection => {

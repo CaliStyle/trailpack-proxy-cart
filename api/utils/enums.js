@@ -53,7 +53,7 @@ module.exports = {
     body: 'Body',
     seo_title: 'SEO Title',
     seo_description: 'SEO Description',
-    vendor: 'Vendor',
+    vendors: 'Vendors',
     type: 'Type',
     tags: 'Tags',
     collections: 'Collections',

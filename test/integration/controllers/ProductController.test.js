@@ -30,7 +30,9 @@ describe('ProductController', () => {
           handle: 'snowboard',
           title: 'Burton Custom Freestyle 151',
           body: '<strong>Good snowboard!</strong>',
-          vendor: 'Burton',
+          vendors: [
+            'Burton'
+          ],
           type: 'Snowboard',
           price: '10000',
           published: true,
@@ -86,7 +88,7 @@ describe('ProductController', () => {
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151')
         assert.equal(res.body[0].seo_title, 'Burton Custom Freestyle 151')
         assert.equal(res.body[0].seo_description, 'Good snowboard!')
-        assert.equal(res.body[0].vendor, 'Burton')
+        assert.notEqual(res.body[0].vendors.indexOf('Burton'), -1)
         assert.equal(res.body[0].type, 'Snowboard')
         // Metadata
         assert.equal(res.body[0].metadata.test, 'value')
@@ -145,7 +147,7 @@ describe('ProductController', () => {
         assert.equal(res.body.title, 'Burton Custom Freestyle 151')
         assert.equal(res.body.seo_title, 'Burton Custom Freestyle 151')
         assert.equal(res.body.seo_description, 'Good snowboard!')
-        assert.equal(res.body.vendor, 'Burton')
+        assert.notEqual(res.body.vendors.indexOf('Burton'), -1)
         assert.equal(res.body.type, 'Snowboard')
         // Metadata
         assert.equal(res.body.metadata.test, 'value')

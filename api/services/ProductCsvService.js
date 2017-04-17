@@ -111,6 +111,9 @@ module.exports = class ProductCsvService extends Service {
           else if (k == 'associations') {
             upload[k] = data.split(',').map(collection => { return collection.trim()})
           }
+          else if (k == 'vendors') {
+            upload[k] = data.split(',').map(vendor => { return vendor.trim()})
+          }
           else if (k == 'shops') {
             upload[k] = data.split(',').map(shop => { return shop.trim()})
           }
@@ -176,6 +179,13 @@ module.exports = class ProductCsvService extends Service {
     upload.collections = _.map(upload.collections, (collection, index) => {
       return {
         title: collection
+      }
+    })
+
+    // Map vendors
+    upload.vendors = _.map(upload.vendors, (vendor, index) => {
+      return {
+        name: vendor
       }
     })
 

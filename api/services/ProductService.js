@@ -15,14 +15,19 @@ module.exports = class ProductService extends Service {
    * @param item
    * @returns {*}
    */
-  resolveItem(item){
+  resolveItem(item, options){
     const Product = this.app.orm.Product
     const ProductVariant = this.app.orm.ProductVariant
     const Image = this.app.orm.ProductImage
 
+    if (!options) {
+      options = {}
+    }
+
     if (item.id || item.variant_id || item.product_variant_id) {
       const id = item.id || item.variant_id || item.product_variant_id
       return ProductVariant.findById(id, {
+        transaction: options.transaction || null,
         include: [
           {
             model: Product,
@@ -48,6 +53,7 @@ module.exports = class ProductService extends Service {
           product_id: item.product_id,
           position: 1
         },
+        transaction: options.transaction || null,
         include: [
           {
             model: Product,
@@ -81,9 +87,16 @@ module.exports = class ProductService extends Service {
     if (!Array.isArray(products)) {
       products = [products]
     }
-    return Promise.all(products.map(product => {
-      return this.addProduct(product)
-    }))
+    const Sequelize = this.app.orm.Product.sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(products, product => {
+        return this.addProduct(product, {
+          transaction: t
+        })
+      })
+    })
   }
 
   /**
@@ -91,22 +104,28 @@ module.exports = class ProductService extends Service {
    * @param product
    * @returns {Promise}
    */
-  addProduct(product) {
+  addProduct(product, options) {
     const Product = this.app.orm.Product
-    return Product.find({
+
+    if (!options) {
+      options = {}
+    }
+
+    return Product.findOne({
       where: {
         host: product.host ? product.host : 'localhost',
         handle: product.handle
-      }
+      },
+      transaction: options.transaction || null
     })
       .then(resProduct => {
         if (!resProduct) {
-          return this.createProduct(product)
+          return this.createProduct(product, options)
         }
         else {
           // Set ID in case it's missing in this transaction
           product.id = resProduct.id
-          return this.updateProduct(product)
+          return this.updateProduct(product, options)
         }
       })
   }
@@ -117,7 +136,7 @@ module.exports = class ProductService extends Service {
    * @returns {Promise}
    */
   // TODO Create Images and Variant Images in one command
-  createProduct(product){
+  createProduct(product, options){
     const Product = this.app.orm.Product
     const Tag = this.app.orm.Tag
     const Variant = this.app.orm.ProductVariant
@@ -125,6 +144,11 @@ module.exports = class ProductService extends Service {
     const Metadata = this.app.orm.Metadata
     const Collection = this.app.orm.Collection
     const Vendor = this.app.orm.Vendor
+    const Shop = this.app.orm.Shop
+
+    if (!options) {
+      options = {}
+    }
 
     // The Default Product
     const create = {
@@ -180,7 +204,7 @@ module.exports = class ProductService extends Service {
       weight: product.weight,
       weight_unit: product.weight_unit,
       published: product.published,
-      requires_shipping: product.requires_shipping,
+      requires_shipping: product.requires_shipping
       // requires_subscription: product.requires_subscription,
       // tax_code: product.tax_code
     }]
@@ -229,11 +253,10 @@ module.exports = class ProductService extends Service {
       image.position = index + 1
     })
 
-    // Setup Transaction
-    // return Product.sequelize.transaction(t => {
-      // Set the resulting Product
+    // Set the resulting Product
     let resProduct = {}
     return Product.create(create, {
+      transaction: options.transaction || null,
       include: [
         {
           model: Tag,
@@ -259,7 +282,7 @@ module.exports = class ProductService extends Service {
         },
         {
           model: Vendor,
-          as: 'vendor'
+          as: 'vendors'
         },
         {
           model: Collection,
@@ -267,84 +290,83 @@ module.exports = class ProductService extends Service {
         }
       ]
     })
-        .then(createdProduct => {
-          resProduct = createdProduct
-          // console.log('createdProduct',createdProduct)
-          if (product.tags && product.tags.length > 0) {
-            product.tags = _.sortedUniq(product.tags.filter(n => n))
-            // console.log('THIS PRODUCT TAGS NOW', product.tags)
-            return Tag.transformTags(product.tags)
+      .then(createdProduct => {
+        resProduct = createdProduct
+        // console.log('createdProduct',createdProduct)
+        if (product.tags && product.tags.length > 0) {
+          product.tags = _.sortedUniq(product.tags.filter(n => n))
+          // console.log('THIS PRODUCT TAGS NOW', product.tags)
+          return Tag.transformTags(product.tags, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(tags => {
+        if (tags && tags.length > 0) {
+          // Add Tags
+          return resProduct.setTags(_.map(tags, tag  => tag.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(productTags => {
+        if (product.shops && product.shops.length > 0) {
+          product.shops = _.sortedUniq(product.shops.filter(n => n))
+          // console.log('THIS PRODUCT SHOPS NOW', product.shops)
+          return Shop.transformShops(product.shops, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(shops => {
+        if (shops && shops.length > 0) {
+          return resProduct.setShops(shops, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(shops => {
+        // console.log('THESE COLLECTIONS', product.collections)
+        if (product.collections && product.collections.length > 0) {
+          // Resolve the collections
+          product.collections = _.sortedUniq(product.collections.filter(n => n))
+          // console.log('THIS PRODUCT COLLECTIONS NOW', product.collections)
+          return Collection.transformCollections(product.collections, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(collections => {
+        // console.log('THESE COLLECTIONS RESOLVED', collections)
+        if (collections && collections.length > 0) {
+          return resProduct.setCollections(_.map(collections, c => c.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(productCollections => {
+        if (product.vendors && product.vendors.length > 0) {
+          return Vendor.transformVendors(product.vendors, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(vendors => {
+        if (vendors && vendors.length > 0) {
+          // console.log('THIS VENDOR', vendor)
+          return resProduct.setVendors(_.map(vendors, v => v.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(vendors => {
+        return Promise.all(images.map(image => {
+          // image.product_id = resProduct.id
+          if (typeof image.variant !== 'undefined') {
+            image.product_variant_id = resProduct.variants[image.variant].id
+            delete image.variant
           }
-          return
-        })
-        .then(tags => {
-          if (tags && tags.length > 0) {
-            // Add Tags
-            return resProduct.setTags(_.map(tags, tag  => tag.id))
-          }
-          return
-        })
-        .then(productTags => {
-          if (product.shops && product.shops.length > 0) {
-            return Promise.all(product.shops.map(shop => {
-              return this.app.services.ShopService.resolve(shop)
-            }))
-          }
-          return
-        })
-        .then(shops => {
-          if (shops && shops.length > 0) {
-            return resProduct.setShops(shops)
-          }
-          return
-        })
-        .then(shops => {
-          // console.log('THESE COLLECTIONS', product.collections)
-          if (product.collections && product.collections.length > 0) {
-            // Resolve the collections
-            product.collections = _.sortedUniq(product.collections.filter(n => n))
-            // console.log('THIS PRODUCT COLLECTIONS NOW', product.collections)
-            return Collection.transformCollections(product.collections)
-          }
-          return
-        })
-        .then(collections => {
-          // console.log('THESE COLLECTIONS RESOLVED', collections)
-          if (collections && collections.length > 0) {
-            return resProduct.setCollections(_.map(collections, c => c.id))
-          }
-          return
-        })
-        .then(productCollections => {
-          if (product.vendor) {
-            return Vendor.transformVendor(product.vendor)
-          }
-          return
-        })
-        .then(vendor => {
-          if (vendor) {
-            // console.log('THIS VENDOR', vendor)
-            return resProduct.setVendor(vendor.id)
-          }
-          return
-        })
-        .then(vendor => {
-          return Promise.all(images.map(image => {
-            // image.product_id = resProduct.id
-            if (typeof image.variant !== 'undefined') {
-              image.product_variant_id = resProduct.variants[image.variant].id
-              delete image.variant
-            }
-            return resProduct.createImage(image)
-          }))
-        })
-        .then(createdImages => {
-          // Reload
-          // console.log(resProduct)
-          // return resProduct
-          return Product.findByIdDefault(resProduct.id)
-        })
-    // })
+          return resProduct.createImage(image, {transaction: options.transaction || null})
+        }))
+      })
+      .then(createdImages => {
+        // Reload
+        // console.log(resProduct)
+        // return resProduct
+        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+      })
   }
   /**
    *
@@ -355,9 +377,13 @@ module.exports = class ProductService extends Service {
     if (!Array.isArray(products)) {
       products = [products]
     }
-    return Promise.all(products.map(product => {
-      return this.updateProduct(product)
-    }))
+    return this.app.orm.Product.sequelize.transaction(t => {
+      return Promise.all(products.map(product => {
+        return this.updateProduct(product, {
+          transaction: t
+        })
+      }))
+    })
   }
 
   /**
@@ -367,217 +393,222 @@ module.exports = class ProductService extends Service {
    */
   // TODO Create/Update Images and Variant Images in one command
   // TODO resolve collection if posted
-  updateProduct(product) {
+  updateProduct(product, options) {
     const Product = this.app.orm.Product
     const Variant = this.app.orm.ProductVariant
     const Image = this.app.orm.ProductImage
     const Tag = this.app.orm.Tag
     const Collection = this.app.orm.Collection
     const Vendor = this.app.orm.Vendor
+    // const Shop = this.app.orm.Shop
     // const Metadata = this.app.orm.Metadata
-
+    if (!options) {
+      options = {}
+    }
     // let newTags = []
     // return Product.sequelize.transaction(t => {
     let resProduct = {}
     if (!product.id) {
       throw new Errors.FoundError(Error('Product is missing id'))
     }
-    return Product.findByIdDefault(product.id)
-        .then(foundProduct => {
-          resProduct = foundProduct
+    return Product.findByIdDefault(product.id, {
+      transaction: options.transaction || null
+    })
+      .then(foundProduct => {
+        resProduct = foundProduct
 
-          const update = {
-            host: product.host || resProduct.host,
-            handle: product.handle || resProduct.handle,
-            body: product.body || resProduct.body,
-            // vendor: product.vendor || resProduct.vendor,
-            type: product.type || resProduct.type,
-            published_scope: product.published_scope || resProduct.published_scope,
-            weight: product.weight || resProduct.weight,
-            weight_unit: product.weight_unit || resProduct.weight_unit,
-            requires_shipping: product.requires_shipping || resProduct.requires_shipping,
-            tax_code: product.tax_code || resProduct.tax_code
-          }
-          if (product.published) {
-            resProduct.published = resProduct.variants[0].published = product.published
-            resProduct.published_at = resProduct.variants[0].published_at = new Date()
-          }
-          if (product.published === false) {
-            update.published = resProduct.variants[0].published = product.published
-            update.unpublished_at = resProduct.variants[0].unpublished_at = new Date()
-          }
-          // If the SKU is changing, set the default sku
-          if (product.sku) {
-            resProduct.variants[0].sku = product.sku
-          }
-          // if The title is changing, set the default title
-          if (product.title) {
-            update.title = resProduct.variants[0].title = product.title
-          }
-          // if the price is changing
-          if (product.price) {
-            update.price = resProduct.variants[0].price = product.price
-          }
-          // if the compare_at_price is changing
-          if (product.compare_at_price) {
-            resProduct.variants[0].compare_at_price = product.compare_at_price
-          }
-          if (product.metadata) {
-            resProduct.metadata.data = product.metadata || {}
-          }
+        const update = {
+          host: product.host || resProduct.host,
+          handle: product.handle || resProduct.handle,
+          body: product.body || resProduct.body,
+          type: product.type || resProduct.type,
+          published_scope: product.published_scope || resProduct.published_scope,
+          weight: product.weight || resProduct.weight,
+          weight_unit: product.weight_unit || resProduct.weight_unit,
+          requires_shipping: product.requires_shipping || resProduct.requires_shipping,
+          tax_code: product.tax_code || resProduct.tax_code
+        }
+        if (product.published) {
+          resProduct.published = resProduct.variants[0].published = product.published
+          resProduct.published_at = resProduct.variants[0].published_at = new Date()
+        }
+        if (product.published === false) {
+          update.published = resProduct.variants[0].published = product.published
+          update.unpublished_at = resProduct.variants[0].unpublished_at = new Date()
+        }
+        // If the SKU is changing, set the default sku
+        if (product.sku) {
+          resProduct.variants[0].sku = product.sku
+        }
+        // if The title is changing, set the default title
+        if (product.title) {
+          update.title = resProduct.variants[0].title = product.title
+        }
+        // if the price is changing
+        if (product.price) {
+          update.price = resProduct.variants[0].price = product.price
+        }
+        // if the compare_at_price is changing
+        if (product.compare_at_price) {
+          resProduct.variants[0].compare_at_price = product.compare_at_price
+        }
+        if (product.metadata) {
+          resProduct.metadata.data = product.metadata || {}
+        }
 
-          // Update seo_title if provided, else update it if a new product title
-          if (product.seo_title) {
-            resProduct.seo_title = product.seo_title
-          }
-          else if (product.title) {
-            resProduct.seo_title = product.title
-          }
-          // Update seo_description if provided, else update it if a new product body
-          if (product.seo_description) {
-            resProduct.seo_description = product.seo_description
-          }
-          else if (product.body) {
-            resProduct.seo_description = product.body
-          }
+        // Update seo_title if provided, else update it if a new product title
+        if (product.seo_title) {
+          resProduct.seo_title = product.seo_title
+        }
+        else if (product.title) {
+          resProduct.seo_title = product.title
+        }
+        // Update seo_description if provided, else update it if a new product body
+        if (product.seo_description) {
+          resProduct.seo_description = product.seo_description
+        }
+        else if (product.body) {
+          resProduct.seo_description = product.body
+        }
 
-          // Update Existing Variant
-          _.each(resProduct.variants, variant => {
-            return _.extend(variant, _.find(product.variants, { id: variant.id }))
-          })
-          // Create a List of new Variants
-          product.variants = _.filter(product.variants, (variant, index ) => {
-            if (typeof variant.id === 'undefined') {
-              variant = this.variantDefaults(variant, resProduct.get({plain: true}))
-              // variant.product_id = resProduct.id
-              if (variant.images ) {
-                // Update the master image if new/updated attributes are defined
-                _.map(resProduct.images, image => {
-                  return _.merge(image, _.find(variant.images, { id: image.id }))
-                })
-                // Remove all the images that are already created
-                variant.images = _.filter(variant.images, image => {
-                  if (typeof id === 'undefined') {
-                    // image.variant = index
-                    image.product_id = resProduct.id
-                    return Image.build(image)
-                  }
-                })
-                // Add these variant images to the new array.
-                resProduct.images = _.concat(resProduct.images, variant.images)
-                // delete variant.images
-              }
-              return Variant.build(variant)
+        // Update Existing Variant
+        _.each(resProduct.variants, variant => {
+          return _.extend(variant, _.find(product.variants, { id: variant.id }))
+        })
+        // Create a List of new Variants
+        product.variants = _.filter(product.variants, (variant, index ) => {
+          if (typeof variant.id === 'undefined') {
+            variant = this.variantDefaults(variant, resProduct.get({plain: true}))
+            // variant.product_id = resProduct.id
+            if (variant.images ) {
+              // Update the master image if new/updated attributes are defined
+              _.map(resProduct.images, image => {
+                return _.merge(image, _.find(variant.images, { id: image.id }))
+              })
+              // Remove all the images that are already created
+              variant.images = _.filter(variant.images, image => {
+                if (typeof id === 'undefined') {
+                  // image.variant = index
+                  image.product_id = resProduct.id
+                  return Image.build(image)
+                }
+              })
+              // Add these variant images to the new array.
+              resProduct.images = _.concat(resProduct.images, variant.images)
+              // delete variant.images
             }
-          })
-          // Join all the variants
-          resProduct.variants = _.sortBy(_.concat(resProduct.variants, product.variants),'position')
-          // Set the Positions
-          _.each(resProduct.variants, (variant, index) => {
-            variant.position = index + 1
-          })
+            return Variant.build(variant)
+          }
+        })
+        // Join all the variants
+        resProduct.variants = _.sortBy(_.concat(resProduct.variants, product.variants), 'position')
+        // Set the Positions
+        _.each(resProduct.variants, (variant, index) => {
+          variant.position = index + 1
+        })
 
-          // Update existing Images
-          _.each(resProduct.images, image => {
-            return _.extend(image, _.find(product.images, { id: image.id }))
-          })
-          // Create a List of new Images
-          product.images = _.filter(product.images, image => {
-            if (typeof image.id === 'undefined') {
-              return Image.build(image)
-            }
-          })
-          // Join all the images
-          resProduct.images = _.sortBy(_.concat(resProduct.images, product.images),'position')
-          // Set the Positions
-          _.each(resProduct.images, (image, index) => {
-            image.position = index + 1
-          })
+        // Update existing Images
+        _.each(resProduct.images, image => {
+          return _.extend(image, _.find(product.images, { id: image.id }))
+        })
+        // Create a List of new Images
+        product.images = _.filter(product.images, image => {
+          if (typeof image.id === 'undefined') {
+            return Image.build(image)
+          }
+        })
+        // Join all the images
+        resProduct.images = _.sortBy(_.concat(resProduct.images, product.images),'position')
+        // Set the Positions
+        _.each(resProduct.images, (image, index) => {
+          image.position = index + 1
+        })
 
-          // console.log('THESE VARIANTS', resProduct.variants)
-          return resProduct.updateAttributes(update)
-        })
-        .then(updateProduct => {
-          // Transform any new Tags
-          if (product.tags && product.tags.length > 0) {
-            product.tags = _.sortedUniq(product.tags.filter(n => n))
-            // console.log('THIS PRODUCT TAGS NOW', product.tags)
-            return Tag.transformTags(product.tags)
+        // console.log('THESE VARIANTS', resProduct.variants)
+        return resProduct.updateAttributes(update, {transaction: options.transaction || null})
+      })
+      .then(updateProduct => {
+        // Transform any new Tags
+        if (product.tags && product.tags.length > 0) {
+          product.tags = _.sortedUniq(product.tags.filter(n => n))
+          // console.log('THIS PRODUCT TAGS NOW', product.tags)
+          return Tag.transformTags(product.tags, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(tags => {
+        // Set Tags
+        if (tags && tags.length > 0) {
+          return resProduct.setTags(_.map(tags, t  => t.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(productTags => {
+        if (product.collections && product.collections.length > 0) {
+          // Resolve the collections
+          product.collections = _.sortedUniq(product.collections.filter(n => n))
+          return Collection.transformCollections(product.collections, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(collections => {
+        // console.log('THESE COLLECTIONS', collections)
+        if (collections && collections.length > 0) {
+          return resProduct.setCollections(_.map(collections, c => c.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(collections => {
+        // save the metadata
+        return resProduct.metadata.save({ transaction: options.transaction || null })
+      })
+      .then(metadata => {
+        if (product.vendors && product.vendors.length > 0) {
+          return Vendor.transformVendors(product.vendors, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(vendors => {
+        if (vendors && vendors.length > 0) {
+          return resProduct.setVendors(_.map(vendors, v => v.id), { transaction: options.transaction || null })
+        }
+        return
+      })
+      .then(vendors => {
+        return Promise.all(resProduct.variants.map(variant => {
+          if (variant.id) {
+            return variant.save({ transaction: options.transaction || null })
           }
-          return
-        })
-        .then(tags => {
-          // console.log('THESE TAGS', tags)
-          // console.log('THIS PRODUCT TAGS NOW', tags)
-          // Set Tags
-          if (tags && tags.length > 0) {
-            return resProduct.setTags(_.map(tags, tag  => tag.id))
+          else {
+            return resProduct.createVariant(variant, {
+              transaction: options.transaction || null
+            })
           }
-          return
-        })
-        .then(productTags => {
-          if (product.collections && product.collections.length > 0) {
-            // Resolve the collections
-            // console.log('THESE COLLECTIONS', product.collections)
-            product.collections = _.sortedUniq(product.collections.filter(n => n))
-            return Collection.transformCollections(product.collections)
+        }))
+      })
+      .then(variants => {
+        // console.log('THESE VARIANTS', variants)
+        // return Product.findByIdDefault(resProduct.id)
+        return Promise.all(resProduct.images.map(image => {
+          if (typeof image.variant !== 'undefined') {
+            image.product_variant_id = resProduct.variants[image.variant].id
+            delete image.variant
           }
-          return
-        })
-        .then(collections => {
-          // console.log('THESE COLLECTIONS', collections)
-          if (collections && collections.length > 0) {
-            return resProduct.setCollections(_.map(collections, c => c.id))
+          if (image.id) {
+            return image.save({ transaction: options.transaction || null })
           }
-          return
-        })
-        .then(collections => {
-          // save the metadata
-          return resProduct.metadata.save()
-        })
-        .then(metadata => {
-          if (product.vendor) {
-            return Vendor.transformVendor(product.vendor)
-            // return this.app.services.VendorService.resolve(product.vendor)
+          else {
+            return resProduct.createImage(image, {
+              transaction: options.transaction || null
+            })
           }
-          return
+        }))
+      })
+      .then(images => {
+        return Product.findByIdDefault(resProduct.id, {
+          transaction: options.transaction || null
         })
-        .then(vendor => {
-          if (vendor) {
-            resProduct.setVendor(vendor.id)
-          }
-          return
-        })
-        .then(vendor => {
-          return Promise.all(resProduct.variants.map(variant => {
-            if (variant.id) {
-              return variant.save()
-            }
-            else {
-              return resProduct.createVariant(variant)
-            }
-          }))
-        })
-        .then(variants => {
-          // console.log('THESE VARIANTS', variants)
-          // return Product.findByIdDefault(resProduct.id)
-          return Promise.all(resProduct.images.map(image => {
-            if (typeof image.variant !== 'undefined') {
-              image.product_variant_id = resProduct.variants[image.variant].id
-              delete image.variant
-            }
-            if (image.id) {
-              return image.save()
-            }
-            else {
-              return resProduct.createImage(image)
-            }
-          }))
-        })
-        .then(images => {
-          return Product.findByIdDefault(resProduct.id)
-        })
-    // })
+      })
   }
   /**
    *
@@ -597,13 +628,21 @@ module.exports = class ProductService extends Service {
    *
    * @param product
    */
-  removeProduct(product) {
+  removeProduct(product, options) {
+    if (!options) {
+      options = {}
+    }
     if (!product.id) {
       const err = new Errors.FoundError(Error('Product is missing id'))
       return Promise.reject(err)
     }
     const Product = this.app.orm.Product
-    return Product.destroy({where: {id: product.id}})
+    return Product.destroy({
+      where: {
+        id: product.id
+      },
+      transaction: options.transaction || null
+    })
   }
 
   /**
@@ -624,17 +663,23 @@ module.exports = class ProductService extends Service {
    *
    * @param id
    */
-  removeVariant(id){
+  removeVariant(id, options){
     const Variant = this.app.orm.ProductVariant
+    if (!options) {
+      options = {}
+    }
     let destroy
     let updates
-    return Variant.findById(id)
+    return Variant.findById(id, {
+      transaction: options.transaction || null
+    })
       .then(foundVariant => {
         destroy = foundVariant
         return Variant.findAll({
           where: {
             product_id: destroy.product_id
-          }
+          },
+          transaction: options.transaction || null
         })
       })
       .then(foundVariants => {
@@ -647,14 +692,17 @@ module.exports = class ProductService extends Service {
           variant.position = index + 1
         })
         return Promise.all(updates.map(variant => {
-          return variant.save()
+          return variant.save({
+            transaction: options.transaction || null
+          })
         }))
       })
       .then(updatedVariants => {
         return Variant.destroy({
           where: {
             id: id
-          }
+          },
+          transaction: options.transaction || null
         })
       })
   }
@@ -677,17 +725,25 @@ module.exports = class ProductService extends Service {
    *
    * @param id
    */
-  removeImage(id){
+  removeImage(id, options){
     const Image = this.app.orm.ProductImage
     let destroy
     let updates
-    return Image.findById(id)
+
+    if (!options) {
+      options = {}
+    }
+
+    return Image.findById(id,{
+      transaction: options.transaction || null
+    })
       .then(foundImage => {
         destroy = foundImage
         return Image.findAll({
           where: {
             product_id: destroy.product_id
-          }
+          },
+          transaction: options.transaction || null
         })
       })
       .then(foundImages => {
@@ -700,7 +756,9 @@ module.exports = class ProductService extends Service {
           image.position = index + 1
         })
         return Promise.all(updates.map(image => {
-          return image.save()
+          return image.save({
+            transaction: options.transaction || null
+          })
           // return FootprintService.update('ProductImage',image.id, { position: image.position })
         }))
       })
@@ -708,7 +766,8 @@ module.exports = class ProductService extends Service {
         return Image.destroy({
           where: {
             id: id
-          }
+          },
+          transaction: options.transaction || null
         })
       })
   }

@@ -78,10 +78,10 @@ module.exports = class ProductUpload extends Model {
       seo_description: {
         type: Sequelize.STRING
       },
-      // 'Vendor'
-      vendor: {
-        type: Sequelize.STRING
-      },
+      // 'Vendors'
+      vendors: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'vendors', {
+        defaultValue: []
+      }),
       // 'Type'
       type: {
         type: Sequelize.STRING

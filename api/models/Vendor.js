@@ -56,33 +56,49 @@ module.exports = class Vendor extends Model {
                 constraints: false
               })
             },
-            transformVendor: (resVendor) => {
+            transformVendors: (vendors, options) => {
               const Vendor = app.orm['Vendor']
 
-              if (resVendor && _.isString(resVendor)) {
-                resVendor = { name: resVendor }
+              if (!options) {
+                options = {}
               }
-              else if (resVendor && _.isObject(resVendor)) {
-                resVendor = _.omit(resVendor, ['created_at','updated_at'])
+              if (!vendors) {
+                vendors = []
               }
-              else {
-                return Promise.resolve(null)
-              }
-              return Vendor.sequelize.transaction(t => {
+
+              vendors = _.map(vendors, vendor => {
+                if (vendor && _.isString(vendor)) {
+                  vendor = {
+                    handle: app.services.ProxyCartService.slug(vendor),
+                    name: vendor
+                  }
+                  return vendor
+                }
+                else if (vendor) {
+                  return _.omit(vendor, ['created_at','updated_at'])
+                }
+              })
+              // console.log('THESE VENDORS', vendors)
+              // return Vendor.sequelize.transaction(t => {
+              return Promise.all(vendors.map((vendor, index) => {
                 return Vendor.findOne({
-                  where: resVendor,
-                  attributes: ['id', 'name']
+                  where: vendor,
+                  attributes: ['id', 'name', 'handle'],
+                  transaction: options.transaction || null
                 })
                   .then(vendor => {
-                    // console.log('THIS VENDOR', vendor)
                     if (vendor) {
+                      // console.log('VENDOR', vendor.get({ plain: true }))
                       return vendor
                     }
                     else {
-                      return Vendor.create(resVendor)
+                      // console.log('CREATING VENDOR',vendors[index])
+                      return Vendor.create(vendors[index], {
+                        transaction: options.transaction || null
+                      })
                     }
                   })
-              })
+              }))
             },
             transform: function (vendor) {
               if (typeof vendor.name !== 'undefined') {

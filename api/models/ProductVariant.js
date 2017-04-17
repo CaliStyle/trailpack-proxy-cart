@@ -3,7 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
-// const helpers = require('proxy-engine-helpers')
+const helpers = require('proxy-engine-helpers')
 const UNITS = require('../utils/enums').UNITS
 const INTERVALS = require('../utils/enums').INTERVALS
 const INVENTORY_POLICY = require('../utils/enums').INVENTORY_POLICY
@@ -159,6 +159,20 @@ module.exports = class ProductVariant extends Model {
         },
         // Default price of the product in cents
         price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The calculated Price of the product
+        calculated_price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The discounts applied to the product
+        discounted_lines: helpers.ARRAY('ProductVariant', app, Sequelize, Sequelize.JSON, 'discounted_lines', {
+          defaultValue: []
+        }),
+        // The total Discounts applied to the product
+        total_discounts: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

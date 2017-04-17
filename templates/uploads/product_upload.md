@@ -19,8 +19,8 @@ The SEO Title has a character (letters & numbers) limit of 70.
 ## SEO Description
 The SEO Description has a character (letters & numbers) limit of 160.
 
-## Vendor (min. 2 characters)
-The name of the vendor for your product. For example, John's Apparel.
+## Vendors (min. 2 characters)
+A comma seperated list of the the name of the vendors for your product. For example, `John's Apparel, Steve's Warehouse`.
 
 ## Type
 The Product type. For example, Snowboard.

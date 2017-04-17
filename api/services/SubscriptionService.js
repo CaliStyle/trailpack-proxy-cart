@@ -208,6 +208,26 @@ module.exports = class SubscriptionService extends Service {
       })
   }
 
+  /**
+   *
+   * @param body
+   * @param subscription
+   * @returns {*|Promise.<TResult>}
+   */
+  deactivate(body, subscription) {
+    return this.resolve(subscription)
+      .then(resSubscription => {
+        resSubscription.cancel_reason = null
+        resSubscription.cancelled_at = null
+        resSubscription.active = false
+        return resSubscription.save()
+      })
+      .then(resSubscription => {
+        this.app.services.ProxyEngineService.publish('subscription.deactivated', resSubscription)
+        return resSubscription
+      })
+  }
+
   addItems(items, subscription) {
     if (items.line_items) {
       items = items.line_items

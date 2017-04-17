@@ -128,6 +128,27 @@ module.exports = class SubscriptionController extends Controller {
         return res.serverError(err)
       })
   }
+
+  deactivate(req, res) {
+    const SubscriptionService = this.app.services.SubscriptionService
+    let id = req.params.id
+    if (!id && req.subscription) {
+      id = req.subscription.id
+    }
+    lib.Validator.validateSubscription.deactivate(req.body)
+      .then(values => {
+        req.body.id = id
+        return SubscriptionService.activate(req.body, id)
+      })
+      .then(subscription => {
+        return res.json(subscription)
+      })
+      .catch(err => {
+        // console.log('SubscriptionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
   cancel(req, res) {
     const SubscriptionService = this.app.services.SubscriptionService
     let id = req.params.id

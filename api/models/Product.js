@@ -124,8 +124,8 @@ module.exports = class Product extends Model {
                   constraints: false
                 }
               })
-              models.Product.belongsTo(models.Vendor, {
-                as: 'vendor',
+              models.Product.belongsToMany(models.Vendor, {
+                as: 'vendors',
                 through: {
                   model: models.VendorProduct,
                   unique: false,
@@ -391,11 +391,17 @@ module.exports = class Product extends Model {
                   resp.metadata = resp.metadata.data
                 }
               }
-              // Transform Vendor to string
-              if (resp.vendor) {
-                if (typeof resp.vendor.name !== 'undefined') {
-                  resp.vendor = resp.vendor.name
-                }
+              // Transform Vendors to strings
+              if (resp.vendors) {
+                // console.log(resp.vendors)
+                resp.vendors = resp.vendors.map(vendor => {
+                  if (vendor && _.isString(vendor)) {
+                    return vendor
+                  }
+                  else {
+                    return vendor.name
+                  }
+                })
               }
 
               return resp
@@ -411,14 +417,6 @@ module.exports = class Product extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        // vendor_id: {
-        //   type: Sequelize.STRING,
-        //   // references: {
-        //   //   model: 'Vendor',
-        //   //   key: 'id'
-        //   // },
-        //   allowNull: true
-        // },
         // TODO Multi-Site Support. Change to domain?
         host: {
           type: Sequelize.STRING,
@@ -524,10 +522,6 @@ module.exports = class Product extends Model {
           values: _.values(UNITS),
           defaultValue: UNITS.G
         },
-        // // Vendor of the product
-        // vendor: {
-        //   type: Sequelize.STRING
-        // },
         // The Average Score of Reviews
         review_score: {
           type: Sequelize.INTEGER,

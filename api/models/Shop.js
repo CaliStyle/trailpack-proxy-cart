@@ -48,7 +48,40 @@ module.exports = class Shop extends Model {
                 },
                 constraints: false
               })
-            }
+            },
+            transformShops: (shops, options) => {
+              const Shop = app.orm['Shop']
+              // Transform if necessary to objects
+              shops = _.map(shops, shop => {
+                if (shop && _.isString(shop)) {
+                  shop = { name: shop }
+                  return shop
+                }
+                else if (shop) {
+                  return _.omit(shop, ['created_at','updated_at'])
+                }
+              })
+              // console.log('THESE SHOPS', shops)
+              return Promise.all(shops.map((shop, index) => {
+                return Shop.findOne({
+                  where: shop,
+                  attributes: ['id', 'name', 'handle'],
+                  transaction: options.transaction || null
+                })
+                  .then(shop => {
+                    if (shop) {
+                      // console.log('SHOP', shop.get({ plain: true }))
+                      return shop
+                    }
+                    else {
+                      // console.log('CREATING SHOP',shops[index])
+                      return Shop.create(shops[index], {
+                        transaction: options.transaction || null
+                      })
+                    }
+                  })
+              }))
+            },
           }
         }
       }

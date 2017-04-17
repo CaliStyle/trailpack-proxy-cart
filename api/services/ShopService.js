@@ -10,6 +10,9 @@ const Errors = require('proxy-engine-errors')
  */
 module.exports = class ShopService extends Service {
   resolve(shop, options) {
+    if (!options) {
+      options = {}
+    }
     const Shop =  this.app.orm.Shop
     if (shop instanceof Shop.Instance){
       return Promise.resolve(shop)
@@ -24,14 +27,15 @@ module.exports = class ShopService extends Service {
         })
     }
     else if (shop && (_.isString(shop) || _.isNumber(shop))) {
-      return Shop.find({
+      return Shop.findOne({
         where: {
           $or: [
             { id: shop },
             { handle: shop }
           ]
-        }
-      }, options)
+        },
+        transaction: options.transaction || null
+      })
         .then(resShop => {
           if (!resShop) {
             throw new Errors.FoundError(Error(`Shop ${shop} not found`))
@@ -40,7 +44,9 @@ module.exports = class ShopService extends Service {
         })
     }
     else {
-      return Shop.findOne({})
+      return Shop.findOne({
+        transaction: options.transaction || null
+      })
         .then(resShop => {
           if (!resShop) {
             throw new Errors.FoundError(Error(`Shop ${shop} not found and could not resolve the default`))

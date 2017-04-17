@@ -3,7 +3,9 @@
     "handle": "makerbot-replicator",
     "title": "Maker Bot Replicator",
     "body": "<strong>Good 3D Printer!</strong>",
-    "vendor": "Makerbot",
+    "vendors": [
+      "Makerbot"
+    ],
     "type": "3D Printer",
     "price": "100000",
     "published": true,
@@ -40,7 +42,9 @@
     "handle": "flashforge-finder",
     "title": "Flashforge Finder 3D Printer",
     "body": "<strong>Good 3D Printer!</strong>",
-    "vendor": "Flashforge",
+    "vendors": [
+      "Flashforge"
+    ],
     "type": "3D Printer",
     "price": "100000",
     "published": true,
@@ -64,7 +68,9 @@
     "handle": "digital-download",
     "title": "Digital download!",
     "body": "<strong>Awesome Download!</strong>",
-    "vendor": "Great Scott Inc",
+    "vendors": [
+      "Great Scott Inc"
+    ],
     "type": "Digital Download",
     "price": "100000",
     "published": true,
@@ -80,7 +86,9 @@
     "handle": "subscription-test",
     "title": "Subscription Test!",
     "body": "<strong>Subscription Test!</strong>",
-    "vendor": "Great Scott Inc",
+    "vendors": [
+      "Great Scott Inc"
+    ],
     "type": "subscription",
     "price": "100000",
     "published": true,
@@ -111,7 +119,9 @@
     "handle": "discount-test",
     "title": "Discount Test!",
     "body": "<strong>Discount Test!</strong>",
-    "vendor": "Great Scott Inc",
+    "vendors": [
+      "Great Scott Inc"
+    ],
     "type": "subscription",
     "price": "100000",
     "published": true,

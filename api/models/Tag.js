@@ -46,8 +46,22 @@ module.exports = class Tag extends Model {
                 constraints: false
               })
             },
-            transformTags: (tags) => {
+            /**
+             *
+             * @param tags
+             * @param options
+             * @returns {Promise.<*>}
+             */
+            transformTags: (tags, options) => {
               const Tag = app.orm['Tag']
+
+              if (!options) {
+                options = {}
+              }
+              if (!tags) {
+                tags = []
+              }
+
               tags = _.map(tags, tag => {
                 if (tag && _.isString(tag)) {
                   tag = { name: tag }
@@ -58,11 +72,11 @@ module.exports = class Tag extends Model {
                 }
               })
               // console.log('THESE TAGS', tags)
-              // return Tag.sequelize.transaction(t => {
               return Promise.all(tags.map((tag, index) => {
                 return Tag.findOne({
                   where: tag,
-                  attributes: ['id', 'name']
+                  attributes: ['id', 'name'],
+                  transaction: options.transaction || null
                 })
                   .then(tag => {
                     if (tag) {
@@ -71,11 +85,12 @@ module.exports = class Tag extends Model {
                     }
                     else {
                       // console.log('CREATING TAG',tags[index])
-                      return Tag.create(tags[index])
+                      return Tag.create(tags[index], {
+                        transaction: options.transaction || null
+                      })
                     }
                   })
               }))
-              // })
             },
             reverseTransformTags: (tags) => {
               tags = _.map(tags, tag => {
