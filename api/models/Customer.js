@@ -58,7 +58,15 @@ module.exports = class Customer extends Model {
           },
           getterMethods: {
             full_name: function()  {
-              return `${this.first_name} ${this.last_name}`
+              if (this.first_name && this.last_name) {
+                return `${ this.first_name } ${ this.last_name }`
+              }
+              else if (this.company) {
+                return `${ this.company }`
+              }
+              else {
+                return null
+              }
             }
           },
           classMethods: {
