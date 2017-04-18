@@ -193,6 +193,7 @@ module.exports = class OrderService extends Service {
             total_price: obj.total_due,
             total_due: totalDue,
             total_tax: obj.total_tax,
+            total_shipping: obj.total_shipping,
             total_weight: obj.total_weight,
             total_items: obj.total_items,
             shop_id: obj.shop_id,

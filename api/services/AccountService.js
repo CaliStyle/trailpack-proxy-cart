@@ -133,6 +133,17 @@ module.exports = class AccountService extends Service {
             return resAccount.save()
           })
       })
+      .then(account => {
+        const event = {
+          object_id: account.customer_id,
+          object: 'customer',
+          type: 'account.updated',
+          data: account
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return account
+      })
   }
 
   findAndCreate(account) {
@@ -160,9 +171,29 @@ module.exports = class AccountService extends Service {
             return Promise.all(accountWithSources.sources.map(source => {
               source.customer_id = resAccount.customer_id
               return this.app.orm['Source'].create(source)
+                .then(source => {
+                  // Track Event
+                  const event = {
+                    object_id: source.customer_id,
+                    object: 'customer',
+                    type: 'source.created',
+                    data: source
+                  }
+                  this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+                  return source
+                })
             }))
           })
           .then(sources => {
+            const event = {
+              object_id: resAccount.customer_id,
+              object: 'customer',
+              type: 'account.created',
+              data: resAccount
+            }
+            this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
             return resAccount
           })
         // return Account.findOrCreate({
@@ -203,6 +234,17 @@ module.exports = class AccountService extends Service {
         serviceCustomerSource.customer_id = resAccount.customer_id
         serviceCustomerSource.is_default = true
         return Source.create(serviceCustomerSource)
+      })
+      .then(source => {
+        const event = {
+          object_id: source.customer_id,
+          object: 'customer',
+          type: 'source.created',
+          data: source
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return source
       })
   }
 
@@ -262,6 +304,17 @@ module.exports = class AccountService extends Service {
         resSource = _.extend(resSource, serviceCustomerSource)
         return resSource.save()
       })
+      .then(source => {
+        const event = {
+          object_id: source.customer_id,
+          object: 'customer',
+          type: 'source.updated',
+          data: source
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return source
+      })
   }
 
   removeSource(source) {
@@ -279,6 +332,14 @@ module.exports = class AccountService extends Service {
         })
       })
       .then(destroyedSource => {
+        const event = {
+          object_id: resSource.customer_id,
+          object: 'customer',
+          type: 'source.removed',
+          data: resSource
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
         return resSource
       })
   }

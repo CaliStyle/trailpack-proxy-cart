@@ -216,6 +216,25 @@ module.exports = class Customer extends Model {
                 foreignKey: 'customer_id',
                 constraints: false
               })
+              models.Customer.hasMany(models.Event, {
+                as: 'events',
+                foreignKey: 'object_id',
+                scope: {
+                  object: 'customer'
+                },
+                // through: {
+                //   model: models.EventItem,
+                //   unique: false,
+                //   scope: {
+                //     object: 'order'
+                //   }
+                // },
+                // foreignKey: 'object_id',
+                // scope: {
+                //   object: 'order'
+                // },
+                constraints: false
+              })
               // models.Customer.hasMany(models.User, {
               //   as: 'users',
               //   foreignKey: {

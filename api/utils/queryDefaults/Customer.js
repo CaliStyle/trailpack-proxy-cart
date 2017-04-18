@@ -71,6 +71,10 @@ module.exports = {
         {
           model: app.orm['Account'],
           as: 'accounts'
+        },
+        {
+          model: app.orm['Event'],
+          as: 'events'
         }
         // ,
         // {

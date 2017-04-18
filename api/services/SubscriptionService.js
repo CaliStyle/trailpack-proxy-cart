@@ -144,7 +144,13 @@ module.exports = class SubscriptionService extends Service {
         }))
       })
       .then(orderItems => {
-        this.app.services.ProxyEngineService.publish('subscription.subscribed', resSubscription)
+        const event = {
+          object_id: resSubscription.customer_id,
+          object: 'customer',
+          type: 'subscription.subscribed',
+          data: resSubscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
         return resSubscription
       })
   }
@@ -166,6 +172,16 @@ module.exports = class SubscriptionService extends Service {
       .then(resSubscription => {
         return resSubscription.update(update, options)
       })
+      .then(subscription => {
+        const event = {
+          object_id: subscription.customer_id,
+          object: 'customer',
+          type: 'subscription.updated',
+          data: subscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return subscription
+      })
   }
 
   /**
@@ -183,7 +199,14 @@ module.exports = class SubscriptionService extends Service {
         return resSubscription.save()
       })
       .then(resSubscription => {
-        this.app.services.ProxyEngineService.publish('subscription.cancelled', resSubscription)
+        const event = {
+          object_id: resSubscription.customer_id,
+          object: 'customer',
+          type: 'subscription.cancelled',
+          data: resSubscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
         return resSubscription
       })
   }
@@ -203,7 +226,13 @@ module.exports = class SubscriptionService extends Service {
         return resSubscription.save()
       })
       .then(resSubscription => {
-        this.app.services.ProxyEngineService.publish('subscription.activated', resSubscription)
+        const event = {
+          object_id: resSubscription.customer_id,
+          object: 'customer',
+          type: 'subscription.activated',
+          data: resSubscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
         return resSubscription
       })
   }
@@ -223,7 +252,13 @@ module.exports = class SubscriptionService extends Service {
         return resSubscription.save()
       })
       .then(resSubscription => {
-        this.app.services.ProxyEngineService.publish('subscription.deactivated', resSubscription)
+        const event = {
+          object_id: resSubscription.customer_id,
+          object: 'customer',
+          type: 'subscription.deactivated',
+          data: resSubscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
         return resSubscription
       })
   }
@@ -254,6 +289,17 @@ module.exports = class SubscriptionService extends Service {
         // console.log('SubscriptionService.addItemsToSubscription', subscription)
         return resSubscription.save()
       })
+      .then(subscription => {
+        const event = {
+          object_id: resSubscription.customer_id,
+          object: 'customer',
+          type: 'subscription.items_added',
+          data: subscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return subscription
+      })
   }
   removeItems(items, subscription) {
     if (items.line_items) {
@@ -278,6 +324,17 @@ module.exports = class SubscriptionService extends Service {
       })
       .then(resolvedItems => {
         return resSubscription.save()
+      })
+      .then(subscription => {
+        const event = {
+          object_id: resSubscription.customer_id,
+          object: 'customer',
+          type: 'subscription.items_removed',
+          data: subscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return subscription
       })
   }
 
@@ -307,7 +364,15 @@ module.exports = class SubscriptionService extends Service {
         return resSubscription.save()
       })
       .then(newSubscription => {
-        this.app.services.ProxyEngineService.publish('subscription.renewed', newSubscription)
+        // Tack Event
+        const event = {
+          object_id: newSubscription.customer_id,
+          object: 'customer',
+          type: 'subscription.renewed',
+          data: newSubscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
         return {
           subscription: newSubscription,
           order: resOrder
