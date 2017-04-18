@@ -177,6 +177,15 @@ module.exports = class CustomerService extends Service {
                 data: serviceCustomer.data
               })
                 .then(account => {
+                  // Track Event
+                  const event = {
+                    object_id: account.customer_id,
+                    object: 'customer',
+                    type: 'account.created',
+                    data: account
+                  }
+                  this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
                   return [account]
                 })
             })

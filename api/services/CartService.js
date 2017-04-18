@@ -133,6 +133,18 @@ module.exports = class CartService extends Service {
         if (!order) {
           throw new Error('Unexpected error during checkout')
         }
+
+        if (order.customer_id) {
+          // Track Event
+          const event = {
+            object_id: order.customer_id,
+            object: 'customer',
+            type: 'cart.checkout',
+            data: order
+          }
+          this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        }
+
         resOrder = order
         // Close the Cart
         // resCart.close(Cart.CART_STATUS.ORDERED)
