@@ -29,6 +29,16 @@ module.exports = class User extends Model {
             }
           ].concat(ModelPermissions.config(app, Sequelize).options.hooks.afterCreate)
         },
+        getterMethods: {
+          full_name: function()  {
+            if (this.first_name && this.last_name) {
+              return `${ this.first_name } ${ this.last_name }`
+            }
+            else {
+              return null
+            }
+          }
+        },
         classMethods: {
           associate: (models) => {
             // Apply passport specific stuff
