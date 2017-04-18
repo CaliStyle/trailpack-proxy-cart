@@ -509,8 +509,18 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY SOURCE', res.body)
+        // console.log('THIS POLICY SOURCE', res.body)
         sourceID = res.body.id
+        assert.ok(res.body.id)
+        done(err)
+      })
+  })
+  it('should remove session customer source', done => {
+    agent
+      .delete(`/customer/source/${ sourceID }`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS POLICY SOURCE', res.body)
         assert.ok(res.body.id)
         done(err)
       })

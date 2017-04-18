@@ -106,6 +106,13 @@ module.exports = {
     id: 'ID',
     product_id: 'Product ID'
   },
+  SUBSCRIPTION_UPLOAD: {
+    products: 'Products',
+    customer: 'customer',
+    interval: 'Interval',
+    unit: 'Unit',
+    active: 'Active'
+  },
   UNITS: {
     // Grams
     G: 'g',

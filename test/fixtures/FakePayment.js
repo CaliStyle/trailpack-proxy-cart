@@ -130,4 +130,15 @@ module.exports = class FakePaymentProcessor {
     }
     return Promise.resolve(res)
   }
+  removeCustomerSource(source) {
+    const res = {
+      gateway: 'payment_processor',
+      account_foreign_id: source.account_foreign_id,
+      account_foreign_key: 'customer',
+      foreign_key: 'source',
+      foreign_id: source.foreign_id,
+      payment_details: source
+    }
+    return Promise.resolve(res)
+  }
 }

@@ -688,8 +688,12 @@ module.exports = class CustomerController extends Controller {
     if (!req.body.customer) {
       req.body.customer = {}
     }
-    req.body.customer.id = customerId
+    if (!req.body.source) {
+      req.body.source = {}
+    }
 
+    // Set body variables just in case
+    req.body.customer.id = customerId
     req.body.source.id = sourceId
 
     lib.Validator.validateSource.add(req.body.source)
@@ -724,13 +728,16 @@ module.exports = class CustomerController extends Controller {
     if (!req.body.customer) {
       req.body.customer = {}
     }
-    req.body.customer.id = customerId
+    if (!req.body.source) {
+      req.body.source = {}
+    }
 
+    // Set body variables just in case
+    req.body.customer.id = customerId
     req.body.source.id = sourceId
 
     lib.Validator.validateSource.remove(req.body.source)
       .then(values => {
-
         return CustomerService.removeCustomerSource(req.body.customer, req.body.source)
       })
       .then(source => {

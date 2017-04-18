@@ -220,5 +220,55 @@ module.exports = class SubscriptionController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   * upload CSV
+   * @param req
+   * @param res
+   */
+  uploadCSV(req, res) {
+    const SubscriptionCsvService = this.app.services.SubscriptionCsvService
+    const csv = req.file
+
+    if (!csv) {
+      const err = new Error('File failed to upload')
+      return res.serverError(err)
+    }
+
+    SubscriptionCsvService.subscriptionCsv(csv.path)
+      .then(result => {
+        return res.json({
+          file: req.file,
+          result: result
+        })
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  processUpload(req, res) {
+    const SubscriptionCsvService = this.app.services.SubscriptionCsvService
+    SubscriptionCsvService.processSubscriptionUpload(req.params.id)
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  exportSubscriptions(req, res) {
+    //
+  }
 }
 

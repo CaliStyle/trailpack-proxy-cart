@@ -529,5 +529,11 @@ module.exports = class CustomerService extends Service {
         return this.app.services.AccountService.updateSource(account, source, updates)
       })
   }
+  removeCustomerSource(customer, source) {
+    return this.app.services.AccountService.resolveSource(source)
+      .then(source => {
+        return this.app.services.AccountService.removeSource(source)
+      })
+  }
 }
 

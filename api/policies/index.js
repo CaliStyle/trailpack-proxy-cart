@@ -4,3 +4,4 @@ exports.CustomerPolicy = require('./CustomerPolicy')
 exports.ProductPolicy = require('./ProductPolicy')
 exports.ProxyCartPolicy = require('./ProxyCartPolicy')
 
+exports.SubscriptionPolicy = require('./SubscriptionPolicy')

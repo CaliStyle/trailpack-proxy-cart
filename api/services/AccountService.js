@@ -264,6 +264,25 @@ module.exports = class AccountService extends Service {
       })
   }
 
+  removeSource(source) {
+    let resSource
+    return this.resolveSource(source)
+      .then(source => {
+        resSource = source
+        return this.app.services.PaymentGenericService.removeCustomerSource(source)
+      })
+      .then(customerSource => {
+        return this.app.orm['Source'].destroy({
+          where: {
+            id: resSource.id
+          }
+        })
+      })
+      .then(destroyedSource => {
+        return resSource
+      })
+  }
+
   /**
    *
    * @param account
