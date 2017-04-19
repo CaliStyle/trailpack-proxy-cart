@@ -396,7 +396,8 @@ module.exports = class Subscription extends Model {
           //   model: 'Order',
           //   key: 'id'
           // },
-          allowNull: false
+          // Have to allow null so that these can be created without an order
+          // allowNull: false
         },
         customer_id: {
           type: Sequelize.INTEGER,
@@ -406,7 +407,7 @@ module.exports = class Subscription extends Model {
           // },
           allowNull: false
         },
-        // Unique identifier for a particular cart.
+        // Unique identifier for a particular subscription.
         token: {
           type: Sequelize.STRING,
           unique: true

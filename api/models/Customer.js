@@ -222,17 +222,6 @@ module.exports = class Customer extends Model {
                 scope: {
                   object: 'customer'
                 },
-                // through: {
-                //   model: models.EventItem,
-                //   unique: false,
-                //   scope: {
-                //     object: 'order'
-                //   }
-                // },
-                // foreignKey: 'object_id',
-                // scope: {
-                //   object: 'order'
-                // },
                 constraints: false
               })
               // models.Customer.hasMany(models.User, {

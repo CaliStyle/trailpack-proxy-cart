@@ -124,16 +124,17 @@ module.exports = class SubscriptionCsvService extends Service {
         }
       }, subscriptions => {
         return Promise.all(subscriptions.map(subscription => {
-
           const create = {
-            customer: subscription.customer,
+            customer: {
+              email: subscription.customer
+            },
             products: subscription.products,
             interval: subscription.interval,
             unit: subscription.unit,
             active: subscription.active
           }
-          // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
-          return this.app.services.SubscriptionService.create(create)
+          // console.log('UPLOAD SUBSCRIPTION', create)
+          return this.transformFromRow(create)
         }))
           .then(results => {
             // Calculate Totals
@@ -155,6 +156,48 @@ module.exports = class SubscriptionCsvService extends Service {
           return reject(err)
         })
     })
+  }
+
+  transformFromRow(obj) {
+    let resCustomer, resProducts
+    const resSubscription = this.app.orm['Subscription'].build()
+
+    return this.app.services.CustomerService.resolve(obj.customer)
+      .then(customer => {
+        resCustomer = customer
+        return this.app.orm['Product'].findAll({
+          where: {
+            handle: obj.products.map(product => product.handle)
+          }
+        })
+      })
+      .then(products => {
+        resProducts = products
+        return Promise.all(resProducts.map(item => {
+          return this.app.services.ProductService.resolveItem(item)
+        }))
+      })
+      .then(resolvedItems => {
+        return Promise.all(resolvedItems.map((item) => {
+          return resSubscription.addLine(item, 1, [])
+        }))
+      })
+      .then(resolvedItems => {
+        resSubscription.customer_id = resCustomer.id
+        return resSubscription.save()
+      })
+      .then(subscription => {
+
+        const event = {
+          object_id: subscription.customer_id,
+          object: 'customer',
+          type: 'subscription.items_added',
+          data: subscription
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return subscription
+      })
   }
 }
 

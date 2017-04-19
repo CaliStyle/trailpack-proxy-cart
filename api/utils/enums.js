@@ -108,7 +108,7 @@ module.exports = {
   },
   SUBSCRIPTION_UPLOAD: {
     products: 'Products',
-    customer: 'customer',
+    customer: 'Customer',
     interval: 'Interval',
     unit: 'Unit',
     active: 'Active'

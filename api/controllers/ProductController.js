@@ -73,6 +73,11 @@ module.exports = class ProductController extends Controller {
             }
           },
           {
+            type: {
+              $like: `%${term}%`
+            }
+          },
+          {
             '$tags.name$': {
               $like: `%${term}%`
             }

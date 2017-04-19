@@ -29,6 +29,19 @@ module.exports = class CustomerService extends Service {
           return resCustomer
         })
     }
+    else if (customer && _.isObject(customer) && customer.email) {
+      return Customer.findOne({
+        where: {
+          email: customer.email
+        }
+      }, options)
+        .then(resCustomer => {
+          if (!resCustomer) {
+            return this.create(customer, options)
+          }
+          return resCustomer
+        })
+    }
     else if (customer && (_.isString(customer) || _.isNumber(customer))) {
       return Customer.findById(customer, options)
     }

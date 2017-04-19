@@ -81,7 +81,7 @@ describe('CartPolicy', () => {
         done()
       })
       .catch(err => {
-        console.log('Customer with handle', err)
+        // console.log('Customer with handle', err)
         done(err)
       })
   })
@@ -181,7 +181,7 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY CART', res.body)
+        // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 2)
@@ -242,7 +242,7 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('ORDER ITEMS', res.body.order.order_items)
+        // console.log('ORDER ITEMS', res.body.order.order_items)
 
         const orderID = res.body.order.id
         cartIDSwitch = res.body.cart.id
@@ -404,7 +404,7 @@ describe('CartPolicy', () => {
   it('should renew subscription', done => {
     global.app.services.SubscriptionService.renew(subscriptionID)
       .then(body => {
-        console.log('THIS RENEW', body.order)
+        // console.log('THIS RENEW', body.order)
         const orderID = body.order.id
         assert.ok(body.subscription.id)
         assert.ok(body.order.id)
@@ -520,7 +520,7 @@ describe('CartPolicy', () => {
       .delete(`/customer/source/${ sourceID }`)
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY SOURCE', res.body)
+        // console.log('THIS POLICY SOURCE', res.body)
         assert.ok(res.body.id)
         done(err)
       })
@@ -531,7 +531,7 @@ describe('CartPolicy', () => {
       .get('/product/handle/discount-test')
       .expect(200)
       .end((err, res) => {
-        console.log('THIS DISCOUNT TEST', res.body)
+        // console.log('THIS DISCOUNT TEST', res.body)
         assert.ok(res.body)
         assert.equal(res.body.handle, 'discount-test')
         assert.ok(res.body.calculated_price)
