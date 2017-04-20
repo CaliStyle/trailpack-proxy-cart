@@ -9,6 +9,9 @@ const lib = require('../../lib')
  * @description Shop Controller.
  */
 module.exports = class ShopController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   /**
    * count the amount of shops
    * @param req

@@ -7,6 +7,9 @@ const Controller = require('trails/controller')
  * @description Fulfillment Controller.
  */
 module.exports = class FulfillmentController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   create(req, res) {
     // TODO
   }

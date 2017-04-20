@@ -9,6 +9,9 @@ const Errors = require('proxy-engine-errors')
  * @description Product Controller.
  */
 module.exports = class ProductController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   /**
    *
    * @param req

@@ -10,6 +10,9 @@ const Errors = require('proxy-engine-errors')
  */
 // TODO lock down certain requests by Owner(s)
 module.exports = class CustomerController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   /**
    *
    * @param req

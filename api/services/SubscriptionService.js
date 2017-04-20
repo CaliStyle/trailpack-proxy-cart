@@ -4,6 +4,7 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const shortid = require('shortid')
+const moment = require('moment')
 const Errors = require('proxy-engine-errors')
 const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
@@ -451,6 +452,24 @@ module.exports = class SubscriptionService extends Service {
         }
         // console.log('cart checkout prepare', newOrder)
         return newOrder
+      })
+  }
+  // TODO run by cron
+  renewToday() {
+    var start = moment().startOf('day');
+    var end = start.clone().endOf('day');
+
+    return this.app.orm['Subscription'].findAll({
+      where: {
+        renews_on: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss'),
+          $lte: end.format('YYYY-MM-DD HH:mm:ss')
+        },
+        active: true
+      }
+    })
+      .then(subscriptions => {
+        return subscriptions
       })
   }
 

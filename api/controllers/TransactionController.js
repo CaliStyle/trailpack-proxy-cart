@@ -9,6 +9,9 @@ const lib = require('../../lib')
  * @description Transaction Controller.
  */
 module.exports = class TransactionController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   /**
    * count the amount of transactions
    * @param req

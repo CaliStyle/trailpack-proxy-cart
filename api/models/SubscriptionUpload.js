@@ -69,10 +69,10 @@ module.exports = class SubscriptionUpload extends Model {
         type: Sequelize.STRING
       },
 
-      // The interval of the subscription, defaults to 0 months
+      // The interval of the subscription, defaults to 1 months
       interval: {
         type: Sequelize.INTEGER,
-        defaultValue: 0
+        defaultValue: 1
       },
       // The unit of the interval
       unit: {

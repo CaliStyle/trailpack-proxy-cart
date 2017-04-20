@@ -10,6 +10,9 @@ const lib = require('../../lib')
  */
 // TODO lock down certain requests by Owner(s)
 module.exports = class CartController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   init(req, res) {
     if (!req.cart) {
       if (!req.body) {

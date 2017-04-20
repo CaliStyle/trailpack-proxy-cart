@@ -179,6 +179,11 @@ module.exports = class SubscriptionCsvService extends Service {
       })
       .then(resolvedItems => {
         return Promise.all(resolvedItems.map((item) => {
+          // item = _.omit(item.get({plain: true}), [
+          //   'requires_subscription',
+          //   'subscription_unit',
+          //   'subscription_interval'
+          // ])
           return resSubscription.addLine(item, 1, [])
         }))
       })

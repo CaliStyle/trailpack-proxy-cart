@@ -100,6 +100,9 @@ A Shipping Zone is a geographical area that may override shipping and tax costs.
 ## Shipping Restrictions
 A Shipping Restriction is a geographical restriction on the shipping of certain products.
 
+## Vendors
+Vendors are companies that distribute a product. In the case of drop shipping, the taxes and shipping are calculated from the vendor address to the customer.
+
 ## Events
 Proxy Cart publishes many subscribable events.
 

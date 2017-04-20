@@ -11,6 +11,9 @@ const Errors = require('proxy-engine-errors')
  */
 // TODO lock down certain requests by Owner(s)
 module.exports = class OrderController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   /**
    * count the amount of orders
    * @param req

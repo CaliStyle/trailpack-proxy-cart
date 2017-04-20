@@ -9,6 +9,9 @@ const lib = require('../../lib')
  * @description Subscription Controller
  */
 module.exports = class SubscriptionController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   /**
    * count the amount of subscriptions
    * @param req
