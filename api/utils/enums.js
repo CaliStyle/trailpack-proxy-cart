@@ -159,6 +159,8 @@ module.exports = {
   CART_STATUS: {
     // open: Cart is open for transactions
     OPEN: 'open',
+    // open: Cart is open for transactions
+    DRAFT: 'draft',
     // closed: Cart was closed by
     CLOSED: 'closed',
     // abandoned: Cart was abandoned

@@ -226,9 +226,6 @@ module.exports = class CartController extends Controller {
           order: data.order
         })
       })
-      .then(data => {
-
-      })
       .catch(err => {
         // console.log('ProductController.checkout', err)
         return res.serverError(err)

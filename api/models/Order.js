@@ -162,17 +162,6 @@ module.exports = class Order extends Model {
                 scope: {
                   object: 'order'
                 },
-                // through: {
-                //   model: models.EventItem,
-                //   unique: false,
-                //   scope: {
-                //     object: 'order'
-                //   }
-                // },
-                // foreignKey: 'object_id',
-                // scope: {
-                //   object: 'order'
-                // },
                 constraints: false
               })
             },

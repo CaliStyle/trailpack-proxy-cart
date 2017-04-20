@@ -72,9 +72,9 @@ module.exports = class Subscription extends Model {
              */
             associate: (models) => {
               // The customer this subscription belongs to
-              // models.Subscription.belongsTo(models.Customer, {
-              //   // as: 'customer_id'
-              // })
+              models.Subscription.belongsTo(models.Customer, {
+                // as: 'customer_id'
+              })
               // // The Shop that originated this order
               // models.Subscription.belongsTo(models.Shop, {
               //   // as: 'shop_id'

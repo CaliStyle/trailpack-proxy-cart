@@ -40,7 +40,7 @@ module.exports = class SubscriptionController extends Controller {
     if (!id && req.subscription) {
       id = req.subscription.id
     }
-    Subscription.findById(id, {})
+    Subscription.findByIdDefault(id, {})
       .then(subscription => {
         if (!subscription) {
           throw new Errors.FoundError(Error(`Subscription id ${id} not found`))
