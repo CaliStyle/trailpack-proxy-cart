@@ -226,15 +226,23 @@ module.exports = class ProductCsvService extends Service {
         attributes: ['handle'],
         group: ['handle']
       }, (products) => {
-        return Promise.all(products.map(product => {
-          return this.processProductGroup(product.handle)
+
+        const Sequelize = this.app.orm.Product.sequelize
+          // const addedProducts = []
+          // Setup Transaction
+        // return Sequelize.transaction(t => {
+        return Sequelize.Promise.mapSeries(products, product => {
+          return this.processProductGroup(product.handle, uploadId, {
+            // transaction: t
+          })
             .then((results) => {
               // Calculate the totals created
               productsTotal = productsTotal + results.products
               variantsTotal = variantsTotal + results.variants
               return results
             })
-        }))
+        })
+        // })
       })
         .then(results => {
           return ProductUpload.destroy({where: {upload_id: uploadId }})
@@ -259,12 +267,21 @@ module.exports = class ProductCsvService extends Service {
    * @param handle
    * @returns {Promise}
    */
-  processProductGroup(handle) {
+  processProductGroup(handle, uploadId, options) {
+    if (!options) {
+      options = {}
+    }
     return new Promise((resolve, reject) => {
       this.app.log.debug('ProxyCartService.processProductGroup', handle)
       let errorsCount = 0
       const ProductUpload = this.app.orm.ProductUpload
-      ProductUpload.findAll({where: {handle: handle}})
+      ProductUpload.findAll({
+        where: {
+          handle: handle,
+          upload_id: uploadId
+        },
+        transaction: options.transaction || null
+      })
         .then(products => {
           // Remove Upload Junk
           products = _.map(products, product => {
@@ -285,7 +302,7 @@ module.exports = class ProductCsvService extends Service {
           })
           // console.log(defaultProduct)
           // Add the product with it's variants
-          return this.app.services.ProductService.addProduct(defaultProduct)
+          return this.app.services.ProductService.addProduct(defaultProduct, options)
         })
         .then(product => {
           return resolve({products: 1, variants: product.variants.length, errors: errorsCount})

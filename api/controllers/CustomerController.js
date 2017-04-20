@@ -809,8 +809,9 @@ module.exports = class CustomerController extends Controller {
         as: 'customers',
         attributes: ['id']
       }],
-      offset: offset,
-      limit: limit
+      offset: offset
+      // TODO sequelize breaks if limit is set here
+      // limit: limit
     })
       .then(users => {
         res.set('X-Pagination-Total', users.count)
