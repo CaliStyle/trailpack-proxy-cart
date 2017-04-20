@@ -456,8 +456,8 @@ module.exports = class SubscriptionService extends Service {
   }
   // TODO run by cron
   renewToday() {
-    var start = moment().startOf('day');
-    var end = start.clone().endOf('day');
+    const start = moment().startOf('day')
+    const end = start.clone().endOf('day')
 
     return this.app.orm['Subscription'].findAll({
       where: {
