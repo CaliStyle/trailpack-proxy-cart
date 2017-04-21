@@ -104,6 +104,14 @@ module.exports = class Subscription extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Subscription.hasMany(models.Event, {
+                as: 'events',
+                foreignKey: 'object_id',
+                scope: {
+                  object: 'subscription'
+                },
+                constraints: false
+              })
             },
             findByIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Subscription.default(app))
