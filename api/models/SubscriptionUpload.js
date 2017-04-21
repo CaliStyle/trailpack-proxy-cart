@@ -63,7 +63,10 @@ module.exports = class SubscriptionUpload extends Model {
       upload_id: {
         type: Sequelize.STRING
       },
-
+      // Token: prior subscription token
+      token: {
+        type: Sequelize.STRING
+      },
       // Customer: customer email
       customer: {
         type: Sequelize.STRING

@@ -84,6 +84,10 @@ module.exports = class CustomerCsvService extends Service {
       options: {}
     }
 
+    if (_.isEmpty(row)) {
+      return Promise.resolve({})
+    }
+
     _.each(row, (data, key) => {
       if (data !== '') {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))

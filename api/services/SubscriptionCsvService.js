@@ -84,6 +84,10 @@ module.exports = class SubscriptionCsvService extends Service {
       options: {}
     }
 
+    if (_.isEmpty(row)) {
+      return Promise.resolve({})
+    }
+
     _.each(row, (data, key) => {
       if (data !== '') {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
@@ -106,6 +110,7 @@ module.exports = class SubscriptionCsvService extends Service {
     })
 
     const newSubscription = SubscriptionUpload.build(upload)
+
     return newSubscription.save()
   }
 
@@ -128,10 +133,12 @@ module.exports = class SubscriptionCsvService extends Service {
             customer: {
               email: subscription.customer
             },
+            email: subscription.customer,
             products: subscription.products,
             interval: subscription.interval,
             unit: subscription.unit,
-            active: subscription.active
+            active: subscription.active,
+            token: subscription.token
           }
           // console.log('UPLOAD SUBSCRIPTION', create)
           return this.transformFromRow(create)
@@ -196,7 +203,7 @@ module.exports = class SubscriptionCsvService extends Service {
         const event = {
           object_id: subscription.customer_id,
           object: 'customer',
-          type: 'subscription.items_added',
+          type: 'subscription.subscribed',
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

@@ -111,7 +111,8 @@ module.exports = {
     customer: 'Customer',
     interval: 'Interval',
     unit: 'Unit',
-    active: 'Active'
+    active: 'Active',
+    token: 'Token'
   },
   UNITS: {
     // Grams

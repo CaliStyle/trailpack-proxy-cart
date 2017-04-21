@@ -407,6 +407,9 @@ module.exports = class Subscription extends Model {
           // },
           allowNull: false
         },
+        email: {
+          type: Sequelize.STRING
+        },
         // Unique identifier for a particular subscription.
         token: {
           type: Sequelize.STRING,

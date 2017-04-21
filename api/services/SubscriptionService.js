@@ -118,6 +118,7 @@ module.exports = class SubscriptionService extends Service {
     const create = {
       original_order_id: order.id,
       customer_id: order.customer_id,
+      email: order.email,
       line_items: items.map(item => {
         item =  _.omit(item.get({plain: true}), [
           'id',

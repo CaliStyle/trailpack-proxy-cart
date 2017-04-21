@@ -85,6 +85,10 @@ module.exports = class ProductCsvService extends Service {
       options: {}
     }
 
+    if (_.isEmpty(row)) {
+      return Promise.resolve({})
+    }
+
     _.each(row, (data, key) => {
       if (data !== '') {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
@@ -379,6 +383,10 @@ module.exports = class ProductCsvService extends Service {
     const upload = {
       upload_id: uploadID,
       data: {}
+    }
+
+    if (_.isEmpty(row)) {
+      return Promise.resolve({})
     }
 
     _.each(row, (data, key) => {
