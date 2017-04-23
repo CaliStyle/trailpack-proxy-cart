@@ -127,10 +127,6 @@ module.exports = class Order extends Model {
                 as: 'order_items',
                 foreignKey: 'order_id'
               })
-              // Applicable discount codes that can be applied to the order. If no codes exist the value will default to blank.
-              models.Order.hasMany(models.Discount, {
-                as: 'discount_codes'
-              })
               models.Order.hasMany(models.Fulfillment, {
                 as: 'fulfillments',
                 foreignKey: 'order_id'
@@ -143,6 +139,19 @@ module.exports = class Order extends Model {
               models.Order.hasMany(models.Refund, {
                 as: 'refunds',
                 foreignKey: 'order_id'
+              })
+              // Applicable discount codes that can be applied to the order. If no codes exist the value will default to blank.
+              models.Order.belongsToMany(models.Discount, {
+                as: 'discount_codes',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'order'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
               })
               models.Order.belongsToMany(models.Tag, {
                 as: 'tags',

@@ -360,7 +360,8 @@ module.exports = class ProxyCartService extends Service {
     return this.app.services.CustomerService.resolve({
       id: user.current_customer_id,
       email: user.email,
-      accepts_marketing: user.accepts_marketing
+      accepts_marketing: user.accepts_marketing,
+      users: [user]
     })
       .then(customer => {
         if (!customer) {

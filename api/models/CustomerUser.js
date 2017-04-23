@@ -26,9 +26,9 @@ module.exports = class CustomerUser extends Model {
           primaryKey: true,
           autoIncrement: true
         },
-        permission: {
+        role: {
           type: Sequelize.STRING,
-          defaultsTo: 'admin'
+          defaultsValue: 'admin'
         },
         user_id: {
           type: Sequelize.INTEGER,

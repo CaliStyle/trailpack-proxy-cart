@@ -215,6 +215,13 @@ module.exports = class CustomerService extends Service {
           return Promise.all(customer.users.map(user => {
             // Setup some defaults
             user.current_customer_id = resCustomer.id
+
+            // If customer exists, then update
+            if (user instanceof User.Instance){
+              return user.save()
+            }
+
+            // Create a new password
             user.passports = {
               protocol: 'local'
             }

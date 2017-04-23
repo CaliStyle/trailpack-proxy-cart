@@ -5,7 +5,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 
 describe('CartPolicy', () => {
-  let request, agent, customerID, cartID, cartIDSwitch, orderID, subscriptionID, sourceID
+  let request, agent, userID, customerID, cartID, cartIDSwitch, orderID, subscriptionID, sourceID
   let shopProducts
 
   before(done => {
@@ -54,6 +54,7 @@ describe('CartPolicy', () => {
       .set('Accept', 'application/json')
       .expect(200)
       .end((err, res) => {
+        userID = res.body.user.id
         customerID = res.body.user.current_customer_id
         assert.ok(res.body.user.id)
         assert.equal(res.body.user.current_cart_id, cartID)
@@ -536,6 +537,54 @@ describe('CartPolicy', () => {
         assert.equal(res.body.handle, 'discount-test')
         assert.ok(res.body.calculated_price)
         assert.ok(res.body.total_discounts)
+        done()
+      })
+  })
+  it('It should get all users with associated customer account', (done) => {
+    agent
+      .get('/customer/users')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('Customer Users', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.equal(res.body[0].id, userID)
+        done()
+      })
+  })
+  it('It should get all users with associated customer account', (done) => {
+    agent
+      .get(`/customer/${ customerID }/users`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('Customer Users', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.equal(res.body[0].id, userID)
+        done()
+      })
+  })
+  it('It should get all users with associated customer account', (done) => {
+    agent
+      .get('/user/customers')
+      .expect(200)
+      .end((err, res) => {
+        console.log('Customer Users', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.equal(res.body[0].id, customerID)
+        done()
+      })
+  })
+  it('It should get all users with associated customer account', (done) => {
+    agent
+      .get(`/user/${ userID }/customers`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('Customer Users', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.equal(res.body[0].id, customerID)
         done()
       })
   })

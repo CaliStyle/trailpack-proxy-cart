@@ -791,7 +791,7 @@ module.exports = class CustomerController extends Controller {
       customerId = req.user.current_customer_id
     }
     if (!customerId && !req.user) {
-      const err = new Error('A customer id and a user in session are required')
+      const err = new Error('A customer id or a user in session are required')
       return res.send(401, err)
     }
 

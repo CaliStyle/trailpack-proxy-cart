@@ -132,7 +132,6 @@ const App = {
                   if (!cart) {
                     return resolve(user)
                   }
-                  console.log(cart)
                   req.loginCart(cart, (err) => {
                     if (err) {
                       return reject(err)

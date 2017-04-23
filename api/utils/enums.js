@@ -366,5 +366,9 @@ module.exports = {
   COLLECTION_TAX_TYPE: {
     PERCENTAGE: 'percentage',
     FIXED: 'fixed',
+  },
+  COLLECTION_SHIPPING_TYPE: {
+    PERCENTAGE: 'percentage',
+    FIXED: 'fixed',
   }
 }

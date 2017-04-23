@@ -18,16 +18,28 @@ module.exports = class Discount extends Model {
           underscored: true,
           classMethods: {
             DISCOUNT_TYPES: DISCOUNT_TYPES,
-            DISCOUNT_STATUS: DISCOUNT_STATUS
+            DISCOUNT_STATUS: DISCOUNT_STATUS,
             /**
              * Associate the Model
              * @param models
              */
-            // associate: (models) => {
-            //   models.Cart.hasMany(models.Product, {
-            //     as: 'products'
-            //   })
-            // }
+            associate: (models) => {
+              // models.Cart.hasMany(models.Product, {
+              //   as: 'products'
+              // })
+              models.Discount.belongsToMany(models.Order, {
+                as: 'orders',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'order'
+                  }
+                },
+                foreignKey: 'discount_id',
+                constraints: false
+              })
+            }
           }
         }
       }
@@ -83,7 +95,7 @@ module.exports = class Discount extends Model {
         applies_to_id: {
           type: Sequelize.STRING
         },
-        // The discount code can be set to apply to only a product, variant, or collection. If applies_to_resource is set, then applies_to_id should also be set.
+        // The discount code can be set to apply to only a product, variant, customer, or collection. If applies_to_resource is set, then applies_to_id should also be set.
         applies_to_resource: {
           type: Sequelize.STRING
         },
@@ -93,7 +105,8 @@ module.exports = class Discount extends Model {
         },
         // Determines whether the discount should be applied once, or any number of times per customer.
         applies_once_per_customer: {
-          type: Sequelize.BOOLEAN
+          type: Sequelize.INTEGER,
+          defaultValue: 1
         },
         // if this discount can be compounded with other discounts.
         compound: {

@@ -10,6 +10,7 @@ const COLLECTION_PURPOSE = require('../utils/enums').COLLECTION_PURPOSE
 const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
 const COLLECTION_DISCOUNT_TYPE = require('../utils/enums').COLLECTION_DISCOUNT_TYPE
 const COLLECTION_TAX_TYPE = require('../utils/enums').COLLECTION_TAX_TYPE
+const COLLECTION_SHIPPING_TYPE = require('../utils/enums').COLLECTION_SHIPPING_TYPE
 /**
  * @module ProductCollection
  * @description Product Collection Model
@@ -290,7 +291,7 @@ module.exports = class Collection extends Model {
           defaultValue: COLLECTION_SORT_ORDER.ALPHA_DESC
         },
 
-        // TODO Tax Percentage Override for products in this collection
+        // TODO Tax Override for products in this collection
         tax_rate: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
@@ -307,6 +308,25 @@ module.exports = class Collection extends Model {
         tax_name: {
           type: Sequelize.STRING
         },
+
+        // TODO Shipping Override for products in this collection
+        shipping_rate: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        shipping_percentage: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        shipping_type: {
+          type: Sequelize.ENUM,
+          values: _.values(COLLECTION_SHIPPING_TYPE),
+          defaultValue: COLLECTION_SHIPPING_TYPE.PERCENTAGE
+        },
+        shipping_name: {
+          type: Sequelize.STRING
+        },
+
         discount_scope: {
           type: Sequelize.ENUM,
           values: _.values(COLLECTION_DISCOUNT_SCOPE),
