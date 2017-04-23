@@ -173,6 +173,18 @@ module.exports = class Order extends Model {
                 },
                 constraints: false
               })
+              models.Order.hasOne(models.Cart, {
+                // as: 'default_cart',
+                // through: {
+                //   model: models.CustomerCart,
+                //   foreignKey: 'customer_id',
+                //   unique: true,
+                //   scope: {
+                //     cart: 'default_cart'
+                //   },
+                //   constraints: false
+                // }
+              })
             },
             findByIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Order.default(app))

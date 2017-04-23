@@ -196,7 +196,8 @@ module.exports = class OrderService extends Service {
             total_shipping: obj.total_shipping,
             total_weight: obj.total_weight,
             total_items: obj.total_items,
-            shop_id: obj.shop_id,
+            shop_id: obj.shop_id || null,
+            user_id: obj.user_id || null,
             has_shipping: obj.has_shipping,
             has_subscription: obj.has_subscription,
 
@@ -250,6 +251,9 @@ module.exports = class OrderService extends Service {
             }
             this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
           }
+          return customer
+        })
+        .then(customer => {
           // Set proxy cart default payment kind if not set by order.create
           let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment_kind
           // Set transaction type to 'manual' if none is specified

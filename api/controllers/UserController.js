@@ -56,7 +56,8 @@ module.exports = class UserController extends ModelPermissions {
     const sort = req.query.sort || 'created_at DESC'
 
     Customer.findAndCount({
-      order: sort,
+      // TODO fix for sqlite
+      // order: sort,
       where: {
         '$users.id$': userId
       },

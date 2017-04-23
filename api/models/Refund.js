@@ -26,12 +26,12 @@ module.exports = class Refund extends Model {
               })
               models.Refund.belongsToMany(models.OrderItem, {
                 as: 'refund_order_items',
-                through: 'RefundOrderItems'
+                through: models.RefundOrderItem
                 // as: 'order_id'
               })
               models.Refund.belongsToMany(models.Transaction, {
                 as: 'transactions',
-                through: 'RefundTransactions'
+                through: models.RefundTransaction
                 // as: 'order_id'
               })
             }

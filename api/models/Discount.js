@@ -39,6 +39,66 @@ module.exports = class Discount extends Model {
                 foreignKey: 'discount_id',
                 constraints: false
               })
+              models.Discount.belongsToMany(models.Cart, {
+                as: 'orders',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'cart'
+                  }
+                },
+                foreignKey: 'discount_id',
+                constraints: false
+              })
+              models.Discount.belongsToMany(models.Product, {
+                as: 'products',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'product'
+                  }
+                },
+                foreignKey: 'discount_id',
+                constraints: false
+              })
+              models.Discount.belongsToMany(models.ProductVariant, {
+                as: 'variants',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'product_variant'
+                  }
+                },
+                foreignKey: 'discount_id',
+                constraints: false
+              })
+              models.Discount.belongsToMany(models.Customer, {
+                as: 'customers',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  }
+                },
+                foreignKey: 'discount_id',
+                constraints: false
+              })
+              models.Discount.belongsToMany(models.Collection, {
+                as: 'collections',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'collection'
+                  }
+                },
+                foreignKey: 'discount_id',
+                constraints: false
+              })
             }
           }
         }

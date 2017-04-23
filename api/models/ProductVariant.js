@@ -88,6 +88,18 @@ module.exports = class ProductVariant extends Model {
                   constraints: false
                 }
               })
+              models.ProductVariant.belongsToMany(models.Discount, {
+                as: 'discount_codes',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'product_variant'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
               // models.Product.belongsToMany(models.Collection, {
               //   as: 'collections',
               //   through: {

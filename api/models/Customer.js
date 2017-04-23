@@ -224,6 +224,18 @@ module.exports = class Customer extends Model {
                 },
                 constraints: false
               })
+              models.Customer.belongsToMany(models.Discount, {
+                as: 'discount_codes',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
               // models.Customer.hasMany(models.User, {
               //   as: 'users',
               //   foreignKey: {

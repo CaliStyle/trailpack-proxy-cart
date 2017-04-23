@@ -172,6 +172,15 @@ module.exports = class Cart extends Model {
             close: function(status) {
               this.status = status
             },
+            draft: function () {
+              this.status = CART_STATUS.DRAFT
+              return this
+            },
+            order: function(order) {
+              this.order_id = order.id
+              this.status = CART_STATUS.ORDERED
+              return this
+            },
             recalculate: function() {
               // Default Values
               let collections = []
@@ -332,6 +341,18 @@ module.exports = class Cart extends Model {
                   constraints: false
                 }
               })
+              models.Cart.belongsToMany(models.Discount, {
+                as: 'discount_codes',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'cart'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
               // models.Cart.belongsTo(models.Customer, {
               //   foreignKey: 'default_cart'
               //   // as: 'customer_id'
@@ -376,6 +397,13 @@ module.exports = class Cart extends Model {
           // }
         },
         shop_id: {
+          type: Sequelize.INTEGER,
+          // references: {
+          //   model: 'Shop',
+          //   key: 'id'
+          // }
+        },
+        order_id: {
           type: Sequelize.INTEGER,
           // references: {
           //   model: 'Shop',

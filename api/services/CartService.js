@@ -146,10 +146,12 @@ module.exports = class CartService extends Service {
         }
 
         resOrder = order
-        // Close the Cart
-        // resCart.close(Cart.CART_STATUS.ORDERED)
-        // return resCart.save()
 
+        // Close the Cart
+        return this.afterOrder(req, resOrder)
+      })
+      .then(cart => {
+        // Switch to a new cart
         return this.createAndSwitch(req)
       })
       .then(newCart => {
@@ -162,7 +164,13 @@ module.exports = class CartService extends Service {
 
   prepareForOrder(req) {
     const AccountService = this.app.services.AccountService
-    let resCart, resCustomer, customerID
+    let resCart, resCustomer, customerID, userID
+
+    // Establish who placed the order
+    if (req.user && req.user.id) {
+      userID = req.user.id
+    }
+
     return this.resolve(req.body.cart)
       .then(cart => {
         if (!cart) {
@@ -243,6 +251,9 @@ module.exports = class CartService extends Service {
           customer_id: customerID,
           email: req.body['email'] || resCustomer['email'] || null,
 
+          // User ID
+          user_id: userID || null,
+
           // Cart Info
           cart_token: resCart.token,
           currency: resCart.currency,
@@ -266,6 +277,13 @@ module.exports = class CartService extends Service {
         }
         // console.log('cart checkout prepare', newOrder)
         return newOrder
+      })
+  }
+  afterOrder(req, order){
+    return this.resolve(req.body.cart)
+      .then(cart => {
+        cart.order(order)
+        return cart.save()
       })
   }
 

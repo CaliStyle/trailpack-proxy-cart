@@ -800,7 +800,8 @@ module.exports = class CustomerController extends Controller {
     const sort = req.query.sort || 'created_at DESC'
 
     User.findAndCount({
-      order: sort,
+      // TODO fix for sqlite
+      // order: sort,
       where: {
         '$customers.id$': customerId
       },
