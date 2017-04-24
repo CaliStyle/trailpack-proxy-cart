@@ -94,8 +94,12 @@ module.exports = class Source extends Model {
       // credit_card_iin: The issuer identification number (IIN), formerly known as bank identification number (BIN) ] of the customer's credit card. This is made up of the first few digits of the credit card number.
       // credit_card_company: The name of the company who issued the customer's credit card.
       // credit_card_number: The customer's credit card number, with most of the leading digits redacted with Xs.
+      // credit_card_last4: the last 4 of the customer's credit card number
+      // credit_card_exp_month: the 2 digit month
+      // credit_card_exp_year: the 2-4 digit year
       // cvv_result_code: The Response code from the credit card company indicating whether the customer entered the card security code, a.k.a. card verification value, correctly. The code is a single letter or empty string; see this chart http://www.emsecommerce.net/avs_cvv2_response_codes.htm for the codes and their definitions.
       // token: The card token from the Gateway
+
       payment_details: helpers.JSONB('Source', app, Sequelize, 'payment_details', {
         defaultValue: {}
       })

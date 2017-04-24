@@ -456,7 +456,8 @@ module.exports = class Order extends Model {
         // voided: The finances have been voided.
         financial_status: {
           type: Sequelize.ENUM,
-          values: _.values(ORDER_FINANCIAL)
+          values: _.values(ORDER_FINANCIAL),
+          defaultValue: ORDER_FINANCIAL.PENDING
         },
         // fulfilled: the order has been completely fulfilled
         // none: the order has no fulfillments

@@ -215,18 +215,12 @@ module.exports = class CartService extends Service {
           return AccountService.getDefaultSource(resCustomer)
             .then(source => {
               if (!source) {
-                return {
-                  payment_details: []
-                }
+                return []
               }
-              return {
-                payment_details: [
-                  {
-                    gateway: source.gateway,
-                    source: source,
-                  }
-                ]
-              }
+              return  [{
+                gateway: source.gateway,
+                source: source,
+              }]
             })
         }
         else {
