@@ -294,9 +294,10 @@ module.exports = class CartController extends Controller {
     const CartService = this.app.services.CartService
     let id = req.params.id
 
-    if (req.body.id) {
+    if (!id && req.body.id) {
       id = req.body.id
     }
+
     if (!id && req.cart) {
       id = req.cart.id
     }
@@ -305,11 +306,11 @@ module.exports = class CartController extends Controller {
       .then(values => {
         return CartService.pricingOverrides(req.body, id, req.user)
       })
-      .then(data => {
-        if (!data) {
+      .then(cart => {
+        if (!cart) {
           throw new Error('Unexpected Error while overriding prices')
         }
-        return res.json(data)
+        return res.json(cart)
       })
       .catch(err => {
         // console.log('ProductController.removeItemsFromCart', err)

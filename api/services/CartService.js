@@ -310,6 +310,10 @@ module.exports = class CartService extends Service {
     if (_.isObject(overrides) && overrides.pricing_overrides){
       overrides = overrides.pricing_overrides
     }
+    overrides = overrides.map(override => {
+      override.admin_id = override.admin_id ? override.admin_id : admin.id
+      return override
+    })
     // console.log(overrides, id, admin)
     return this.resolve(id)
       .then(cart => {
