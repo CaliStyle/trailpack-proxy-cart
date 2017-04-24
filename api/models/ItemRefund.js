@@ -3,10 +3,10 @@
 const Model = require('trails/model')
 
 /**
- * @module RefundTransaction
- * @description Refund Transaction
+ * @module ItemRefund
+ * @description Item Refund
  */
-module.exports = class RefundTransaction extends Model {
+module.exports = class ItemRefund extends Model {
 
   static config (app, Sequelize) {
     let config = {}
@@ -31,11 +31,19 @@ module.exports = class RefundTransaction extends Model {
         },
         refund_id: {
           type: Sequelize.INTEGER,
-          unique: 'refund_transaction'
+          unique: 'item_refund',
+          notNull: true
         },
-        transaction_id: {
+        model: {
           type: Sequelize.STRING,
-          unique: 'refund_transaction'
+          unique: 'item_refund',
+          notNull: true
+        },
+        model_id: {
+          type: Sequelize.STRING,
+          unique: 'item_refund',
+          references: null,
+          notNull: true
         }
       }
     }

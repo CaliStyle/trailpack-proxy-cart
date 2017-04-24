@@ -289,6 +289,30 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
+  // ADMIN ONLY FEATURE
+  pricingOverrides(req, res) {
+    const CartService = this.app.services.CartService
+    let id = req.params.id
+
+    if (!id && req.cart) {
+      id = req.cart.id
+    }
+
+    lib.Validator.validateCart.pricingOverrides(req.body)
+      .then(values => {
+        return CartService.pricingOverrides(req.body, id, req.user)
+      })
+      .then(data => {
+        if (!data) {
+          throw new Error('Unexpected Error while overriding prices')
+        }
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeItemsFromCart', err)
+        return res.serverError(err)
+      })
+  }
 
   /**
    *

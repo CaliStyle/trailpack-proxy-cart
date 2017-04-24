@@ -25,14 +25,28 @@ module.exports = class Refund extends Model {
                 // as: 'order_id'
               })
               models.Refund.belongsToMany(models.OrderItem, {
-                as: 'refund_order_items',
-                through: models.RefundOrderItem
-                // as: 'order_id'
+                as: 'order_items',
+                through: {
+                  model: models.ItemRefund,
+                  unique: false,
+                  scope: {
+                    model: 'order_item'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
               })
               models.Refund.belongsToMany(models.Transaction, {
                 as: 'transactions',
-                through: models.RefundTransaction
-                // as: 'order_id'
+                through: {
+                  model: models.ItemRefund,
+                  unique: false,
+                  scope: {
+                    model: 'transaction'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
               })
             }
           }

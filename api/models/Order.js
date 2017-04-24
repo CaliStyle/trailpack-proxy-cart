@@ -185,6 +185,9 @@ module.exports = class Order extends Model {
                 //   constraints: false
                 // }
               })
+              models.Order.hasOne(models.Customer, {
+                foreignKey: 'last_order_id'
+              })
             },
             findByIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Order.default(app))
@@ -517,6 +520,15 @@ module.exports = class Order extends Model {
         coupon_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
           defaultValue: []
         }),
+        // The pricing overrides
+        pricing_overrides: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'pricing_overrides', {
+          defaultValue: []
+        }),
+        // The total amount of pricing overrides
+        total_overrides: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         // Where the order originated. May only be set during creation, and is not writable thereafter. Orders created through official Proxy Engine channels have protected values that cannot be assigned by other API clients during order creation. These protected values are: "web", "pos", "iphone", and "android" Orders created via the API may be assigned any other string of your choice. If source_name is unspecified, new orders are assigned the value "api".
         source_name: {
           type: Sequelize.STRING,

@@ -102,6 +102,18 @@ module.exports = class Collection extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Collection.belongsToMany(models.Tag, {
+                as: 'tags',
+                through: {
+                  model: models.ItemTag,
+                  unique: false,
+                  scope: {
+                    model: 'collection'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
               // models.Collection.belongsToMany(models.ProductVariant, {
               //   through: {
               //     model: models.ItemCollection,

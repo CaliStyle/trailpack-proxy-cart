@@ -100,6 +100,10 @@ module.exports = class ProductVariant extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.ProductVariant.hasMany(models.OrderItem, {
+                as: 'order_items',
+                foreignKey: 'variant_id'
+              })
               // models.Product.belongsToMany(models.Collection, {
               //   as: 'collections',
               //   through: {

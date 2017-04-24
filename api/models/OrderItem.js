@@ -80,6 +80,17 @@ module.exports = class OrderItem extends Model {
               models.OrderItem.belongsTo(models.ProductVariant, {
 
               })
+              models.OrderItem.belongsTo(models.Refund, {
+                through: {
+                  model: models.ItemRefund,
+                  unique: false,
+                  scope: {
+                    model: 'order_item'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
             }
           }
         }

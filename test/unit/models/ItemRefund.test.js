@@ -2,8 +2,8 @@
 /* global describe, it */
 const assert = require('assert')
 
-describe('RefundTransaction Model', () => {
+describe('ItemRefund Model', () => {
   it('should exist', () => {
-    assert(global.app.api.models['RefundTransaction'])
+    assert(global.app.api.models['ItemRefund'])
   })
 })

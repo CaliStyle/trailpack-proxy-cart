@@ -150,9 +150,16 @@ module.exports = class Customer extends Model {
               models.Customer.belongsToMany(models.Order, {
                 as: 'orders',
                 through: {
-                  model: models.CustomerOrder
-                }
+                  model: models.CustomerOrder,
+                  foreignKey: 'customer_id',
+                  unique: true
+                },
+                constraints: false
               })
+              // models.Customer.hasMany(models.Order, {
+              //   as: 'orders',
+              //   foreignKey: 'customer_id'
+              // })
               // models.Customer.belongsTo(models.Order, {
               //   as: 'last_order_id',
               //   // foreignKey: 'id',
@@ -250,6 +257,10 @@ module.exports = class Customer extends Model {
               //     unique: true,
               //     constraints: false
               //   }
+              // })
+              // models.Customer.hasOne(models.Order, {
+              //   as: 'last_order_id'
+              //   // foreignKey: 'id'
               // })
             },
             findByIdDefault: function(id, options) {

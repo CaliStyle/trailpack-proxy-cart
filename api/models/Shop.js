@@ -48,6 +48,14 @@ module.exports = class Shop extends Model {
                 },
                 constraints: false
               })
+              models.Shop.hasMany(models.Cart, {
+                as: 'carts',
+                foreignKey: 'shop_id'
+              })
+              models.Shop.hasMany(models.Order, {
+                as: 'orders',
+                foreignKey: 'shop_id'
+              })
             },
             transformShops: (shops, options) => {
               const Shop = app.orm['Shop']

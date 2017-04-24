@@ -279,6 +279,13 @@ module.exports = class CartService extends Service {
         return newOrder
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param order
+   * @returns {Promise}
+   */
   afterOrder(req, order){
     return this.resolve(req.body.cart)
       .then(cart => {
@@ -287,6 +294,21 @@ module.exports = class CartService extends Service {
       })
   }
 
+  /**
+   *
+   * @param overrides
+   * @param id
+   * @returns {Promise}
+   */
+  pricingOverrides(overrides, id, admin){
+    // console.log(overrides, id, admin)
+    return this.resolve(id)
+      .then(cart => {
+        cart.pricing_overrides = overrides
+        cart.pricing_override_id = admin.id
+        return cart.save()
+      })
+  }
   /**
    *
    * @param cart

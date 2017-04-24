@@ -24,7 +24,10 @@ module.exports = class Tag extends Model {
               models.Tag.belongsToMany(models.Product, {
                 through: {
                   model: models.ItemTag,
-                  unique: false
+                  unique: false,
+                  scope: {
+                    model: 'product'
+                  }
                 },
                 foreignKey: 'tag_id',
                 constraints: false
@@ -32,7 +35,10 @@ module.exports = class Tag extends Model {
               models.Tag.belongsToMany(models.Customer, {
                 through: {
                   model: models.ItemTag,
-                  unique: false
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  }
                 },
                 foreignKey: 'tag_id',
                 constraints: false
@@ -40,7 +46,10 @@ module.exports = class Tag extends Model {
               models.Tag.belongsToMany(models.Collection, {
                 through: {
                   model: models.ItemTag,
-                  unique: false
+                  unique: false,
+                  scope: {
+                    model: 'collection'
+                  }
                 },
                 foreignKey: 'tag_id',
                 constraints: false

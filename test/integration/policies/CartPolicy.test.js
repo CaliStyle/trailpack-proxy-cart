@@ -588,4 +588,17 @@ describe('CartPolicy', () => {
         done()
       })
   })
+  it('It should get all users with associated customer account', (done) => {
+    agent
+      .post(`/cart/${ cartIDSwitch }/pricingOverrides`)
+      .send([{
+        name: 'Test Override',
+        price: 100
+      }])
+      .expect(200)
+      .end((err, res) => {
+        console.log('Pricing Overrides', res.body)
+        done()
+      })
+  })
 })

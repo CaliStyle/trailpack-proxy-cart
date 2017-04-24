@@ -194,6 +194,7 @@ module.exports = class Cart extends Model {
               let totalLineItemsPrice = 0
               let totalShipping = 0
               let totalItems = 0
+              let totalOverrides = 0
 
               // Reset Globals
               this.has_shipping = false
@@ -267,9 +268,13 @@ module.exports = class Cart extends Model {
                     totalCoupons = totalCoupons + line.price
                   })
 
+                  _.each(this.pricing_overrides, line => {
+                    totalOverrides = totalOverrides + line.price
+                  })
+
                   // Finalize Totals
                   totalPrice = Math.max(0, totalTax + totalShipping + subtotalPrice)
-                  totalDue = Math.max(0, totalPrice - totalDiscounts - totalCoupons)
+                  totalDue = Math.max(0, totalPrice - totalDiscounts - totalCoupons - totalOverrides)
 
                   // Set Cart values
                   this.total_items = totalItems
@@ -279,6 +284,7 @@ module.exports = class Cart extends Model {
                   this.total_tax = totalTax
                   this.total_weight = totalWeight
                   this.total_line_items_price = totalLineItemsPrice
+                  this.total_overrides = totalOverrides
                   this.total_price = totalPrice
                   this.total_due = totalDue
 
@@ -502,6 +508,19 @@ module.exports = class Cart extends Model {
         total_discounts: {
           type: Sequelize.INTEGER,
           defaultValue: 0
+        },
+        // The line_items that have taxes
+        pricing_overrides: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'pricing_overrides', {
+          defaultValue: []
+        }),
+        // The total amount of pricing overrides
+        total_overrides: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // USER id of the admin who did the override
+        pricing_override_id: {
+          type: Sequelize.INTEGER
         },
         // The total original price of the line items
         total_line_items_price: {

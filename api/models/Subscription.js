@@ -112,6 +112,10 @@ module.exports = class Subscription extends Model {
                 },
                 constraints: false
               })
+              models.Subscription.hasMany(models.OrderItem, {
+                as: 'order_items',
+                foreignKey: 'subscription_id'
+              })
             },
             findByIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Subscription.default(app))
