@@ -294,6 +294,9 @@ module.exports = class CartController extends Controller {
     const CartService = this.app.services.CartService
     let id = req.params.id
 
+    if (req.body.id) {
+      id = req.body.id
+    }
     if (!id && req.cart) {
       id = req.cart.id
     }

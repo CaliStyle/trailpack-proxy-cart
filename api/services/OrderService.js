@@ -213,7 +213,12 @@ module.exports = class OrderService extends Service {
             buyer_accepts_marketing: resCustomer.accepts_marketing || obj.buyer_accepts_marketing,
             email: resCustomer.email || obj.email || null,
             billing_address: resBillingAddress,
-            shipping_address: resShippingAddress
+            shipping_address: resShippingAddress,
+
+            // Overrides
+            pricing_override_id: obj.pricing_override_id || null,
+            pricing_overrides: obj.pricing_overrides || [],
+            total_overrides: obj.total_overrides || 0
           }
 
           return Order.create(order, {

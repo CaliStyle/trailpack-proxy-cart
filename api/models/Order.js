@@ -529,6 +529,10 @@ module.exports = class Order extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // USER id of the admin who did the override
+        pricing_override_id: {
+          type: Sequelize.INTEGER
+        },
         // Where the order originated. May only be set during creation, and is not writable thereafter. Orders created through official Proxy Engine channels have protected values that cannot be assigned by other API clients during order creation. These protected values are: "web", "pos", "iphone", and "android" Orders created via the API may be assigned any other string of your choice. If source_name is unspecified, new orders are assigned the value "api".
         source_name: {
           type: Sequelize.STRING,

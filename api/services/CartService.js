@@ -274,6 +274,11 @@ module.exports = class CartService extends Service {
           shop_id: resCart.shop_id,
           has_shipping: resCart.has_shipping,
           has_subscription: resCart.has_subscription,
+
+          //Pricing Overrides
+          pricing_override_id: resCart.pricing_override_id,
+          pricing_overrides: resCart.pricing_overrides,
+          total_overrides: resCart.total_overrides
         }
         // console.log('cart checkout prepare', newOrder)
         return newOrder
@@ -301,6 +306,10 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   pricingOverrides(overrides, id, admin){
+
+    if (_.isObject(overrides) && overrides.pricing_overrides){
+      overrides = overrides.pricing_overrides
+    }
     // console.log(overrides, id, admin)
     return this.resolve(id)
       .then(cart => {
