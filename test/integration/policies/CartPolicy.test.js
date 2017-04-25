@@ -618,4 +618,57 @@ describe('CartPolicy', () => {
         done()
       })
   })
+  it('It should Update Account Balance', (done) => {
+    agent
+      .post(`/customer/${ customerID }/accountBalance`)
+      .send({
+        account_balance: 100
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('Customer Account Balance', res.body)
+        assert.equal(res.body.account_balance, 100)
+        done()
+      })
+  })
+  it('should have pricing overrides', done => {
+    agent
+      .post('/cart/addItems')
+      .send({
+        line_items: [
+          {
+            product_id: shopProducts[3].id
+          }
+        ]
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+        assert.equal(res.body.pricing_overrides[0].price, 100)
+        assert.equal(res.body.total_overrides, 100)
+        assert.equal(res.body.total_due, 99800)
+        done(err)
+      })
+  })
+  it('should checkout with overrides and balance', done => {
+    agent
+      .post('/cart/checkout')
+      .send({
+        payment_kind: 'sale',
+        payment_details: [],
+        fulfillment_kind: 'immediate'
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('Customer Account Balance', res.body.order)
+        assert.ok(res.body.order.id)
+        assert.equal(res.body.order.total_discounts, 100)
+        assert.equal(res.body.order.pricing_overrides[0].price, 100)
+        assert.equal(res.body.order.pricing_overrides[1].price, 100)
+        // There's a prior discount on one item of 100
+        assert.equal(res.body.order.total_price, 99700)
+        assert.equal(res.body.order.total_due, 0)
+        done(err)
+      })
+  })
 })

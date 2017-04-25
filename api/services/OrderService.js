@@ -105,6 +105,7 @@ module.exports = class OrderService extends Service {
 
     // Set the initial total amount due for this order
     let totalDue = obj.total_due
+    let totalPrice = obj.total_price
     let resOrder = {}
     let resCustomer = {}
     let resBillingAddress = {}
@@ -169,8 +170,22 @@ module.exports = class OrderService extends Service {
           const paymentGatewayNames = obj.payment_details.map(detail => { return detail.gateway })
           // console.log('OrderService.create', resShippingAddress, resBillingAddress)
 
-          // Apply Customer Account balance
-          totalDue = Math.max(0, totalDue - resCustomer.account_balance)
+          // Add the account balance to the overrides
+          if (resCustomer.account_balance > 0) {
+            // Apply Customer Account balance
+            const price = Math.min(totalDue, (totalDue - (totalDue - resCustomer.account_balance)))
+            totalDue = Math.max(0, totalDue - price)
+            totalPrice = Math.max(0, totalPrice - price)
+
+            obj.pricing_overrides.push({
+              name: 'Account Balance',
+              price: price
+            })
+            obj.total_overrides = obj.total_overrides + price
+          }
+
+          console.log('BROKE due', totalDue)
+          console.log('BROKE price', totalPrice)
 
           const order = {
             // Order Info
@@ -190,7 +205,7 @@ module.exports = class OrderService extends Service {
             taxes_included: obj.taxes_included,
             total_discounts: obj.total_discounts,
             total_line_items_price: obj.total_line_items_price,
-            total_price: obj.total_due,
+            total_price: totalPrice,
             total_due: totalDue,
             total_tax: obj.total_tax,
             total_shipping: obj.total_shipping,

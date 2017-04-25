@@ -294,7 +294,7 @@ module.exports = class Order extends Model {
               // refunded: The finances have been refunded.
               // voided: The finances have been voided.
               this.financial_status = financialStatus
-              this.total_due = this.total_price - totalSale
+              this.total_due = Math.max(0, this.total_price - totalSale)
               return this
             },
             setFulfillmentStatus: function(fulfillments){
