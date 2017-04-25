@@ -98,9 +98,14 @@ module.exports = class SubscriptionController extends Controller {
     if (!id && req.subscription) {
       id = req.subscription.id
     }
+    if (!req.body) {
+      req.body = {}
+    }
+    if (!req.body.id) {
+      req.body.id = id
+    }
     lib.Validator.validateSubscription.update(req.body)
       .then(values => {
-        req.body.id = id
         return SubscriptionService.update(req.body)
       })
       .then(subscription => {

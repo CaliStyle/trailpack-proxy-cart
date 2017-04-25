@@ -55,7 +55,7 @@ module.exports = class CustomerService extends Service {
    * @param customer
    * @returns {Promise}
    */
-  create(customer) {
+  create(customer, options) {
     const Customer = this.app.orm.Customer
     const Tag = this.app.orm.Tag
     const Cart = this.app.orm.Cart
@@ -64,6 +64,9 @@ module.exports = class CustomerService extends Service {
     const Account = this.app.orm.Account
     const User = this.app.orm.User
 
+    if (!options) {
+      options = {}
+    }
     if (customer.cart) {
       customer.default_cart = customer.cart
       delete customer.cart
@@ -136,20 +139,21 @@ module.exports = class CustomerService extends Service {
         //   model: Account,
         //   as: 'accounts'
         // }
-      ]
+      ],
+      transaction: options.transaction || null
     })
       .then(createdCustomer => {
         resCustomer = createdCustomer
         if (customer.tags && customer.tags.length > 0) {
           customer.tags = _.sortedUniq(customer.tags.filter(n => n))
-          return Tag.transformTags(customer.tags)
+          return Tag.transformTags(customer.tags, {transaction: options.transaction || null})
         }
         return
       })
       .then(tags => {
         // Add Tags
         if (tags && tags.length > 0) {
-          return resCustomer.setTags(tags)
+          return resCustomer.setTags(tags.map(tag => tag.id), {transaction: options.transaction || null})
         }
         return
       })
@@ -157,14 +161,14 @@ module.exports = class CustomerService extends Service {
         if (customer.default_cart) {
           // Resolve the Cart
           // console.log('DEFAULT CART', customer.default_cart)
-          return this.app.services.CartService.resolve(customer.default_cart)
+          return this.app.services.CartService.resolve(customer.default_cart, {transaction: options.transaction || null})
         }
         return
       })
       .then(cart => {
         if (cart) {
           // Set this cart as the default cart
-          return resCustomer.setDefault_cart(cart)
+          return resCustomer.setDefault_cart(cart.id, {transaction: options.transaction || null})
         }
       })
       .then(cart => {
@@ -206,7 +210,7 @@ module.exports = class CustomerService extends Service {
       })
       .then(accounts => {
         if (accounts && accounts.length > 0) {
-          return resCustomer.setAccounts(accounts.map(account => account.id))
+          return resCustomer.setAccounts(accounts.map(account => account.id), {transaction: options.transaction || null})
         }
         return
       })
@@ -218,7 +222,7 @@ module.exports = class CustomerService extends Service {
 
             // If customer exists, then update
             if (user instanceof User.Instance){
-              return user.save()
+              return user.save({transaction: options.transaction || null})
             }
 
             // Create a new password
@@ -231,7 +235,8 @@ module.exports = class CustomerService extends Service {
                   model: this.app.orm['Passport'],
                   as: 'passports'
                 }
-              ]
+              ],
+              transaction: options.transaction || null
             })
           }))
         }
@@ -239,13 +244,13 @@ module.exports = class CustomerService extends Service {
       })
       .then(users => {
         if (users && users.length > 0) {
-          return resCustomer.setUsers(users.map(user => user.id))
+          return resCustomer.setUsers(users.map(user => user.id), {transaction: options.transaction || null})
         }
         return
       })
       .then(users => {
         // return resCustomer.reload()
-        return Customer.findByIdDefault(resCustomer.id)
+        return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
       })
   }
 
@@ -254,74 +259,85 @@ module.exports = class CustomerService extends Service {
    * @param customer
    * @returns {Promise}
    */
-  update(customer) {
-    return new Promise((resolve, reject) => {
-      if (!customer.id) {
-        const err = new Errors.FoundError(Error('Customer is missing id'))
-        return reject(err)
-      }
-      const Customer = this.app.orm.Customer
-      const Tag = this.app.orm.Tag
-      let resCustomer = {}
-      Customer.findByIdDefault(customer.id)
-        .then(foundCustomer => {
-          resCustomer = foundCustomer
-          // console.log('resCustomer',resCustomer)
-          // Update Metadata
-          if (customer.metadata) {
-            resCustomer.metadata.data = customer.metadata || {}
-          }
-          // Update Shipping Address
-          if (customer.shipping_address){
-            customer.shipping_address = _.extend(resCustomer.shipping_address.dataValues, customer.shipping_address)
-          }
-          // Update Billing Address
-          if (customer.billing_address){
-            customer.billing_address = _.extend(resCustomer.billing_address.dataValues, customer.billing_address)
-          }
-          // Update Default Address
-          if (customer.default_address){
-            customer.default_address = _.extend(resCustomer.default_address.dataValues, customer.default_address)
-          }
+  update(customer, options) {
+    const Customer = this.app.orm.Customer
+    const Tag = this.app.orm.Tag
 
-          const update = _.omit(customer,['tags','metadata'])
-          return resCustomer.update(update)
-        })
-        .then(updatedCustomer => {
-          if (customer.tags && customer.tags.length > 0) {
-            customer.tags = _.sortedUniq(customer.tags.filter(n => n))
-            return Tag.transformTags(customer.tags)
-          }
-          return
-        })
-        .then(tags => {
-          if (tags && tags.length > 0) {
-            return resCustomer.setTags(tags)
-          }
-          return
-        })
-        .then(tags => {
-          // Save Changes to metadata
-          return resCustomer.metadata.save()
-        })
-        .then(metadata => {
-          return Promise.all([
-            resCustomer.shipping_address.save(),
-            resCustomer.billing_address.save(),
-            resCustomer.default_address.save()
-          ])
-        })
-        .then(addresses => {
-          // return resCustomer.reload()
-          return Customer.findByIdDefault(resCustomer.id)
-        })
-        .then(customer => {
-          return resolve(customer)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+    if (!customer.id) {
+      const err = new Errors.FoundError(Error('Customer is missing id'))
+      return Promise.reject(err)
+    }
+    if (!options) {
+      options = {}
+    }
+
+    let resCustomer = {}
+    return Customer.findByIdDefault(customer.id, options)
+      .then(foundCustomer => {
+        resCustomer = foundCustomer
+        // console.log('resCustomer',resCustomer)
+        // Update Metadata
+        if (customer.metadata) {
+          resCustomer.metadata.data = customer.metadata || {}
+        }
+        // Update Shipping Address
+        if (customer.shipping_address){
+          customer.shipping_address = _.extend(resCustomer.shipping_address.dataValues, customer.shipping_address)
+        }
+        // Update Billing Address
+        if (customer.billing_address){
+          customer.billing_address = _.extend(resCustomer.billing_address.dataValues, customer.billing_address)
+        }
+        // Update Default Address
+        if (customer.default_address){
+          customer.default_address = _.extend(resCustomer.default_address.dataValues, customer.default_address)
+        }
+
+        const update = _.omit(customer,['tags','metadata'])
+        return resCustomer.update(update)
+      })
+      .then(updatedCustomer => {
+        if (customer.tags && customer.tags.length > 0) {
+          customer.tags = _.sortedUniq(customer.tags.filter(n => n))
+          return Tag.transformTags(customer.tags, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(tags => {
+        if (tags && tags.length > 0) {
+          return resCustomer.setTags(tags.map(tag => tag.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(tags => {
+        // Save Changes to metadata
+        if (customer.metadata) {
+          return resCustomer.metadata.save({transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(metadata => {
+        if (customer.shipping_address) {
+          return resCustomer.shipping_address.save({transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(shippingAddress => {
+        if (customer.billing_address) {
+          return resCustomer.billing_address.save({transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(billingAddress => {
+        if (customer.default_address) {
+          return resCustomer.default_address.save({transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(defaultAddress => {
+        // return resCustomer.reload()
+        return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
+      })
   }
 
   /**

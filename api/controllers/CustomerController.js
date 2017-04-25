@@ -167,7 +167,7 @@ module.exports = class CustomerController extends Controller {
     }
 
     const CustomerService = this.app.services.CustomerService
-    lib.Validator.validateCustomer(req.body)
+    lib.Validator.validateCustomer.create(req.body)
       .then(values => {
         return CustomerService.create(req.body)
       })
@@ -200,12 +200,40 @@ module.exports = class CustomerController extends Controller {
   update(req, res) {
     const CustomerService = this.app.services.CustomerService
     let id = req.params.id
+
     if (!id && req.customer) {
       id = req.customer.id
     }
-    lib.Validator.validateCustomer(req.body)
+    if (!req.body) {
+      req.body = {}
+    }
+    if (!req.body.id) {
+      req.body.id = id
+    }
+    lib.Validator.validateCustomer.update(req.body)
       .then(values => {
-        req.body.id = id
+        return CustomerService.update(req.body)
+      })
+      .then(customer => {
+        return res.json(customer)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  accountBalance(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    const id = req.params.id
+    if (!req.body) {
+      req.body = {}
+    }
+    if (!req.body.id) {
+      req.body.id = id
+    }
+    lib.Validator.validateCustomer.accountBalance(req.body)
+      .then(values => {
         return CustomerService.update(req.body)
       })
       .then(customer => {
