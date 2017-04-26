@@ -458,6 +458,11 @@ module.exports = class Subscription extends Model {
           defaultValue: 0
         },
         // The reason why the subscription was cancelled. If the subscription was not cancelled, this value is "null."
+        // cancelled Subscription
+        cancelled: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
         cancel_reason: {
           type: Sequelize.ENUM,
           values: _.values(SUBSCRIPTION_CANCEL)

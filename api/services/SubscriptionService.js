@@ -197,6 +197,7 @@ module.exports = class SubscriptionService extends Service {
       .then(resSubscription => {
         resSubscription.cancel_reason = body.reason || SUBSCRIPTION_CANCEL.OTHER
         resSubscription.cancelled_at = new Date()
+        resSubscription.cancelled = true
         resSubscription.active = false
         return resSubscription.save()
       })
@@ -224,6 +225,7 @@ module.exports = class SubscriptionService extends Service {
       .then(resSubscription => {
         resSubscription.cancel_reason = null
         resSubscription.cancelled_at = null
+        resSubscription.cancelled = false
         resSubscription.active = true
         return resSubscription.save()
       })
@@ -250,6 +252,7 @@ module.exports = class SubscriptionService extends Service {
       .then(resSubscription => {
         resSubscription.cancel_reason = null
         resSubscription.cancelled_at = null
+        resSubscription.cancelled = false
         resSubscription.active = false
         return resSubscription.save()
       })
