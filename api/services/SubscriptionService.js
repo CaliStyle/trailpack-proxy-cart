@@ -149,7 +149,7 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
-          type: 'subscription.subscribed',
+          type: 'customer.subscription.subscribed',
           data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -178,7 +178,7 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: subscription.customer_id,
           object: 'customer',
-          type: 'subscription.updated',
+          type: 'customer.subscription.updated',
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -204,7 +204,7 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
-          type: 'subscription.cancelled',
+          type: 'customer.subscription.cancelled',
           data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -231,7 +231,7 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
-          type: 'subscription.activated',
+          type: 'customer.subscription.activated',
           data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -257,7 +257,7 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
-          type: 'subscription.deactivated',
+          type: 'customer.subscription.deactivated',
           data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -295,7 +295,7 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
-          type: 'subscription.items_added',
+          type: 'customer.subscription.items_added',
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -331,7 +331,7 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
-          type: 'subscription.items_removed',
+          type: 'customer.subscription.items_removed',
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -370,7 +370,7 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: newSubscription.customer_id,
           object: 'customer',
-          type: 'subscription.renewed',
+          type: 'customer.subscription.renewed',
           data: newSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

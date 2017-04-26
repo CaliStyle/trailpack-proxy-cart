@@ -250,12 +250,15 @@ module.exports = class OrderService extends Service {
             throw new Error('Unexpected Error while creating order')
           }
           resOrder = order
-
-          if (resCustomer instanceof Customer.Instance) {
-            resCustomer.setAccountBalance(Math.max(0, resCustomer.account_balance - totalDue))
-            resCustomer.setTotalSpent(totalDue)
-            resCustomer.setLastOrder(resOrder)
-            return resCustomer.save()
+          if (resCustomer.id) {
+            return this.app.services.CustomerService.resolve(resCustomer)
+              .then(customer => {
+                const deduct = Math.min(totalDue, (totalDue - (totalDue - customer.account_balance)))
+                customer.setAccountBalance(Math.max(0, customer.account_balance - deduct))
+                customer.setTotalSpent(totalDue)
+                customer.setLastOrder(resOrder)
+                return resCustomer.save()
+              })
           }
           else {
             return null

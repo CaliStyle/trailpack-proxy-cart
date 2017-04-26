@@ -671,4 +671,14 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
+  it('It should get customer and Account Balance should now be 0', (done) => {
+    agent
+      .get(`/customer/${ customerID }`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('Customer Account Balance', res.body)
+        assert.equal(res.body.account_balance, 0)
+        done()
+      })
+  })
 })
