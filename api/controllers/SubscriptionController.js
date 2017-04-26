@@ -146,7 +146,7 @@ module.exports = class SubscriptionController extends Controller {
     lib.Validator.validateSubscription.deactivate(req.body)
       .then(values => {
         req.body.id = id
-        return SubscriptionService.activate(req.body, id)
+        return SubscriptionService.deactivate(req.body, id)
       })
       .then(subscription => {
         return res.json(subscription)
