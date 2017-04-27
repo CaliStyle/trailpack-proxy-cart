@@ -189,5 +189,12 @@ module.exports = class OrderController extends Controller {
   exportOrders(req, res) {
     //
   }
+
+  addTag(req, res) {
+    //
+  }
+  removeTag(req, res) {
+    //
+  }
 }
 

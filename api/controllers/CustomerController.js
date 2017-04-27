@@ -854,4 +854,17 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  addTag(req, res) {
+    //
+  }
+  removeTag(req, res) {
+    //
+  }
+  addCollection(req, res) {
+    //
+  }
+  removeCollection(req, res) {
+    //
+  }
 }

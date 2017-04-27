@@ -138,7 +138,7 @@ module.exports = class ProductCsvService extends Service {
           const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
           const match = optionsReg.exec(key)
           // console.log(match)
-          if (typeof match[3] !== 'undefined' && match[4] !== 'undefined') {
+          if (match && typeof match[3] !== 'undefined' && match[4] !== 'undefined') {
             const part = match[4].toLowerCase()
             const index = Number(match[3]) - 1
             // console.log(index, part)
