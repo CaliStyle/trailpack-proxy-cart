@@ -603,6 +603,190 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  address(req, res) {
+    const Address = this.app.orm['Address']
+    const addressId = req.params.address
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !addressId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      res.send(401, err)
+
+    }
+    Address.findById(addressId)
+      .then(address => {
+        return res.json(address)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addresses(req, res) {
+    const Address = this.app.orm['Address']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Address.findAndCount({
+      order: sort,
+      where: {
+        customer_id: customerId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(addresses => {
+        res.set('X-Pagination-Total', addresses.count)
+        res.set('X-Pagination-Pages', Math.ceil(addresses.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(addresses.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addAddress(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    // const address = req.params.address
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+    if (!req.body.customer) {
+      req.body.customer = {}
+    }
+    req.body.customer.id = customerId
+    // req.body.address.id = address
+
+    lib.Validator.validateAddress.add(req.body.address)
+      .then(values => {
+        return CustomerService.addAddress(req.body.customer, req.body.address)
+      })
+      .then(address => {
+        return res.json(address)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  updateAddress(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    const addressId = req.params.address
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !req.user || !addressId) {
+      const err = new Error('A customer id, address id, and a user in session are required')
+      return res.serverError(err)
+    }
+    if (!req.body.customer) {
+      req.body.customer = {}
+    }
+    if (!req.body.address) {
+      req.body.address = {}
+    }
+
+    // Set body variables just in case
+    req.body.customer.id = customerId
+    req.body.address.id = addressId
+
+    lib.Validator.validateAddress.add(req.body.address)
+      .then(values => {
+        return CustomerService.updateAddress(req.body.customer, req.body.address, req.body.address)
+      })
+      .then(address => {
+        return res.json(address)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  destroyAddress(req, res) {
+    const CustomerService = this.app.services.CustomerService
+    const addressId = req.params.address
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !req.user || !addressId) {
+      const err = new Error('A customer id, address id, and a user in session are required')
+      return res.serverError(err)
+    }
+    if (!req.body.customer) {
+      req.body.customer = {}
+    }
+    if (!req.body.address) {
+      req.body.address = {}
+    }
+
+    // Set body variables just in case
+    req.body.customer.id = customerId
+    req.body.address.id = addressId
+
+    lib.Validator.validateAddress.remove(req.body.address)
+      .then(values => {
+        return CustomerService.removeAddress(req.body.customer, req.body.address)
+      })
+      .then(address => {
+        return res.json(address)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   source(req, res) {
     const Source = this.app.orm['Source']
     const sourceId = req.params.source

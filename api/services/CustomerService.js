@@ -399,14 +399,7 @@ module.exports = class CustomerService extends Service {
         })
     })
   }
-  // TODO addAddress
-  addAddress(customer, address){
-    return this.resolve(customer)
-  }
-  // TODO removeAddress
-  removeAddress(customer, address){
-    return this.resolve(customer)
-  }
+
   // TODO addTag
   addTag(customer, tag){
     // const Customer = this.app.orm['Customer']
@@ -451,6 +444,36 @@ module.exports = class CustomerService extends Service {
     // const Customer = this.app.orm['Customer']
     // const Collection = this.app.orm['Collection']
 
+    let resCustomer
+    return this.resolve(customer)
+      .then(customer => {
+        resCustomer = customer
+        // return this.
+        return resCustomer
+      })
+  }
+  // TODO
+  addAddress(customer, address) {
+    let resCustomer
+    return this.resolve(customer)
+      .then(customer => {
+        resCustomer = customer
+        // return this.
+        return resCustomer
+      })
+  }
+  // TODO
+  updateAddress(customer, address) {
+    let resCustomer
+    return this.resolve(customer)
+      .then(customer => {
+        resCustomer = customer
+        // return this.
+        return resCustomer
+      })
+  }
+  // TODO
+  removeAddress(customer, address) {
     let resCustomer
     return this.resolve(customer)
       .then(customer => {
