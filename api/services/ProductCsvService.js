@@ -179,13 +179,6 @@ module.exports = class ProductCsvService extends Service {
     })
     delete upload.variant_images_alt
 
-    // Map collections
-    upload.collections = _.map(upload.collections, (collection, index) => {
-      return {
-        title: collection
-      }
-    })
-
     // Map vendors
     upload.vendors = _.map(upload.vendors, (vendor, index) => {
       return {

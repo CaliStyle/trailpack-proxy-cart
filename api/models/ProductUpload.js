@@ -79,7 +79,7 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Vendors'
-      vendors: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'vendors', {
+      vendors: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'vendors', {
         defaultValue: []
       }),
       // 'Type'
@@ -95,7 +95,7 @@ module.exports = class ProductUpload extends Model {
         defaultValue: []
       }),
       // 'Associations'
-      associations: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'associations', {
+      associations: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'associations', {
         defaultValue: []
       }),
       // 'Published'
@@ -104,11 +104,11 @@ module.exports = class ProductUpload extends Model {
         defaultValue: true
       },
       // { 'Option / * Name' : 'Option / * Value' }
-      options: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'options', {
+      options: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'options', {
         defaultValue: []
       }),
       // 'Images Sources'
-      images: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'images', {
+      images: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'images', {
         defaultValue: []
       }),
       // 'Variant SKU'
@@ -174,7 +174,7 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Variant Images'
-      variant_images: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'variant_images', {
+      variant_images: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'variant_images', {
         defaultValue: []
       }),
       // 'Gift Card'

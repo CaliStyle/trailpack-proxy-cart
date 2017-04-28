@@ -201,7 +201,6 @@ module.exports = class Collection extends Model {
               })
               // console.log('THESE COLLECTIONS', collections)
               return Sequelize.Promise.mapSeries(collections, collection => {
-              // return Promise.all(collections.map((collection, index) => {
                 const newCollection = collection
                 return Collection.findOne({
                   where: collection,
