@@ -71,7 +71,7 @@ module.exports = class Tag extends Model {
                 tags = []
               }
 
-              tags = _.map(tags, tag => {
+              tags = tags.map(tag => {
                 if (tag && _.isString(tag)) {
                   tag = { name: tag }
                   return tag
@@ -84,7 +84,9 @@ module.exports = class Tag extends Model {
               return Sequelize.Promise.mapSeries(tags, tag => {
                 const newTag = tag
                 return Tag.findOne({
-                  where: tag,
+                  where: {
+                    name: tag.name
+                  },
                   attributes: ['id', 'name'],
                   transaction: options.transaction || null
                 })

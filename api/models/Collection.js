@@ -187,7 +187,7 @@ module.exports = class Collection extends Model {
               }
 
               // Transform if necessary to objects
-              collections = _.map(collections, collection => {
+              collections = collections.map(collection => {
                 if (collection && _.isString(collection)) {
                   collection = {
                     handle: app.services.ProxyCartService.slug(collection),
@@ -203,14 +203,16 @@ module.exports = class Collection extends Model {
               return Sequelize.Promise.mapSeries(collections, collection => {
                 const newCollection = collection
                 return Collection.findOne({
-                  where: collection,
+                  where: {
+                    handle: collection.handle
+                  },
                   attributes: ['id', 'title', 'handle'],
                   transaction: options.transaction || null
                 })
-                  .then(collection => {
-                    if (collection) {
+                  .then(foundCollection => {
+                    if (foundCollection) {
                       // console.log('COLLECTION', collection.get({ plain: true }))
-                      return collection
+                      return foundCollection
                     }
                     else {
                       // console.log('CREATING COLLECTION',collections[index])
