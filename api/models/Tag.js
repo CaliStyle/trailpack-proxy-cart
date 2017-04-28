@@ -63,7 +63,7 @@ module.exports = class Tag extends Model {
              */
             transformTags: (tags, options) => {
               const Tag = app.orm['Tag']
-
+              const Sequelize = Tag.sequelize
               if (!options) {
                 options = {}
               }
@@ -81,7 +81,8 @@ module.exports = class Tag extends Model {
                 }
               })
               // console.log('THESE TAGS', tags)
-              return Promise.all(tags.map((tag, index) => {
+              return Sequelize.Promise.mapSeries(tags, tag => {
+                const newTag = tag
                 return Tag.findOne({
                   where: tag,
                   attributes: ['id', 'name'],
@@ -89,17 +90,15 @@ module.exports = class Tag extends Model {
                 })
                   .then(tag => {
                     if (tag) {
-                      // console.log('TAG', tag.get({ plain: true }))
                       return tag
                     }
                     else {
-                      // console.log('CREATING TAG',tags[index])
-                      return Tag.create(tags[index], {
+                      return Tag.create(newTag, {
                         transaction: options.transaction || null
                       })
                     }
                   })
-              }))
+              })
             },
             reverseTransformTags: (tags) => {
               tags = _.map(tags, tag => {

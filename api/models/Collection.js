@@ -165,7 +165,6 @@ module.exports = class Collection extends Model {
               if (!options) {
                 options = {}
               }
-
               options = _.merge(options, {})
 
               return this.findAll(options)
@@ -179,7 +178,7 @@ module.exports = class Collection extends Model {
             },
             transformCollections: (collections, options) => {
               const Collection = app.orm['Collection']
-
+              const Sequelize = Collection.sequelize
               if (!options) {
                 options = {}
               }
@@ -201,7 +200,9 @@ module.exports = class Collection extends Model {
                 }
               })
               // console.log('THESE COLLECTIONS', collections)
-              return Promise.all(collections.map((collection, index) => {
+              return Sequelize.Promise.mapSeries(collections, collection => {
+              // return Promise.all(collections.map((collection, index) => {
+                const newCollection = collection
                 return Collection.findOne({
                   where: collection,
                   attributes: ['id', 'title', 'handle'],
@@ -214,12 +215,12 @@ module.exports = class Collection extends Model {
                     }
                     else {
                       // console.log('CREATING COLLECTION',collections[index])
-                      return Collection.create(collections[index], {
+                      return Collection.create(newCollection, {
                         transaction: options.transaction || null
                       })
                     }
                   })
-              }))
+              })
             },
             reverseTransformCollections: (collections) => {
               collections = _.map(collections, collection => {
