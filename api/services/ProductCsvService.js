@@ -288,8 +288,8 @@ module.exports = class ProductCsvService extends Service {
       })
         .then(products => {
           // Remove Upload Junk
-          products = _.map(products, product => {
-            return _.omit(product.get({plain: true}), ['id', 'upload_id', 'created_at','updated_at'])
+          products = products.map(product => {
+            return _.omit(product.get({plain: true}), ['id', 'upload_id', 'created_at', 'updated_at'])
           })
           // Construct Root Product
           const defaultProduct = products.shift()
@@ -309,6 +309,10 @@ module.exports = class ProductCsvService extends Service {
           return this.app.services.ProductService.addProduct(defaultProduct, options)
         })
         .then(product => {
+          if (!product) {
+            errorsCount++
+            return resolve({products: 0, variants: 0, errors: errorsCount})
+          }
           return resolve({products: 1, variants: product.variants.length, errors: errorsCount})
         })
     })

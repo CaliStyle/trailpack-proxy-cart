@@ -74,6 +74,7 @@ module.exports = class UserController extends ModelPermissions {
         res.set('X-Pagination-Total', customers.count)
         res.set('X-Pagination-Pages', Math.ceil(customers.count / limit))
         res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)
         return res.json(customers.rows)
