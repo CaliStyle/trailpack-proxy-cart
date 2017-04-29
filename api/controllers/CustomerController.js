@@ -1052,4 +1052,69 @@ module.exports = class CustomerController extends Controller {
   removeCollection(req, res) {
     //
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  event(req, res) {
+    const Event = this.app.orm['Event']
+    const eventId = req.params.event
+    const customerId = req.params.id
+
+    if (!customerId || !eventId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      res.send(401, err)
+
+    }
+    Event.findById(eventId)
+      .then(event => {
+        return res.json(event)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  events(req, res) {
+    const Event = this.app.orm['Event']
+    const customerId = req.params.id
+
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Event.findAndCount({
+      order: sort,
+      where: {
+        object_id: customerId,
+        object: 'customer'
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(events => {
+        res.set('X-Pagination-Total', events.count)
+        res.set('X-Pagination-Pages', Math.ceil(events.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(events.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
 }
