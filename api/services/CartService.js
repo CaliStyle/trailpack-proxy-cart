@@ -140,6 +140,7 @@ module.exports = class CartService extends Service {
             object_id: order.customer_id,
             object: 'customer',
             type: 'customer.cart.checkout',
+            message: 'Customer cart checked out',
             data: order
           }
           this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

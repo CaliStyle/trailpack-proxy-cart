@@ -141,7 +141,7 @@ module.exports = class FulfillmentService extends Service {
           object_id: resFulfillment.order_id,
           object: 'order',
           type: `order.fulfillment.create.${resFulfillment.status}`,
-          message: `Order fulfillment created ${resFulfillment.status}`,
+          message: `Order fulfillment created and ${resFulfillment.status}`,
           data: resFulfillment
         }
 

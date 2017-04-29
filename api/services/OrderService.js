@@ -106,6 +106,7 @@ module.exports = class OrderService extends Service {
     // Set the initial total amount due for this order
     let totalDue = obj.total_due
     let totalPrice = obj.total_price
+    let deduction = 0
     let resOrder = {}
     let resCustomer = {}
     let resBillingAddress = {}
@@ -173,21 +174,18 @@ module.exports = class OrderService extends Service {
           // Add the account balance to the overrides
           if (resCustomer.account_balance > 0) {
             // Apply Customer Account balance
-            const price = Math.min(totalDue, (totalDue - (totalDue - resCustomer.account_balance)))
-            if (price > 0) {
-              totalDue = Math.max(0, totalDue - price)
-              totalPrice = Math.max(0, totalPrice - price)
+            deduction = Math.min(totalDue, (totalDue - (totalDue - resCustomer.account_balance)))
+            if (deduction > 0) {
+              totalDue = Math.max(0, totalDue - deduction)
+              totalPrice = Math.max(0, totalPrice - deduction)
 
               obj.pricing_overrides.push({
                 name: 'Account Balance',
-                price: price
+                price: deduction
               })
-              obj.total_overrides = obj.total_overrides + price
+              obj.total_overrides = obj.total_overrides + deduction
             }
           }
-
-          console.log('BROKE due', totalDue)
-          console.log('BROKE price', totalPrice)
 
           const order = {
             // Order Info
@@ -257,14 +255,14 @@ module.exports = class OrderService extends Service {
             return this.app.services.CustomerService.resolve(resCustomer)
               .then(customer => {
                 // Get the total deducted
-                const deduct = Math.min(totalDue, (totalDue - (totalDue - customer.account_balance)))
-                if (deduct > 0) {
-                  customer.setAccountBalance(Math.max(0, customer.account_balance - deduct))
+                // console.log('BROKE', deduction)
+                if (deduction > 0) {
+                  customer.setAccountBalance(Math.max(0, customer.account_balance - deduction))
                   const event = {
                     object_id: customer.id,
                     object: 'customer',
                     type: 'customer.account_balance.deducted',
-                    message: `Customer account balance was deducted by ${ deduct }`,
+                    message: `Customer account balance was deducted by ${ deduction }`,
                     data: customer
                   }
                   this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -285,7 +283,7 @@ module.exports = class OrderService extends Service {
               object_id: customer.id,
               object: 'customer',
               type: 'customer.order.created',
-              message: `Customer order was created`,
+              message: 'Customer order was created',
               data: resOrder
             }
             this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
