@@ -474,6 +474,20 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
+  it('should activate customer subscription by id', done => {
+    agent
+      .post(`/subscription/${ subscriptionID }/activate`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY subscription', res.body)
+        assert.equal(res.body.id, subscriptionID)
+        assert.equal(res.body.active, true)
+        assert.equal(res.body.cancel_reason, null)
+        assert.equal(res.body.cancelled_at, null)
+        done(err)
+      })
+  })
   it('should get session customer accounts', done => {
     agent
       .get('/customer/accounts')

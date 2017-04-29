@@ -340,6 +340,41 @@ module.exports = class CustomerService extends Service {
       })
   }
 
+  accountBalance(customer, options) {
+    const Customer = this.app.orm.Customer
+
+    if (!customer.id) {
+      const err = new Errors.FoundError(Error('Customer is missing id'))
+      return Promise.reject(err)
+    }
+    if (!options) {
+      options = {}
+    }
+
+    let resCustomer = {}
+    return Customer.findById(customer.id)
+      .then(foundCustomer => {
+        if (!foundCustomer) {
+          throw new Errors.FoundError(Error('Customer was not found'))
+        }
+        resCustomer = foundCustomer
+        resCustomer.account_balance = customer.account_balance
+        return resCustomer.save({transaction: options.transaction || null})
+      })
+      .then(customer => {
+
+        const event = {
+          object_id: customer.id,
+          object: 'customer',
+          type: 'customer.account_balance.updated',
+          data: customer
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
+      })
+  }
+
   /**
    *
    * @param customer

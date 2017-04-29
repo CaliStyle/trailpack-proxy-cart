@@ -203,7 +203,7 @@ module.exports = class SubscriptionCsvService extends Service {
         const event = {
           object_id: subscription.customer_id,
           object: 'customer',
-          type: 'subscription.subscribed',
+          type: 'customer.subscription.subscribed',
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

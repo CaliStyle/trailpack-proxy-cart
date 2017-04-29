@@ -174,14 +174,16 @@ module.exports = class OrderService extends Service {
           if (resCustomer.account_balance > 0) {
             // Apply Customer Account balance
             const price = Math.min(totalDue, (totalDue - (totalDue - resCustomer.account_balance)))
-            totalDue = Math.max(0, totalDue - price)
-            totalPrice = Math.max(0, totalPrice - price)
+            if (price > 0) {
+              totalDue = Math.max(0, totalDue - price)
+              totalPrice = Math.max(0, totalPrice - price)
 
-            obj.pricing_overrides.push({
-              name: 'Account Balance',
-              price: price
-            })
-            obj.total_overrides = obj.total_overrides + price
+              obj.pricing_overrides.push({
+                name: 'Account Balance',
+                price: price
+              })
+              obj.total_overrides = obj.total_overrides + price
+            }
           }
 
           console.log('BROKE due', totalDue)
@@ -251,12 +253,24 @@ module.exports = class OrderService extends Service {
           }
           resOrder = order
           if (resCustomer.id) {
+            // Update the customer with the order
             return this.app.services.CustomerService.resolve(resCustomer)
               .then(customer => {
+                // Get the total deducted
                 const deduct = Math.min(totalDue, (totalDue - (totalDue - customer.account_balance)))
-                customer.setAccountBalance(Math.max(0, customer.account_balance - deduct))
+                if (deduct > 0) {
+                  customer.setAccountBalance(Math.max(0, customer.account_balance - deduct))
+                  const event = {
+                    object_id: customer.id,
+                    object: 'customer',
+                    type: 'customer.account_balance.deducted',
+                    data: customer
+                  }
+                  this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                }
                 customer.setTotalSpent(totalDue)
                 customer.setLastOrder(resOrder)
+
                 return resCustomer.save()
               })
           }

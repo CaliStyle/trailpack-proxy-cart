@@ -235,7 +235,7 @@ module.exports = class CustomerController extends Controller {
     }
     lib.Validator.validateCustomer.accountBalance(req.body)
       .then(values => {
-        return CustomerService.update(req.body)
+        return CustomerService.accountBalance(req.body)
       })
       .then(customer => {
         return res.json(customer)
