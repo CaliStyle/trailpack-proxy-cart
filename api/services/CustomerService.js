@@ -367,6 +367,7 @@ module.exports = class CustomerService extends Service {
           object_id: customer.id,
           object: 'customer',
           type: 'customer.account_balance.updated',
+          message: `Customer account balance was updated to ${ customer.account_balance }`,
           data: customer
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

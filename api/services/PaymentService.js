@@ -102,7 +102,8 @@ module.exports = class PaymentService extends Service {
         const event = {
           object_id: transaction.order_id,
           object: 'order',
-          type: `transaction.sale.${transaction.status}`,
+          type: `order.transaction.sale.${transaction.status}`,
+          message: `Order transaction ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

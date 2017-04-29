@@ -264,6 +264,7 @@ module.exports = class OrderService extends Service {
                     object_id: customer.id,
                     object: 'customer',
                     type: 'customer.account_balance.deducted',
+                    message: `Customer account balance was deducted by ${ deduct }`,
                     data: customer
                   }
                   this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -284,6 +285,7 @@ module.exports = class OrderService extends Service {
               object_id: customer.id,
               object: 'customer',
               type: 'customer.order.created',
+              message: `Customer order was created`,
               data: resOrder
             }
             this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

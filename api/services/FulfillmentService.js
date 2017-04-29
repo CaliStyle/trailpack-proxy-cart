@@ -140,7 +140,8 @@ module.exports = class FulfillmentService extends Service {
         const event = {
           object_id: resFulfillment.order_id,
           object: 'order',
-          type: `fulfillment.create.${resFulfillment.status}`,
+          type: `order.fulfillment.create.${resFulfillment.status}`,
+          message: `Order fulfillment created ${resFulfillment.status}`,
           data: resFulfillment
         }
 

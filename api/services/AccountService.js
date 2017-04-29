@@ -137,7 +137,8 @@ module.exports = class AccountService extends Service {
         const event = {
           object_id: account.customer_id,
           object: 'customer',
-          type: 'account.updated',
+          type: 'customer.account.updated',
+          message: `Customer account was updated`,
           data: account
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -176,7 +177,8 @@ module.exports = class AccountService extends Service {
                   const event = {
                     object_id: source.customer_id,
                     object: 'customer',
-                    type: 'source.created',
+                    type: 'customer.source.created',
+                    message: `Customer source was created`,
                     data: source
                   }
                   this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -189,7 +191,8 @@ module.exports = class AccountService extends Service {
             const event = {
               object_id: resAccount.customer_id,
               object: 'customer',
-              type: 'account.created',
+              type: 'customer.account.created',
+              message: `Customer account was created`,
               data: resAccount
             }
             this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -239,7 +242,8 @@ module.exports = class AccountService extends Service {
         const event = {
           object_id: source.customer_id,
           object: 'customer',
-          type: 'source.created',
+          type: 'customer.source.created',
+          message: `Customer source was created`,
           data: source
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -308,7 +312,8 @@ module.exports = class AccountService extends Service {
         const event = {
           object_id: source.customer_id,
           object: 'customer',
-          type: 'source.updated',
+          type: 'customer.source.updated',
+          message: `Customer source was updated`,
           data: source
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -336,6 +341,7 @@ module.exports = class AccountService extends Service {
           object_id: resSource.customer_id,
           object: 'customer',
           type: 'source.removed',
+          message: `Customer source was removed`,
           data: resSource
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
