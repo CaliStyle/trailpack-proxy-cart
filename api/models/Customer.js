@@ -269,6 +269,13 @@ module.exports = class Customer extends Model {
               }
               options = _.merge(options, queryDefaults.Customer.default(app))
               return this.findById(id, options)
+            },
+            findAndCountDefault: function(options) {
+              if (!options) {
+                options = {}
+              }
+              options = _.merge(options, {})
+              return this.findAndCount(options)
             }
           },
           instanceMethods: {

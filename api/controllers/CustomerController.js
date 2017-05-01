@@ -1186,4 +1186,28 @@ module.exports = class CustomerController extends Controller {
       })
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  destroyEvent(req, res) {
+    const Event = this.app.orm['Event']
+    const eventId = req.params.event
+    const customerId = req.params.id
+
+    if (!customerId || !eventId || !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      res.send(401, err)
+
+    }
+    Event.findById(eventId)
+      .then(event => {
+        return res.json(event)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
 }
