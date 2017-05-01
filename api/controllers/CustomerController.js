@@ -156,6 +156,75 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findByTag(req, res) {
+    const orm = this.app.orm
+    const Customer = orm['Customer']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+    Customer.findAndCountDefault({
+      where: {
+        '$tags.name$': req.params.tag
+      },
+      order: sort,
+      offset: offset,
+      req: req
+      // limit: limit // TODO Sequelize breaks if a limit is here.
+    })
+      .then(customers => {
+        res.set('X-Pagination-Total', customers.count)
+        res.set('X-Pagination-Pages', Math.ceil(customers.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Offset', offset)
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(customers.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findByCollection(req, res) {
+    const orm = this.app.orm
+    const Customer = orm['Customer']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+    Customer.findAndCountDefault({
+      where: {
+        '$collections.handle$': req.params.handle
+      },
+      order: sort,
+      offset: offset,
+      req: req
+      // limit: limit // TODO Sequelize breaks if a limit is here.
+    })
+      .then(customers => {
+        res.set('X-Pagination-Total', customers.count)
+        res.set('X-Pagination-Pages', Math.ceil(customers.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Offset', offset)
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(customers.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
   /**
    *
    * @param req
