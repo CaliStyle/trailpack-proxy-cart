@@ -34,8 +34,8 @@
     "trailpack": "^2.0.0",
     "trailpack-proxy-cart-countries": "^0.0.4",
     "trailpack-proxy-generics": "^0.0.34",
-    "trailpack-proxy-passport": "^0.0.7",
-    "trailpack-proxy-permissions": "^0.0.32"
+    "trailpack-proxy-passport": "^0.0.10",
+    "trailpack-proxy-permissions": "^0.0.33"
   },
   "devDependencies": {
     "eslint": "^3.17.1",

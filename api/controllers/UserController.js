@@ -7,6 +7,7 @@ const ModelPermissions = require('trailpack-proxy-permissions/api/controllers/Us
  * @description Generated Trails.js Controller.
  */
 module.exports = class UserController extends ModelPermissions {
+
   /**
    *
    * @param req
