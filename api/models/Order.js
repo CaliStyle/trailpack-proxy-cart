@@ -192,6 +192,14 @@ module.exports = class Order extends Model {
             findByIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Order.default(app))
               return this.findById(criteria, options)
+            },
+            findAndCountDefault: function(options) {
+              if (!options) {
+                options = {}
+              }
+              options = _.merge(options, queryDefaults.Order.default(app))
+              // console.log('Product.findAndCountDefault', options)
+              return this.findAndCount(options)
             }
           },
           instanceMethods: {

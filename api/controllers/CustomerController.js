@@ -174,7 +174,13 @@ module.exports = class CustomerController extends Controller {
       },
       order: sort,
       offset: offset,
-      req: req
+      req: req,
+      include: [
+        {
+          model: this.app.orm['Tag'],
+          as: 'tags'
+        }
+      ]
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(customers => {
@@ -206,6 +212,12 @@ module.exports = class CustomerController extends Controller {
       where: {
         '$collections.handle$': req.params.handle
       },
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections'
+        }
+      ],
       order: sort,
       offset: offset,
       req: req

@@ -146,4 +146,17 @@ describe('OrderController', () => {
         done(err)
       })
   })
+  it('should search orders', (done) => {
+    request
+      .get('/order/search')
+      .query({
+        term: '1'
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('Order Search', res.body)
+        assert.equal(res.body.length, 2)
+        done(err)
+      })
+  })
 })

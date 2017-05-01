@@ -66,10 +66,62 @@ module.exports = class OrderController extends Controller {
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
-    Order.findAndCount({
+    Order.findAndCountDefault({
       order: sort,
       where: where,
       offset: offset,
+      limit: limit
+    })
+      .then(orders => {
+        res.set('X-Pagination-Total', orders.count)
+        res.set('X-Pagination-Pages', Math.ceil(orders.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Offset', offset)
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(orders.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  search(req, res) {
+    const orm = this.app.orm
+    const Order = orm['Order']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+    const term = req.query.term
+    console.log('OrderController.search', term)
+    Order.findAndCountDefault({
+      where: {
+        $or: [
+          {
+            number: {
+              $like: `%${term}%`
+            }
+          },
+          {
+            name: {
+              $like: `%${term}%`
+            }
+          },
+          {
+            email: {
+              $like: `%${term}%`
+            }
+          }
+        ]
+      },
+      order: sort,
+      offset: offset,
+      req: req,
       limit: limit
     })
       .then(orders => {
