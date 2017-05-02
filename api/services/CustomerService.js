@@ -639,5 +639,27 @@ module.exports = class CustomerService extends Service {
         return this.app.services.AccountService.removeSource(source)
       })
   }
+
+  calculate(cart) {
+    if (!cart.customer_id) {
+      return cart
+    }
+    let deduction = 0
+    // let overrides = cart.pricing_overrides
+    return this.resolve(cart.customer_id)
+      .then(customer => {
+        if (customer.account_balance > 0) {
+          // Apply Customer Account balance
+          deduction = Math.min(cart.total_due, (cart.total_due - (cart.total_due - customer.account_balance)))
+          if (deduction > 0) {
+            cart.pricing_overrides.push({
+              name: 'Account Balance',
+              price: deduction
+            })
+          }
+        }
+        return cart
+      })
+  }
 }
 

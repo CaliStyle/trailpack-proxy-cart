@@ -106,6 +106,7 @@ module.exports = class OrderService extends Service {
     // Set the initial total amount due for this order
     let totalDue = obj.total_due
     let totalPrice = obj.total_price
+    let totalOverrides = 0
     let deduction = 0
     let resOrder = {}
     let resCustomer = {}
@@ -176,14 +177,28 @@ module.exports = class OrderService extends Service {
             // Apply Customer Account balance
             deduction = Math.min(totalDue, (totalDue - (totalDue - resCustomer.account_balance)))
             if (deduction > 0) {
-              totalDue = Math.max(0, totalDue - deduction)
-              totalPrice = Math.max(0, totalPrice - deduction)
-
-              obj.pricing_overrides.push({
-                name: 'Account Balance',
-                price: deduction
+              const accountBalanceIndex = _.findIndex(obj.pricing_overrides, {name: 'Account Balance'})
+              // If account balance has not been applied
+              if (accountBalanceIndex == -1) {
+                obj.pricing_overrides.push({
+                  name: 'Account Balance',
+                  price: deduction
+                })
+                totalDue = Math.max(0, totalDue - deduction)
+                totalPrice = Math.max(0, totalPrice - deduction)
+              }
+              // Otherwise update the account balance
+              else {
+                const prevPrice = obj.pricing_overrides[accountBalanceIndex].price
+                obj.pricing_overrides[accountBalanceIndex].price = deduction
+                totalDue = Math.max(0, totalDue + prevPrice - deduction)
+                totalPrice = Math.max(0, totalPrice + prevPrice - deduction)
+              }
+              // Recalculate Overrides
+              _.each(obj.pricing_overrides, override => {
+                totalOverrides = totalOverrides + override.price
               })
-              obj.total_overrides = obj.total_overrides + deduction
+              obj.total_overrides = totalOverrides
             }
           }
 

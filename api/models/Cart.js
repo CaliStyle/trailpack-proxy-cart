@@ -267,6 +267,9 @@ module.exports = class Cart extends Model {
                   _.each(this.coupon_lines, line => {
                     totalCoupons = totalCoupons + line.price
                   })
+                  return app.services.CustomerService.calculate(this)
+                })
+                .then(accountBalance => {
 
                   _.each(this.pricing_overrides, line => {
                     totalOverrides = totalOverrides + line.price
@@ -291,6 +294,13 @@ module.exports = class Cart extends Model {
                   return this
                 })
             }
+            // toJSON: function() {
+            //   // Make JSON
+            //   const resp = this.get({plain: true})
+            //   // console.log('TOJSON CART', resp)
+            //
+            //   return resp
+            // }
           },
           classMethods: {
             CART_STATUS: CART_STATUS,
