@@ -126,9 +126,11 @@ module.exports = class CartController extends Controller {
       where: where
     })
       .then(carts => {
+        const pages = Math.ceil(carts.count / limit) == 0 ? 1 : Math.ceil(carts.count / limit)
+        const page = offset == 0 ? 1 : Math.round(offset / limit)
         res.set('X-Pagination-Total', carts.count)
-        res.set('X-Pagination-Pages', Math.ceil(carts.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Pages', pages)
+        res.set('X-Pagination-Page', page)
         res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)

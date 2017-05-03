@@ -102,13 +102,14 @@ module.exports = class CollectionController extends Controller {
       limit: limit
     })
       .then(collections => {
+        const pages = Math.ceil(collections.count / limit) == 0 ? 1 : Math.ceil(collections.count / limit)
+        const page = offset == 0 ? 1 : Math.round(offset / limit)
         res.set('X-Pagination-Total', collections.count)
-        res.set('X-Pagination-Pages', Math.ceil(collections.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Pages', pages)
+        res.set('X-Pagination-Page', page)
         res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)
-        return res.json(collections.rows)
       })
       .catch(err => {
         return res.serverError(err)
@@ -142,9 +143,11 @@ module.exports = class CollectionController extends Controller {
       limit: limit
     })
       .then(collections => {
+        const pages = Math.ceil(collections.count / limit) == 0 ? 1 : Math.ceil(collections.count / limit)
+        const page = offset == 0 ? 1 : Math.round(offset / limit)
         res.set('X-Pagination-Total', collections.count)
-        res.set('X-Pagination-Pages', Math.ceil(collections.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Pages', pages)
+        res.set('X-Pagination-Page', page)
         res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)

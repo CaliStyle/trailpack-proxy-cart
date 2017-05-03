@@ -1,4 +1,5 @@
 /* eslint new-cap: [0] */
+/* eslint no-console: [0] */
 
 'use strict'
 
@@ -25,17 +26,22 @@ module.exports = class ProductUpload extends Model {
            */
           batch: function (options, batch) {
             const self = this
-            options.limit = options.limit || 100
+            options.limit = options.limit || 10
             options.offset = options.offset || 0
 
             const recursiveQuery = function(options) {
               let count = 0
-              return self.findAndCountAll(options)
+              return self.findAndCount(options)
                 .then(results => {
-                  count = results.count
+                  // console.log('Broke',results.count)
+                  results.count.map(counts => {
+                    count = count + 1
+                  })
+                  // count = results.count
                   return batch(results.rows)
                 })
                 .then(batched => {
+                  // console.log('BROKE', count, options.offset + options.limit )
                   if (count > options.offset + options.limit) {
                     options.offset = options.offset + options.limit
                     return recursiveQuery(options)

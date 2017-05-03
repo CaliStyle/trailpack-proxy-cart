@@ -219,6 +219,7 @@ module.exports = class ProductCsvService extends Service {
         where: {
           upload_id: uploadId
         },
+        offset: 0,
         limit: 10,
         attributes: ['handle'],
         group: ['handle']
@@ -250,6 +251,7 @@ module.exports = class ProductCsvService extends Service {
             products: productsTotal,
             variants: variantsTotal
           }
+          console.log('RESULTS', results)
           this.app.services.ProxyEngineService.publish('product_process.complete', results)
           return resolve(results)
         })

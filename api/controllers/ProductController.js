@@ -98,9 +98,11 @@ module.exports = class ProductController extends Controller {
       // limit: limit // TODO: Sequelize breaks with limit here
     })
       .then(products => {
+        const pages = Math.ceil(products.count / limit) == 0 ? 1 : Math.ceil(products.count / limit)
+        const page = offset == 0 ? 1 : Math.round(offset / limit)
         res.set('X-Pagination-Total', products.count)
-        res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Pages', pages)
+        res.set('X-Pagination-Page', page)
         res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)
@@ -154,9 +156,12 @@ module.exports = class ProductController extends Controller {
       req: req
     })
       .then(products => {
+        // console.log(products.count, Math.ceil(products.count / limit), offset, limit)
+        const pages = Math.ceil(products.count / limit) == 0 ? 1 : Math.ceil(products.count / limit)
+        const page = offset == 0 ? 1 : Math.round(offset / limit)
         res.set('X-Pagination-Total', products.count)
-        res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Pages', pages)
+        res.set('X-Pagination-Page', page)
         res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)
@@ -188,9 +193,11 @@ module.exports = class ProductController extends Controller {
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(products => {
+        const pages = Math.ceil(products.count / limit) == 0 ? 1 : Math.ceil(products.count / limit)
+        const page = offset == 0 ? 1 : Math.round(offset / limit)
         res.set('X-Pagination-Total', products.count)
-        res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Pages', pages)
+        res.set('X-Pagination-Page', page)
         res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)
@@ -222,9 +229,11 @@ module.exports = class ProductController extends Controller {
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(products => {
+        const pages = Math.ceil(products.count / limit) == 0 ? 1 : Math.ceil(products.count / limit)
+        const page = offset == 0 ? 1 : Math.round(offset / limit)
         res.set('X-Pagination-Total', products.count)
-        res.set('X-Pagination-Pages', Math.ceil(products.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Pages', pages)
+        res.set('X-Pagination-Page', page)
         res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)
