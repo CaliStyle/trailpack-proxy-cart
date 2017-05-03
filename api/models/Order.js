@@ -574,6 +574,10 @@ module.exports = class Order extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        total_coupons: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         total_shipping: {
           type: Sequelize.INTEGER,
           defaultValue: 0

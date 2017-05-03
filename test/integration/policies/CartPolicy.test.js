@@ -672,9 +672,12 @@ describe('CartPolicy', () => {
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.id)
+        assert.equal(res.body.total_discounts, 100)
+        assert.equal(res.body.pricing_overrides.length, 2)
         assert.equal(res.body.pricing_overrides[0].price, 100)
-        assert.equal(res.body.total_overrides, 100)
-        assert.equal(res.body.total_due, 99800)
+        assert.equal(res.body.pricing_overrides[1].price, 100)
+        assert.equal(res.body.total_overrides, 200)
+        assert.equal(res.body.total_due, 99700)
         done(err)
       })
   })
@@ -704,7 +707,6 @@ describe('CartPolicy', () => {
       .get(`/customer/${ customerID }`)
       .expect(200)
       .end((err, res) => {
-        // console.log('Customer Account Balance', res.body)
         assert.equal(res.body.account_balance, 0)
         done()
       })

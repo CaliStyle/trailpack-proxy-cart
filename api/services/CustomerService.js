@@ -646,15 +646,20 @@ module.exports = class CustomerService extends Service {
     }
     let deduction = 0
     // let overrides = cart.pricing_overrides
+
     return this.resolve(cart.customer_id)
       .then(customer => {
-        const pricingOverrides = cart.pricing_overrides
+        const pricingOverrides = []
+        cart.pricing_overrides.forEach(override => {
+          pricingOverrides.push(override)
+        })
 
+        const accountBalanceIndex = _.findIndex(pricingOverrides, {name: 'Account Balance'})
         if (customer.account_balance > 0) {
           // Apply Customer Account balance
           deduction = Math.min(cart.total_due, (cart.total_due - (cart.total_due - customer.account_balance)))
           if (deduction > 0) {
-            const accountBalanceIndex = _.findIndex(pricingOverrides, {name: 'Account Balance'})
+
             // If account balance has not been applied
             if (accountBalanceIndex == -1) {
               pricingOverrides.push({
@@ -665,10 +670,16 @@ module.exports = class CustomerService extends Service {
             else {
               pricingOverrides[accountBalanceIndex].price = deduction
             }
-
-            cart.pricing_overrides = pricingOverrides
           }
         }
+        else {
+          if (accountBalanceIndex > -1) {
+            pricingOverrides.splice(accountBalanceIndex, 1)
+          }
+        }
+
+        cart.pricing_overrides = pricingOverrides
+
         return cart
       })
   }

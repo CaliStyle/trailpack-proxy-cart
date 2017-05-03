@@ -34,7 +34,6 @@ module.exports = class Cart extends Model {
                   return fn(err)
                 })
             },
-            // TODO connect to Shop and Cart/Customer
             beforeUpdate: (values, options, fn) => {
               app.services.CartService.beforeUpdate(values)
                 .then(values => {
@@ -239,6 +238,9 @@ module.exports = class Cart extends Model {
                 totalItems = totalItems + item.quantity
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
+
+                this.total_price = subtotalPrice
+                this.total_due = subtotalPrice
               })
 
               // Get Cart Collections
@@ -253,6 +255,8 @@ module.exports = class Cart extends Model {
                   _.each(this.tax_lines, line => {
                     totalTax = totalTax + line.price
                   })
+                  this.total_tax = totalTax
+                  this.total_due = this.total_due + totalTax
                   // Resolve Shipping
                   return app.services.ShippingService.calculate(this, collections, app.services.CartService)
                 })
@@ -263,6 +267,9 @@ module.exports = class Cart extends Model {
                   _.each(this.shipping_lines, line => {
                     totalShipping = totalShipping + line.price
                   })
+                  this.total_shipping = totalShipping
+                  this.total_due = this.total_due + totalShipping
+                  // Resolve Discounts
                   return app.services.DiscountService.calculate(this, collections, app.services.CartService)
                 })
                 .then(discounts => {
@@ -271,16 +278,21 @@ module.exports = class Cart extends Model {
                   _.each(this.discounted_lines, line => {
                     totalDiscounts = totalDiscounts + line.price
                   })
+                  this.total_discounts = totalDiscounts
+                  this.total_due = this.total_due - totalDiscounts
                   return app.services.CouponService.calculate(this, collections, app.services.CartService)
                 })
                 .then(coupons => {
                   _.each(this.coupon_lines, line => {
                     totalCoupons = totalCoupons + line.price
                   })
+                  this.total_coupons = totalCoupons
+                  this.total_due = this.total_due - totalCoupons
+                  // Calculate Customer Balance
                   return app.services.CustomerService.calculate(this)
                 })
                 .then(accountBalance => {
-
+                  // console.log('BROKE',accountBalance)
                   _.each(this.pricing_overrides, line => {
                     totalOverrides = totalOverrides + line.price
                   })
@@ -294,6 +306,7 @@ module.exports = class Cart extends Model {
                   this.total_shipping = totalShipping
                   this.subtotal_price = subtotalPrice
                   this.total_discounts = totalDiscounts
+                  this.total_coupons = totalCoupons
                   this.total_tax = totalTax
                   this.total_weight = totalWeight
                   this.total_line_items_price = totalLineItemsPrice
@@ -526,6 +539,10 @@ module.exports = class Cart extends Model {
         },
         // The total amount of discounts applied
         total_discounts: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        total_coupons: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

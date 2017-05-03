@@ -451,6 +451,7 @@ module.exports = class SubscriptionService extends Service {
           subtotal_price: resSubscription.subtotal_price,
           taxes_included: resSubscription.taxes_included,
           total_discounts: resSubscription.total_discounts,
+          total_coupons: resSubscription.total_coupons,
           total_line_items_price: resSubscription.total_line_items_price,
           total_price: resSubscription.total_due,
           total_due: resSubscription.total_due,

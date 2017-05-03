@@ -65,7 +65,9 @@ module.exports = class CartService extends Service {
    */
   create(data, options){
     const Cart = this.app.orm.Cart
-
+    if (!options) {
+      options = {}
+    }
     // If line items is empty
     if (!data.line_items) {
       data.line_items = []
@@ -78,7 +80,7 @@ module.exports = class CartService extends Service {
     const cart = Cart.build(data)
 
     return Promise.all(items.map(item => {
-      return this.app.services.ProductService.resolveItem(item)
+      return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
     }))
       .then(resolvedItems => {
         return Promise.all(resolvedItems.map((item, index) => {
@@ -88,7 +90,7 @@ module.exports = class CartService extends Service {
       .then(resolvedItems => {
         // console.log('RESOLVED ITEMS', resolvedItems)
         // console.log('THIS CREATED CART', cart)
-        return cart.save()
+        return cart.save({transaction: options.transaction || null})
       })
   }
 
@@ -98,16 +100,19 @@ module.exports = class CartService extends Service {
    * @returns {Promise<T>|Cart}
    */
   update(cart, options){
+    if (!options) {
+      options = {}
+    }
     if (!cart.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
 
     const update = _.omit(cart,['id','created_at','updated_at'])
-    return this.resolve(cart)
+    return this.resolve(cart, {transaction: options.transaction || null})
       .then(cart => {
         cart = _.extend(cart, update)
-        return cart.save()
+        return cart.save({transaction: options.transaction || null})
       })
   }
 
@@ -260,6 +265,7 @@ module.exports = class CartService extends Service {
           subtotal_price: resCart.subtotal_price,
           taxes_included: resCart.taxes_included,
           total_discounts: resCart.total_discounts,
+          total_coupons: resCart.total_coupons,
           total_line_items_price: resCart.total_line_items_price,
           total_price: resCart.total_due,
           total_due: resCart.total_due,

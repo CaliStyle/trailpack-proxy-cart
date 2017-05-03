@@ -173,11 +173,11 @@ module.exports = class OrderService extends Service {
           // console.log('OrderService.create', resShippingAddress, resBillingAddress)
 
           // Add the account balance to the overrides
+          const accountBalanceIndex = _.findIndex(obj.pricing_overrides, {name: 'Account Balance'})
           if (resCustomer.account_balance > 0) {
             // Apply Customer Account balance
             deduction = Math.min(totalDue, (totalDue - (totalDue - resCustomer.account_balance)))
             if (deduction > 0) {
-              const accountBalanceIndex = _.findIndex(obj.pricing_overrides, {name: 'Account Balance'})
               // If account balance has not been applied
               if (accountBalanceIndex == -1) {
                 obj.pricing_overrides.push({
@@ -201,6 +201,14 @@ module.exports = class OrderService extends Service {
               obj.total_overrides = totalOverrides
             }
           }
+          else {
+            if (accountBalanceIndex > -1) {
+              const prevPrice = obj.pricing_overrides[accountBalanceIndex].price
+              obj.pricing_overrides = obj.pricing_overrides.splice(accountBalanceIndex, 1)
+              totalDue = Math.max(0, totalDue + prevPrice)
+              totalPrice = Math.max(0, totalPrice + prevPrice)
+            }
+          }
 
           const order = {
             // Order Info
@@ -219,6 +227,7 @@ module.exports = class OrderService extends Service {
             subtotal_price: obj.subtotal_price,
             taxes_included: obj.taxes_included,
             total_discounts: obj.total_discounts,
+            total_coupons: obj.total_coupons,
             total_line_items_price: obj.total_line_items_price,
             total_price: totalPrice,
             total_due: totalDue,

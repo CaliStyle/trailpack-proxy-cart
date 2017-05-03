@@ -544,6 +544,11 @@ module.exports = class Subscription extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The total amount of coupons applies
+        total_coupons: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         // The total original price of the line items
         total_line_items_price: {
           type: Sequelize.INTEGER,
