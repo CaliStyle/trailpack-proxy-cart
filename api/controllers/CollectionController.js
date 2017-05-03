@@ -120,6 +120,46 @@ module.exports = class CollectionController extends Controller {
    * @param req
    * @param res
    */
+  search(req, res){
+    const orm = this.app.orm
+    const Collection = orm['Collection']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+    const term = req.query.term
+    Collection.findAndCountDefault({
+      where: {
+        $or: [
+          {
+            title: {
+              $like: `%${term}%`
+            }
+          }
+        ]
+      },
+      order: sort,
+      offset: offset,
+      limit: limit
+    })
+      .then(collections => {
+        res.set('X-Pagination-Total', collections.count)
+        res.set('X-Pagination-Pages', Math.ceil(collections.count / limit))
+        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Offset', offset)
+        res.set('X-Pagination-Limit', limit)
+        res.set('X-Pagination-Sort', sort)
+        return res.json(collections.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   create(req, res) {
     const CollectionService = this.app.services.CollectionService
     console.log(req.body)
