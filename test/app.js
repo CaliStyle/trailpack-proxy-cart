@@ -132,6 +132,12 @@ const App = {
                   if (!cart) {
                     return resolve(user)
                   }
+                  if (user.current_customer_id) {
+                    cart.customer_id = user.current_customer_id
+                  }
+                  return cart.save()
+                })
+                .then(cart => {
                   req.loginCart(cart, (err) => {
                     if (err) {
                       return reject(err)
@@ -155,7 +161,7 @@ const App = {
                   if (!customer) {
                     return resolve(user)
                   }
-                  console.log(customer)
+                  // console.log(customer)
                   req.loginCustomer(customer, (err) => {
                     if (err) {
                       return reject(err)

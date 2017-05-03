@@ -43,7 +43,17 @@ module.exports = class Cart extends Model {
                 .catch(err => {
                   return fn(err)
                 })
+            },
+            beforeSave: (values, options, fn) => {
+              app.services.CartService.beforeSave(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             }
+
           },
           instanceMethods: {
             line: function(data){

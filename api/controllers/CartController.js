@@ -77,6 +77,10 @@ module.exports = class CartController extends Controller {
       return res.sendStatus(401)
     }
     return res.json(req.cart)
+    // req.cart.recalculate()
+    //   .then(cart => {
+    //     return res.json(cart)
+    //   })
   }
   /**
    *

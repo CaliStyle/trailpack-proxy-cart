@@ -529,7 +529,14 @@ module.exports = class CartService extends Service {
     else {
       return Promise.resolve(cart)
     }
-
+  }
+  beforeSave(cart){
+    if (cart.status == CART_STATUS.OPEN) {
+      return cart.recalculate()
+    }
+    else {
+      return Promise.resolve(cart)
+    }
   }
 }
 
