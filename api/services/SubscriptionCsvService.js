@@ -109,8 +109,8 @@ module.exports = class SubscriptionCsvService extends Service {
       }
     })
 
-    // Email is required, if not here, then reject whole row without error
-    if (!upload.email) {
+    // customer is required, if not here, then reject whole row without error
+    if (!upload.customer) {
       return Promise.resolve({})
     }
 
