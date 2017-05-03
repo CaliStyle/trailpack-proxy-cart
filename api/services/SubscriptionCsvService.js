@@ -109,6 +109,11 @@ module.exports = class SubscriptionCsvService extends Service {
       }
     })
 
+    // Email is required, if not here, then reject whole row without error
+    if (!upload.email) {
+      return Promise.resolve({})
+    }
+
     const newSubscription = SubscriptionUpload.build(upload)
 
     return newSubscription.save()

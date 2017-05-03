@@ -28,7 +28,6 @@ module.exports = class ProductUpload extends Model {
             const self = this
             options.limit = options.limit || 10
             options.offset = options.offset || 0
-
             const recursiveQuery = function(options) {
               let count = 0
               return self.findAndCount(options)

@@ -201,6 +201,11 @@ module.exports = class ProductCsvService extends Service {
       return
     })
 
+    // Handle is required, if not here, then reject whole row without error
+    if (!upload.handle) {
+      return Promise.resolve({})
+    }
+
     const newProduct = ProductUpload.build(upload)
     return newProduct.save()
   }
