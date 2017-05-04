@@ -172,7 +172,7 @@ module.exports = class OrderService extends Service {
           const paymentGatewayNames = obj.payment_details.map(detail => { return detail.gateway })
           // console.log('OrderService.create', resShippingAddress, resBillingAddress)
 
-          console.log('Broke', totalDue, totalPrice)
+          // console.log('Broke', totalDue, totalPrice)
           const accountBalanceIndex = _.findIndex(obj.pricing_overrides, {name: 'Account Balance'})
           // Account balance has been applied, check to update it.
           if (accountBalanceIndex > -1) {
@@ -181,7 +181,7 @@ module.exports = class OrderService extends Service {
             totalDue = totalDue + prevPrice
             totalPrice = totalPrice + prevPrice
           }
-          console.log('Broke 2', totalDue, totalPrice)
+          // console.log('Broke 2', totalDue, totalPrice)
           // Add the account balance to the overrides
           if (resCustomer.account_balance > 0) {
             // Apply Customer Account balance
