@@ -699,6 +699,8 @@ describe('CartPolicy', () => {
         // There's a prior discount on one item of 100
         assert.equal(res.body.order.total_price, 99700)
         assert.equal(res.body.order.total_due, 0)
+        assert.equal(res.body.order.transactions.length, 1)
+        assert.equal(res.body.order.transactions[0].amount, 99700)
         done(err)
       })
   })
