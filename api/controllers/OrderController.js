@@ -304,5 +304,76 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  transactions(req, res) {
+    const Transaction = this.app.orm['Transaction']
+    const orderId = req.params.id
+
+    if (!orderId && !req.user) {
+      const err = new Error('A order id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Transaction.findAndCount({
+      order: sort,
+      where: {
+        order_id: orderId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(transactions => {
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, transactions.count, limit, offset, sort)
+        return res.json(transactions.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  fulfillments(req, res) {
+    const Fulfillment = this.app.orm['Fulfillment']
+    const orderId = req.params.id
+
+    if (!orderId && !req.user) {
+      const err = new Error('A order id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Fulfillment.findAndCount({
+      order: sort,
+      where: {
+        order_id: orderId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(fulfillments => {
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, fulfillments.count, limit, offset, sort)
+        return res.json(fulfillments.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

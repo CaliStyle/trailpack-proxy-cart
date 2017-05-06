@@ -146,6 +146,24 @@ describe('OrderController', () => {
         done(err)
       })
   })
+  it('should get an order transactions', (done) => {
+    request
+      .get(`/order/${orderID}/transactions`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        done(err)
+      })
+  })
+  it('should get an order fulfillments', (done) => {
+    request
+      .get(`/order/${orderID}/fulfillments`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        done(err)
+      })
+  })
   it('should search orders', (done) => {
     request
       .get('/order/search')
