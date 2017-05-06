@@ -229,10 +229,33 @@ describe('CartController', () => {
         done(err)
       })
   })
-  it.skip('should make addCoupon request', (done) => {
-  })
-  it.skip('should make addDiscount request', (done) => {
-  })
+  // TODO
+  // it('should make addCoupon request', (done) => {
+  //   request
+  //     .post(`/cart/${cartID}/addCoupon`)
+  //     .send({
+  //
+  //     })
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       // console.log('THIS CART', res.body)
+  //       // assert.equal(res.body.id, cartID)
+  //       done(err)
+  //     })
+  // })
+  // it('should make addDiscount request', (done) => {
+  //   request
+  //     .post(`/cart/${cartID}/addDiscount`)
+  //     .send({
+  //
+  //     })
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       // console.log('THIS CART', res.body)
+  //       // assert.equal(res.body.id, cartID)
+  //       done(err)
+  //     })
+  // })
   it('should make checkout post request', (done) => {
     request
       .post(`/cart/${cartID}/checkout`)

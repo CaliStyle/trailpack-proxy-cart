@@ -61,10 +61,8 @@ describe('CustomerController', () => {
         assert.equal(res.body.first_name, 'Scotty')
         assert.equal(res.body.last_name, 'W')
         // Tags
-        // TODO FIX FOR ONLY CUSTOMER TAGS
-        // assert.equal(res.body.tags.length, 1)
-        // TODO FIX
-        // assert.notEqual(res.body.tags.indexOf('edited'), -1)
+        assert.equal(res.body.tags.length, 1)
+        assert.notEqual(res.body.tags.indexOf('edited'), -1)
         // Metadata
         assert.equal(res.body.metadata.test, 'new value')
         // Address
@@ -73,13 +71,53 @@ describe('CustomerController', () => {
         done(err)
       })
   })
-  it.skip('should add tag to customer', (done) => {
+  it('should add tag to customer', (done) => {
+    request
+      .post(`/customer/${customerID}/addTag`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        done(err)
+      })
   })
-  it.skip('should remove tag from customer', (done) => {
+  it('should remove tag from customer', (done) => {
+    request
+      .post(`/customer/${customerID}/removeTag`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        done(err)
+      })
   })
-  it.skip('should add customer to collection', (done) => {
+  it('should add customer to collection', (done) => {
+    request
+      .post(`/customer/${customerID}/addCollection`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        done(err)
+      })
   })
-  it.skip('should should remove customer from collection', (done) => {
+  it('should should remove customer from collection', (done) => {
+    request
+      .post(`/customer/${customerID}/removeCollection`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        // TODO
+        done(err)
+      })
   })
 
   it('It should upload customer_upload.csv', (done) => {

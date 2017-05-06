@@ -1123,16 +1123,20 @@ module.exports = class CustomerController extends Controller {
   }
 
   addTag(req, res) {
-    //
+    // TODO
+    res.json({})
   }
   removeTag(req, res) {
-    //
+    // TODO
+    res.json({})
   }
   addCollection(req, res) {
-    //
+    // TODO
+    res.json({})
   }
   removeCollection(req, res) {
-    //
+    // TODO
+    res.json({})
   }
 
   /**

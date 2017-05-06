@@ -121,15 +121,82 @@ describe('OrderController', () => {
         done(err)
       })
   })
-  it.skip('should add an item to order', (done) => {
+  it('should add an item to order', (done) => {
+    request
+      .post(`/order/${orderID}/addItem`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
   })
-  it.skip('should remove an item from order', (done) => {
+  it('should remove an item from order', (done) => {
+    request
+      .post(`/order/${orderID}/removeItem`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
   })
-  it.skip('should pay an order', (done) => {
+  it('should pay an order', (done) => {
+    request
+      .post(`/order/${orderID}/pay`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
   })
-  it.skip('should partially refund an order', (done) => {
+  it('should partially refund an order', (done) => {
+    request
+      .post(`/order/${orderID}/refund`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
   })
-  it.skip('should refund an order', (done) => {
+  it('should refund an order', (done) => {
+    request
+      .post(`/order/${orderID}/refund`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  it('should add tag to an order', (done) => {
+    request
+      .post(`/order/${orderID}/addTag`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  it('should remove tag to an order', (done) => {
+    request
+      .post(`/order/${orderID}/removeTag`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
   })
   it('should cancel an order', (done) => {
     request
@@ -143,6 +210,15 @@ describe('OrderController', () => {
         assert.ok(res.body.cancelled_at)
         assert.ok(res.body.closed_at)
         assert.equal(res.body.cancel_reason, 'customer')
+        done(err)
+      })
+  })
+  it('should get an order refunds', (done) => {
+    request
+      .get(`/order/${orderID}/refunds`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
         done(err)
       })
   })

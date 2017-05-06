@@ -459,7 +459,7 @@ module.exports = class ProductController extends Controller {
    */
   addTag(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.addTag(req.body.product, req.body.tag)
+    ProductService.addTag(req.params.id, req.params.tag)
       .then(data => {
         return res.json(data)
       })
@@ -475,7 +475,7 @@ module.exports = class ProductController extends Controller {
    */
   removeTag(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.removeTag(req.body.product, req.body.tag)
+    ProductService.removeTag(req.params.id, req.params.tag)
       .then(data => {
         return res.json(data)
       })
@@ -491,7 +491,7 @@ module.exports = class ProductController extends Controller {
    */
   addCollection(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.addCollection(req.body.product, req.body.collection)
+    ProductService.addCollection(req.params.id, req.params.collection)
       .then(data => {
         return res.json(data)
       })
@@ -507,7 +507,7 @@ module.exports = class ProductController extends Controller {
    */
   removeCollection(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.removeCollection(req.body.product, req.body.collection)
+    ProductService.removeCollection(req.params.id, req.params.collection)
       .then(data => {
         return res.json(data)
       })
@@ -524,7 +524,7 @@ module.exports = class ProductController extends Controller {
    */
   addAssociation(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.addAssociation(req.body.product, req.body.association)
+    ProductService.addAssociation(req.params.id, req.params.association)
       .then(data => {
         return res.json(data)
       })
@@ -540,7 +540,7 @@ module.exports = class ProductController extends Controller {
    */
   removeAssociation(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.removeAssociation(req.body.product, req.body.association)
+    ProductService.removeAssociation(req.params.id, req.params.association)
       .then(data => {
         return res.json(data)
       })

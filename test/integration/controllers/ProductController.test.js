@@ -320,17 +320,71 @@ describe('ProductController', () => {
         done(err)
       })
   })
-  it.skip('should add tag to product', (done) => {
+  it('should add tag to product', (done) => {
+    request
+      .post(`/product/${createdProductID}/addTag/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        // assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
   })
-  it.skip('should remove tag to product', (done) => {
+  it('should remove tag to product', (done) => {
+    request
+      .post(`/product/${createdProductID}/removeTag/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        // assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
   })
-  it.skip('should add collection to product', (done) => {
+  it('should add collection to product', (done) => {
+    request
+      .post(`/product/${createdProductID}/addCollection/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        // assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
   })
-  it.skip('should remove collection from product', (done) => {
+  it('should remove collection from product', (done) => {
+    request
+      .post(`/product/${createdProductID}/removeCollection/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        // assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
   })
-  it.skip('should add association to product', (done) => {
+  it('should add association to product', (done) => {
+    request
+      .post(`/product/${createdProductID}/addAssociation/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        // assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
   })
-  it.skip('should remove association from product', (done) => {
+  it('should remove association from product', (done) => {
+    request
+      .post(`/product/${createdProductID}/removeAssociation/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        // assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
   })
   it.skip('should add shop to product', (done) => {
   })

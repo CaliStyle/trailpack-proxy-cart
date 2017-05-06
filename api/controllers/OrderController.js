@@ -219,11 +219,45 @@ module.exports = class OrderController extends Controller {
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.refund(req.body)
       .then(values => {
-        req.body.id = req.params.id
-        return OrderService.refund(req.body)
+        return OrderService.refund(req.params.id, req.body)
       })
       .then(order => {
         return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  refunds(req, res) {
+    const Refund = this.app.orm['Refund']
+    const orderId = req.params.id
+
+    if (!orderId && !req.user) {
+      const err = new Error('A order id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Refund.findAndCount({
+      order: sort,
+      where: {
+        order_id: orderId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(refunds => {
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, refunds.count, limit, offset, sort)
+        return res.json(refunds.rows)
       })
       .catch(err => {
         return res.serverError(err)
@@ -238,11 +272,54 @@ module.exports = class OrderController extends Controller {
     //
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO
   addTag(req, res) {
-    //
+    return res.json({})
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO
   removeTag(req, res) {
-    //
+    return res.json({})
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO
+  addItem(req, res) {
+    return res.json({})
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO
+  removeItem(req, res) {
+    return res.json({})
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO
+  pay(req, res) {
+    return res.json({})
   }
 
   /**
