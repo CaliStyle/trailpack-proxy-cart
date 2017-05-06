@@ -75,12 +75,8 @@ module.exports = class SubscriptionController extends Controller {
       where: where
     })
       .then(subscriptions => {
-        res.set('X-Pagination-Total', subscriptions.count)
-        res.set('X-Pagination-Pages', Math.ceil(subscriptions.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Offset', offset)
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, subscriptions.count, limit, offset, sort)
         return res.json(subscriptions.rows)
       })
       .catch(err => {

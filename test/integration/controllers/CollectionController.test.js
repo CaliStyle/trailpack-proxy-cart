@@ -112,4 +112,17 @@ describe('CollectionController', () => {
         done()
       })
   })
+  it('It should search a collection', (done) => {
+    request
+      .get('/collection/search')
+      .query({
+        term: 'Pants'
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        done()
+      })
+  })
 })

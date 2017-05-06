@@ -41,6 +41,62 @@ module.exports = {
     require('trailpack-proxy-cart-countries')
   ]
 }
+// config/web.js
+module.exports = {
+  /**
+   * Middlewares to load (in order)
+   * Add the Proxy Cart middleware after the passport middleware
+   */
+  middlewares: {
+
+    //middlewares loading order
+    order: [
+      '...',
+      'session',
+      'passportInit',
+      'passportSession',
+      'proxyCartInit',
+      'proxyCartSession',
+      'proxyCartSessionCart',
+      'proxyCartSessionCustomer',
+      '...'
+    ],
+  }
+}
+
+// config/proxyCart.js
+module.exports = {
+  // The default Shop address (Nexus)
+  nexus: {
+    name: '<name>',
+    host: '<host>',
+    email: '<email>',
+    address: {
+      address_1: '<address 1>',
+      address_2: '',
+      address_3: '',
+      company: '<company>',
+      city: '<city>',
+      province: '<full name of state/province>',
+      country: '<full name of country>',
+      postal_code: '<postal code>'
+    }
+  },
+  // The default function for an automatic order payment: manual, authorize, sale
+  order_payment_kind: 'sale',
+  // The default function for an automatic order fulfillment: manual, immediate
+  order_fulfillment_kind: 'immediate',
+  // Restock default for refunded order items
+  refund_restock: false,
+  // Allow certain events
+  allow: {
+    // Allows a product to be destroyed, Recommended false
+    destroy_product: false,
+    // Allows a product variant to be destroyed, Recommended false
+    destroy_variant: false
+  }
+}
+
 ```
 
 ## Shops

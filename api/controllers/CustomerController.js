@@ -4,6 +4,7 @@
 const Controller = require('trails/controller')
 const lib = require('../../lib')
 const Errors = require('proxy-engine-errors')
+const _ = require('lodash')
 /**
  * @module CustomerController
  * @description Customer Controller.
@@ -56,32 +57,34 @@ module.exports = class CustomerController extends Controller {
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'last_name DESC'
     const term = req.query.term
-    console.log('CustomerController.search', term)
-    Customer.findAndCount({
-      where: {
-        $or: [
-          {
-            first_name: {
-              $like: `%${term}%`
-            }
-          },
-          {
-            last_name: {
-              $like: `%${term}%`
-            }
-          },
-          {
-            email: {
-              $like: `%${term}%`
-            }
-          },
-          {
-            company: {
-              $like: `%${term}%`
-            }
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const defaults = _.defaults(where, {
+      $or: [
+        {
+          first_name: {
+            $like: `%${term}%`
           }
-        ]
-      },
+        },
+        {
+          last_name: {
+            $like: `%${term}%`
+          }
+        },
+        {
+          email: {
+            $like: `%${term}%`
+          }
+        },
+        {
+          company: {
+            $like: `%${term}%`
+          }
+        }
+      ]
+    })
+    // console.log('CustomerController.search', term)
+    Customer.findAndCount({
+      where: defaults,
       order: sort,
       offset: offset,
       req: req,
@@ -184,12 +187,8 @@ module.exports = class CustomerController extends Controller {
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(customers => {
-        res.set('X-Pagination-Total', customers.count)
-        res.set('X-Pagination-Pages', Math.ceil(customers.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Offset', offset)
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, customers.count, limit, offset, sort)
         return res.json(customers.rows)
       })
       .catch(err => {
@@ -224,9 +223,11 @@ module.exports = class CustomerController extends Controller {
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(customers => {
+        const pages = Math.ceil(customers.count / limit) == 0 ? 1 : Math.ceil(customers.count / limit)
+        const page = offset == 0 ? 1 : Math.round(offset / limit)
         res.set('X-Pagination-Total', customers.count)
-        res.set('X-Pagination-Pages', Math.ceil(customers.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
+        res.set('X-Pagination-Pages', pages)
+        res.set('X-Pagination-Page', page)
         res.set('X-Pagination-Offset', offset)
         res.set('X-Pagination-Limit', limit)
         res.set('X-Pagination-Sort', sort)
@@ -1220,6 +1221,11 @@ module.exports = class CustomerController extends Controller {
       .catch(err => {
         return res.serverError(err)
       })
+  }
+
+  // TODO
+  reviews(req, res) {
+
   }
 
 }

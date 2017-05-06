@@ -4,6 +4,7 @@
 const Controller = require('trails/controller')
 const lib = require('../../lib')
 const Errors = require('proxy-engine-errors')
+const _ = require('lodash')
 
 /**
  * @module OrderController
@@ -73,12 +74,8 @@ module.exports = class OrderController extends Controller {
       limit: limit
     })
       .then(orders => {
-        res.set('X-Pagination-Total', orders.count)
-        res.set('X-Pagination-Pages', Math.ceil(orders.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Offset', offset)
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, orders.count, limit, offset, sort)
         return res.json(orders.rows)
       })
       .catch(err => {
@@ -98,39 +95,37 @@ module.exports = class OrderController extends Controller {
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
     const term = req.query.term
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const defaults = _.defaults(where, {
+      $or: [
+        {
+          number: {
+            $like: `%${term}%`
+          }
+        },
+        {
+          name: {
+            $like: `%${term}%`
+          }
+        },
+        {
+          email: {
+            $like: `%${term}%`
+          }
+        }
+      ]
+    })
     console.log('OrderController.search', term)
     Order.findAndCountDefault({
-      where: {
-        $or: [
-          {
-            number: {
-              $like: `%${term}%`
-            }
-          },
-          {
-            name: {
-              $like: `%${term}%`
-            }
-          },
-          {
-            email: {
-              $like: `%${term}%`
-            }
-          }
-        ]
-      },
+      where: defaults,
       order: sort,
       offset: offset,
       req: req,
       limit: limit
     })
       .then(orders => {
-        res.set('X-Pagination-Total', orders.count)
-        res.set('X-Pagination-Pages', Math.ceil(orders.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Offset', offset)
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, orders.count, limit, offset, sort)
         return res.json(orders.rows)
       })
       .catch(err => {
@@ -301,11 +296,8 @@ module.exports = class OrderController extends Controller {
       limit: limit
     })
       .then(events => {
-        res.set('X-Pagination-Total', events.count)
-        res.set('X-Pagination-Pages', Math.ceil(events.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, events.count, limit, offset, sort)
         return res.json(events.rows)
       })
       .catch(err => {

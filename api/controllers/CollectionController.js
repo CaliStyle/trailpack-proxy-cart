@@ -4,6 +4,7 @@
 const Controller = require('trails/controller')
 const Errors = require('proxy-engine-errors')
 const lib = require('../../lib')
+const _ = require('lodash')
 /**
  * @module CollectionController
  * @description Generated Trails.js Controller.
@@ -102,14 +103,9 @@ module.exports = class CollectionController extends Controller {
       limit: limit
     })
       .then(collections => {
-        const pages = Math.ceil(collections.count / limit) == 0 ? 1 : Math.ceil(collections.count / limit)
-        const page = offset == 0 ? 1 : Math.round(offset / limit)
-        res.set('X-Pagination-Total', collections.count)
-        res.set('X-Pagination-Pages', pages)
-        res.set('X-Pagination-Page', page)
-        res.set('X-Pagination-Offset', offset)
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, collections.count, limit, offset, sort)
+        return res.json(collections.rows)
       })
       .catch(err => {
         return res.serverError(err)
@@ -128,29 +124,26 @@ module.exports = class CollectionController extends Controller {
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
     const term = req.query.term
-    Collection.findAndCountDefault({
-      where: {
-        $or: [
-          {
-            title: {
-              $like: `%${term}%`
-            }
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const defaults = _.defaults(where, {
+      $or: [
+        {
+          title: {
+            $like: `%${term}%`
           }
-        ]
-      },
+        }
+      ]
+    })
+    Collection.findAndCountDefault({
+      where: defaults,
       order: sort,
       offset: offset,
       limit: limit
     })
       .then(collections => {
-        const pages = Math.ceil(collections.count / limit) == 0 ? 1 : Math.ceil(collections.count / limit)
-        const page = offset == 0 ? 1 : Math.round(offset / limit)
-        res.set('X-Pagination-Total', collections.count)
-        res.set('X-Pagination-Pages', pages)
-        res.set('X-Pagination-Page', page)
-        res.set('X-Pagination-Offset', offset)
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, collections.count, limit, offset, sort)
+
         return res.json(collections.rows)
       })
       .catch(err => {

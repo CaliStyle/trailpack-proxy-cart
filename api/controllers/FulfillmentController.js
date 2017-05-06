@@ -10,6 +10,12 @@ module.exports = class FulfillmentController extends Controller {
   generalStats(req, res) {
     res.json({})
   }
+  findById(req, res) {
+
+  }
+  findAll(req, res) {
+
+  }
   create(req, res) {
     // TODO
   }

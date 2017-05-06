@@ -126,7 +126,7 @@ describe('CustomerController', () => {
       .get(`/customer/${customerID}`)
       .expect(200)
       .end((err, res) => {
-        console.log('UPLOADED CUSTOMER', res.body)
+        // console.log('UPLOADED CUSTOMER', res.body)
         assert.equal(res.body.id, customerID)
         assert.ok(res.body.default_address.address_1)
         assert.ok(res.body.default_address.city)
@@ -141,13 +141,14 @@ describe('CustomerController', () => {
   it('It should search customer', (done) => {
     request
       .get('/customer/search')
-      .query('term=scott')
+      .query({
+        term: 'scott'
+      })
       .expect(200)
       .end((err, res) => {
-        console.log('SEARCH CUSTOMER', res.body)
-
+        //console.log('SEARCH CUSTOMER', res.body)
         assert.ok(res.body)
-
+        assert.equal(res.body.length, 1)
         done()
       })
   })
