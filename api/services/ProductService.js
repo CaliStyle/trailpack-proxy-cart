@@ -10,6 +10,51 @@ const Errors = require('proxy-engine-errors')
  * @description Product Service
  */
 module.exports = class ProductService extends Service {
+  resolve(product, options) {
+    const Product =  this.app.orm.Product
+
+    if (!options) {
+      options = {}
+    }
+
+    if (product instanceof Product.Instance){
+      return Promise.resolve(product)
+    }
+    else if (product && _.isObject(product) && product.id) {
+      return Product.findById(product.id, options)
+        .then(resProduct => {
+          if (!resProduct) {
+            throw new Errors.FoundError(Error(`Product ${product.id} not found`))
+          }
+          return resProduct
+        })
+    }
+    else if (product && _.isObject(product) && product.handle) {
+      return Product.findOne({
+        where: { handle: product.handle }
+      }, options)
+        .then(resProduct => {
+          if (!resProduct) {
+            throw new Errors.FoundError(Error(`Product ${product.handle} not found`))
+          }
+          return resProduct
+        })
+    }
+    else if (product && (_.isString(product) || _.isNumber(product))) {
+      return Product.findById(product, options)
+        .then(resProduct => {
+          if (!resProduct) {
+            throw new Errors.FoundError(Error(`Product ${product} not found`))
+          }
+          return resProduct
+        })
+    }
+    else {
+      // TODO create proper error
+      const err = new Error(`Unable to resolve Product ${product}`)
+      return Promise.reject(err)
+    }
+  }
   /**
    *
    * @param item
@@ -774,40 +819,345 @@ module.exports = class ProductService extends Service {
         })
       })
   }
-  // TODO addTag
+
+  /**
+   *
+   * @param product
+   * @param tag
+   * @returns {Promise.<TResult>}
+   */
   addTag(product, tag){
-    return Promise.resolve()
+    let resProduct, resTag
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.app.services.TagService.resolve(tag)
+      })
+      .then(tag => {
+        if (!tag) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resTag = tag
+        return resProduct.hasTag(resTag.id)
+      })
+      .then(hasTag => {
+        if (!hasTag) {
+          return resProduct.addTag(resTag.id)
+        }
+        return resProduct
+      })
+      .then(tag => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
   }
-  // TODO removeTag
+
+  /**
+   *
+   * @param product
+   * @param tag
+   * @returns {Promise.<TResult>}
+   */
   removeTag(product, tag){
-    return Promise.resolve()
+    let resProduct, resTag
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.app.services.TagService.resolve(tag)
+      })
+      .then(tag => {
+        if (!tag) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resTag = tag
+        return resProduct.hasTag(resTag.id)
+      })
+      .then(hasTag => {
+        if (hasTag) {
+          return resProduct.removeTag(resTag.id)
+        }
+        return resProduct
+      })
+      .then(tag => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
   }
 
-  // TODO addAssociation
+  /**
+   *
+   * @param product
+   * @param association
+   * @returns {Promise.<TResult>}
+   */
   addAssociation(product, association){
-    return Promise.resolve()
+    let resProduct, resAssociation
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.resolve(association)
+      })
+      .then(association => {
+        if (!association) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resAssociation = association
+        return resProduct.hasAssociation(resAssociation.id)
+      })
+      .then(hasAssociation => {
+        if (!hasAssociation) {
+          return resProduct.addAssociation(resAssociation.id)
+        }
+        return resProduct
+      })
+      .then(association => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
   }
-  // TODO removeAssociation
+
+  /**
+   *
+   * @param product
+   * @param association
+   * @returns {Promise.<TResult>}
+   */
   removeAssociation(product, association){
-    return Promise.resolve()
+    let resProduct, resAssociation
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.resolve(association)
+      })
+      .then(association => {
+        if (!association) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resAssociation = association
+        return resProduct.hasAssociation(resAssociation.id)
+      })
+      .then(hasAssociation => {
+        if (hasAssociation) {
+          return resProduct.removeAssociation(resAssociation.id)
+        }
+        return resProduct
+      })
+      .then(association => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
   }
 
-  // TODO addCollection
+  /**
+   *
+   * @param product
+   * @param collection
+   * @returns {Promise.<TResult>}
+   */
   addCollection(product, collection){
-    return Promise.resolve()
-  }
-  // TODO removeCollection
-  removeCollection(product, collection){
-    return Promise.resolve()
+    let resProduct, resCollection
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.app.services.CollectionService.resolve(collection)
+      })
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resCollection = collection
+        return resProduct.hasCollection(resCollection.id)
+      })
+      .then(hasCollection => {
+        if (!hasCollection) {
+          return resProduct.addCollection(resCollection.id)
+        }
+        return resProduct
+      })
+      .then(collection => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
   }
 
-  // TODO addShop
-  addShop(product, shop){
-    return Promise.resolve()
+  /**
+   *
+   * @param product
+   * @param collection
+   * @returns {Promise.<TResult>}
+   */
+  removeCollection(product, collection){
+    let resProduct, resCollection
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.app.services.CollectionService.resolve(collection)
+      })
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resCollection = collection
+        return resProduct.hasCollection(resCollection.id)
+      })
+      .then(hasCollection => {
+        if (hasCollection) {
+          return resProduct.removeCollection(resCollection.id)
+        }
+        return resProduct
+      })
+      .then(collection => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
   }
-  // TODO removeShop
+
+  /**
+   *
+   * @param product
+   * @param shop
+   * @returns {Promise.<TResult>}
+   */
+  addShop(product, shop){
+    let resProduct, resShop
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.app.services.ShopService.resolve(shop)
+      })
+      .then(shop => {
+        if (!shop) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resShop = shop
+        return resProduct.hasShop(resShop.id)
+      })
+      .then(hasShop => {
+        if (!hasShop) {
+          return resProduct.addShop(resShop.id)
+        }
+        return resProduct
+      })
+      .then(shop => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
+  }
+
+  /**
+   *
+   * @param product
+   * @param shop
+   * @returns {Promise.<TResult>}
+   */
   removeShop(product, shop){
-    return Promise.resolve()
+    let resProduct, resShop
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.app.services.ShopService.resolve(shop)
+      })
+      .then(shop => {
+        if (!shop) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resShop = shop
+        return resProduct.hasShop(resShop.id)
+      })
+      .then(hasShop => {
+        if (hasShop) {
+          return resProduct.removeShop(resShop.id)
+        }
+        return resProduct
+      })
+      .then(shop => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
+  }
+
+  /**
+   *
+   * @param product
+   * @param vendor
+   * @returns {Promise.<TResult>}
+   */
+  addVendor(product, vendor){
+    let resProduct, resVendor
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.app.services.VendorService.resolve(vendor)
+      })
+      .then(vendor => {
+        if (!vendor) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resVendor = vendor
+        return resProduct.hasVendor(resVendor.id)
+      })
+      .then(hasVendor => {
+        if (!hasVendor) {
+          return resProduct.addVendor(resVendor.id)
+        }
+        return resProduct
+      })
+      .then(vendor => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
+  }
+
+  /**
+   *
+   * @param product
+   * @param vendor
+   * @returns {Promise.<TResult>}
+   */
+  removeVendor(product, vendor){
+    let resProduct, resVendor
+    return this.resolve(product)
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return this.app.services.VendorService.resolve(vendor)
+      })
+      .then(vendor => {
+        if (!vendor) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resVendor = vendor
+        return resProduct.hasVendor(resVendor.id)
+      })
+      .then(hasVendor => {
+        if (hasVendor) {
+          return resProduct.removeVendor(resVendor.id)
+        }
+        return resProduct
+      })
+      .then(vendor => {
+        return this.app.orm['Product'].findByIdDefault(resProduct.id)
+      })
   }
 
   /**

@@ -1191,11 +1191,8 @@ module.exports = class CustomerController extends Controller {
       limit: limit
     })
       .then(events => {
-        res.set('X-Pagination-Total', events.count)
-        res.set('X-Pagination-Pages', Math.ceil(events.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, events.count, limit, offset, sort)
         return res.json(events.rows)
       })
       .catch(err => {
@@ -1227,9 +1224,39 @@ module.exports = class CustomerController extends Controller {
       })
   }
 
-  // TODO
+  /**
+   *
+   * @param req
+   * @param res
+   */
   reviews(req, res) {
+    const Review = this.app.orm['Review']
+    const customerId = req.params.id
 
+    if (!customerId) {
+      const err = new Error('A customer id is required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Review.findAndCount({
+      order: sort,
+      where: {
+        customer_id: customerId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(reviews => {
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, reviews.count, limit, offset, sort)
+        return res.json(reviews.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
-
 }

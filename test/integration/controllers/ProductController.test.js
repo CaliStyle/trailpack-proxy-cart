@@ -320,6 +320,7 @@ describe('ProductController', () => {
         done(err)
       })
   })
+  // TODO complete test
   it('should add tag to product', (done) => {
     request
       .post(`/product/${createdProductID}/addTag/1`)
@@ -327,10 +328,11 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        // assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.id, createdProductID)
         done(err)
       })
   })
+  // TODO complete test
   it('should remove tag to product', (done) => {
     request
       .post(`/product/${createdProductID}/removeTag/1`)
@@ -338,10 +340,11 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        // assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.id, createdProductID)
         done(err)
       })
   })
+  // TODO complete test
   it('should add collection to product', (done) => {
     request
       .post(`/product/${createdProductID}/addCollection/1`)
@@ -349,10 +352,11 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        // assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.id, createdProductID)
         done(err)
       })
   })
+  // TODO complete test
   it('should remove collection from product', (done) => {
     request
       .post(`/product/${createdProductID}/removeCollection/1`)
@@ -360,10 +364,11 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        // assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.id, createdProductID)
         done(err)
       })
   })
+  // TODO complete test
   it('should add association to product', (done) => {
     request
       .post(`/product/${createdProductID}/addAssociation/1`)
@@ -371,10 +376,23 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        // assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.id, createdProductID)
         done(err)
       })
   })
+  // TODO complete test
+  it('should add association to product', (done) => {
+    request
+      .post(`/product/${createdProductID}/associations`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        // assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
+  // TODO complete test
   it('should remove association from product', (done) => {
     request
       .post(`/product/${createdProductID}/removeAssociation/1`)
@@ -382,13 +400,57 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        // assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.id, createdProductID)
         done(err)
       })
   })
-  it.skip('should add shop to product', (done) => {
+  // TODO complete test
+  it('should add shop to product', (done) => {
+    request
+      .post(`/product/${createdProductID}/addShop/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
   })
-  it.skip('should remove shop from product', (done) => {
+  // TODO complete test
+  it('should remove shop from product', (done) => {
+    request
+      .post(`/product/${createdProductID}/removeShop/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should add a vendor to product', (done) => {
+    request
+      .post(`/product/${createdProductID}/addVendor/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should remove a vendor from product', (done) => {
+    request
+      .post(`/product/${createdProductID}/removeVendor/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
   })
   it('should make removeImage post request', (done) => {
     request

@@ -550,6 +550,72 @@ module.exports = class ProductController extends Controller {
       })
   }
 
+  /**
+   * Add an shop to a product
+   * @param req
+   * @param res
+   */
+  addShop(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.addShop(req.params.id, req.params.shop)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.addShop', err)
+        return res.serverError(err)
+      })
+  }
+  /**
+   * Remove an shop from a product
+   * @param req
+   * @param res
+   */
+  removeShop(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.removeShop(req.params.id, req.params.shop)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   * Add an vendor to a product
+   * @param req
+   * @param res
+   */
+  addVendor(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.addVendor(req.params.id, req.params.vendor)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.addVendor', err)
+        return res.serverError(err)
+      })
+  }
+  /**
+   * Remove an vendor from a product
+   * @param req
+   * @param res
+   */
+  removeVendor(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.removeVendor(req.params.id, req.params.vendor)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
+
 
   /**
    * upload CSV
@@ -643,9 +709,77 @@ module.exports = class ProductController extends Controller {
     //
   }
 
-  // TODO
+  /**
+   *
+   * @param req
+   * @param res
+   */
   reviews(req, res) {
+    const Review = this.app.orm['Review']
+    const productId = req.params.id
 
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Review.findAndCount({
+      order: sort,
+      where: {
+        product_id: productId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(reviews => {
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, reviews.count, limit, offset, sort)
+        return res.json(reviews.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO get actual product associations
+  associations(req, res) {
+    const Association = this.app.orm['Product']
+    const productId = req.params.id
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+
+    Association.findAndCount({
+      order: sort,
+      where: {
+        id: productId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(associations => {
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, associations.count, limit, offset, sort)
+        return res.json(associations.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 }
 

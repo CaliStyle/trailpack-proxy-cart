@@ -20,24 +20,26 @@ module.exports = class CollectionService extends Service {
    */
   resolve(collection, options){
     const Collection =  this.app.orm.Collection
-      // const Sequelize = Collection.sequelize
+
+    if (!options) {
+      options = {}
+    }
 
     if (collection instanceof Collection.Instance){
       return Promise.resolve(collection)
     }
     else if (collection && _.isObject(collection) && collection.id) {
       return Collection.findById(collection.id, options)
-          .then(foundCollection => {
-            if (!foundCollection) {
-              // TODO create proper error
-              throw new Error(`Collection with ${collection.id} not found`)
-            }
-            return foundCollection
-          })
+        .then(foundCollection => {
+          if (!foundCollection) {
+            // TODO create proper error
+            throw new Error(`Collection with ${collection.id} not found`)
+          }
+          return foundCollection
+        })
     }
     else if (collection && _.isObject(collection) && (collection.handle || collection.title)) {
-        // Sequelize.transaction(t => {
-      return Collection.find({
+      return Collection.findOne({
         where: {
           $or: {
             handle: collection.handle,
@@ -45,26 +47,15 @@ module.exports = class CollectionService extends Service {
           }
         }
       }, options)
-            .then(resCollection => {
-              if (resCollection) {
-                return resCollection
-              }
-              return Collection.create(collection, options)
-            })
-        // })
-          // .then(result => {
-          //   // console.log(result)
-          //   return resolve(result)
-          // })
-          // .catch(err => {
-          //   return reject(err)
-          // })
+        .then(resCollection => {
+          if (resCollection) {
+            return resCollection
+          }
+          return Collection.create(collection, options)
+        })
     }
     else if (collection && _.isString(collection)) {
-        // return Collection.create({title: collection})
-        // Make this a transaction
-        // Sequelize.transaction(t => {
-      return Collection.find({
+      return Collection.findOne({
         where: {
           $or: {
             handle: collection,
@@ -73,19 +64,12 @@ module.exports = class CollectionService extends Service {
           }
         }
       }, options)
-            .then(resCollection => {
-              if (resCollection) {
-                return resCollection
-              }
-              return Collection.create({title: collection})
-            })
-        // })
-        //   .then(result => {
-        //     return resolve(result)
-        //   })
-        //   .catch(err => {
-        //     return reject(err)
-        //   })
+        .then(resCollection => {
+          if (resCollection) {
+            return resCollection
+          }
+          return Collection.create({title: collection})
+        })
     }
     else {
         // TODO make Proper Error

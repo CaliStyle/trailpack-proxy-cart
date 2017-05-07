@@ -340,7 +340,7 @@ module.exports = class AccountService extends Service {
         const event = {
           object_id: resSource.customer_id,
           object: 'customer',
-          type: 'source.removed',
+          type: 'customer.source.removed',
           message: 'Customer source was removed',
           data: resSource
         }

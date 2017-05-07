@@ -14,6 +14,16 @@ Proxy Cart is the eCommerce component for [Proxy Engine](https://github.com/cali
 |---------------|---------------------------------------|
 | [trailpack-proxy-engine](https://github.com/calistyle/trailpack-proxy-engine) | [![Build status][ci-proxyengine-image]][ci-proxyengine-url] |
 
+### Proxy Permissions
+| Repo          |  Build Status (edge)                  |
+|---------------|---------------------------------------|
+| [trailpack-proxy-permissions](https://github.com/calistyle/trailpack-proxy-permissions) | [![Build status][ci-proxypermissions-image]][ci-proxypermissions-url] |
+
+### Proxy Passport
+| Repo          |  Build Status (edge)                  |
+|---------------|---------------------------------------|
+| [trailpack-proxy-passport](https://github.com/calistyle/trailpack-proxy-passport) | [![Build status][ci-proxypassport-image]][ci-proxypassport-url] |
+
 ### Supported ORMs
 | Repo          |  Build Status (edge)                  |
 |---------------|---------------------------------------|
@@ -118,13 +128,19 @@ A Product Review is input from a customer with a history of purchasing a product
 A Metadata is additional information about a product, customer, or review that is not constrained by the parent model.
 
 ## Collections
-A Collection is a grouping of like items, such as products, customers, and shipping zones.
+A Collection is a grouping of like items, such as products, customers, and shipping zones and can apply collection discounts, shipping overrides, and tax overrides.
 
 ## Tags
 A Tag is a searching marker for a customer or product.
 
 ## Customers
 A Customer is a user or guest.
+
+## Accounts
+An Account is a 3rd party that the customer belongs to such as Stripe or Authorize.net
+
+## Sources
+A Source is a payment method used by the customer at checkout that belongs to a customer and an account.
 
 ## Carts
 A Cart is a bucket that holds products and data until an order is placed.
@@ -162,18 +178,62 @@ Vendors are companies that distribute a product. In the case of drop shipping, t
 ## Events
 Proxy Cart publishes many subscribable events.
 
+### Customer Events
+Events published during customer actions.
+
+#### customer.checkout
+
+#### customer.updated
+
+#### customer.account.created
+
+#### customer.account.updated
+
+#### customer.account_balance.updated
+
+#### customer.source.created
+
+#### customer.source.updated
+
+#### customer.source.removed
+
+#### customer.subscription.subscribed
+
+#### customer.subscription.updated
+
+#### customer.subscription.cancelled
+
+#### customer.subscription.activated
+
+#### customer.subscription.deactivated
+
+#### customer.subscription.items_added
+
+#### customer.subscription.items_removed
+
+#### customer.subscription.renewed
+
 ### Order Events
-#### transaction.sale.*
+Order events published during order operations.
+#### order.transaction.sale.*
 
-#### transaction.authorize.*
+#### order.transaction.authorize.*
 
-#### transaction.capture.*
+#### order.transaction.capture.*
 
-#### transaction.void.*
+#### order.transaction.void.*
 
-#### transaction.refund.*
+#### order.transaction.refund.*
 
-#### fulfillment.create.*
+#### order.fulfillment.create.*
+
+## Crons
+
+## Generics
+
+## Policies
+
+## Tasks
 
 ## Usage
 
@@ -196,8 +256,20 @@ Updates a Customer
 ##### CustomerController.findOne
 Find a Customer by id
 ```
-//GET <api>/cart/:id
+//GET <api>/customer/:id
 ```
+
+##### CustomerController.session
+Get the current customer in session
+```
+//GET <api>/customer/session
+```
+
+##### CustomerController.search
+```
+//GET <api>/customer/search
+```
+
 
 ##### CustomerController.uploadCSV
 Upload a Customer CSV
@@ -225,6 +297,8 @@ Creates a new cart and can add items at the start. Some interesting features:
 - Specify properties, useful for custom specifics to an order
 - Checks if the product inventory is available according to inventory policy
 - Checks for geographic restrictions
+- Checks for Product and Customer Discounts
+- Checks and validates Coupons
 
 ```
 //POST <api>/cart
@@ -257,7 +331,7 @@ From cart to checkout is easy and there are some special features to note:
 
 `payment_kind`: the type of transactions to create, 'authorize', 'capture', 'sale', or 'manual'
 
-`payment_details`: an array of payment information, requires a 'gateway' attribute and normally a 'token'
+`payment_details`: an array of payment information, requires a 'gateway' attribute and normally a 'token' or a 'source'
 
 `fulfillment_kind`: the type of fulfillment to perform, 'immediate', null or blank
 
@@ -288,6 +362,8 @@ Add Items to an open cart. Some interesting things to note:
 - You can add an existing item to a cart and it will increase the quantity
 - Checks if the product inventory is available according to inventory policy
 - Checks for geographic restrictions
+- Checks for Product and Customer Discounts
+- Checks and validates Coupons
 
 ```
 //POST <api>/cart/:id/addItems
@@ -342,6 +418,9 @@ Removes all items from an open cart
 ```
 Returns updated Cart
 
+#### CollectionController
+Handles Transaction operations
+
 #### FulfillmentController
 Handles Fulfillment operations
 
@@ -389,55 +468,103 @@ Removes multiple products (does not delete unless configured too)
 
 ##### ProductController.removeVariant
 Removes a product variant (does not delete unless configured too)
+```
+//POST <api>/product/variant/:variant/remove
+```
 
 ##### ProductController.removeVariants
 Removes multiple product variants (does not delete unless configured too)
 
 ##### ProductController.removeImage
 Removes a product image
+```
+//POST <api>/product/image/:image/remove
+```
 
 ##### ProductController.removeImages
 Removes multiple images
 
 ##### ProductController.uploadCSV
 Uploads a Product CSV
+```
+//POST <api>/product/uploadCSV
+name: csv
+```
 
 ##### ProductController.processUpload
 Processes Uploaded CSV
+```
+//POST <api>product/processUpload/:uploadID
+```
 
 ##### ProductController.uploadMetaCSV
 Uploads a Metadata CSV
+```
+//POST <api>product/uploadMetaCSV
+name csv
+```
 
 ##### ProductController.processMetaUpload
 Processes Uploaded Metadata CSV
+```
+//POST <api>product/processMetaUpload/:uploadMetaID
+```
 
 ##### ProductController.exportProducts
 Exports products as a CSV
+```
+//POST <api>product/exportProducts
+```
 
 #### OrderController
 Handles Order operations
 
 ##### OrderController.exportOrders
 Exports orders as a CSV
+```
+//POST <api>/order/exportOrders
+```
+
+#### ProxyCartController
+Handles ProxyCart operations
+
+#### ReviewController
+Handles Review operations
 
 #### ShopController
 Handles Shop operations
 
 ##### ShopController.create
 Creates a new Shop
+```
+//POST <api>/shop
+```
 
 ##### ShopController.update
 Updates a Shop
+```
+//POST <api>/shop/:id
+```
 
 #### SubscriptionController
 Handles Subscription operations
 
+#### TagController
+Handles Tag operations
+
 #### TransactionController
 Handles Transaction operations
 
+#### UserController
+Handles User operations
+
 ### Services
+Proxy Cart creates many services to handle operations
+
+#### AccountService
 #### CartService
 #### CollectionService
+#### CollectionCsvService
 #### CouponService
 #### CustomerService
 #### CustomerCsvService
@@ -445,37 +572,56 @@ Handles Transaction operations
 #### FulfillmentService
 #### GiftCardService
 #### OrderService
+#### PaymentService
 #### ProductService
 #### ProductCsvService
+#### ProductCsvService
 #### ProxyCartService
+#### ReviewService
 #### ShippingService
 #### ShopService
 #### SubscriptionService
+#### SubscriptionCsvService
+#### TagService
 #### TaxService
 #### TransactionService
+#### VendorService
 
 ### Models
+Proxy Cart creates many models and extends models from Proxy Engine and Proxy Permissions
+
+#### Account
 #### Address
 #### Cart
 #### City
 #### Collection
+#### CollectionUpload
 #### Country
 #### County
 #### Coupon
 #### Customer
-#### CustomerAddress
+#### CustomerAccount
+#### CustomerCart
+#### CustomerOrder
+#### CustomerSource
 #### CustomerUpload
+#### CustomerUser
 #### Discount
 #### Fulfillment
 #### FulfillmentEvent
 #### GiftCard
+#### ItemAddress
 #### ItemCollection
+#### ItemDiscount
 #### ItemMetadata
+#### ItemRefund
 #### ItemTag
 #### Metadata
 #### Order
 #### OrderItem
+#### OrderRisk
 #### Product
+#### ProductAssociation
 #### ProductImage
 #### ProductReview
 #### ProductVariant
@@ -486,9 +632,14 @@ Handles Transaction operations
 #### ShippingRestriction
 #### ShippingZone
 #### Shop
+#### Source
 #### Subscription
+#### SubscriptionUpload
 #### Tag
 #### Transaction
+#### User
+#### Vendor
+#### VendorProduct
 
 [npm-image]: https://img.shields.io/npm/v/trailpack-proxy-cart.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/trailpack-proxy-cart
@@ -504,6 +655,12 @@ Handles Transaction operations
 
 [ci-proxyengine-image]: https://img.shields.io/circleci/project/github/CaliStyle/trailpack-proxy-engine/nmaster.svg
 [ci-proxyengine-url]: https://circleci.com/gh/CaliStyle/trailpack-proxy-engine/tree/master
+
+[ci-proxypassport-image]: https://img.shields.io/circleci/project/github/CaliStyle/trailpack-proxy-passport/nmaster.svg
+[ci-proxypassport-url]: https://circleci.com/gh/CaliStyle/trailpack-proxy-passport/tree/master
+
+[ci-proxypermissions-image]: https://img.shields.io/circleci/project/github/CaliStyle/trailpack-proxy-permissions/nmaster.svg
+[ci-proxypermissions-url]: https://circleci.com/gh/CaliStyle/trailpack-proxy-permissions/tree/master
 
 [ci-express-image]: https://img.shields.io/travis/trailsjs/trailpack-express/master.svg?style=flat-square
 [ci-express-url]: https://travis-ci.org/trailsjs/trailpack-express
