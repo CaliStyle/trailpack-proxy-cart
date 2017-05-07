@@ -118,6 +118,9 @@ A Product is a Physical or Digital item.
 ## Product Variants
 A Product Variant is a variation of a product denoted by a unique Stock Keeping Unit (SKU)
 
+## Product Association
+A Product Association is a product that is associated to another product beyond the levels of a collection or tag.
+
 ## Product Images
 A Product Image is an image that is associated directly with a product and sometimes a product variant.
 
@@ -150,6 +153,9 @@ An Order is a bucket that holds products and data and the transactions of purcha
 
 ## Fulfillment
 A Fulfillment is a shipping transaction for an order.
+
+## Fulfillment Event
+A Fulfillment Event is the progress of a Fulfillment.
 
 ## Transactions
 A Transaction is a representation of a purchasing event.
@@ -230,6 +236,16 @@ Order events published during order operations.
 ## Crons
 
 ## Generics
+All of Proxy Carts generics can be overridden by 3rd party generic services. 
+### DefaultFulfillmentProvider
+
+### DefaultGeoLocationProvider
+
+### DefaultImageProvider
+
+### DefaultShippingProvider
+
+### DefaultTaxProvider
 
 ## Policies
 
