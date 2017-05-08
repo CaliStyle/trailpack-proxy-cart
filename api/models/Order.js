@@ -266,8 +266,13 @@ module.exports = class Order extends Model {
                   totalRefund = totalRefund + transaction.amount
                 }
               })
+
+              // If this item is completely free
+              if (this.total_price == 0) {
+                financialStatus = ORDER_FINANCIAL.PAID
+              }
               // Total Authorized is the Price of the Order and there are no Capture/Sale transactions and 0 voided
-              if (totalAuthorized == this.total_price && totalSale == 0 && totalVoided == 0 && totalRefund == 0) {
+              else if (totalAuthorized == this.total_price && totalSale == 0 && totalVoided == 0 && totalRefund == 0) {
                 // console.log('SHOULD BE: authorized')
                 financialStatus = ORDER_FINANCIAL.AUTHORIZED
               }
@@ -300,6 +305,7 @@ module.exports = class Order extends Model {
                 // console.log('SHOULD BE: partially_refunded')
                 financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
               }
+
               app.log.debug(`FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}`)
               // pending: The finances are pending. (This is the default value.)
               // authorized: The finances have been authorized.
