@@ -418,41 +418,44 @@ module.exports = class OrderService extends Service {
   }
 
   /**
-   * Remove an Item from Order
-   * @param data
-   * @returns {Promise.<T>}
-   */
-  // TODO
-  removeItem(data) {
-    return Promise.resolve(data)
-  }
-  /**
    * Pay an item
    * @param order
    * @returns {*|Promise.<TResult>}
    */
   // TODO
-  pay(order, gateway) {
+  pay(order, paymentDetails) {
+    let resOrder
     return this.resolve(order)
       .then(order => {
+
         if (order.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
           throw new Error(`Order status is ${order.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
         }
         return order
       })
       .then(order => {
+        resOrder = order
         if (!order.transactions || order.transactions.length == 0) {
           return order.getTransactions()
         }
         else {
-          return order
+          return order.transactions
         }
       })
-      .then(order => {
-        return order
+      .then(transactions => {
+        if (!transactions) {
+          transactions = []
+        }
+        const authorized = _.filter(transactions, (transaction) => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
+        return Promise.all(authorized.map(transaction => {
+          return this.app.services.TransactionService.capture(transaction)
+        }))
+      })
+      .then(capturedTransactions => {
+        console.log('Captured Transactions', capturedTransactions)
+        return this.app.orm['Order'].findByIdDefault(resOrder.id)
       })
   }
-
   /**
    * Pay multiple orders
    * @param orders
@@ -464,15 +467,18 @@ module.exports = class OrderService extends Service {
     }))
   }
   /**
-   * Refund an Order
+   * Refund an Order or Partially Refund an Order
    * @param order
    * @returns {*|Promise.<TResult>}
    */
   // TODO
   refund(order, refund) {
+    // let resOrder
     return this.resolve(order)
       .then(order => {
-
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
         return order
       })
   }
@@ -576,6 +582,98 @@ module.exports = class OrderService extends Service {
         return customerAddress
       }
     }
+  }
+
+  /**
+   *
+   * @param order
+   * @param tag
+   * @returns {Promise.<TResult>}
+   */
+  addTag(order, tag){
+    let resOrder, resTag
+    return this.resolve(order)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = order
+        return this.app.services.TagService.resolve(tag)
+      })
+      .then(tag => {
+        if (!tag) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resTag = tag
+        return resOrder.hasTag(resTag.id)
+      })
+      .then(hasTag => {
+        if (!hasTag) {
+          return resOrder.addTag(resTag.id)
+        }
+        return resOrder
+      })
+      .then(tag => {
+        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param tag
+   * @returns {Promise.<TResult>}
+   */
+  removeTag(order, tag){
+    let resOrder, resTag
+    return this.resolve(order)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = order
+        return this.app.services.TagService.resolve(tag)
+      })
+      .then(tag => {
+        if (!tag) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resTag = tag
+        return resOrder.hasTag(resTag.id)
+      })
+      .then(hasTag => {
+        if (hasTag) {
+          return resOrder.removeTag(resTag.id)
+        }
+        return resOrder
+      })
+      .then(tag => {
+        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+      })
+  }
+  // TODO
+  addItem(order, item) {
+    // let resOrder
+    return this.resolve(order)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        // resOrder = order
+        return order
+      })
+  }
+  // TODO
+  removeItem(order, item) {
+    // let resOrder
+    return this.resolve(order)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        // resOrder = order
+        return order
+      })
   }
 
   /**

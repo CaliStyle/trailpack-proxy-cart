@@ -370,7 +370,14 @@ From cart to checkout is easy and there are some special features to note:
   fulfillment_kind: 'immediate'
 }
 ```
-Returns an Order
+Returns the placed Order and a new Cart object
+```
+{
+  order: ...,
+  cart: ....
+}
+
+```
 
 ##### CartController.addItems
 Add Items to an open cart. Some interesting things to note:
@@ -401,6 +408,10 @@ Add Items to an open cart. Some interesting things to note:
   ]
 }
 ```
+Returns the cart with new values 
+```
+{}
+```
 
 ##### CartController.removeItems
 Remove Items from an open cart. Some interesting things to note:
@@ -426,6 +437,9 @@ Remove Items from an open cart. Some interesting things to note:
 }
 ```
 Returns updated Cart
+```
+{}
+```
 
 ##### CartController.clear
 Removes all items from an open cart
@@ -433,6 +447,9 @@ Removes all items from an open cart
 //POST <api>/cart/:id/clear
 ```
 Returns updated Cart
+```
+{}
+```
 
 #### CollectionController
 Handles Transaction operations

@@ -10,6 +10,7 @@ describe('OrderController', () => {
   let cartID
   let cartToken
   let shopProducts
+  let transactionID
 
   before((done) => {
     shopProducts = global.app.shopProducts
@@ -147,10 +148,23 @@ describe('OrderController', () => {
     request
       .post(`/order/${orderID}/pay`)
       .send({
-
+        payment_details: [
+          {
+            gateway: 'payment_processor',
+            token: '123'
+          }
+        ]
       })
       .expect(200)
       .end((err, res) => {
+        console.log('THIS ORDER', res.body)
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.financial_status, 'paid')
+
+        transactionID = res.body.transactions[0].id
+        assert.equal(res.body.transactions[0].kind, 'capture')
+        assert.equal(res.body.transactions[0].status, 'success')
+
         done(err)
       })
   })
@@ -158,7 +172,8 @@ describe('OrderController', () => {
     request
       .post(`/order/${orderID}/refund`)
       .send({
-
+        transaction: transactionID,
+        amount: 100
       })
       .expect(200)
       .end((err, res) => {
@@ -176,23 +191,21 @@ describe('OrderController', () => {
         done(err)
       })
   })
+  // TODO complete test
   it('should add tag to an order', (done) => {
     request
-      .post(`/order/${orderID}/addTag`)
-      .send({
-
-      })
+      .post(`/order/${orderID}/addTag/1`)
+      .send({})
       .expect(200)
       .end((err, res) => {
         done(err)
       })
   })
+  // TODO complete test
   it('should remove tag to an order', (done) => {
     request
-      .post(`/order/${orderID}/removeTag`)
-      .send({
-
-      })
+      .post(`/order/${orderID}/removeTag/1`)
+      .send({})
       .expect(200)
       .end((err, res) => {
         done(err)

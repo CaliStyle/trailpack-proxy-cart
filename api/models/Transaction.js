@@ -23,7 +23,16 @@ module.exports = class Transaction extends Model {
           underscored: true,
           hooks: {
             afterCreate: (values, options, fn) => {
-              app.services.TransactionService.afterCreate(values)
+              app.services.TransactionService.afterCreate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            afterUpdate: (values, options, fn) => {
+              app.services.TransactionService.afterUpdate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })

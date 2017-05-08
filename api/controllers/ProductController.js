@@ -715,7 +715,7 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   reviews(req, res) {
-    const Review = this.app.orm['Review']
+    const Review = this.app.orm['ProductReview']
     const productId = req.params.id
 
     if (!productId) {

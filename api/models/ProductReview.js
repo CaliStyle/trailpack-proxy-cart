@@ -50,10 +50,16 @@ module.exports = class ProductReview extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // The ID of the product Reviewed
+        product_id: {
+          type: Sequelize.INTEGER
+        },
+        // The Score of the Review
         score: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The Review
         review: {
           type: Sequelize.TEXT
         },

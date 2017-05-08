@@ -190,6 +190,9 @@ module.exports = class Order extends Model {
               })
             },
             findByIdDefault: function(criteria, options) {
+              if (!options) {
+                options = {}
+              }
               options = _.merge(options, queryDefaults.Order.default(app))
               return this.findById(criteria, options)
             },

@@ -180,6 +180,7 @@ module.exports = class SubscriptionService extends Service {
           object_id: subscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.updated',
+          message: 'Customer subscription updated',
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

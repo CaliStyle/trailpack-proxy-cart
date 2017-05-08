@@ -3,6 +3,8 @@
 
 const Service = require('trails/service')
 // const _ = require('lodash')
+// const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
+const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 /**
  * @module PaymentService
  * @description Payment Service
@@ -10,11 +12,14 @@ const Service = require('trails/service')
 module.exports = class PaymentService extends Service {
   /**
    * Authorizes and amount
-   * @param source
-   * @param amount
+   * @param transaction
+   * @param options
    * @returns {Promise}
    */
-  authorize(transaction){
+  authorize(transaction, options){
+    if (!options) {
+      options = {}
+    }
     const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -25,14 +30,15 @@ module.exports = class PaymentService extends Service {
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
       .then(transaction => {
-        return transaction.save()
+        return transaction.save({transaction: options.transaction || null })
       })
       .then(transaction => {
         resTransaction = transaction
         const event = {
           object_id: transaction.order_id,
           object: 'order',
-          type: `transaction.authorize.${transaction.status}`,
+          type: `order.transaction.authorize.${transaction.status}`,
+          message: `Order transaction authorize ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -45,29 +51,39 @@ module.exports = class PaymentService extends Service {
 
   /**
    * Captures and Authorized Amount
-   * @param source
-   * @param amount
+   * @param transaction
+   * @param options
    * @returns {Promise}
    */
-  capture(transaction){
-    const Transaction = this.app.orm.Transaction
+  capture(transaction, options){
+    if (!options) {
+      options = {}
+    }
+    // const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
     let resTransaction
-    transaction = Transaction.build(transaction)
-    return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
+    // Resolve the authorized transaction
+    return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
-        return transaction.save()
+        if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+          throw new Error(`Transaction status must be '${TRANSACTION_KIND.AUTHORIZE}' to be captured`)
+        }
+        return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
+      })
+      .then(transaction => {
+        return transaction.save({transaction: options.transaction || null })
       })
       .then(transaction => {
         resTransaction = transaction
         const event = {
           object_id: transaction.order_id,
           object: 'order',
-          type: `transaction.capture.${transaction.status}`,
+          type: `order.transaction.capture.${transaction.status}`,
+          message: `Order transaction capture ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -79,11 +95,14 @@ module.exports = class PaymentService extends Service {
 
   /**
    * Authorizes and Captures an amount
-   * @param source
-   * @param amount
+   * @param transaction
+   * @param options
    * @returns {Promise}
    */
-  sale(transaction){
+  sale(transaction, options){
+    if (!options) {
+      options = {}
+    }
     const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -95,7 +114,7 @@ module.exports = class PaymentService extends Service {
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
       .then(transaction => {
-        return transaction.save()
+        return transaction.save({transaction: options.transaction || null })
       })
       .then(transaction => {
         resTransaction = transaction
@@ -103,7 +122,7 @@ module.exports = class PaymentService extends Service {
           object_id: transaction.order_id,
           object: 'order',
           type: `order.transaction.sale.${transaction.status}`,
-          message: `Order transaction ${transaction.status}`,
+          message: `Order transaction sale ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -115,35 +134,53 @@ module.exports = class PaymentService extends Service {
 
   /**
    * Returns a pending promise (No Transaction Created)
-   * @param source
-   * @param amount
+   * @param transaction
+   * @param options
    * @returns {Promise}
    */
-  manual(transaction){
+  manual(transaction, options){
+    if (!options) {
+      options = {}
+    }
     const Transaction = this.app.orm.Transaction
     transaction = Transaction.build(transaction)
     return Promise.resolve(transaction)
   }
 
-  void(transaction){
-    const Transaction = this.app.orm.Transaction
+  /**
+   *
+   * @param transaction
+   * @param options
+   * @returns {*}
+   */
+  void(transaction, options){
+    if (!options) {
+      options = {}
+    }
+    // const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
     let resTransaction
-    transaction = Transaction.build(transaction)
-    return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
+    return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
-        return transaction.save()
+        if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+          throw new Error(`Transaction status must be '${TRANSACTION_KIND.AUTHORIZE}' to be voided`)
+        }
+        return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
+      })
+      .then(transaction => {
+        return transaction.save({transaction: options.transaction || null })
       })
       .then(transaction => {
         resTransaction = transaction
         const event = {
           object_id: transaction.order_id,
           object: 'order',
-          type: `transaction.void.${transaction.status}`,
+          type: `order.transaction.void.${transaction.status}`,
+          message: `Order transaction void ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -152,25 +189,41 @@ module.exports = class PaymentService extends Service {
         return resTransaction
       })
   }
-  refund(transaction){
-    const Transaction = this.app.orm.Transaction
+
+  /**
+   *
+   * @param transaction
+   * @param options
+   * @returns {*}
+   */
+  refund(transaction, options){
+    if (!options) {
+      options = {}
+    }
+    // const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
     let resTransaction
-    transaction = Transaction.build(transaction)
-    return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
+    return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
-        return transaction.save()
+        if (transaction.kind !== TRANSACTION_KIND.CAPTURE && transaction.kind !== TRANSACTION_KIND.SALE) {
+          throw new Error(`Transaction kind must be '${TRANSACTION_KIND.CAPTURE}' or '${TRANSACTION_KIND.SALE}' to be refunded`)
+        }
+        return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
+      })
+      .then(transaction => {
+        return transaction.save({transaction: options.transaction || null })
       })
       .then(transaction => {
         resTransaction = transaction
         const event = {
           object_id: transaction.order_id,
           object: 'order',
-          type: `transaction.refund.${transaction.status}`,
+          type: `order.transaction.refund.${transaction.status}`,
+          message: `Order transaction refund ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

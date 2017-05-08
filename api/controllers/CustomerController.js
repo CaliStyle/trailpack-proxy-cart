@@ -91,12 +91,8 @@ module.exports = class CustomerController extends Controller {
       limit: limit
     })
       .then(customers => {
-        res.set('X-Pagination-Total', customers.count)
-        res.set('X-Pagination-Pages', Math.ceil(customers.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Offset', offset)
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, customers.count, limit, offset, sort)
         return res.json(customers.rows)
       })
       .catch(err => {
@@ -223,14 +219,8 @@ module.exports = class CustomerController extends Controller {
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(customers => {
-        const pages = Math.ceil(customers.count / limit) == 0 ? 1 : Math.ceil(customers.count / limit)
-        const page = offset == 0 ? 1 : Math.round(offset / limit)
-        res.set('X-Pagination-Total', customers.count)
-        res.set('X-Pagination-Pages', pages)
-        res.set('X-Pagination-Page', page)
-        res.set('X-Pagination-Offset', offset)
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, customers.count, limit, offset, sort)
         return res.json(customers.rows)
       })
       .catch(err => {
@@ -518,11 +508,8 @@ module.exports = class CustomerController extends Controller {
       limit: limit
     })
       .then(accounts => {
-        res.set('X-Pagination-Total', accounts.count)
-        res.set('X-Pagination-Pages', Math.ceil(accounts.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, accounts.count, limit, offset, sort)
         return res.json(accounts.rows)
       })
       .catch(err => {
@@ -584,11 +571,8 @@ module.exports = class CustomerController extends Controller {
       limit: limit
     })
       .then(orders => {
-        res.set('X-Pagination-Total', orders.count)
-        res.set('X-Pagination-Pages', Math.ceil(orders.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, orders.count, limit, offset, sort)
         return res.json(orders.rows)
       })
       .catch(err => {
@@ -736,11 +720,8 @@ module.exports = class CustomerController extends Controller {
       limit: limit
     })
       .then(addresses => {
-        res.set('X-Pagination-Total', addresses.count)
-        res.set('X-Pagination-Pages', Math.ceil(addresses.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, addresses.count, limit, offset, sort)
         return res.json(addresses.rows)
       })
       .catch(err => {
@@ -920,11 +901,8 @@ module.exports = class CustomerController extends Controller {
       limit: limit
     })
       .then(sources => {
-        res.set('X-Pagination-Total', sources.count)
-        res.set('X-Pagination-Pages', Math.ceil(sources.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, sources.count, limit, offset, sort)
         return res.json(sources.rows)
       })
       .catch(err => {
@@ -1110,11 +1088,8 @@ module.exports = class CustomerController extends Controller {
       // limit: limit
     })
       .then(users => {
-        res.set('X-Pagination-Total', users.count)
-        res.set('X-Pagination-Pages', Math.ceil(users.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
+        // Paginate
+        this.app.services.ProxyCartService.paginate(res, users.count, limit, offset, sort)
         return res.json(users.rows)
       })
       .catch(err => {
@@ -1122,21 +1097,69 @@ module.exports = class CustomerController extends Controller {
       })
   }
 
-  addTag(req, res) {
-    // TODO
-    res.json({})
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addTag(req, res){
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.addTag(req.params.id, req.params.tag)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('CustomerController.addTag', err)
+        return res.serverError(err)
+      })
   }
-  removeTag(req, res) {
-    // TODO
-    res.json({})
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeTag(req, res){
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.removeTag(req.params.id, req.params.tag)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('CustomerController.removeTag', err)
+        return res.serverError(err)
+      })
   }
-  addCollection(req, res) {
-    // TODO
-    res.json({})
+  /**
+   * add a customer to a collection
+   * @param req
+   * @param res
+   */
+  addCollection(req, res){
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.addCollection(req.params.id, req.params.collection)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('CustomerController.addCollection', err)
+        return res.serverError(err)
+      })
   }
-  removeCollection(req, res) {
-    // TODO
-    res.json({})
+  /**
+   * remove a customer from a collection
+   * @param req
+   * @param res
+   */
+  removeCollection(req, res){
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.removeCollection(req.params.id, req.params.collection)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('CustomerController.removeCollection', err)
+        return res.serverError(err)
+      })
   }
 
   /**

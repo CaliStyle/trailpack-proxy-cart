@@ -71,48 +71,44 @@ describe('CustomerController', () => {
         done(err)
       })
   })
+  // TODO Complete Test
   it('should add tag to customer', (done) => {
     request
-      .post(`/customer/${customerID}/addTag`)
-      .send({
-
-      })
+      .post(`/customer/${customerID}/addTag/1`)
+      .send({})
       .expect(200)
       .end((err, res) => {
         // TODO
         done(err)
       })
   })
+  // TODO Complete Test
   it('should remove tag from customer', (done) => {
     request
-      .post(`/customer/${customerID}/removeTag`)
-      .send({
-
-      })
+      .post(`/customer/${customerID}/removeTag/1`)
+      .send({})
       .expect(200)
       .end((err, res) => {
         // TODO
         done(err)
       })
   })
+  // TODO Complete Test
   it('should add customer to collection', (done) => {
     request
-      .post(`/customer/${customerID}/addCollection`)
-      .send({
-
-      })
+      .post(`/customer/${customerID}/addCollection/1`)
+      .send({})
       .expect(200)
       .end((err, res) => {
         // TODO
         done(err)
       })
   })
+  // TODO Complete Test
   it('should should remove customer from collection', (done) => {
     request
-      .post(`/customer/${customerID}/removeCollection`)
-      .send({
-
-      })
+      .post(`/customer/${customerID}/removeCollection/1`)
+      .send({})
       .expect(200)
       .end((err, res) => {
         // TODO

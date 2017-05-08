@@ -51,59 +51,76 @@ module.exports = class TransactionService extends Service {
   /**
    *
    * @param transaction
+   * @param options
    * @returns {Promise.<T>}
    */
-  // TODO
-  authorize(transaction) {
-    return Promise.resolve(transaction)
+  authorize(transaction, options) {
+    return this.app.services.PaymentService.authorize(transaction, options)
   }
 
   /**
    *
    * @param transaction
+   * @param options
    * @returns {Promise.<T>}
    */
-  // TODO
-  capture(transaction) {
-    return Promise.resolve(transaction)
+  capture(transaction, options) {
+    return this.app.services.PaymentService.capture(transaction, options)
   }
 
   /**
    *
    * @param transaction
+   * @param options
    * @returns {Promise.<T>}
    */
-  //TODO
-  sale(transaction) {
-    return Promise.resolve(transaction)
+  sale(transaction, options) {
+    return this.app.services.PaymentService.sale(transaction, options)
   }
 
   /**
    *
    * @param transaction
+   * @param options
    * @returns {Promise.<T>}
    */
-  // TODO
-  void(transaction) {
-    return Promise.resolve(transaction)
+  void(transaction, options) {
+    return this.app.services.PaymentService.void(transaction, options)
   }
 
   /**
    *
    * @param transaction
+   * @param options
    * @returns {Promise.<T>}
    */
-  // TODO
-  refund(transaction) {
-    return Promise.resolve(transaction)
+  refund(transaction, options) {
+    return this.app.services.PaymentService.refund(transaction, options)
   }
 
   /**
    *
    * @param transaction
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<transaction>}
    */
-  afterCreate(transaction) {
+  afterCreate(transaction, options) {
+    const Order = this.app.orm['Order']
+    return Order.findById(transaction.order_id)
+      .then(order => {
+        return order.saveFinancialStatus()
+      })
+      .then(order => {
+        return transaction
+      })
+  }
+  /**
+   *
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  afterUpdate(transaction, options) {
     const Order = this.app.orm['Order']
     return Order.findById(transaction.order_id)
       .then(order => {

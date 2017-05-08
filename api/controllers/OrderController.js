@@ -187,6 +187,12 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   update(req, res) {
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.update(req.body)
@@ -201,6 +207,12 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   cancel(req, res) {
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.cancel(req.body)
@@ -215,6 +227,12 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   refund(req, res) {
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.refund(req.body)
@@ -268,6 +286,7 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
+  // TODO
   exportOrders(req, res) {
     //
   }
@@ -277,9 +296,32 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
-  // TODO
-  addTag(req, res) {
-    return res.json({})
+  addTag(req, res){
+    const OrderService = this.app.services.OrderService
+    OrderService.addTag(req.params.id, req.params.tag)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('OrderController.addTag', err)
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeTag(req, res){
+    const OrderService = this.app.services.OrderService
+    OrderService.removeTag(req.params.id, req.params.tag)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        // console.log('OrderController.removeTag', err)
+        return res.serverError(err)
+      })
   }
 
   /**
@@ -287,19 +329,15 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
-  // TODO
-  removeTag(req, res) {
-    return res.json({})
-  }
-
-  /**
-   *
-   * @param req
-   * @param res
-   */
-  // TODO
   addItem(req, res) {
-    return res.json({})
+    const OrderService = this.app.services.OrderService
+    OrderService.addItem(req.params.id, req.body)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 
   /**
@@ -307,9 +345,15 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
-  // TODO
   removeItem(req, res) {
-    return res.json({})
+    const OrderService = this.app.services.OrderService
+    OrderService.removeItem(req.params.id, req.body)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 
   /**
@@ -317,9 +361,18 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
-  // TODO
   pay(req, res) {
-    return res.json({})
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.pay(req.body)
+      .then(values => {
+        return OrderService.pay(req.params.id, req.body)
+      })
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 
   /**

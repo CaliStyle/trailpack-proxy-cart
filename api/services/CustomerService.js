@@ -198,7 +198,8 @@ module.exports = class CustomerService extends Service {
                   const event = {
                     object_id: account.customer_id,
                     object: 'customer',
-                    type: 'account.created',
+                    type: 'customer.account.created',
+                    message: 'Customer account created',
                     data: account
                   }
                   this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -436,56 +437,139 @@ module.exports = class CustomerService extends Service {
     })
   }
 
-  // TODO addTag
+  /**
+   *
+   * @param customer
+   * @param tag
+   * @returns {Promise.<TResult>}
+   */
   addTag(customer, tag){
-    // const Customer = this.app.orm['Customer']
-    // const Tag = this.app.orm['Tag']
-
-    let resCustomer
+    let resCustomer, resTag
     return this.resolve(customer)
       .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
         resCustomer = customer
-        // return this.
+        return this.app.services.TagService.resolve(tag)
+      })
+      .then(tag => {
+        if (!tag) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resTag = tag
+        return resCustomer.hasTag(resTag.id)
+      })
+      .then(hasTag => {
+        if (!hasTag) {
+          return resCustomer.addTag(resTag.id)
+        }
         return resCustomer
       })
+      .then(tag => {
+        return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
+      })
   }
-  // TODO removeTag
+
+  /**
+   *
+   * @param customer
+   * @param tag
+   * @returns {Promise.<TResult>}
+   */
   removeTag(customer, tag){
-    // const Customer = this.app.orm['Customer']
-    // const Tag = this.app.orm['Tag']
-
-    let resCustomer
+    let resCustomer, resTag
     return this.resolve(customer)
       .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
         resCustomer = customer
-        // return this.
+        return this.app.services.TagService.resolve(tag)
+      })
+      .then(tag => {
+        if (!tag) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resTag = tag
+        return resCustomer.hasTag(resTag.id)
+      })
+      .then(hasTag => {
+        if (hasTag) {
+          return resCustomer.removeTag(resTag.id)
+        }
         return resCustomer
       })
+      .then(tag => {
+        return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
+      })
   }
-  // TODO addCollection
+
+  /**
+   *
+   * @param customer
+   * @param collection
+   * @returns {Promise.<TResult>}
+   */
   addCollection(customer, collection){
-    // const Customer = this.app.orm['Customer']
-    // const Collection = this.app.orm['Collection']
-
-    let resCustomer
+    let resCustomer, resCollection
     return this.resolve(customer)
       .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
         resCustomer = customer
-        // return this.
+        return this.app.services.CollectionService.resolve(collection)
+      })
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resCollection = collection
+        return resCustomer.hasCollection(resCollection.id)
+      })
+      .then(hasCollection => {
+        if (!hasCollection) {
+          return resCustomer.addCollection(resCollection.id)
+        }
         return resCustomer
       })
+      .then(collection => {
+        return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
+      })
   }
-  // TODO removeCollection
-  removeCollection(customer, collection){
-    // const Customer = this.app.orm['Customer']
-    // const Collection = this.app.orm['Collection']
 
-    let resCustomer
+  /**
+   *
+   * @param customer
+   * @param collection
+   * @returns {Promise.<TResult>}
+   */
+  removeCollection(customer, collection){
+    let resCustomer, resCollection
     return this.resolve(customer)
       .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
         resCustomer = customer
-        // return this.
+        return this.app.services.CollectionService.resolve(collection)
+      })
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resCollection = collection
+        return resCustomer.hasCollection(resCollection.id)
+      })
+      .then(hasCollection => {
+        if (hasCollection) {
+          return resCustomer.removeCollection(resCollection.id)
+        }
         return resCustomer
+      })
+      .then(collection => {
+        return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
       })
   }
   // TODO

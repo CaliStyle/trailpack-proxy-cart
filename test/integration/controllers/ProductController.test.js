@@ -376,15 +376,14 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        assert.equal(res.body.id, createdProductID)
+        // assert.equal(res.body.id, createdProductID)
         done(err)
       })
   })
   // TODO complete test
-  it('should add association to product', (done) => {
+  it('should show associations of product', (done) => {
     request
-      .post(`/product/${createdProductID}/associations`)
-      .send({})
+      .get(`/product/${createdProductID}/associations`)
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
@@ -449,6 +448,17 @@ describe('ProductController', () => {
       .end((err, res) => {
         // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should show reviews of product', (done) => {
+    request
+      .get(`/product/${createdProductID}/reviews`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        // assert.equal(res.body.length, 1)
         done(err)
       })
   })
