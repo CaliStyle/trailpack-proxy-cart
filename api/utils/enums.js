@@ -322,7 +322,7 @@ module.exports = {
     SALE: 'sale',
     // The cancellation of a pending authorization or capture.
     VOID: 'void',
-    //  The partial or full return of the captured money to the customer.
+    // The partial or full return of the captured money to the customer.
     REFUND: 'refund'
   },
   COLLECTION_PURPOSE: {

@@ -422,11 +422,14 @@ module.exports = class OrderService extends Service {
    * @param order
    * @returns {*|Promise.<TResult>}
    */
-  // TODO
+  // TODO handle payment of remaining balance if provided
   pay(order, paymentDetails) {
     let resOrder
     return this.resolve(order)
       .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
 
         if (order.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
           throw new Error(`Order status is ${order.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
@@ -452,7 +455,7 @@ module.exports = class OrderService extends Service {
         }))
       })
       .then(capturedTransactions => {
-        console.log('Captured Transactions', capturedTransactions)
+        // console.log('Captured Transactions', capturedTransactions)
         return this.app.orm['Order'].findByIdDefault(resOrder.id)
       })
   }
@@ -471,15 +474,92 @@ module.exports = class OrderService extends Service {
    * @param order
    * @returns {*|Promise.<TResult>}
    */
-  // TODO
-  refund(order, refund) {
-    // let resOrder
+  // TODO partial refund
+  refund(order, refunds) {
+    if (!refunds) {
+      refunds = []
+    }
+    let resOrder
     return this.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
+        const allowedStatuses = [ORDER_FINANCIAL.PAID, ORDER_FINANCIAL.PARTIALLY_PAID, ORDER_FINANCIAL.PARTIALLY_REFUNDED]
+        if (allowedStatuses.indexOf(order.financial_status) == -1) {
+          throw new Error(
+            `Order status is ${order.financial_status} not 
+            '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`
+          )
+        }
         return order
+      })
+      .then(order => {
+        resOrder = order
+        if (!order.transactions || order.transactions.length == 0) {
+          return order.getTransactions()
+        }
+        else {
+          return order.transactions
+        }
+      })
+      .then(transactions => {
+        if (!transactions) {
+          transactions = []
+        }
+        // Partially Refund
+        if (refunds.length > 0) {
+          return Promise.all(refunds.map(refund => {
+            const refundTransaction = transactions.find(transaction => transaction.id == refund.transaction)
+            if (refundTransaction.kind == TRANSACTION_KIND.CAPTURE || TRANSACTION_KIND.SALE) {
+              // If this is a full Transaction refund
+              if (refund.amount == refundTransaction.amount) {
+                return this.app.services.TransactionService.refund(refundTransaction)
+              }
+              // If this is a partial refund
+              else {
+                return this.app.services.TransactionService.partiallyRefund(refundTransaction, refund.amount)
+              }
+            }
+          }))
+        }
+        // Completely Refund the order
+        else {
+          const refundable = transactions.filter(transaction => {
+            if (transaction.kind == TRANSACTION_KIND.CAPTURE || transaction.kind == TRANSACTION_KIND.SALE) {
+              return transaction
+            }
+          })
+          return Promise.all(refundable.map(transaction => {
+            return this.app.services.TransactionService.refund(transaction)
+          }))
+        }
+      })
+      .then(refundedTransactions => {
+        return Promise.all(refundedTransactions.map(transaction => {
+          if (transaction.kind == TRANSACTION_KIND.REFUND) {
+            return this.app.orm['Refund'].create({
+              order_id: resOrder.id,
+              transaction_id: transaction.id,
+              amount: transaction.amount
+            })
+          }
+        }))
+      })
+      .then(newRefunds => {
+        return resOrder.getRefunds()
+      })
+      .then(refunds => {
+        console.log('THIS REFUNDS', refunds)
+        let totalRefunds = 0
+        refunds.forEach(refund => {
+          totalRefunds = totalRefunds + refund.amount
+        })
+        resOrder.total_refunds = totalRefunds
+        return resOrder.saveFinancialStatus()
+      })
+      .then(order => {
+        return this.app.orm['Order'].findByIdDefault(resOrder.id)
       })
   }
 

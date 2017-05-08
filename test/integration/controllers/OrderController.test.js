@@ -157,7 +157,7 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS ORDER', res.body)
+        // console.log('THIS ORDER', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'paid')
 
@@ -171,23 +171,34 @@ describe('OrderController', () => {
   it('should partially refund an order', (done) => {
     request
       .post(`/order/${orderID}/refund`)
-      .send({
+      .send([{
         transaction: transactionID,
         amount: 100
-      })
+      }])
       .expect(200)
       .end((err, res) => {
+        console.log('THIS ORDER', res.body)
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.financial_status, 'partially_refunded')
+        assert.equal(res.body.total_refunds, 100)
+        assert.equal(res.body.total_due, 100)
         done(err)
       })
   })
   it('should refund an order', (done) => {
     request
       .post(`/order/${orderID}/refund`)
-      .send({
-
-      })
+      .send([])
       .expect(200)
       .end((err, res) => {
+        // console.log('THIS ORDER', res.body)
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.financial_status, 'refunded')
+        assert.equal(res.body.total_refunds, 100000)
+        assert.equal(res.body.total_due, 100000)
+        // assert.equal(res.body.transactions[0].kind, 'refund')
+        assert.equal(res.body.transactions[0].status, 'success')
+        assert.equal(res.body.transactions[1].status, 'success')
         done(err)
       })
   })

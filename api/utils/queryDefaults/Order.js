@@ -19,6 +19,10 @@ module.exports = {
           as: 'fulfillments'
         },
         {
+          model: app.orm['Refund'],
+          as: 'refunds'
+        },
+        {
           model: app.orm['Event'],
           as: 'events'
         }

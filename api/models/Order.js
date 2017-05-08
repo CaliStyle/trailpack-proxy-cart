@@ -267,7 +267,7 @@ module.exports = class Order extends Model {
                 }
               })
               // Total Authorized is the Price of the Order and there are no Capture/Sale transactions and 0 voided
-              if (totalAuthorized == this.total_due && totalSale == 0 && totalVoided == 0) {
+              if (totalAuthorized == this.total_price && totalSale == 0 && totalVoided == 0 && totalRefund == 0) {
                 // console.log('SHOULD BE: authorized')
                 financialStatus = ORDER_FINANCIAL.AUTHORIZED
               }
@@ -276,23 +276,27 @@ module.exports = class Order extends Model {
                 // console.log('SHOULD BE: voided')
                 financialStatus = ORDER_FINANCIAL.VOIDED
               }
+              else if (this.total_price == totalVoided && totalVoided > 0) {
+                // console.log('SHOULD BE: voided')
+                financialStatus = ORDER_FINANCIAL.VOIDED
+              }
               // Total Sale is the Price of the order and there are no refunds
-              else if (totalSale == this.total_due && totalRefund == 0) {
+              else if (totalSale == this.total_price && totalRefund == 0) {
                 // console.log('SHOULD BE: paid')
                 financialStatus = ORDER_FINANCIAL.PAID
               }
               // Total Sale is not yet the Price of the order and there are no refunds
-              else if (totalSale < this.total_due && totalSale > 0 && totalRefund == 0) {
+              else if (totalSale < this.total_price && totalSale > 0 && totalRefund == 0) {
                 // console.log('SHOULD BE: partially_paid')
                 financialStatus = ORDER_FINANCIAL.PARTIALLY_PAID
               }
               // Total Sale is the Total Price and Total Refund is Total Price
-              else if (totalSale == this.total_due && totalRefund == this.total_due) {
+              else if (this.total_price ==  totalRefund) {
                 // console.log('SHOULD BE: refunded')
                 financialStatus = ORDER_FINANCIAL.REFUNDED
               }
               // Total Sale is the Total Price but Total Refund is less than the Total Price
-              else if (totalSale == this.total_due && totalRefund < this.total_due) {
+              else if (totalRefund < this.total_price && totalRefund > 0) {
                 // console.log('SHOULD BE: partially_refunded')
                 financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
               }

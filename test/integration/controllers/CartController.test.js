@@ -277,6 +277,7 @@ describe('CartController', () => {
         assert.ok(res.body.order.token)
 
         assert.equal(res.body.order.financial_status, 'paid')
+        // assert.equal(res.body.order.fulfillment_status, 'fulfilled')
         assert.equal(res.body.order.currency, 'USD')
         assert.equal(res.body.order.source_name, 'api')
         assert.equal(res.body.order.processing_method, 'checkout')
@@ -290,9 +291,9 @@ describe('CartController', () => {
         assert.ok(res.body.order.order_items[0].fulfillment_id)
         assert.ok(res.body.order.order_items[1].fulfillment_id)
         assert.ok(res.body.order.order_items[2].fulfillment_id)
-        assert.equal(res.body.order.order_items[0].fulfillment_status, 'sent')
-        assert.equal(res.body.order.order_items[1].fulfillment_status, 'sent')
-        assert.equal(res.body.order.order_items[2].fulfillment_status, 'sent')
+        assert.equal(res.body.order.order_items[0].fulfillment_status, 'fulfilled')
+        assert.equal(res.body.order.order_items[1].fulfillment_status, 'fulfilled')
+        assert.equal(res.body.order.order_items[2].fulfillment_status, 'fulfilled')
 
         assert.equal(res.body.order.total_items, 4)
         // Transactions

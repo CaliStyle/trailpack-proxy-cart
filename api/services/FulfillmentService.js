@@ -152,6 +152,12 @@ module.exports = class FulfillmentService extends Service {
       })
   }
   beforeCreate(fulfillment){
+    return Promise.resolve(fulfillment)
+  }
+  beforeUpdate(fulfillment){
+    return Promise.resolve(fulfillment)
+  }
+  afterCreate(fulfillment) {
     const Order = this.app.orm['Order']
     // console.log('BROKE', fulfillment)
     return fulfillment.resolveFulfillmentStatus()
@@ -172,7 +178,7 @@ module.exports = class FulfillmentService extends Service {
         return fulfillment
       })
   }
-  beforeUpdate(fulfillment){
+  afterUpdate(fulfillment) {
     const Order = this.app.orm['Order']
 
     return fulfillment.resolveFulfillmentStatus()
@@ -192,12 +198,6 @@ module.exports = class FulfillmentService extends Service {
       .then(order => {
         return fulfillment
       })
-  }
-  afterCreate(fulfillment) {
-    return Promise.resolve(fulfillment)
-  }
-  afterUpdate(fulfillment) {
-    return Promise.resolve(fulfillment)
   }
 }
 

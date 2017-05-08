@@ -15,6 +15,12 @@ module.exports = class Refund extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            afterCreate: (values, options, fn) => {
+
+              fn(null, values)
+            }
+          },
           classMethods: {
             /**
              * Associate the Model
@@ -60,8 +66,20 @@ module.exports = class Refund extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        order_id: {
+          type: Sequelize.INTEGER
+        },
+        transaction_id: {
+          type: Sequelize.INTEGER
+        },
+        amount: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The time at which the refund was processed
         processed_at: {
-          type: Sequelize.DATE
+          type: Sequelize.DATE,
+          defaultValue: Sequelize.NOW
         },
         // refund_order_items: helpers.ARRAY('Refund', app, Sequelize, Sequelize.JSON, 'refund_order_items', {
         //   defaultValue: []

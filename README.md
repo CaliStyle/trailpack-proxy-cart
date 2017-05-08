@@ -160,6 +160,9 @@ A Fulfillment Event is the progress of a Fulfillment.
 ## Transactions
 A Transaction is a representation of a purchasing event.
 
+## Refunds
+A Refund represents a transaction that has been completely or partially refunded.
+
 ## Gift Cards
 A Gift Card is an alternate payment method that acts as a customer source.
 

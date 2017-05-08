@@ -55,7 +55,10 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   authorize(transaction, options) {
-    return this.app.services.PaymentService.authorize(transaction, options)
+    return this.resolve(transaction, options)
+      .then(transaction => {
+        return this.app.services.PaymentService.authorize(transaction, options)
+      })
   }
 
   /**
@@ -65,7 +68,10 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   capture(transaction, options) {
-    return this.app.services.PaymentService.capture(transaction, options)
+    return this.resolve(transaction, options)
+      .then(transaction => {
+        return this.app.services.PaymentService.capture(transaction, options)
+      })
   }
 
   /**
@@ -75,7 +81,10 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   sale(transaction, options) {
-    return this.app.services.PaymentService.sale(transaction, options)
+    return this.resolve(transaction, options)
+      .then(transaction => {
+        return this.app.services.PaymentService.sale(transaction, options)
+      })
   }
 
   /**
@@ -85,7 +94,10 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   void(transaction, options) {
-    return this.app.services.PaymentService.void(transaction, options)
+    return this.resolve(transaction, options)
+      .then(transaction => {
+        return this.app.services.PaymentService.void(transaction, options)
+      })
   }
 
   /**
@@ -95,7 +107,42 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   refund(transaction, options) {
-    return this.app.services.PaymentService.refund(transaction, options)
+    return this.resolve(transaction, options)
+      .then(transaction => {
+      //   transaction.amount = 0
+      //   return transaction.save()
+      // })
+      // .then(transaction => {
+      //   const newTransaction = _.omit(transaction.get({plain: true}), ['id'])
+      //   return this.create(newTransaction)
+      // })
+      // .then(transaction => {
+        return this.app.services.PaymentService.refund(transaction, options)
+      })
+  }
+
+  /**
+   *
+   * @param transaction
+   * @param amount
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  partiallyRefund(transaction, amount, options) {
+    return this.resolve(transaction, options)
+      .then(transaction => {
+        // transaction.amount = amount
+        transaction.amount = Math.max(0, transaction.amount - amount)
+        return transaction.save(options)
+      })
+      .then(transaction => {
+        const newTransaction = _.omit(transaction.get({plain: true}), ['id'])
+        newTransaction.amount = amount
+        return this.create(newTransaction, options)
+      })
+      .then(transaction => {
+        return this.app.services.PaymentService.refund(transaction, options)
+      })
   }
 
   /**
