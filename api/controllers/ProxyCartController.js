@@ -7,9 +7,38 @@ const Controller = require('trails/controller')
  * @description Generated Trails.js Controller.
  */
 module.exports = class ProxyCartController extends Controller {
+  /**
+   *
+   * @param req
+   * @param res
+   */
   generalStats(req, res) {
     res.json({})
   }
+
+  /**
+   *
+   * @param req
+   * @param rse
+   */
+  country(req, res) {
+
+  }
+  createCountry(req, res) {
+
+  }
+  updateCountry(req, res) {
+
+  }
+  destroyCountry(req, res) {
+
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   countries(req, res) {
     const Country  = this.app.orm['Country']
     const limit = req.query.limit || 10
@@ -39,6 +68,70 @@ module.exports = class ProxyCartController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  province(req, res) {
+
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  createProvince(req, res) {
+
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  updateProvince(req, res) {
+
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  destroyProvince(req, res) {
+
+  }
+
+  addProvince(req, res) {
+    const ProxyCartService = this.app.services.ProxyCartService
+    ProxyCartService.addProvince(req.params.id, req.params.province)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  removeProvince(req, res) {
+    const ProxyCartService = this.app.services.ProxyCartService
+    ProxyCartService.removeProvince(req.params.id, req.params.province)
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   provinces(req, res) {
     const Province  = this.app.orm['Province']
     const limit = req.query.limit || 10
