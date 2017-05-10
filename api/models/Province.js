@@ -59,7 +59,10 @@ module.exports = class Province extends Model {
         tax_name: {
           type: Sequelize.STRING
         },
-
+        position: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode

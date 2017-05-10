@@ -57,7 +57,10 @@ module.exports = class Country extends Model {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },
-
+        position: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode
