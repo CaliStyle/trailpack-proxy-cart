@@ -10,6 +10,9 @@ const _ = require('lodash')
  * @description Generated Trails.js Controller.
  */
 module.exports = class CollectionController extends Controller {
+  generalStats(req, res) {
+    res.json({})
+  }
   /**
    *
    * @param req

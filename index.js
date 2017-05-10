@@ -89,14 +89,19 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
   }
 
   /**
-   * Loads default shop fixtures
+   * Loads default shop and country fixtures
    */
   initialize () {
     return Promise.all([
       lib.Utils.buildShopFixtures(this.app)
         .then(fixtures => {
           this.shopFixtures = fixtures
-          return lib.Utils.loadFixtures(this.app)
+          return lib.Utils.loadShopFixtures(this.app)
+        }),
+      lib.Utils.buildCountryFixtures(this.app)
+        .then(fixtures => {
+          this.countryFixtures = fixtures
+          return lib.Utils.loadCountryFixtures(this.app)
         })
     ])
   }

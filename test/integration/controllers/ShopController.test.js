@@ -12,7 +12,17 @@ describe('ShopController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['ShopController'])
   })
-  it('should count all subscriptions', (done) => {
+  it('should get general stats', (done) => {
+    request
+      .get('/shop/generalStats')
+      .expect(200)
+      .end((err, res) => {
+        console.log('GENERAL STATS')
+        assert.ok(res.body)
+        done(err)
+      })
+  })
+  it('should count all shops', (done) => {
     request
       .get('/shop/count')
       .expect(200)

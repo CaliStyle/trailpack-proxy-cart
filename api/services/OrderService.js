@@ -474,7 +474,6 @@ module.exports = class OrderService extends Service {
    * @param order
    * @returns {*|Promise.<TResult>}
    */
-  // TODO partial refund
   refund(order, refunds) {
     if (!refunds) {
       refunds = []
@@ -550,7 +549,7 @@ module.exports = class OrderService extends Service {
         return resOrder.getRefunds()
       })
       .then(refunds => {
-        console.log('THIS REFUNDS', refunds)
+        // console.log('THIS REFUNDS', refunds)
         let totalRefunds = 0
         refunds.forEach(refund => {
           totalRefunds = totalRefunds + refund.amount
@@ -578,23 +577,30 @@ module.exports = class OrderService extends Service {
         if (resOrder.fulfillment_status !== ORDER_FULFILLMENT.NONE) {
           throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}'`)
         }
-        return resOrder
-        // if (!resOrder.transactions) {
-        //   return resOrder.getTransactions()
-        // }
-        // else {
-        //   return resOrder
-        // }
+
+        if (!resOrder.transactions || resOrder.transactions.length == 0) {
+          return resOrder.getTransactions()
+        }
+        else {
+          return resOrder.transactions
+        }
       })
-      // .then(order => {
-      //   if (!order.fulfillments) {
-      //     return order.getFulfillments()
-      //   }
-      //   else {
-      //     return order
-      //   }
-      // })
-      .then(resOrder => {
+      .then(transactions => {
+        // const refundable = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.SALE || transaction.kind == TRANSACTION_KIND.CAPTURE )
+        // const voidable = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
+
+        return resOrder
+      })
+      .then(order => {
+        if (!order.fulfillments || order.fulfillments.length == 0) {
+          return order.getFulfillments()
+        }
+        else {
+          return order.fulfillments
+        }
+      })
+      .then(fulfillments => {
+
         resOrder.cancelled_at = new Date()
         resOrder.closed_at = resOrder.cancelled_at
         resOrder.cancel_reason = reason

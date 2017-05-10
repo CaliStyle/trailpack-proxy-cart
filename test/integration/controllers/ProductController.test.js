@@ -22,6 +22,16 @@ describe('ProductController', () => {
   let uploadID
   let uploadMetaID
 
+  it('should get general stats', (done) => {
+    request
+      .get('/product/generalStats')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        done(err)
+      })
+  })
+
   it('should make addProducts post request', (done) => {
     request
       .post('/product/addProducts')

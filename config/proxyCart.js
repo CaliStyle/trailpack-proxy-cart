@@ -31,5 +31,7 @@ module.exports = {
     destroy_product: false,
     // Allows a product variant to be destroyed, Recommended false
     destroy_variant: false
-  }
+  },
+  // The countries to load by default
+  default_countries: ['USA']
 }

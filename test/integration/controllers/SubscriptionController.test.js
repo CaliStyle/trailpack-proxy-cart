@@ -13,6 +13,16 @@ describe('SubscriptionController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['SubscriptionController'])
   })
+  it('should get general stats', (done) => {
+    request
+      .get('/subscription/generalStats')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('GENERAL STATS')
+        assert.ok(res.body)
+        done(err)
+      })
+  })
   it('should count all subscriptions', (done) => {
     request
       .get('/subscription/count')

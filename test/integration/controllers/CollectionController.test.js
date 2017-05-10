@@ -16,6 +16,15 @@ describe('CollectionController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['CollectionController'])
   })
+  it('should get general stats', (done) => {
+    request
+      .get('/collection/generalStats')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        done(err)
+      })
+  })
   it('should create a collection', (done) => {
     const collection = collections[0]
     request

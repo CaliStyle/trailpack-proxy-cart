@@ -39,10 +39,14 @@ module.exports = class Country extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // Country Code iso-alpha-2
         code: {
           type: Sequelize.STRING
         },
         name: {
+          type: Sequelize.STRING
+        },
+        tax_name: {
           type: Sequelize.STRING
         },
         tax_rate: {

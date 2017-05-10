@@ -36,6 +36,15 @@ describe('OrderController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['OrderController'])
   })
+  it('should get general stats', (done) => {
+    request
+      .get('/order/generalStats')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        done(err)
+      })
+  })
   it('should count all orders', (done) => {
     request
       .get('/order/count')

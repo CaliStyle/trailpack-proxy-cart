@@ -16,6 +16,16 @@ describe('CustomerController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['CustomerController'])
   })
+  it('should get general stats', (done) => {
+    request
+      .get('/customer/generalStats')
+      .expect(200)
+      .end((err, res) => {
+        console.log('GENERAL STATS', res.body)
+        assert.ok(res.body)
+        done(err)
+      })
+  })
   it('should create a customer with a default address', (done) => {
     const customer = customers[1]
     request
