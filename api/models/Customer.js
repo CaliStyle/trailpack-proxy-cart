@@ -110,53 +110,58 @@ module.exports = class Customer extends Model {
               })
               models.Customer.belongsToMany(models.Address, {
                 as: 'addresses',
+                otherKey: 'address_id',
+                foreignKey: 'model_id',
                 through: {
                   model: models.ItemAddress,
-                  foreignKey: 'model_id',
                   scope: {
                     model: 'customer'
                   },
                   constraints: false
-                }
+                },
+                constraints: false
               })
               models.Customer.belongsTo(models.Address, {
                 as: 'shipping_address',
-                through: {
-                  model: models.ItemAddress,
-                  foreignKey: 'model_id',
-                  unique: true,
-                  scope: {
-                    address: 'shipping_address',
-                    model: 'customer'
-                  },
-                  constraints: false
-                }
+                // through: {
+                //   model: models.ItemAddress,
+                //   targetKey: 'address_id',
+                //   foreignKey: 'model_id',
+                //   unique: true,
+                //   scope: {
+                //     address: 'shipping_address',
+                //     model: 'customer'
+                //   },
+                //   constraints: false
+                // }
               })
               models.Customer.belongsTo(models.Address, {
                 as: 'billing_address',
-                through: {
-                  model: models.ItemAddress,
-                  foreignKey: 'model_id',
-                  unique: true,
-                  scope: {
-                    address: 'billing_address',
-                    model: 'customer'
-                  },
-                  constraints: false
-                }
+                // through: {
+                //   model: models.ItemAddress,
+                //   targetKey: 'address_id',
+                //   foreignKey: 'model_id',
+                //   unique: true,
+                //   scope: {
+                //     address: 'billing_address',
+                //     model: 'customer'
+                //   },
+                //   constraints: false
+                // }
               })
               models.Customer.belongsTo(models.Address, {
                 as: 'default_address',
-                through: {
-                  model: models.ItemAddress,
-                  foreignKey: 'model_id',
-                  unique: true,
-                  scope: {
-                    address: 'default_address',
-                    model: 'customer'
-                  },
-                  constraints: false
-                }
+                // through: {
+                //   model: models.ItemAddress,
+                //   targetKey: 'address_id',
+                //   foreignKey: 'model_id',
+                //   unique: true,
+                //   scope: {
+                //     address: 'default_address',
+                //     model: 'customer'
+                //   },
+                //   constraints: false
+                // }
               })
               models.Customer.belongsToMany(models.Order, {
                 as: 'orders',

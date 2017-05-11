@@ -35,17 +35,23 @@ module.exports = class Vendor extends Model {
              */
             associate: (models) => {
               models.Vendor.belongsTo(models.Address, {
-                as: 'address',
+                as: 'billing_address'
+              })
+              models.Vendor.belongsTo(models.Address, {
+                as: 'shipping_address'
+              })
+              models.Vendor.belongsToMany(models.Address, {
+                as: 'addresses',
+                otherKey: 'address_id',
+                foreignKey: 'model_id',
                 through: {
                   model: models.ItemAddress,
-                  foreignKey: 'model_id',
-                  unique: true,
                   scope: {
-                    address: 'address',
                     model: 'vendor'
                   },
                   constraints: false
-                }
+                },
+                constraints: false
               })
               models.Vendor.belongsToMany(models.Product, {
                 as: 'products',

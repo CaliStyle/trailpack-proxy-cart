@@ -356,29 +356,22 @@ module.exports = class Cart extends Model {
               // })
               models.Cart.belongsTo(models.Address, {
                 as: 'shipping_address',
-                through: {
-                  model: models.ItemAddress,
-                  foreignKey: 'model_id',
-                  unique: true,
-                  scope: {
-                    model: 'cart',
-                    address: 'shipping_address'
-                  },
-                  constraints: false
-                }
               })
               models.Cart.belongsTo(models.Address, {
                 as: 'billing_address',
+              })
+              models.Cart.belongsToMany(models.Address, {
+                as: 'addresses',
+                otherKey: 'address_id',
+                foreignKey: 'model_id',
                 through: {
                   model: models.ItemAddress,
-                  foreignKey: 'model_id',
-                  unique: true,
                   scope: {
-                    model: 'cart',
-                    address: 'billing_address'
+                    model: 'cart'
                   },
                   constraints: false
-                }
+                },
+                constraints: false
               })
               models.Cart.belongsToMany(models.Discount, {
                 as: 'discount_codes',

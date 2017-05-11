@@ -68,7 +68,7 @@ describe('CustomerController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CUSTOMER',res.body)
+        console.log('THIS CUSTOMER',res.body)
         assert.equal(res.body.first_name, 'Scotty')
         assert.equal(res.body.last_name, 'W')
         // Tags
@@ -146,6 +146,48 @@ describe('CustomerController', () => {
         assert.equal(res.body.province_code, 'DC')
         assert.equal(res.body.country_code, 'US')
         assert.equal(res.body.postal_code, '20500')
+        done(err)
+      })
+  })
+  it('should update customer and set as shipping address', (done) => {
+    request
+      .post(`/customer/${customerID}/address/${addressID}`)
+      .send({
+        shipping_address: {
+          first_name: 'Scotty',
+          last_name: 'W',
+          address_1: '1600 Pennsylvania Ave NW',
+          address_2: '',
+          company: 'Billing Department',
+          city: 'Washington',
+          phone: '',
+          province_code: 'DC',
+          country_code: 'US',
+          postal_code: '20500'
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.first_name, 'Scotty')
+        assert.equal(res.body.last_name, 'W')
+        assert.equal(res.body.address_1, '1600 Pennsylvania Ave NW')
+        assert.equal(res.body.address_2, '')
+        assert.equal(res.body.company, 'Billing Department')
+        assert.equal(res.body.city, 'Washington')
+        assert.equal(res.body.phone, '')
+        assert.equal(res.body.province_code, 'DC')
+        assert.equal(res.body.country_code, 'US')
+        assert.equal(res.body.postal_code, '20500')
+        done(err)
+      })
+  })
+  it('should get customer addresses', (done) => {
+    request
+      .get(`/customer/${customerID}/addresses`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('these addresses', res.body)
+        assert.equal(res.body.length, 4)
         done(err)
       })
   })

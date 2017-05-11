@@ -2,13 +2,13 @@ module.exports = {
   default: (app) => {
     return {
       // include: [{ all: true }]
-      attributes: {
-        exclude: [
-          'shipping_address_id',
-          'billing_address_id',
-          'default_address_id'
-        ]
-      },
+      // attributes: {
+      //   exclude: [
+      //     'shipping_address_id',
+      //     'billing_address_id',
+      //     'default_address_id'
+      //   ]
+      // },
       // [
       //   'Customer.*',
       //   // 'billing_address.*',
@@ -47,7 +47,7 @@ module.exports = {
           as: 'billing_address'
         },
         // {
-        //   model: app.orm['CustomerAddress'],
+        //   model: app.orm['Address'],
         //   as: 'addresses'
         // },
         {

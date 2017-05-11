@@ -713,9 +713,18 @@ module.exports = class CustomerController extends Controller {
 
     Address.findAndCount({
       order: sort,
-      where: {
-        customer_id: customerId
-      },
+      include: [{
+        model: this.app.orm['Customer'],
+        attributes: [
+          'id',
+          'shipping_address_id',
+          'billing_address_id',
+          'default_address_id'
+        ],
+        where: {
+          id: customerId
+        }
+      }],
       offset: offset,
       limit: limit
     })
@@ -737,6 +746,7 @@ module.exports = class CustomerController extends Controller {
   addAddress(req, res) {
     const CustomerService = this.app.services.CustomerService
     let customerId = req.params.id
+    let type = null
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
@@ -749,12 +759,28 @@ module.exports = class CustomerController extends Controller {
     if (!req.body.customer) {
       req.body.customer = {}
     }
+    if (!req.body.address) {
+      req.body.address = {}
+    }
+    if (req.body.shipping_address) {
+      type = 'shipping'
+      req.body.address = req.body.shipping_address
+    }
+    if (req.body.billing_address) {
+      type = 'billing'
+      req.body.address = req.body.billing_address
+    }
+    if (req.body.default_address) {
+      type = 'default'
+      req.body.address = req.body.default_address
+    }
+
     // Set body variables just in case
     req.body.customer.id = customerId
 
     lib.Validator.validateAddress.add(req.body.address)
       .then(values => {
-        return CustomerService.addAddress(req.body.customer, req.body.address)
+        return CustomerService.addAddress(req.body.customer, req.body.address, type)
       })
       .then(address => {
         return res.json(address)
@@ -775,6 +801,7 @@ module.exports = class CustomerController extends Controller {
     const CustomerService = this.app.services.CustomerService
     const addressId = req.params.address
     let customerId = req.params.id
+    let type = null
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
@@ -788,6 +815,18 @@ module.exports = class CustomerController extends Controller {
     if (!req.body.address) {
       req.body.address = {}
     }
+    if (req.body.shipping_address) {
+      type = 'shipping'
+      req.body.address = req.body.shipping_address
+    }
+    if (req.body.billing_address) {
+      type = 'billing'
+      req.body.address = req.body.billing_address
+    }
+    if (req.body.default_address) {
+      type = 'default'
+      req.body.address = req.body.default_address
+    }
 
     // Set body variables just in case
     req.body.customer.id = customerId
@@ -795,7 +834,7 @@ module.exports = class CustomerController extends Controller {
 
     lib.Validator.validateAddress.update(req.body.address)
       .then(values => {
-        return CustomerService.updateAddress(req.body.customer, req.body.address)
+        return CustomerService.updateAddress(req.body.customer, req.body.address, type)
       })
       .then(address => {
         return res.json(address)
@@ -815,6 +854,7 @@ module.exports = class CustomerController extends Controller {
     const CustomerService = this.app.services.CustomerService
     const addressId = req.params.address
     let customerId = req.params.id
+
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }

@@ -31,19 +31,20 @@ module.exports = class ItemAddress extends Model {
         },
         address_id: {
           type: Sequelize.INTEGER,
-          unique: 'itemaddress_address'
+          // unique: 'itemaddress_address'
         },
         model: {
           type: Sequelize.STRING,
-          unique: 'itemaddress_address'
+          // unique: 'itemaddress_address'
         },
         address: {
           type: Sequelize.STRING,
-          unique: 'itemaddress_address'
+          defaultValue: 'address',
+          // unique: 'itemaddress_address'
         },
         model_id: {
           type: Sequelize.INTEGER,
-          unique: 'itemaddress_address',
+          // unique: 'itemaddress_address',
           references: null
         }
       }
