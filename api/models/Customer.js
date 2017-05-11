@@ -108,6 +108,17 @@ module.exports = class Customer extends Model {
                   constraints: false
                 }
               })
+              models.Customer.belongsToMany(models.Address, {
+                as: 'addresses',
+                through: {
+                  model: models.ItemAddress,
+                  foreignKey: 'model_id',
+                  scope: {
+                    model: 'customer'
+                  },
+                  constraints: false
+                }
+              })
               models.Customer.belongsTo(models.Address, {
                 as: 'shipping_address',
                 through: {

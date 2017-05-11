@@ -7,6 +7,7 @@ const customers = require('../../fixtures/customers')
 describe('CustomerController', () => {
   let request
   let customerID
+  let addressID
   let uploadID
   before((done) => {
     request = supertest('http://localhost:3000')
@@ -79,6 +80,92 @@ describe('CustomerController', () => {
         // Address
         assert.equal(res.body.shipping_address.first_name, 'Scotty')
         assert.equal(res.body.shipping_address.last_name, 'W')
+        done(err)
+      })
+  })
+  it('should add customer address', (done) => {
+    request
+      .post(`/customer/${customerID}/address`)
+      .send({
+        address: {
+          first_name: 'Scotty',
+          last_name: 'W',
+          address_1: '1600 Pennsylvania Ave NW',
+          address_2: '',
+          company: 'Shipping Department',
+          city: 'Washington',
+          phone: '',
+          province_code: 'DC',
+          country_code: 'US',
+          postal_code: '20500'
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS ADDRESS',res.body)
+        addressID = res.body.id
+        assert.equal(res.body.first_name, 'Scotty')
+        assert.equal(res.body.last_name, 'W')
+        assert.equal(res.body.address_1, '1600 Pennsylvania Ave NW')
+        assert.equal(res.body.address_2, '')
+        assert.equal(res.body.company, 'Shipping Department')
+        assert.equal(res.body.city, 'Washington')
+        assert.equal(res.body.phone, '')
+        assert.equal(res.body.province_code, 'DC')
+        assert.equal(res.body.country_code, 'US')
+        assert.equal(res.body.postal_code, '20500')
+        done(err)
+      })
+  })
+  it('should update customer address', (done) => {
+    request
+      .post(`/customer/${customerID}/address/${addressID}`)
+      .send({
+        address: {
+          first_name: 'Scotty',
+          last_name: 'W',
+          address_1: '1600 Pennsylvania Ave NW',
+          address_2: '',
+          company: 'Billing Department',
+          city: 'Washington',
+          phone: '',
+          province_code: 'DC',
+          country_code: 'US',
+          postal_code: '20500'
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.first_name, 'Scotty')
+        assert.equal(res.body.last_name, 'W')
+        assert.equal(res.body.address_1, '1600 Pennsylvania Ave NW')
+        assert.equal(res.body.address_2, '')
+        assert.equal(res.body.company, 'Billing Department')
+        assert.equal(res.body.city, 'Washington')
+        assert.equal(res.body.phone, '')
+        assert.equal(res.body.province_code, 'DC')
+        assert.equal(res.body.country_code, 'US')
+        assert.equal(res.body.postal_code, '20500')
+        done(err)
+      })
+  })
+  it('should destroy customer address', (done) => {
+    request
+      .delete(`/customer/${customerID}/address/${addressID}`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS ADDRESS',res.body)
+        assert.equal(res.body.first_name, 'Scotty')
+        assert.equal(res.body.last_name, 'W')
+        assert.equal(res.body.address_1, '1600 Pennsylvania Ave NW')
+        assert.equal(res.body.address_2, '')
+        assert.equal(res.body.company, 'Billing Department')
+        assert.equal(res.body.city, 'Washington')
+        assert.equal(res.body.phone, '')
+        assert.equal(res.body.province_code, 'DC')
+        assert.equal(res.body.country_code, 'US')
+        assert.equal(res.body.postal_code, '20500')
         done(err)
       })
   })

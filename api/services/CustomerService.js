@@ -411,7 +411,12 @@ module.exports = class CustomerService extends Service {
   removeCart(customer, cart){
 
   }
-  // TODO setDefaultCartForCustomer
+
+  /**
+   *
+   * @param customer
+   * @param cart
+   */
   setDefaultCartForCustomer(customer, cart){
     return new Promise((resolve, reject) => {
       // const FootprintService = this.app.services.FootprintService
@@ -572,34 +577,66 @@ module.exports = class CustomerService extends Service {
         return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
       })
   }
-  // TODO
+
+  /**
+   *
+   * @param customer
+   * @param address
+   * @returns {Promise.<TResult>}
+   */
   addAddress(customer, address) {
-    let resCustomer
+    // console.log('THIS ADDRESS',address)
+    let resCustomer, resAddress
     return this.resolve(customer)
       .then(customer => {
         resCustomer = customer
-        // return this.
-        return resCustomer
+        return this.app.orm['Address'].create(address)
+      })
+      .then(address => {
+        resAddress = address
+        return resCustomer.addAddress(address.id)
+      })
+      .then(address => {
+        return resAddress
       })
   }
-  // TODO
+
+  /**
+   *
+   * @param customer
+   * @param address
+   * @returns {Promise.<TResult>}
+   */
   updateAddress(customer, address) {
-    let resCustomer
+    let resAddress
     return this.resolve(customer)
       .then(customer => {
-        resCustomer = customer
-        // return this.
-        return resCustomer
+        return this.app.orm['Address'].findById(address.id)
+      })
+      .then(foundAddress => {
+        resAddress = _.extend(foundAddress, address)
+        return resAddress.save()
       })
   }
-  // TODO
+
+  /**
+   *
+   * @param customer
+   * @param address
+   * @returns {*}
+   */
   removeAddress(customer, address) {
-    let resCustomer
+    let resAddress
     return this.resolve(customer)
       .then(customer => {
-        resCustomer = customer
-        // return this.
-        return resCustomer
+        return this.app.orm['Address'].findById(address.id)
+      })
+      .then(foundAddress => {
+        resAddress = foundAddress
+        return foundAddress.destroy()
+      })
+      .then(destroyedAddress => {
+        return resAddress
       })
   }
 

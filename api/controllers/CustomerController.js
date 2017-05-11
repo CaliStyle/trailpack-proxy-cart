@@ -740,15 +740,17 @@ module.exports = class CustomerController extends Controller {
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
-    if (!customerId || !req.user) {
-      const err = new Error('A customer id and a user in session are required')
+
+    if (!customerId) {
+      const err = new Error('A customer id is required')
       return res.serverError(err)
     }
+
     if (!req.body.customer) {
       req.body.customer = {}
     }
+    // Set body variables just in case
     req.body.customer.id = customerId
-    // req.body.address.id = address
 
     lib.Validator.validateAddress.add(req.body.address)
       .then(values => {
@@ -776,8 +778,8 @@ module.exports = class CustomerController extends Controller {
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
-    if (!customerId || !req.user || !addressId) {
-      const err = new Error('A customer id, address id, and a user in session are required')
+    if (!customerId || !addressId) {
+      const err = new Error('A customer id, and an address id are required')
       return res.serverError(err)
     }
     if (!req.body.customer) {
@@ -791,9 +793,9 @@ module.exports = class CustomerController extends Controller {
     req.body.customer.id = customerId
     req.body.address.id = addressId
 
-    lib.Validator.validateAddress.add(req.body.address)
+    lib.Validator.validateAddress.update(req.body.address)
       .then(values => {
-        return CustomerService.updateAddress(req.body.customer, req.body.address, req.body.address)
+        return CustomerService.updateAddress(req.body.customer, req.body.address)
       })
       .then(address => {
         return res.json(address)
@@ -816,8 +818,8 @@ module.exports = class CustomerController extends Controller {
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
-    if (!customerId || !req.user || !addressId) {
-      const err = new Error('A customer id, address id, and a user in session are required')
+    if (!customerId || !addressId) {
+      const err = new Error('A customer id, and address id are required')
       return res.serverError(err)
     }
     if (!req.body.customer) {
