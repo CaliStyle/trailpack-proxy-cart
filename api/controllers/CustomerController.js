@@ -736,7 +736,6 @@ module.exports = class CustomerController extends Controller {
    */
   addAddress(req, res) {
     const CustomerService = this.app.services.CustomerService
-    // const address = req.params.address
     let customerId = req.params.id
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id

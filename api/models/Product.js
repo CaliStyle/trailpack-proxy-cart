@@ -464,7 +464,7 @@ module.exports = class Product extends Model {
         },
         // SEO description
         seo_description: {
-          type: Sequelize.STRING,
+          type: Sequelize.TEXT,
           set: function(val) {
             this.setDataValue('seo_description', removeMd(striptags(val)))
           }
