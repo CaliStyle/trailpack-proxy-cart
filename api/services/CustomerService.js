@@ -598,18 +598,27 @@ module.exports = class CustomerService extends Service {
       })
       .then(address => {
         resAddress = address
-        if (type == 'shipping') {
-          return resCustomer.setShipping_address(address.id)
+        if (type == 'shipping' || !resCustomer.shipping_address_id) {
+          return resCustomer.setShipping_address(resAddress.id)
         }
-        else if (type == 'billing') {
-          return resCustomer.setBilling_address(address.id)
+      })
+      .then(shippingAddress => {
+        if (type == 'billing' || !resCustomer.billing_address_id) {
+          return resCustomer.setBilling_address(resAddress.id)
         }
-        else if (type == 'default') {
-          return resCustomer.setDefault_address(address.id)
+        return
+      })
+      .then(billingAddress => {
+        if (type == 'default' || !resCustomer.default_address_id) {
+          return resCustomer.setDefault_address(resAddress.id)
         }
-        else {
+        return
+      })
+      .then(defaultAddress => {
+        if (!type) {
           return resCustomer.addAddress(address.id, {address: 'address'})
         }
+        return
       })
       .then(address => {
         return resAddress
