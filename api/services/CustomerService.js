@@ -616,11 +616,13 @@ module.exports = class CustomerService extends Service {
       })
       .then(defaultAddress => {
         if (!type) {
-          return resCustomer.addAddress(address.id, {address: 'address'})
+          return resCustomer.addAddress(resAddress.id, {address: 'address'})
         }
-        return
       })
       .then(address => {
+        return resCustomer.save()
+      })
+      .then(customer => {
         return resAddress
       })
   }

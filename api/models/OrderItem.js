@@ -127,6 +127,14 @@ module.exports = class OrderItem extends Model {
           // },
           allowNull: false
         },
+        product_handle: {
+          type: Sequelize.STRING,
+          // references: {
+          //   model: 'Product',
+          //   key: 'handle'
+          // },
+          allowNull: false
+        },
         variant_id: {
           type: Sequelize.INTEGER,
           // references: {
