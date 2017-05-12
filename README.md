@@ -134,16 +134,19 @@ A Metadata is additional information about a product, customer, or review that i
 A Collection is a grouping of like items, such as products, customers, and shipping zones and can apply collection discounts, shipping overrides, and tax overrides.
 
 ## Tags
-A Tag is a searching marker for a customer or product.
+A Tag is a searching marker for a customer, product, or order.
 
 ## Customers
-A Customer is a user or guest.
+A Customer represents an account of one more users or guests.
+
+## Users
+A User is a registered user account with an username/email and password with given permission roles. Multiple users can share a single Customer account.
 
 ## Accounts
 An Account is a 3rd party that the customer belongs to such as Stripe or Authorize.net
 
 ## Sources
-A Source is a payment method used by the customer at checkout that belongs to a customer and an account.
+A Source is a payment method used by the customer at checkout that belongs to a customer and a 3rd party Account.
 
 ## Carts
 A Cart is a bucket that holds products and data until an order is placed.
@@ -188,7 +191,7 @@ Vendors are companies that distribute a product. In the case of drop shipping, t
 Proxy Cart publishes many subscribable events.
 
 ### Customer Events
-Events published during customer actions.
+Events published and saved during customer actions.
 
 #### customer.checkout
 
@@ -223,34 +226,57 @@ Events published during customer actions.
 #### customer.subscription.renewed
 
 ### Order Events
-Order events published during order operations.
-#### order.transaction.sale.*
+Order events published and saved during order operations.
+#### order.transaction.sale.*{pending|success|failure|error}
 
-#### order.transaction.authorize.*
+#### order.transaction.authorize.*{pending|success|failure|error}
 
-#### order.transaction.capture.*
+#### order.transaction.capture.*{pending|success|failure|error}
 
-#### order.transaction.void.*
+#### order.transaction.void.*{pending|success|failure|error}
 
-#### order.transaction.refund.*
+#### order.transaction.refund.*{pending|success|failure|error}
 
-#### order.fulfillment.create.*
+#### order.fulfillment.create.*{pending|success|failure|error}
 
 ## Crons
+### Expire Coupons
+Expires coupons on a schedule
+
+### Expire Discounts
+Expires discounts on a schedule
+
+### Renew Subscriptions
+Renews subscriptions on a schedule
 
 ## Generics
 All of Proxy Carts generics can be overridden by 3rd party generic services. 
+
 ### DefaultFulfillmentProvider
+Default Provider to handle Fulfillments
 
 ### DefaultGeoLocationProvider
+Default Provider to handle Geolocation
 
 ### DefaultImageProvider
+Default Provider to handle Image Manipulation
 
 ### DefaultShippingProvider
+Default Provider to handle Shipping rates 
 
 ### DefaultTaxProvider
+Default Provider to handle Tax Rates
 
 ## Policies
+### CartPolicy
+
+### CollectionPolicy
+
+### ProductPolicy
+
+### ProxyCartPolicy
+
+### SubscriptionPolicy
 
 ## Tasks
 
@@ -392,7 +418,8 @@ Add Items to an open cart. Some interesting things to note:
 - Checks and validates Coupons
 
 ```
-//POST <api>/cart/:id/addItems
+// POST <api>/cart/:id/addItems
+// POST <api>/cart/addItems (if cart in session)
 {
   line_items: [
     {
@@ -424,6 +451,7 @@ Remove Items from an open cart. Some interesting things to note:
 
 ```
 //POST <api>/cart/:id/removeItems
+//POST <api>/cart/removeItems (if cart in session)
 {
   line_items: [
     {
@@ -448,6 +476,7 @@ Returns updated Cart
 Removes all items from an open cart
 ```
 //POST <api>/cart/:id/clear
+//POST <api>/cart/clear (if cart in session)
 ```
 Returns updated Cart
 ```
@@ -455,7 +484,7 @@ Returns updated Cart
 ```
 
 #### CollectionController
-Handles Transaction operations
+Handles Collection operations
 
 #### FulfillmentController
 Handles Fulfillment operations
