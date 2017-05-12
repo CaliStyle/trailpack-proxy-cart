@@ -1,4 +1,3 @@
-# Proxy Cart
-## Fast Node.js eCommerce built for scalability and flexability
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/bruth/jekyll-docs-template/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
-Proxy Cart is built on Node.js framework [Trails](https://trailsjs.io) for the Proxy Engine ecosystem.
+Read the docs: http://bruth.github.io/jekyll-docs-template
