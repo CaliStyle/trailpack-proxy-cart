@@ -1,9 +1,9 @@
 ---
-title: "Getting Started"
+title: "Products"
 layout: post
 category: tut
 order: 1
 ---
 
-# Getting Started
+# Products
 
