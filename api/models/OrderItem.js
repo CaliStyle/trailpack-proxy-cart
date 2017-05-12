@@ -80,6 +80,9 @@ module.exports = class OrderItem extends Model {
               models.OrderItem.belongsTo(models.ProductVariant, {
 
               })
+              models.OrderItem.belongsTo(models.Vendor, {
+
+              })
               models.OrderItem.belongsTo(models.Refund, {
                 through: {
                   model: models.ItemRefund,
@@ -223,9 +226,9 @@ module.exports = class OrderItem extends Model {
         variant_title: {
           type: Sequelize.STRING
         },
-        // The name of the supplier of the item.
-        vendor: {
-          type: Sequelize.STRING
+        // The id of the supplier of the item.
+        vendor_id: {
+          type: Sequelize.INTEGER
         },
         // The name of the product variant.
         name: {
@@ -265,7 +268,8 @@ module.exports = class OrderItem extends Model {
         }),
         // The total discounts amount applied to this line item. This value is not subtracted in the line item price.
         total_discounts: {
-          type: Sequelize.INTEGER
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
 
         live_mode: {
