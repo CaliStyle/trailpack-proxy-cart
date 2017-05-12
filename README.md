@@ -465,41 +465,153 @@ Handles Product operations
 
 ##### ProductController.findOne
 Find a Product by `id`
+```
+//GET <api>/product/:id
+```
+Returns the product
+```
+{}
+```
+
+##### ProductController.findAll
+Find a Products by query
+```
+//GET <api>/product
+```
+Returns paginated products with pagination `x-headers`
+```
+[]
+```
+
+##### ProductController.findByTag
+Find a Products by tag name with query
+```
+//GET <api>/product/tag/:tag
+```
+Returns paginated products with pagination `x-headers`
+```
+[]
+```
+
+##### ProductController.findByCollection
+Find a Products by collection handle with query
+```
+//GET <api>/product/collection/:handle
+```
+Returns paginated products with pagination `x-headers`
+```
+[]
+```
 
 ##### ProductController.addProduct
 Adds a new product
 ```
 //POST <api>/product/add
+{
+  handle: 'snowboard',
+  title: 'Burton Custom Freestyle 151',
+  body: '<strong>Good snowboard!</strong>',
+  vendors: [
+    'Burton'
+  ],
+  type: 'Snowboard',
+  price: '10000',
+  published: true,
+  tags: [
+    'snow',
+    'equipment',
+    'outdoor'
+  ],
+  collections: [
+    'fire sale'
+  ],
+  metadata: {
+    test: 'value'
+  },
+  sku: 'board-m-123',
+  weight: '20',
+  weight_unit: 'lb',
+  images: [
+    {
+      src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+      alt: 'Hello World'
+    }
+  ],
+  variants: [
+    {
+      title: 'Women\'s Burton Custom Freestyle 151',
+      price: '10001',
+      sku: 'board-w-123',
+      images: [
+        {
+          src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+          alt: 'Hello World 2'
+        }
+      ]
+    }
+  ]
+}
+```
+
+Returns Created Product
+```
+{}
 ```
 
 ##### ProductController.addProducts
 Adds new products
 ```
 //POST <api>/product/addProducts
+[]
+```
+
+Returns Created Products
+```
+[]
 ```
 
 ##### ProductController.updateProduct
 Updates a product
 ```
 //POST <api>/product/:id/update
+{}
+```
+Returns the updated Product
+```
+{}
 ```
 
 ##### ProductController.updateProducts
 Updates multiple products
 ```
 //POST <api>/product/updateProducts
+[]
+```
+Returns the updated Products
+```
+[]
 ```
 
 ##### ProductController.removeProduct
 Removes a product (does not delete unless configured too)
 ```
 //POST <api>/product/:id/remove
+{}
+```
+Returns the removed product
+```
+{}
 ```
 
 ##### ProductController.removeProducts
 Removes multiple products (does not delete unless configured too)
 ```
 //POST <api>/product/removeProducts
+[]
+```
+Returns the removed products
+```
+[]
 ```
 
 ##### ProductController.removeVariant
@@ -507,9 +619,14 @@ Removes a product variant (does not delete unless configured too)
 ```
 //POST <api>/product/variant/:variant/remove
 ```
+Returns the updated product
+```
+{}
+```
 
 ##### ProductController.removeVariants
 Removes multiple product variants (does not delete unless configured too)
+
 
 ##### ProductController.removeImage
 Removes a product image
@@ -517,33 +634,101 @@ Removes a product image
 //POST <api>/product/image/:image/remove
 ```
 
-##### ProductController.removeImages
-Removes multiple images
+##### ProductController.addTag
+Adds a tag to a product
+```
+//POST <api>/product/:id/addTag/:tag
+```
+Returns Updated Product
+```
+{}
+```
+
+##### ProductController.removeTag
+Removes a tag from a product
+```
+//POST <api>/product/:id/removeTag/:tag
+```
+Returns Updated Product
+```
+{}
+```
+
+##### ProductController.addCollection
+Adds a product to a collection
+```
+//POST <api>/product/:id/addCollection/:collection
+```
+Returns Updated Product
+```
+{}
+```
+
+##### ProductController.removeCollection
+Removes a product from a collection
+```
+//POST <api>/product/:id/addCollection/:collection
+```
+Returns Updated Product
+```
+{}
+```
+
+##### ProductController.addVendor
+Adds a Vendor to a product
+```
+//POST <api>/product/:id/addVendor/:vendor
+```
+Returns Updated Product
+```
+{}
+```
+
+##### ProductController.removeVendor
+Removes a Vendor from a product
+```
+//POST <api>/product/:id/removeVendor/:vendor
+```
+Returns Updated Product
+```
+{}
+```
+
 
 ##### ProductController.uploadCSV
-Uploads a Product CSV
+Uploads a Product CSV using a template and makes it ready to process
 ```
 //POST <api>/product/uploadCSV
 name: csv
 ```
+Returns statistics of the upload
 
 ##### ProductController.processUpload
 Processes Uploaded CSV
 ```
 //POST <api>product/processUpload/:uploadID
 ```
+Returns statistics of the processed upload
 
 ##### ProductController.uploadMetaCSV
-Uploads a Metadata CSV
+Uploads a Metadata CSV using a template and makes it ready to process
 ```
 //POST <api>product/uploadMetaCSV
 name csv
+```
+Returns statistics of the upload
+```
+{}
 ```
 
 ##### ProductController.processMetaUpload
 Processes Uploaded Metadata CSV
 ```
 //POST <api>product/processMetaUpload/:uploadMetaID
+```
+Returns statistics of the processed upload
+```
+{}
 ```
 
 ##### ProductController.exportProducts
@@ -657,6 +842,8 @@ Proxy Cart creates many models and extends models from Proxy Engine and Proxy Pe
 #### OrderItem
 #### OrderRisk
 #### Product
+
+
 #### ProductAssociation
 #### ProductImage
 #### ProductReview
