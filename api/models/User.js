@@ -19,7 +19,7 @@ module.exports = class User extends Model {
         hooks: {
           afterCreate: [
             (values, options, fn) => {
-              app.services.ProxyCartService.afterUserCreate(values)
+              app.services.ProxyCartService.afterUserCreate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })

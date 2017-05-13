@@ -32,6 +32,7 @@ module.exports = class Address extends Model {
                 })
                 .catch(err => {
                   // Don't break over Geolocation failure
+                  app.log.logger.error(err)
                   return fn(null, values)
                 })
             },
@@ -43,6 +44,7 @@ module.exports = class Address extends Model {
                 })
                 .catch(err => {
                   // Don't break over Geolocation failure
+                  app.log.logger.error(err)
                   return fn(null, values)
                 })
             }

@@ -765,38 +765,48 @@ module.exports = class OrderService extends Service {
   /**
    *
    * @param item
+   * @param options
    * @returns {Promise.<T>}
    */
-  itemBeforeCreate(item){
+  itemBeforeCreate(item, options){
     return Promise.resolve(item)
   }
 
   /**
    *
    * @param item
+   * @param options
    * @returns {Promise.<T>}
    */
-  itemBeforeUpdate(item){
+  itemBeforeUpdate(item, options){
     return Promise.resolve(item)
   }
   /**
    *
    * @param item
+   * @param options
    * @returns {Promise.<T>}
    */
-  itemAfterCreate(item){
+  itemAfterCreate(item, options){
     return Promise.resolve(item)
   }
 
   /**
    *
    * @param item
+   * @param options
    * @returns {Promise.<T>}
    */
-  itemAfterUpdate(item){
+  itemAfterUpdate(item, options){
     return Promise.resolve(item)
   }
 
+  /**
+   *
+   * @param order
+   * @param options
+   * @returns {Promise.<T>}
+   */
   afterCreate(order, options) {
     order.number = `${order.shop_id}-${order.id + 1000}`
     if (!order.name && order.number) {

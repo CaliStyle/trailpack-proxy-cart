@@ -38,7 +38,7 @@ module.exports = class Customer extends Model {
               fn()
             },
             afterCreate: (values, options, fn) => {
-              app.services.CustomerService.afterCreate(values)
+              app.services.CustomerService.afterCreate(values, options)
                 .then(values => {
                   fn(null, values)
                 })
@@ -47,7 +47,7 @@ module.exports = class Customer extends Model {
                 })
             },
             afterUpdate: (values, options, fn) => {
-              app.services.CustomerService.afterUpdate(values)
+              app.services.CustomerService.afterUpdate(values, options)
                 .then(values => {
                   fn(null, values)
                 })

@@ -74,9 +74,10 @@ module.exports = class ProxyCartService extends Service {
   /**
    *
    * @param imageUrl
+   * @param options
    * @returns {Promise}
    */
-  buildImages(imageUrl) {
+  buildImages(imageUrl, options) {
     return new Promise((resolve, reject) =>{
       const images = {
         full: imageUrl,
@@ -367,7 +368,14 @@ module.exports = class ProxyCartService extends Service {
 
     return shops
   }
-  afterUserCreate(user) {
+
+  /**
+   *
+   * @param user
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  afterUserCreate(user, options) {
     // const Customer = this.app.orm['Customer']
     // const Cart = this.app.orm['Cart']
 
@@ -403,6 +411,12 @@ module.exports = class ProxyCartService extends Service {
         return user.save()
       })
   }
+
+  /**
+   *
+   * @param cart
+   * @param next
+   */
   serializeCart(cart, next) {
     // console.log('SERIALIZE CART')
     if (typeof next != 'function') {
@@ -411,6 +425,12 @@ module.exports = class ProxyCartService extends Service {
     next(null, cart.id)
   }
 
+  /**
+   *
+   * @param id
+   * @param options
+   * @param next
+   */
   deserializeCart(id, options, next) {
     // console.log('DESERIALIZE CART')
     if (typeof next != 'function') {
@@ -425,6 +445,11 @@ module.exports = class ProxyCartService extends Service {
       })
   }
 
+  /**
+   *
+   * @param customer
+   * @param next
+   */
   serializeCustomer(customer, next) {
     if (typeof next != 'function') {
       throw new Error('instance#serializeCustomer requires a callback function')
@@ -432,6 +457,12 @@ module.exports = class ProxyCartService extends Service {
     next(null, customer.id)
   }
 
+  /**
+   *
+   * @param id
+   * @param options
+   * @param next
+   */
   deserializeCustomer(id, options, next) {
     if (typeof next != 'function') {
       throw new Error('instance#deserializeCustomer requires a callback function')

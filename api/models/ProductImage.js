@@ -17,7 +17,7 @@ module.exports = class ProductImage extends Model {
           underscored: true,
           hooks: {
             beforeCreate: (values, options, fn) => {
-              app.services.ProxyCartService.buildImages(values.src)
+              app.services.ProxyCartService.buildImages(values.src, options)
                 .then(sizes => {
                   // console.log(sizes)
                   values.full = sizes.full

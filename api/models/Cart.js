@@ -26,7 +26,7 @@ module.exports = class Cart extends Model {
           // },
           hooks: {
             beforeCreate: (values, options, fn) => {
-              app.services.CartService.beforeCreate(values)
+              app.services.CartService.beforeCreate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -35,7 +35,7 @@ module.exports = class Cart extends Model {
                 })
             },
             beforeUpdate: (values, options, fn) => {
-              app.services.CartService.beforeUpdate(values)
+              app.services.CartService.beforeUpdate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -44,7 +44,7 @@ module.exports = class Cart extends Model {
                 })
             },
             beforeSave: (values, options, fn) => {
-              app.services.CartService.beforeSave(values)
+              app.services.CartService.beforeSave(values, options)
                 .then(values => {
                   return fn(null, values)
                 })

@@ -19,7 +19,7 @@ module.exports = class Fulfillment extends Model {
           underscored: true,
           hooks: {
             beforeCreate: (values, options, fn) => {
-              app.services.FulfillmentService.beforeCreate(values)
+              app.services.FulfillmentService.beforeCreate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -28,7 +28,7 @@ module.exports = class Fulfillment extends Model {
                 })
             },
             beforeUpdate: (values, options, fn) => {
-              app.services.FulfillmentService.beforeUpdate(values)
+              app.services.FulfillmentService.beforeUpdate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -37,7 +37,7 @@ module.exports = class Fulfillment extends Model {
                 })
             },
             afterCreate: (values, options, fn) => {
-              app.services.FulfillmentService.afterCreate(values)
+              app.services.FulfillmentService.afterCreate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -46,7 +46,7 @@ module.exports = class Fulfillment extends Model {
                 })
             },
             afterUpdate: (values, options, fn) => {
-              app.services.FulfillmentService.afterUpdate(values)
+              app.services.FulfillmentService.afterUpdate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })

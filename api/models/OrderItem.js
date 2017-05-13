@@ -23,7 +23,7 @@ module.exports = class OrderItem extends Model {
           underscored: true,
           hooks: {
             beforeCreate(values, options, fn) {
-              app.services.OrderService.itemBeforeCreate(values)
+              app.services.OrderService.itemBeforeCreate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -32,7 +32,7 @@ module.exports = class OrderItem extends Model {
                 })
             },
             beforeUpdate(values, options, fn) {
-              app.services.OrderService.itemBeforeUpdate(values)
+              app.services.OrderService.itemBeforeUpdate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -41,7 +41,7 @@ module.exports = class OrderItem extends Model {
                 })
             },
             afterCreate(values, options, fn) {
-              app.services.OrderService.itemAfterCreate(values)
+              app.services.OrderService.itemAfterCreate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -50,7 +50,7 @@ module.exports = class OrderItem extends Model {
                 })
             },
             afterUpdate(values, options, fn) {
-              app.services.OrderService.itemAfterUpdate(values)
+              app.services.OrderService.itemAfterUpdate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
