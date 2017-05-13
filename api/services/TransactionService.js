@@ -42,8 +42,10 @@ module.exports = class TransactionService extends Service {
    * @param options
    * @returns {transaction}
    */
-  // TODO
   create(transaction, options) {
+    if (!options) {
+      options = {}
+    }
     const Transaction = this.app.orm.Transaction
     return Transaction.create(transaction, options)
   }
@@ -55,6 +57,9 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   authorize(transaction, options) {
+    if (!options) {
+      options = {}
+    }
     return this.resolve(transaction, options)
       .then(transaction => {
         return this.app.services.PaymentService.authorize(transaction, options)
@@ -68,6 +73,9 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   capture(transaction, options) {
+    if (!options) {
+      options = {}
+    }
     return this.resolve(transaction, options)
       .then(transaction => {
         return this.app.services.PaymentService.capture(transaction, options)
@@ -81,6 +89,9 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   sale(transaction, options) {
+    if (!options) {
+      options = {}
+    }
     return this.resolve(transaction, options)
       .then(transaction => {
         return this.app.services.PaymentService.sale(transaction, options)
@@ -94,6 +105,9 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   void(transaction, options) {
+    if (!options) {
+      options = {}
+    }
     return this.resolve(transaction, options)
       .then(transaction => {
         return this.app.services.PaymentService.void(transaction, options)
@@ -107,16 +121,11 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   refund(transaction, options) {
+    if (!options) {
+      options = {}
+    }
     return this.resolve(transaction, options)
       .then(transaction => {
-      //   transaction.amount = 0
-      //   return transaction.save()
-      // })
-      // .then(transaction => {
-      //   const newTransaction = _.omit(transaction.get({plain: true}), ['id'])
-      //   return this.create(newTransaction)
-      // })
-      // .then(transaction => {
         return this.app.services.PaymentService.refund(transaction, options)
       })
   }
@@ -129,6 +138,9 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   partiallyRefund(transaction, amount, options) {
+    if (!options) {
+      options = {}
+    }
     return this.resolve(transaction, options)
       .then(transaction => {
         // transaction.amount = amount
@@ -152,10 +164,13 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<transaction>}
    */
   afterCreate(transaction, options) {
+    if (!options) {
+      options = {}
+    }
     const Order = this.app.orm['Order']
-    return Order.findById(transaction.order_id)
+    return Order.findById(transaction.order_id, {transaction: options.transaction || null})
       .then(order => {
-        return order.saveFinancialStatus()
+        return order.saveFinancialStatus({transaction: options.transaction || null})
       })
       .then(order => {
         return transaction
@@ -168,10 +183,13 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<transaction>}
    */
   afterUpdate(transaction, options) {
+    if (!options) {
+      options = {}
+    }
     const Order = this.app.orm['Order']
-    return Order.findById(transaction.order_id)
+    return Order.findById(transaction.order_id, {transaction: options.transaction || null})
       .then(order => {
-        return order.saveFinancialStatus()
+        return order.saveFinancialStatus({transaction: options.transaction || null})
       })
       .then(order => {
         return transaction

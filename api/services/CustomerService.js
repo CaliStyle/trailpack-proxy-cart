@@ -589,7 +589,6 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   addAddress(customer, address, type) {
-    // console.log('THIS ADDRESS',address)
     let resCustomer, resAddress
     return this.resolve(customer)
       .then(customer => {
@@ -685,7 +684,10 @@ module.exports = class CustomerService extends Service {
       })
   }
 
-  setAddresses(customer) {
+  setAddresses(customer, options) {
+    if (!options) {
+      options = {}
+    }
     let resCustomer
     return this.resolve(customer)
       .then(customer => {
@@ -732,10 +734,14 @@ module.exports = class CustomerService extends Service {
   /**
    *
    * @param customer
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  afterCreate(customer) {
-    return this.setAddresses(customer)
+  afterCreate(customer, options) {
+    if (!options) {
+      options = {}
+    }
+    return this.setAddresses(customer, options)
       .then(customerAddresses => {
         this.app.services.ProxyEngineService.publish('customer.created', customer)
         return customer
@@ -745,9 +751,13 @@ module.exports = class CustomerService extends Service {
   /**
    *
    * @param customer
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  afterUpdate(customer) {
+  afterUpdate(customer, options) {
+    if (!options) {
+      options = {}
+    }
     this.app.services.ProxyEngineService.publish('customer.updated', customer)
     let updateAccounts = false
     let updateAddresses = false
@@ -764,7 +774,7 @@ module.exports = class CustomerService extends Service {
     return Promise.resolve()
       .then(() => {
         if (updateAddresses) {
-          return this.setAddresses(customer)
+          return this.setAddresses(customer, options)
         }
         return
       })
