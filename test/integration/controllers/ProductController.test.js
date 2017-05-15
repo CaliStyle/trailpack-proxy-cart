@@ -21,6 +21,7 @@ describe('ProductController', () => {
   let firstImageID
   let uploadID
   let uploadMetaID
+  let createdVariantID
 
   it('should get general stats', (done) => {
     request
@@ -492,6 +493,39 @@ describe('ProductController', () => {
         done(err)
       })
   })
+  it('should make createVariant post request', (done) => {
+    request
+      .post(`/product/${createdProductID}/variant`)
+      .send({
+        sku: 'bscb-1',
+        title: 'Burton Super Custom Board',
+        option: { size: '700in', hover: '1000 feet' },
+        price: 100000,
+      })
+      .expect(200)
+      .end((err, res) => {
+        createdVariantID = res.body.id
+        assert.equal(res.body.product_id, createdProductID)
+        assert.equal(res.body.sku, 'bscb-1')
+        assert.equal(res.body.price, 100000)
+        done(err)
+      })
+  })
+  it('should make updateVariant post request', (done) => {
+    request
+      .post(`/product/${createdProductID}/variant/${createdVariantID}`)
+      .send({
+        price: 100001
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('Updated Variant', res.body)
+        assert.equal(res.body.product_id, createdProductID)
+        assert.equal(res.body.sku, 'bscb-1')
+        assert.equal(res.body.price, 100001)
+        done(err)
+      })
+  })
   it('should make removeVariant post request', (done) => {
     request
       .post(`/product/${createdProductID}/variant/${firstVariantID}/remove`)
@@ -507,7 +541,7 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.variants.length, 2)
+        assert.equal(res.body.variants.length, 3)
         assert.equal(res.body.images.length, 2)
         done(err)
       })
@@ -537,7 +571,6 @@ describe('ProductController', () => {
       .attach('csv', 'test/fixtures/product_upload.csv')
       .expect(200)
       .end((err, res) => {
-        console.log('BROKE',res.body)
         assert.ok(res.body.result.upload_id)
         uploadID = res.body.result.upload_id
         assert.equal(res.body.result.products, 2)

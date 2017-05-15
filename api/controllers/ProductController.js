@@ -414,11 +414,16 @@ module.exports = class ProductController extends Controller {
       })
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
   createVariant(req, res) {
     const ProductService = this.app.services.ProductService
     lib.Validator.validateVariant.create(req.body)
       .then(values => {
-        return ProductService.createVariant(req.params.id, req.params.variant)
+        return ProductService.createVariant(req.params.id, req.body)
       })
       .then(data => {
         return res.json(data)
@@ -428,11 +433,23 @@ module.exports = class ProductController extends Controller {
       })
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
   updateVariant(req, res) {
     const ProductService = this.app.services.ProductService
+    if (!req.body) {
+      req.body = {}
+    }
+    if (!req.body.id) {
+      req.body.id = req.params.variant
+    }
+
     lib.Validator.validateVariant.update(req.body)
       .then(values => {
-        return ProductService.updateVariant(req.params.id, req.params.variant)
+        return ProductService.updateVariant(req.params.id, req.body)
       })
       .then(data => {
         return res.json(data)

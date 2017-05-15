@@ -783,8 +783,7 @@ module.exports = class ProductService extends Service {
       variants = [variants]
     }
     return Promise.all(variants.map(variant => {
-      const id = typeof variant.id !== 'undefined' ? variant.id : variant
-      return this.removeVariant(id)
+      return this.removeVariant(variant)
     }))
   }
 
@@ -794,18 +793,57 @@ module.exports = class ProductService extends Service {
    * @param variant
    * @param options
    */
-  // TODO
+  // TODO update, upload images
   createVariant(product, variant, options) {
-    let resProduct, resVariant
+    if (!options) {
+      options = {}
+    }
+    const Variant = this.app.orm['ProductVariant']
+    let resProduct, resVariant, productOptions = []
     return this.resolve(product)
       .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Could not find Product'))
+        }
         resProduct = product
+
+        variant.product_id = resProduct.id
+        variant = this.variantDefaults(variant, resProduct)
+
         return resProduct.createVariant(variant)
         // return this.resolveVariant(variant, options)
       })
       .then(variant => {
         resVariant = variant
-        return resVariant
+
+        return Variant.findAll({
+          where: {
+            product_id: resProduct.id
+          },
+          transaction: options.transaction || null
+        })
+      })
+      .then(variants => {
+        const updates = _.sortBy(variants, 'position')
+        _.map(updates, (variant, index) => {
+          variant.position = index + 1
+        })
+        _.map(updates, variant => {
+          const keys = Object.keys(variant.option)
+          productOptions = _.union(productOptions, keys)
+        })
+        return Promise.all(updates.map(variant => {
+          return variant.save({
+            transaction: options.transaction || null
+          })
+        }))
+      })
+      .then(updatedVariants => {
+        resProduct.options = product.options
+        return resProduct.save({transaction: options.transaction || null})
+      })
+      .then(updatedProduct => {
+        return Variant.findByIdDefault(resVariant.id, {transaction: options.transaction || null})
       })
   }
   createVariants(product, variants, options) {
@@ -820,18 +858,56 @@ module.exports = class ProductService extends Service {
    * @param variant
    * @param options
    */
+  // TODO update, upload images
   updateVariant(product, variant, options) {
-    // let resProduct,
-    let resVariant
+    if (!options) {
+      options = {}
+    }
+    const Variant = this.app.orm['ProductVariant']
+    let  resProduct, resVariant, productOptions = []
     return this.resolve(product)
       .then(product => {
-        // resProduct = product
+        resProduct = product
         return this.resolveVariant(variant, options)
       })
-      .then(variant => {
-        resVariant = variant
-        return resVariant
+      // TODO Update
+      .then(foundVariant => {
+        resVariant = foundVariant
+        resVariant = _.extend(resVariant, variant)
+        resVariant = this.variantDefaults(resVariant, resProduct)
+        return resVariant.save({transaction: options.transaction || null})
       })
+      .then(variant => {
+        return Variant.findAll({
+          where: {
+            product_id: resProduct.id
+          },
+          transaction: options.transaction || null
+        })
+      })
+      .then(variants => {
+        const updates = _.sortBy(variants, 'position')
+        _.map(updates, (variant, index) => {
+          variant.position = index + 1
+        })
+        _.map(updates, variant => {
+          const keys = Object.keys(variant.option)
+          productOptions = _.union(productOptions, keys)
+        })
+        return Promise.all(updates.map(variant => {
+          return variant.save({
+            transaction: options.transaction || null
+          })
+        }))
+      })
+      .then(updatedVariants => {
+        resProduct.options = product.options
+        return resProduct.save({transaction: options.transaction || null})
+      })
+      .then(updatedProduct => {
+        return Variant.findByIdDefault(resVariant.id, {transaction: options.transaction || null})
+      })
+
   }
   updateVariants(product, variants, options) {
     return Promise.all(variants.map(variant => {
@@ -847,28 +923,37 @@ module.exports = class ProductService extends Service {
     if (!options) {
       options = {}
     }
-    let destroy
+    let resVariant, resProduct
     let updates
-    return Variant.findById(id, {
+    let productOptions = []
+    return this.resolveVariant(id, {
       transaction: options.transaction || null
     })
       .then(foundVariant => {
-        destroy = foundVariant
+        resVariant = foundVariant
+        return this.resolve(resVariant.product_id)
+      })
+      .then(product => {
+        resProduct = product
         return Variant.findAll({
           where: {
-            product_id: destroy.product_id
+            product_id: resVariant.product_id
           },
           transaction: options.transaction || null
         })
       })
       .then(foundVariants => {
         updates = _.sortBy(_.filter(foundVariants, variant => {
-          if (variant.id !== id){
+          if (variant.id !== resVariant.id){
             return variant
           }
         }), 'position')
         _.map(updates, (variant, index) => {
           variant.position = index + 1
+        })
+        _.map(updates, variant => {
+          const keys = Object.keys(variant.option)
+          productOptions = _.union(productOptions, keys)
         })
         return Promise.all(updates.map(variant => {
           return variant.save({
@@ -877,12 +962,14 @@ module.exports = class ProductService extends Service {
         }))
       })
       .then(updatedVariants => {
-        return Variant.destroy({
-          where: {
-            id: id
-          },
-          transaction: options.transaction || null
-        })
+        resProduct.options = productOptions
+        return resProduct.save({transaction: options.transaction || null})
+      })
+      .then(updatedProduct => {
+        return resVariant.destroy({transaction: options.transaction || null})
+      })
+      .then(destroyed => {
+        return resVariant
       })
   }
 

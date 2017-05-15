@@ -4,6 +4,7 @@
 
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
+const queryDefaults = require('../utils/queryDefaults')
 const UNITS = require('../utils/enums').UNITS
 const INTERVALS = require('../utils/enums').INTERVALS
 const INVENTORY_POLICY = require('../utils/enums').INVENTORY_POLICY
@@ -116,6 +117,13 @@ module.exports = class ProductVariant extends Model {
               //   foreignKey: 'model_id',
               //   constraints: false
               // })
+            },
+            findByIdDefault: function(criteria, options) {
+              if (!options) {
+                options = {}
+              }
+              options = _.merge(options, queryDefaults.ProductVariant.default(app))
+              return this.findById(criteria, options)
             }
           },
           instanceMethods: {
