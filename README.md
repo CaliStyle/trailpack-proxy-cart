@@ -548,7 +548,12 @@ Returns paginated products with pagination `x-headers`
 ```
 
 ##### ProductController.addProduct
-Adds a new product.
+Adds a new product. Some interesting things to note:
+- If you do not supply a currency, it will use the your configs default currency (USD)
+- Prices are all in whole numbers a their base level eg. $1.00 = 100
+- If a collection is not found in the list, it will be created.
+- If a tag is not found in the list, it will be created.
+- If you do not provide any variants, a default variant will be created if there is provided SKU.
 ```
 //POST <api>/product/add
 {
@@ -742,11 +747,18 @@ Returns the removed products
 ```
 
 ##### ProductController.createVariant
-Creates a variant
+Creates a variant. Some interesting things to note:
+- Any attributes not defined, will be inherited from the parent product
+- Any new options provided will be added to the product options array eg. Price, weight, currency, etc.
+
 ```
 //POST <api>/product/:id/variant
 {
-
+  sku: 'new-sku',
+  title: 'Awesome SKU',
+  option: {'Option 1': 'This is Option 1', 'Option 2': 'This is Option 2' },
+  price: 10000,
+  currecny: 'USD'
 }
 ```
 Returns created Variant
@@ -755,11 +767,14 @@ Returns created Variant
 ```
 
 ##### ProductController.updateVariant
-Updates a variant
+Updates a variant. Some interesting things to note:
+- Any new options provided will be added to the product options array eg. Price, weight, currency, etc.
+- You can not update the SKU on an already created variant!
 ```
 //POST <api>/product/:id/variant/:variant
 {
-  
+ title: 'Awesome SKU',
+ option: {'Option 3': 'This is Option 3', 'Option 4': 'This is Option 4' } 
 }
 ```
 Returns updated Variant
