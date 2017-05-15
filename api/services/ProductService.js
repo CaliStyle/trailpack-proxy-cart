@@ -10,6 +10,12 @@ const Errors = require('proxy-engine-errors')
  * @description Product Service
  */
 module.exports = class ProductService extends Service {
+  /**
+   *
+   * @param product
+   * @param options
+   * @returns {*}
+   */
   resolve(product, options) {
     const Product =  this.app.orm.Product
 
@@ -55,9 +61,62 @@ module.exports = class ProductService extends Service {
       return Promise.reject(err)
     }
   }
+
+  /**
+   *
+   * @param variant
+   * @param options
+   * @returns {*}
+   */
+  resolveVariant(variant, options) {
+    const Variant =  this.app.orm.ProductVariant
+
+    if (!options) {
+      options = {}
+    }
+
+    if (variant instanceof Variant.Instance){
+      return Promise.resolve(variant)
+    }
+    else if (variant && _.isObject(variant) && variant.id) {
+      return Variant.findById(variant.id, options)
+        .then(resVariant => {
+          if (!resVariant) {
+            throw new Errors.FoundError(Error(`Variant ${variant.id} not found`))
+          }
+          return resVariant
+        })
+    }
+    else if (variant && _.isObject(variant) && variant.sku) {
+      return Variant.findOne({
+        where: { sku: variant.sku }
+      }, options)
+        .then(resVariant => {
+          if (!resVariant) {
+            throw new Errors.FoundError(Error(`Variant ${variant.sku} not found`))
+          }
+          return resVariant
+        })
+    }
+    else if (variant && (_.isString(variant) || _.isNumber(variant))) {
+      return Variant.findById(variant, options)
+        .then(resVariant => {
+          if (!resVariant) {
+            throw new Errors.FoundError(Error(`Variant ${variant} not found`))
+          }
+          return resVariant
+        })
+    }
+    else {
+      // TODO create proper error
+      const err = new Error(`Unable to resolve Variant ${variant}`)
+      return Promise.reject(err)
+    }
+  }
   /**
    *
    * @param item
+   * @param options
    * @returns {*}
    */
   resolveItem(item, options){
@@ -210,7 +269,8 @@ module.exports = class ProductService extends Service {
       published_scope: product.published_scope,
       weight: product.weight,
       weight_unit: product.weight_unit,
-      metadata: Metadata.transform(product.metadata || {})
+      metadata: Metadata.transform(product.metadata || {}),
+      options: []
     }
 
     if (product.published) {
@@ -252,7 +312,8 @@ module.exports = class ProductService extends Service {
       weight: product.weight,
       weight_unit: product.weight_unit,
       published: product.published,
-      requires_shipping: product.requires_shipping
+      requires_shipping: product.requires_shipping,
+      option: product.option || {}
       // requires_subscription: product.requires_subscription,
       // tax_code: product.tax_code
     }]
@@ -290,6 +351,10 @@ module.exports = class ProductService extends Service {
         })
         images = images.concat(variant.images)
         delete variant.images
+      }
+      if (variant.option) {
+        const keys = Object.keys(variant.option)
+        create.options = _.union(create.options, keys)
       }
     })
 
@@ -440,7 +505,6 @@ module.exports = class ProductService extends Service {
    * @returns {Promise}
    */
   // TODO Create/Update Images and Variant Images in one command
-  // TODO resolve collection if posted
   updateProduct(product, options) {
     const Product = this.app.orm.Product
     const Variant = this.app.orm.ProductVariant
@@ -456,6 +520,8 @@ module.exports = class ProductService extends Service {
     // let newTags = []
     // return Product.sequelize.transaction(t => {
     let resProduct = {}
+    // Create an empty product options array
+    const productOptions = []
     if (!product.id) {
       throw new Errors.FoundError(Error('Product is missing id'))
     }
@@ -474,7 +540,8 @@ module.exports = class ProductService extends Service {
           weight: product.weight || resProduct.weight,
           weight_unit: product.weight_unit || resProduct.weight_unit,
           requires_shipping: product.requires_shipping || resProduct.requires_shipping,
-          tax_code: product.tax_code || resProduct.tax_code
+          tax_code: product.tax_code || resProduct.tax_code,
+          options: productOptions
         }
         if (product.published) {
           resProduct.published = resProduct.variants[0].published = product.published
@@ -555,6 +622,13 @@ module.exports = class ProductService extends Service {
           variant.position = index + 1
         })
 
+        _.each(resProduct.variants, variant => {
+          if (variant.option) {
+            const keys = Object.keys(variant.option)
+            resProduct.options = _.union(resProduct.options, keys)
+          }
+        })
+
         // Update existing Images
         _.each(resProduct.images, image => {
           return _.extend(image, _.find(product.images, { id: image.id }))
@@ -624,6 +698,13 @@ module.exports = class ProductService extends Service {
       })
       .then(vendors => {
         return Promise.all(resProduct.variants.map(variant => {
+          // gather options
+          if (variant.option) {
+            if (!_.some(productOptions, option => variant.option.name)) {
+              productOptions.push(variant.option.name)
+            }
+          }
+
           if (variant.id) {
             return variant.save({ transaction: options.transaction || null })
           }
@@ -707,6 +788,56 @@ module.exports = class ProductService extends Service {
     }))
   }
 
+  /**
+   *
+   * @param product
+   * @param variant
+   * @param options
+   */
+  // TODO
+  createVariant(product, variant, options) {
+    let resProduct, resVariant
+    return this.resolve(product)
+      .then(product => {
+        resProduct = product
+        return resProduct.createVariant(variant)
+        // return this.resolveVariant(variant, options)
+      })
+      .then(variant => {
+        resVariant = variant
+        return resVariant
+      })
+  }
+  createVariants(product, variants, options) {
+    return Promise.all(variants.map(variant => {
+      return this.createVariant(product, variant, options)
+    }))
+  }
+
+  /**
+   *
+   * @param product
+   * @param variant
+   * @param options
+   */
+  updateVariant(product, variant, options) {
+    // let resProduct,
+    let resVariant
+    return this.resolve(product)
+      .then(product => {
+        // resProduct = product
+        return this.resolveVariant(variant, options)
+      })
+      .then(variant => {
+        resVariant = variant
+        return resVariant
+      })
+  }
+  updateVariants(product, variants, options) {
+    return Promise.all(variants.map(variant => {
+      return this.updateVariant(product, variant, options)
+    }))
+  }
   /**
    *
    * @param id

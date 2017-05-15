@@ -257,12 +257,14 @@ describe('ProductController', () => {
             // Updates Variant
             {
               id: firstVariantID,
-              title: 'Women\'s Burton Custom Freestyle 151 Updated'
+              title: 'Women\'s Burton Custom Freestyle 151 Updated',
+              option: { size: '44in' }
             },
             // Creates new Variant
             {
               title: 'Youth Burton Custom Freestyle 151',
               sku: 'board-y-123',
+              option: { size: '36in' },
               images: [
                 {
                   src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
@@ -474,7 +476,7 @@ describe('ProductController', () => {
   })
   it('should make removeImage post request', (done) => {
     request
-      .post(`/product/image/${firstImageID}/remove`)
+      .post(`/product/${createdProductID}/image/${firstImageID}/remove`)
       .send({})
       .expect(200)
       .end((err, res) => {
@@ -492,7 +494,7 @@ describe('ProductController', () => {
   })
   it('should make removeVariant post request', (done) => {
     request
-      .post(`/product/variant/${firstVariantID}/remove`)
+      .post(`/product/${createdProductID}/variant/${firstVariantID}/remove`)
       .send({})
       .expect(200)
       .end((err, res) => {

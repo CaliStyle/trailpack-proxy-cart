@@ -169,6 +169,11 @@ module.exports = class ProductVariant extends Model {
         type: {
           type: Sequelize.STRING
         },
+        // The option that this Variant is
+        option: helpers.JSONB('ProductVariant', app, Sequelize, 'option', {
+          // name: string, value:string
+          defaultValue: {}
+        }),
         // The Barcode of the Variant
         barcode: {
           type: Sequelize.STRING

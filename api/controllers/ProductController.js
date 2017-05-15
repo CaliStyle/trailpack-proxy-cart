@@ -394,7 +394,6 @@ module.exports = class ProductController extends Controller {
         return res.json(products)
       })
       .catch(err => {
-        // console.log('ProductController.removeVariant', err)
         return res.serverError(err)
       })
   }
@@ -406,12 +405,39 @@ module.exports = class ProductController extends Controller {
    */
   removeVariant(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.removeVariant(req.params.id)
+    ProductService.removeVariant(req.params.variant)
       .then(data => {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
+
+  createVariant(req, res) {
+    const ProductService = this.app.services.ProductService
+    lib.Validator.validateVariant.create(req.body)
+      .then(values => {
+        return ProductService.createVariant(req.params.id, req.params.variant)
+      })
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  updateVariant(req, res) {
+    const ProductService = this.app.services.ProductService
+    lib.Validator.validateVariant.update(req.body)
+      .then(values => {
+        return ProductService.updateVariant(req.params.id, req.params.variant)
+      })
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
         return res.serverError(err)
       })
   }
@@ -443,7 +469,7 @@ module.exports = class ProductController extends Controller {
    */
   removeImage(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.removeImage(req.params.id)
+    ProductService.removeImage(req.params.image)
       .then(data => {
         return res.json(data)
       })
@@ -781,5 +807,7 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+
 }
 

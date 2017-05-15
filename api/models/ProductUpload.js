@@ -109,8 +109,13 @@ module.exports = class ProductUpload extends Model {
         defaultValue: true
       },
       // { 'Option / * Name' : 'Option / * Value' }
-      options: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'options', {
-        defaultValue: []
+      // options: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'options', {
+      //   defaultValue: []
+      // }),
+      // { 'Option / * Name' : 'Option / * Value' }
+      option: helpers.JSONB('ProductUpload', app, Sequelize, 'option', {
+        // name: string, value:string
+        defaultValue: {}
       }),
       // 'Images Sources'
       images: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'images', {

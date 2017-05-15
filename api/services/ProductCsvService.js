@@ -155,11 +155,11 @@ module.exports = class ProductCsvService extends Service {
     })
 
     // Handle Options
-    upload.options = _.map(upload.options, option => {
-      const rectObj = {}
-      rectObj[option.name] = option.value
-      return rectObj
+    upload.option = {}
+    _.map(upload.options, option => {
+      upload.option[option.name] = option.value
     })
+    delete upload.options
 
     // Map images
     upload.images = _.map(upload.images, (image, index) => {

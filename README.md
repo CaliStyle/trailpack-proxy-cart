@@ -297,11 +297,19 @@ Updates a Customer
 ```
 //POST <api>/customer/:id
 ```
+Returns updated customer
+```
+{}
+```
 
 ##### CustomerController.findOne
 Find a Customer by id
 ```
 //GET <api>/customer/:id
+```
+Returns customer
+```
+{}
 ```
 
 ##### CustomerController.session
@@ -309,12 +317,19 @@ Get the current customer in session
 ```
 //GET <api>/customer/session
 ```
+Returns customer
+```
+{}
+```
 
 ##### CustomerController.search
 ```
 //GET <api>/customer/search
 ```
-
+Returns customers
+```
+[]
+```
 
 ##### CustomerController.uploadCSV
 Upload a Customer CSV
@@ -325,7 +340,7 @@ Upload a Customer CSV
 ##### CustomerController.processUpload
 Process Uploaded Customer CSV
 ```
-//POST <api>/customer/processUpload
+//POST <api>/customer/processUpload/:id
 ```
 
 ##### CustomerController.exportCustomers
@@ -600,10 +615,92 @@ Returns Created Products
 ```
 
 ##### ProductController.updateProduct
-Updates a product
+Updates a product. updateProduct can update a product, add new variants and update existing ones, and add/update images all in one step.
+Some interesting things to note:
+- Updating the metadata will override the original metadata completely
+- Supplying a list of collection's will override the original collections list.
+- You can supply a completely new collection in the collection list and one will be created.
+- Supplying a list of tags will override original tags list.
+- You can supply a completely new tag in the tag list and one will be created.
+- If you supply a title and there is no original SEO title, an SEO title will be created.
+- If you supply a body, the html attribute will be updated.
+- You can not modify the html attribute, instead, use the body to write new markdown/html or a mixture of both.
+- Supplying a list of Images will only add new images to the product or modify existing ones by supplying an image `id`. IT DOES NOT REMOVE ANY IMAGES
+- Supplying a list of variants will only add new variants to the product or modify existing ones by supplying a variant `id`. IT DOES NOT REMOVE ANY VARIANTS
 ```
 //POST <api>/product/:id/update
-{}
+{
+  id: <id>,
+  // Updates Title
+  title: 'Burton Custom Freestyle 151 Gen 2',
+  // Updates Metdata
+  metadata: {
+    test: 'new value'
+  },
+  // Alters collections
+  collections: [
+    // Existing Collection
+    'free-shipping',
+    // A completely new collection
+    {
+      handle: 'merorial-day-sale',
+      title: 'Memorial Day Sale',
+      discount_type: "fixed",
+      discount_scope: "global",
+      discount_rate: 100,
+      primary_purpose: "discount",
+      published: true
+    }
+  ],
+  tags: [
+    'new tag'
+  ],
+  images: [
+    // Updates existing Image alt
+    {
+      id: <image_id>,
+      alt: 'Hello World 2 Updated'
+    },
+    // Creates new Image
+    {
+      src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+      alt: 'Hello World 3'
+    }
+  ],
+  variants: [
+    // Updates Variant
+    {
+      id: <variant_id>,
+      // Updates the Title
+      title: 'Women\'s Burton Custom Freestyle 151 Updated',
+      // Updates the Variants position
+      position: 1,
+      // Updates existing Image alt
+      images: [
+        {
+          id: <image_id>,
+          alt: 'Image Updated'
+        },
+        // Add a new Image
+        {
+          src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+          alt: 'Hello World 5'
+        }
+      ]
+    },
+    // Creates new Variant
+    {
+      title: 'Youth Burton Custom Freestyle 151',
+      sku: 'board-y-123',
+      images: [
+        {
+          src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+          alt: 'Hello World 4'
+        }
+      ]
+    }
+  ]
+}
 ```
 Returns the updated Product
 ```
@@ -611,7 +708,7 @@ Returns the updated Product
 ```
 
 ##### ProductController.updateProducts
-Updates multiple products
+Updates multiple products at once.
 ```
 //POST <api>/product/updateProducts
 []
@@ -625,6 +722,7 @@ Returns the updated Products
 Removes a product (does not delete unless configured too)
 ```
 //POST <api>/product/:id/remove
+//DELETE <api>/product/:id
 {}
 ```
 Returns the removed product
@@ -643,24 +741,52 @@ Returns the removed products
 []
 ```
 
+##### ProductController.createVariant
+Creates a variant
+```
+//POST <api>/product/:id/variant
+{
+
+}
+```
+Returns created Variant
+```
+{}
+```
+
+##### ProductController.updateVariant
+Updates a variant
+```
+//POST <api>/product/:id/variant/:variant
+{
+  
+}
+```
+Returns updated Variant
+```
+{}
+```
+
 ##### ProductController.removeVariant
 Removes a product variant (does not delete unless configured too)
 ```
-//POST <api>/product/variant/:variant/remove
+//POST <api>/product/:id/variant/:variant/remove
+//DELETE <api>/product/:id/variant/:variant
 ```
-Returns the updated product
+Returns the removed variant
 ```
 {}
 ```
 
 ##### ProductController.removeVariants
 Removes multiple product variants (does not delete unless configured too)
-
+// TODO
 
 ##### ProductController.removeImage
 Removes a product image
 ```
-//POST <api>/product/image/:image/remove
+//POST <api>/product/:id/image/:image/remove
+//DELETE <api>/product/:id/image/:image
 ```
 
 ##### ProductController.addTag
