@@ -403,6 +403,7 @@ From cart to checkout is easy and there are some special features to note:
 
 ```
 //POST <api>/cart/:id/checkout
+//POST <api>/cart/checkout (If cart in session)
 {
   payment_kind: 'sale',
   payment_details: [
@@ -555,6 +556,7 @@ Adds a new product. Some interesting things to note:
 - If a tag is not found in the list, it will be created.
 - If you do not provide any variants, a default variant will be created if there is provided SKU.
 ```
+//POST <api>/product
 //POST <api>/product/add
 {
   handle: 'snowboard',
@@ -611,6 +613,7 @@ Returns Created Product
 Adds new products
 ```
 //POST <api>/product/addProducts
+//POST <api>/products
 []
 ```
 
@@ -715,6 +718,7 @@ Returns the updated Product
 ##### ProductController.updateProducts
 Updates multiple products at once.
 ```
+//PUT <api>/products
 //POST <api>/product/updateProducts
 []
 ```
