@@ -60,7 +60,7 @@ describe('ProductController', () => {
           },
           sku: 'board-m-123',
           option: { width: '18in' },
-          weight: '20',
+          weight: 20,
           weight_unit: 'lb',
           images: [
             {

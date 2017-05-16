@@ -370,5 +370,39 @@ module.exports = {
   COLLECTION_SHIPPING_TYPE: {
     PERCENTAGE: 'percentage',
     FIXED: 'fixed',
+  },
+  PRODUCT_DEFAULTS: {
+    HOST: 'localhost',
+    TAX_CODE: 'P000000',
+    PRICE: 0,
+    CALCULATED_PRICE: 0,
+    DISCOUNTED_LINES: [],
+    TOTAL_DISCOUNTS: 0,
+    CURRENCY: 'USD',
+    PUBLISHED_SCOPE: 'global',
+    PUBLISHED: false,
+    OPTIONS: [],
+    WEIGHT: 0,
+    WEIGHT_UNIT: 'g',
+    REVIEWS_SCORE: 0,
+    TOTAL_REVIEWS: 0,
+    TOTAL_VARIANTS: 0
+  },
+  VARIANT_DEFAULTS: {
+    PUBLISHED: false,
+    MAX_QUANTITY: -1,
+    TAX_CODE: 'P000000',
+    WEIGHT_UNIT: 'g',
+    CURRENCY: 'USD',
+    FULFILLMENT_SERVICE: 'manual',
+    SUBSCRIPTION_INTERVAL: 0,
+    SUBSCRIPTION_UNIT: null,
+    REQUIRES_SUBSCRIPTION: false,
+    REQUIRES_SHIPPING: true,
+    REQUIRES_TAX: true,
+    INVENTORY_MANAGEMENT: false,
+    INVENTORY_POLICY: 'deny',
+    INVENTORY_QUANTITY: 0,
+    INVENTORY_LEAD_TIME: 0
   }
 }

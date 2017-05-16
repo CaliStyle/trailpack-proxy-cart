@@ -5,6 +5,7 @@
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const UNITS = require('../utils/enums').UNITS
+const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
 const queryDefaults = require('../utils/queryDefaults')
 const _ = require('lodash')
 const removeMd = require('remove-markdown')
@@ -64,6 +65,7 @@ module.exports = class Product extends Model {
              * Expose UNITS enums
              */
             UNITS: UNITS,
+            PRODUCT_DEFAULTS: PRODUCT_DEFAULTS,
             /**
              * Associate the Model
              * @param models
@@ -431,7 +433,7 @@ module.exports = class Product extends Model {
         // TODO Multi-Site Support. Change to domain?
         host: {
           type: Sequelize.STRING,
-          defaultValue: 'localhost'
+          defaultValue: PRODUCT_DEFAULTS.HOST
         },
         // Unique Name for the product
         handle: {
@@ -476,39 +478,39 @@ module.exports = class Product extends Model {
         // The tax code of the product, defaults to physical good.
         tax_code: {
           type: Sequelize.STRING,
-          defaultValue: 'P000000' // Physical Good
+          defaultValue: PRODUCT_DEFAULTS.TAX_CODE // Physical Good
         },
         // TODO convert to Model tags for the product
         // Default price of the product in cents
         price: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: PRODUCT_DEFAULTS.PRICE
         },
         calculated_price: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: PRODUCT_DEFAULTS.CALCULATED_PRICE
         },
         discounted_lines: helpers.ARRAY('Product', app, Sequelize, Sequelize.JSON, 'discounted_lines', {
-          defaultValue: []
+          defaultValue: PRODUCT_DEFAULTS.DISCOUNTED_LINES
         }),
         total_discounts: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: PRODUCT_DEFAULTS.TOTAL_DISCOUNTS
         },
         // Default currency of the product
         currency: {
           type: Sequelize.STRING,
-          defaultValue: 'USD'
+          defaultValue: PRODUCT_DEFAULTS.CURRENCY
         },
         // The sales channels in which the product is visible.
         published_scope: {
           type: Sequelize.STRING,
-          defaultValue: 'global'
+          defaultValue: PRODUCT_DEFAULTS.PUBLISHED_SCOPE
         },
         // Is product published
         published: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: PRODUCT_DEFAULTS.PUBLISHED
         },
         // Date/Time the Product was published
         published_at: {
@@ -520,34 +522,34 @@ module.exports = class Product extends Model {
         },
         // Options for the product (size, color, etc.)
         options: helpers.ARRAY('Product', app, Sequelize, Sequelize.STRING, 'options', {
-          defaultValue: []
+          defaultValue: PRODUCT_DEFAULTS.OPTIONS
         }),
         // Weight of the product, defaults to grams
         weight: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: PRODUCT_DEFAULTS.WEIGHT
         },
         // Unit of Measurement for Weight of the product, defaults to grams
         weight_unit: {
           type: Sequelize.ENUM,
           values: _.values(UNITS),
-          defaultValue: UNITS.G
+          defaultValue: PRODUCT_DEFAULTS.WEIGHT_UNIT
         },
         // The Average Score of Reviews
         review_score: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: PRODUCT_DEFAULTS.REVIEWS_SCORE
         },
         // The Total Reviews of the Product
         total_reviews: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: PRODUCT_DEFAULTS.TOTAL_REVIEWS
         },
 
         // The Total variants
         total_variants: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: PRODUCT_DEFAULTS.TOTAL_VARIANTS
         },
 
         // 'Google Shopping / Google Product Category'

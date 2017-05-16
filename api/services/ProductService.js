@@ -4,6 +4,8 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
+const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
+const VARIANT_DEFAULTS = require('../utils/enums').VARIANT_DEFAULTS
 
 /**
  * @module ProductService
@@ -257,6 +259,8 @@ module.exports = class ProductService extends Service {
       options = {}
     }
 
+    product = this.productDefaults(product)
+
     // The Default Product
     const create = {
       host: product.host,
@@ -272,6 +276,7 @@ module.exports = class ProductService extends Service {
       metadata: Metadata.transform(product.metadata || {}),
       options: []
     }
+    // create = Product.build(create)
 
     if (product.published) {
       create.published_at = new Date()
@@ -306,22 +311,13 @@ module.exports = class ProductService extends Service {
     // Variants
     // Set a default variant based of off product
     let variants = [{
-      sku: product.sku,
-      title: product.title,
-      price: product.price,
-      weight: product.weight,
-      weight_unit: product.weight_unit,
-      published: product.published,
-      requires_shipping: product.requires_shipping,
-      option: product.option || {}
-      // requires_subscription: product.requires_subscription,
-      // tax_code: product.tax_code
+      sku: product.sku
     }]
     // Set the published status
     if (product.published) {
       variants[0].published_at = create.published_at
     }
-    // This is not a true variant because it is missing a sku (which is required), let's remove it.
+    // If this is not a true variant because it is missing a sku (which is required), let's remove it.
     if (!variants[0].sku) {
       variants.splice(0,1)
     }
@@ -1378,6 +1374,75 @@ module.exports = class ProductService extends Service {
       })
   }
 
+  productDefaults(product) {
+    // Actual Product Defaults
+    if (_.isNil(product.host)) {
+      product.host = PRODUCT_DEFAULTS.HOST
+    }
+    if (_.isNil(product.options)) {
+      product.options = PRODUCT_DEFAULTS.OPTIONS
+    }
+    if (_.isNil(product.tax_code)) {
+      product.tax_code = PRODUCT_DEFAULTS.TAX_CODE
+    }
+    if (_.isNil(product.currency)) {
+      product.currency = PRODUCT_DEFAULTS.currency
+    }
+    if (_.isNil(product.published_scope)) {
+      product.published_scope = PRODUCT_DEFAULTS.PUBLISHED_SCOPE
+    }
+    if (_.isNil(product.published)) {
+      product.published = PRODUCT_DEFAULTS.PUBLISHED
+    }
+    if (_.isNil(product.options)) {
+      product.options = PRODUCT_DEFAULTS.options
+    }
+    if (_.isNil(product.weight)) {
+      product.weight = PRODUCT_DEFAULTS.WEIGHT
+    }
+    if (_.isNil(product.weight_unit)) {
+      product.weight_unit = PRODUCT_DEFAULTS.WEIGHT_UNIT
+    }
+    if (_.isNil(product.tax_code)) {
+      product.tax_code = PRODUCT_DEFAULTS.TAX_CODE
+    }
+
+    // Variant Defaults for addProduct
+    if (_.isNil(product.max_quantity)) {
+      product.max_quantity = VARIANT_DEFAULTS.MAX_QUANTITY
+    }
+    if (_.isNil(product.fulfillment_service)) {
+      product.fulfillment_service = VARIANT_DEFAULTS.FULFILLMENT_SERVICE
+    }
+    if (_.isNil(product.subscription_interval)) {
+      product.subscription_interval = VARIANT_DEFAULTS.SUBSCRIPTION_INTERVAL
+    }
+    if (_.isNil(product.subscription_unit)) {
+      product.subscription_unit = VARIANT_DEFAULTS.SUBSCRIPTION_UNIT
+    }
+    if (_.isNil(product.requires_subscription)) {
+      product.requires_subscription = VARIANT_DEFAULTS.REQUIRES_SUBSCRIPTION
+    }
+    if (_.isNil(product.requires_shipping)) {
+      product.requires_shipping = VARIANT_DEFAULTS.REQUIRES_SHIPPING
+    }
+    if (_.isNil(product.requires_tax)) {
+      product.requires_tax = VARIANT_DEFAULTS.REQUIRES_TAX
+    }
+    if (_.isNil(product.inventory_policy)) {
+      product.inventory_policy = VARIANT_DEFAULTS.INVENTORY_POLICY
+    }
+    if (_.isNil(product.inventory_quantity)) {
+      product.inventory_quantity = VARIANT_DEFAULTS.INVENTORY_QUANTITY
+    }
+    if (_.isNil(product.inventory_management)) {
+      product.inventory_management = VARIANT_DEFAULTS.INVENTORY_MANAGEMENT
+    }
+    if (_.isNil(product.inventory_lead_time)) {
+      product.inventory_lead_time = VARIANT_DEFAULTS.INVENTORY_LEAD_TIME
+    }
+    return product
+  }
   /**
    *
    * @param variant
@@ -1385,83 +1450,92 @@ module.exports = class ProductService extends Service {
    * @returns {*}
    */
   variantDefaults(variant, product){
+
     // If the title set on parent
-    if (product.title && _.isNil(variant.title)) {
+    if (_.isString(product.title) && _.isNil(variant.title)) {
       variant.title = product.title
     }
     // If the price is set on parent
     if (product.price  && !variant.price) {
       variant.price = product.price
     }
+    // If the option is set on parent
+    if (_.isObject(product.option)  && _.isNil(variant.option)) {
+      variant.option = product.option
+    }
+    // If the barcode is set on parent
+    if (_.isString(product.barcode)  && _.isNil(variant.barcode)) {
+      variant.barcode = product.barcode
+    }
     // If the compare at price is set on parent
-    if (product.compare_at_price  && _.isNil(variant.compare_at_price)) {
+    if (_.isNumber(product.compare_at_price)  && _.isNil(variant.compare_at_price)) {
       variant.compare_at_price = product.compare_at_price
     }
-    if (variant.price && _.isNil(variant.compare_at_price)) {
+    if (_.isNumber(variant.price) && _.isNil(variant.compare_at_price)) {
       variant.compare_at_price = variant.price
     }
     // If the currency set on parent
-    if (product.currency && _.isNil(variant.currency)) {
+    if (_.isString(product.currency) && _.isNil(variant.currency)) {
       variant.currency = product.currency
     }
     // If the fulfillment_service is set on parent
-    if (product.fulfillment_service  && _.isNil(variant.fulfillment_service)) {
+    if (_.isString(product.fulfillment_service)  && _.isNil(variant.fulfillment_service)) {
       variant.fulfillment_service = product.fulfillment_service
     }
     // If the requires_shipping is set on parent
-    if (product.requires_shipping  && _.isNil(variant.requires_shipping)) {
+    if (_.isBoolean(product.requires_shipping)  && _.isNil(variant.requires_shipping)) {
       variant.requires_shipping = product.requires_shipping
     }
     // If the requires_shipping is set on parent
-    if (product.requires_tax  && _.isNil(variant.requires_tax)) {
+    if (_.isBoolean(product.requires_tax)  && _.isNil(variant.requires_tax)) {
       variant.requires_tax = product.requires_tax
     }
     // If the requires_subscription set on parent
-    if (product.requires_subscription && _.isNil(variant.requires_subscription)) {
+    if (_.isBoolean(product.requires_subscription) && _.isNil(variant.requires_subscription)) {
       variant.requires_subscription = product.requires_subscription
     }
     // If the subscription_interval set on parent
-    if (product.subscription_interval && _.isNil(variant.subscription_interval)) {
+    if (_.isNumber(product.subscription_interval) && _.isNil(variant.subscription_interval)) {
       variant.subscription_interval = product.subscription_interval
     }
     // If the subscription_unit set on parent
-    if (product.subscription_unit && _.isNil(variant.subscription_unit)) {
+    if (_.isString(product.subscription_unit) && _.isNil(variant.subscription_unit)) {
       variant.subscription_unit = product.subscription_unit
     }
     // If the inventory_tracker set on parent
-    if (product.inventory_tracker && _.isNil(variant.inventory_tracker)) {
+    if (_.isString(product.inventory_tracker) && _.isNil(variant.inventory_tracker)) {
       variant.inventory_tracker = product.inventory_tracker
     }
     // If the inventory_management set on parent
-    if (product.inventory_management && _.isNil(variant.inventory_management)) {
+    if (_.isBoolean(product.inventory_management) && _.isNil(variant.inventory_management)) {
       variant.inventory_management = product.inventory_management
     }
     // If the inventory_quantity set on parent
-    if (product.inventory_quantity && _.isNil(variant.inventory_quantity)) {
+    if (_.isNumber(product.inventory_quantity) && _.isNil(variant.inventory_quantity)) {
       variant.inventory_quantity = product.inventory_quantity
     }
     // If the inventory_policy set on parent
-    if (product.inventory_policy && _.isNil(variant.inventory_policy)) {
+    if (_.isString(product.inventory_policy) && _.isNil(variant.inventory_policy)) {
       variant.inventory_policy = product.inventory_policy
     }
     // If the max_quantity set on parent
-    if (product.max_quantity && _.isNil(variant.max_quantity)) {
+    if (_.isNumber(product.max_quantity) && _.isNil(variant.max_quantity)) {
       variant.max_quantity = product.max_quantity
     }
     // Inherit the product type
-    if (product.type && _.isNil(variant.type)) {
+    if (_.isString(product.type) && _.isNil(variant.type)) {
       variant.type = product.type
     }
     // If the max_quantity set on parent
-    if (product.tax_code && _.isNil(variant.tax_code)) {
+    if (_.isString(product.tax_code) && _.isNil(variant.tax_code)) {
       variant.tax_code = product.tax_code
     }
     // If the weight set on parent
-    if (product.weight && _.isNil(variant.weight)) {
+    if (_.isNumber(product.weight) && _.isNil(variant.weight)) {
       variant.weight = product.weight
     }
     // If the weight_unit set on parent
-    if (product.weight_unit && _.isNil(variant.weight_unit)) {
+    if (_.isString(product.weight_unit) && _.isNil(variant.weight_unit)) {
       variant.weight_unit = product.weight_unit
     }
     return variant

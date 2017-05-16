@@ -86,7 +86,8 @@ module.exports = class ProductCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data === '') {
+
+      if (!data || data === '') {
         row[key] = null
       }
     })
@@ -312,7 +313,7 @@ module.exports = class ProductCsvService extends Service {
               return _.omit(product, ['variant_images'])
             }
           })
-          // console.log(defaultProduct)
+          console.log('BROKE', defaultProduct)
           // Add the product with it's variants
           return this.app.services.ProductService.addProduct(defaultProduct, options)
         })
@@ -398,7 +399,7 @@ module.exports = class ProductCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data === '') {
+      if (!data || data === '') {
         row[key] = null
       }
     })

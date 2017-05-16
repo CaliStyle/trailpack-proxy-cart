@@ -8,6 +8,7 @@ const queryDefaults = require('../utils/queryDefaults')
 const UNITS = require('../utils/enums').UNITS
 const INTERVALS = require('../utils/enums').INTERVALS
 const INVENTORY_POLICY = require('../utils/enums').INVENTORY_POLICY
+const VARIANT_DEFAULTS = require('../utils/enums').VARIANT_DEFAULTS
 const _ = require('lodash')
 
 /**
@@ -69,6 +70,10 @@ module.exports = class ProductVariant extends Model {
              * Expose INVENTORY_POLICY enums
              */
             INVENTORY_POLICY: INVENTORY_POLICY,
+            /**
+             * Expose VARIANT_DEFAULTS
+             */
+            VARIANT_DEFAULTS: VARIANT_DEFAULTS,
             /**
              * Associate the Model
              * @param models
@@ -216,6 +221,11 @@ module.exports = class ProductVariant extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // Competitor price of the variant in cents
+        compare_at_price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         // The discounts applied to the product
         discounted_lines: helpers.ARRAY('ProductVariant', app, Sequelize, Sequelize.JSON, 'discounted_lines', {
           defaultValue: []
@@ -225,20 +235,15 @@ module.exports = class ProductVariant extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        // Competitor price of the variant in cents
-        compare_at_price: {
-          type: Sequelize.INTEGER,
-          defaultValue: 0
-        },
         // Default currency of the variant
         currency: {
           type: Sequelize.STRING,
-          defaultValue: 'USD'
+          defaultValue: VARIANT_DEFAULTS.CURRENCY
         },
         // The fulfillment generic that handles this request
         fulfillment_service: {
           type: Sequelize.STRING,
-          defaultValue: 'manual'
+          defaultValue: VARIANT_DEFAULTS.FULFILLMENT_SERVICE
         },
         // The order of the product variant in the list of product variants.
         position: {
@@ -248,7 +253,7 @@ module.exports = class ProductVariant extends Model {
         // Is product published
         published: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: VARIANT_DEFAULTS.PUBLISHED
         },
         // Date/Time the Product was published
         published_at: {
@@ -261,59 +266,59 @@ module.exports = class ProductVariant extends Model {
         // If Variant needs to be shipped
         requires_shipping: {
           type: Sequelize.BOOLEAN,
-          defaultValue: true
+          defaultValue: VARIANT_DEFAULTS.REQUIRES_SHIPPING
         },
         // If Product needs to be taxed
         requires_tax: {
           type: Sequelize.BOOLEAN,
-          defaultValue: true
+          defaultValue: VARIANT_DEFAULTS.REQUIRES_TAX
         },
         // If Variant requires a subscription
         requires_subscription: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: VARIANT_DEFAULTS.REQUIRES_SUBSCRIPTION
         },
         // If Product has subscription, the interval of the subscription, defaults to 0 months
         subscription_interval: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: VARIANT_DEFAULTS.SUBSCRIPTION_INTERVAL
         },
         // If product has subscription, the unit of the interval
         subscription_unit: {
           type: Sequelize.ENUM,
           values: _.values(INTERVALS),
-          defaultValue: INTERVALS.NONE
+          defaultValue: VARIANT_DEFAULTS.SUBSCRIPTION_UNIT
         },
         // Specifies whether or not Proxy Cart tracks the number of items in stock for this product variant.
         inventory_management: {
           type: Sequelize.BOOLEAN,
-          defaultValue: false
+          defaultValue: VARIANT_DEFAULTS.INVENTORY_MANAGEMENT
         },
         // Specifies whether or not customers are allowed to place an order for a product variant when it's out of stock.
         //
         inventory_policy: {
           type: Sequelize.ENUM,
           values: _.values(INVENTORY_POLICY),
-          defaultValue: INVENTORY_POLICY.DENY
+          defaultValue: VARIANT_DEFAULTS.INVENTORY_POLICY
         },
         // Amount of variant in inventory
         inventory_quantity: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: VARIANT_DEFAULTS.INVENTORY_QUANTITY
         },
         // The average amount of days to come in stock if out of stock
         inventory_lead_time: {
           type: Sequelize.INTEGER,
-          defaultValue: 0
+          defaultValue: VARIANT_DEFAULTS.INVENTORY_LEAD_TIME
         },
         max_quantity: {
           type: Sequelize.INTEGER,
-          defaultValue: -1
+          defaultValue: VARIANT_DEFAULTS.MAX_QUANTITY
         },
         // The tax code of the product, defaults to physical good.
         tax_code: {
           type: Sequelize.STRING,
-          defaultValue: 'P000000' // Physical Good
+          defaultValue: VARIANT_DEFAULTS.TAX_CODE // Physical Good
         },
         // Weight of the variant, defaults to grams
         weight: {
@@ -324,7 +329,7 @@ module.exports = class ProductVariant extends Model {
         weight_unit: {
           type: Sequelize.ENUM,
           values: _.values(UNITS),
-          defaultValue: UNITS.G
+          defaultValue: VARIANT_DEFAULTS.WEIGHT_UNIT
         },
         // If this product was created in Live Mode
         live_mode: {

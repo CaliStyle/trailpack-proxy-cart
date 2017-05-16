@@ -85,7 +85,7 @@ module.exports = class SubscriptionCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data === '') {
+      if (!data || data === '') {
         row[key] = null
       }
     })

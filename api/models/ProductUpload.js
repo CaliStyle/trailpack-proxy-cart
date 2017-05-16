@@ -108,8 +108,8 @@ module.exports = class ProductUpload extends Model {
       }),
       // 'Published'
       published: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true
+        type: Sequelize.BOOLEAN
+        // defaultValue: true
       },
       // { 'Option / * Name' : 'Option / * Value' }
       // options: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'options', {
@@ -153,8 +153,8 @@ module.exports = class ProductUpload extends Model {
       // 'Variant Inventory Policy'
       inventory_policy: {
         type: Sequelize.ENUM,
-        values: _.values(INVENTORY_POLICY),
-        defaultValue: INVENTORY_POLICY.DENY
+        values: _.values(INVENTORY_POLICY)
+        // defaultValue: INVENTORY_POLICY.DENY
       },
       max_quantity: {
         type: Sequelize.INTEGER
@@ -162,8 +162,8 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Variant Fulfillment Service'
       fulfillment_service: {
-        type: Sequelize.STRING,
-        defaultValue: 'manual'
+        type: Sequelize.STRING
+        // defaultValue: 'manual'
       },
       // 'Variant Price'
       price: {
@@ -175,23 +175,23 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Variant Currency'
       variant_currency: {
-        type: Sequelize.STRING,
-        defaultValue: 'USD'
+        type: Sequelize.STRING
+        // defaultValue: 'USD'
       },
       // 'Variant Requires Shipping'
       requires_shipping: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true
+        type: Sequelize.BOOLEAN
+        // defaultValue: true
       },
       // 'Variant Taxable'
       taxable: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true
+        type: Sequelize.BOOLEAN
+        // defaultValue: true
       },
       // 'Variant Tax Code'
       tax_code: {
-        type: Sequelize.STRING,
-        defaultValue: 'P000000' // Physical Good
+        type: Sequelize.STRING
+        // defaultValue: 'P000000' // Physical Good
       },
       // 'Variant Barcode'
       barcode: {
@@ -217,8 +217,8 @@ module.exports = class ProductUpload extends Model {
       // 'Subscription Unit'
       subscription_unit: {
         type: Sequelize.ENUM,
-        values: _.values(INTERVALS),
-        defaultValue: INTERVALS.NONE
+        values: _.values(INTERVALS)
+        // defaultValue: INTERVALS.NONE
       },
       // 'Subscription Interval'
       subscription_interval: {
