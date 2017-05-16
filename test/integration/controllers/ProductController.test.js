@@ -59,6 +59,7 @@ describe('ProductController', () => {
             test: 'value'
           },
           sku: 'board-m-123',
+          option: { width: '18in' },
           weight: '20',
           weight_unit: 'lb',
           images: [
@@ -72,6 +73,7 @@ describe('ProductController', () => {
               title: 'Women\'s Burton Custom Freestyle 151',
               price: '10001',
               sku: 'board-w-123',
+              option: { size: '44in' },
               images: [
                 {
                   src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
@@ -101,6 +103,8 @@ describe('ProductController', () => {
         assert.equal(res.body[0].seo_description, 'Good snowboard!')
         assert.notEqual(res.body[0].vendors.indexOf('Burton'), -1)
         assert.equal(res.body[0].type, 'Snowboard')
+        assert.notEqual(res.body[0].options.indexOf('size'), -1)
+        assert.notEqual(res.body[0].options.indexOf('width'), -1)
         // Metadata
         assert.equal(res.body[0].metadata.test, 'value')
         // Collections
@@ -134,6 +138,7 @@ describe('ProductController', () => {
         assert.equal(res.body[0].variants[0].price, res.body[0].price)
         assert.equal(res.body[0].variants[0].weight, res.body[0].weight)
         assert.equal(res.body[0].variants[0].weight_unit, res.body[0].weight_unit)
+        assert.equal(res.body[0].variants[0].option.width, '18in')
 
         assert.equal(res.body[0].variants[1].product_id, createdProductID)
         assert.equal(res.body[0].variants[1].sku, 'board-w-123')
@@ -141,6 +146,7 @@ describe('ProductController', () => {
         assert.equal(res.body[0].variants[1].price, '10001')
         assert.equal(res.body[0].variants[1].weight, '20')
         assert.equal(res.body[0].variants[1].weight_unit, 'lb')
+        assert.equal(res.body[0].variants[1].option.size, '44in')
         done(err)
       })
   })

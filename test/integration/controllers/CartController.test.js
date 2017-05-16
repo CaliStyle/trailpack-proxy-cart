@@ -51,6 +51,17 @@ describe('CartController', () => {
         cartID = res.body.id
         assert.equal(res.body.line_items.length, 1)
         assert.equal(res.body.total_items, 1)
+        assert.equal(res.body.status, 'open')
+        assert.equal(res.body.currency, 'USD')
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_line_items_price, 100000)
+        assert.equal(res.body.total_price, 100000)
+        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_shipping, 0)
+        assert.equal(res.body.total_tax, 0)
+        assert.equal(res.body.total_weight, 9072)
+        assert.equal(res.body.has_shipping, true)
+
         // console.log('THIS CART', res.body)
         done(err)
       })

@@ -304,17 +304,19 @@ module.exports = class Product extends Model {
                   if (resProduct && options.req && options.req.customer) {
                     return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
                       .then(collections => {
-                        return resProduct.collections = collections
+                        // return resProduct.collections = collections
+                        return resProduct.set('collections', collections, {raw: true})
                       })
                   }
                   else if (resProduct) {
                     return app.services.CollectionService.customerCollections(null, [resProduct])
                       .then(collections => {
-                        return resProduct.collections = collections
+                        // return resProduct.collections = collections
+                        return resProduct.set('collections', collections, {raw: true})
                       })
                   }
                   else {
-                    return []
+                    return resProduct.set('collections', [], {raw: true})
                   }
                 })
                 .then(collections => {

@@ -622,6 +622,7 @@ module.exports = class ProductService extends Service {
           variant.position = index + 1
         })
 
+        // Set the new product options
         _.each(resProduct.variants, variant => {
           if (variant.option) {
             const keys = Object.keys(variant.option)
@@ -653,7 +654,6 @@ module.exports = class ProductService extends Service {
         // Transform any new Tags
         if (product.tags && product.tags.length > 0) {
           product.tags = _.sortedUniq(product.tags.filter(n => n))
-          // console.log('THIS PRODUCT TAGS NOW', product.tags)
           return Tag.transformTags(product.tags, {transaction: options.transaction || null})
         }
         return
@@ -793,7 +793,7 @@ module.exports = class ProductService extends Service {
    * @param variant
    * @param options
    */
-  // TODO update, upload images
+  // TODO upload images
   createVariant(product, variant, options) {
     if (!options) {
       options = {}
@@ -858,7 +858,7 @@ module.exports = class ProductService extends Service {
    * @param variant
    * @param options
    */
-  // TODO update, upload images
+  // TODO upload images
   updateVariant(product, variant, options) {
     if (!options) {
       options = {}
@@ -873,7 +873,7 @@ module.exports = class ProductService extends Service {
       // TODO Update
       .then(foundVariant => {
         resVariant = foundVariant
-        resVariant = _.extend(resVariant, variant)
+        resVariant = _.extend(resVariant, _.omit(variant, ['id','sku']))
         resVariant = this.variantDefaults(resVariant, resProduct)
         return resVariant.save({transaction: options.transaction || null})
       })
