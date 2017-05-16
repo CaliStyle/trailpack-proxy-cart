@@ -1385,75 +1385,83 @@ module.exports = class ProductService extends Service {
    * @returns {*}
    */
   variantDefaults(variant, product){
+    // If the title set on parent
+    if (product.title && _.isNil(variant.title)) {
+      variant.title = product.title
+    }
     // If the price is set on parent
     if (product.price  && !variant.price) {
       variant.price = product.price
     }
     // If the compare at price is set on parent
-    if (product.compare_at_price  && !variant.compare_at_price) {
+    if (product.compare_at_price  && _.isNil(variant.compare_at_price)) {
       variant.compare_at_price = product.compare_at_price
     }
-    if (variant.price  && !variant.compare_at_price) {
+    if (variant.price && _.isNil(variant.compare_at_price)) {
       variant.compare_at_price = variant.price
     }
     // If the currency set on parent
-    if (product.currency && !variant.currency) {
+    if (product.currency && _.isNil(variant.currency)) {
       variant.currency = product.currency
     }
     // If the fulfillment_service is set on parent
-    if (product.fulfillment_service  && !variant.fulfillment_service) {
+    if (product.fulfillment_service  && _.isNil(variant.fulfillment_service)) {
       variant.fulfillment_service = product.fulfillment_service
     }
     // If the requires_shipping is set on parent
-    if (product.requires_shipping  && !variant.requires_shipping) {
+    if (product.requires_shipping  && _.isNil(variant.requires_shipping)) {
       variant.requires_shipping = product.requires_shipping
     }
     // If the requires_shipping is set on parent
-    if (product.requires_tax  && !variant.requires_tax) {
+    if (product.requires_tax  && _.isNil(variant.requires_tax)) {
       variant.requires_tax = product.requires_tax
     }
     // If the requires_subscription set on parent
-    if (product.requires_subscription && !variant.requires_subscription) {
+    if (product.requires_subscription && _.isNil(variant.requires_subscription)) {
       variant.requires_subscription = product.requires_subscription
     }
     // If the subscription_interval set on parent
-    if (product.subscription_interval && !variant.subscription_interval) {
+    if (product.subscription_interval && _.isNil(variant.subscription_interval)) {
       variant.subscription_interval = product.subscription_interval
     }
     // If the subscription_unit set on parent
-    if (product.subscription_unit && !variant.subscription_unit) {
+    if (product.subscription_unit && _.isNil(variant.subscription_unit)) {
       variant.subscription_unit = product.subscription_unit
     }
+    // If the inventory_tracker set on parent
+    if (product.inventory_tracker && _.isNil(variant.inventory_tracker)) {
+      variant.inventory_tracker = product.inventory_tracker
+    }
     // If the inventory_management set on parent
-    if (product.inventory_management && !variant.inventory_management) {
+    if (product.inventory_management && _.isNil(variant.inventory_management)) {
       variant.inventory_management = product.inventory_management
     }
     // If the inventory_quantity set on parent
-    if (product.inventory_quantity && !variant.inventory_quantity) {
+    if (product.inventory_quantity && _.isNil(variant.inventory_quantity)) {
       variant.inventory_quantity = product.inventory_quantity
     }
     // If the inventory_policy set on parent
-    if (product.inventory_policy && !variant.inventory_policy) {
+    if (product.inventory_policy && _.isNil(variant.inventory_policy)) {
       variant.inventory_policy = product.inventory_policy
     }
     // If the max_quantity set on parent
-    if (product.max_quantity && !variant.max_quantity) {
+    if (product.max_quantity && _.isNil(variant.max_quantity)) {
       variant.max_quantity = product.max_quantity
     }
     // Inherit the product type
-    if (product.type && !variant.type) {
+    if (product.type && _.isNil(variant.type)) {
       variant.type = product.type
     }
     // If the max_quantity set on parent
-    if (product.tax_code && !variant.tax_code) {
+    if (product.tax_code && _.isNil(variant.tax_code)) {
       variant.tax_code = product.tax_code
     }
     // If the weight set on parent
-    if (product.weight && !variant.weight) {
+    if (product.weight && _.isNil(variant.weight)) {
       variant.weight = product.weight
     }
     // If the weight_unit set on parent
-    if (product.weight_unit && !variant.weight_unit) {
+    if (product.weight_unit && _.isNil(variant.weight_unit)) {
       variant.weight_unit = product.weight_unit
     }
     return variant

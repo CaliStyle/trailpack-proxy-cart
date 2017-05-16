@@ -122,7 +122,7 @@ module.exports = class Cart extends Model {
                   const itemIndex = _.findIndex(lineItems, {variant_id: item.id})
                   if (itemIndex > -1) {
                     app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
-                    const maxQuantity = lineItems[itemIndex].max_quantity
+                    const maxQuantity = lineItems[itemIndex].max_quantity || -1
                     let calculatedQty = lineItems[itemIndex].quantity + qty
 
                     if (maxQuantity > -1 && calculatedQty > maxQuantity) {
@@ -138,7 +138,7 @@ module.exports = class Cart extends Model {
                     this.line_items = lineItems
                   }
                   else {
-                    const maxQuantity = item.max_quantity
+                    const maxQuantity = item.max_quantity || -1
                     let calculatedQty = qty
 
                     if (maxQuantity > -1 && calculatedQty > maxQuantity) {

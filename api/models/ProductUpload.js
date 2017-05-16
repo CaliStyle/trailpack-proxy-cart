@@ -5,6 +5,9 @@
 
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
+const _ = require('lodash')
+const INTERVALS = require('../utils/enums').INTERVALS
+const INVENTORY_POLICY = require('../utils/enums').INVENTORY_POLICY
 /**
  * @module ProductUpload
  * @description Product Upload Model
@@ -139,18 +142,28 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Variant Inventory Quantity'
       inventory_quantity: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      // The average amount of days to come in stock if out of stock
+      inventory_lead_time: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       // 'Variant Inventory Policy'
       inventory_policy: {
-        type: Sequelize.STRING
+        type: Sequelize.ENUM,
+        values: _.values(INVENTORY_POLICY),
+        defaultValue: INVENTORY_POLICY.DENY
       },
       max_quantity: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: -1
       },
       // 'Variant Fulfillment Service'
       fulfillment_service: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        defaultValue: 'manual'
       },
       // 'Variant Price'
       price: {
@@ -177,7 +190,8 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Variant Tax Code'
       tax_code: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        defaultValue: 'P000000' // Physical Good
       },
       // 'Variant Barcode'
       barcode: {
@@ -197,15 +211,19 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Subscription'
       requires_subscription: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
       // 'Subscription Unit'
       subscription_unit: {
-        type: Sequelize.STRING
+        type: Sequelize.ENUM,
+        values: _.values(INTERVALS),
+        defaultValue: INTERVALS.NONE
       },
       // 'Subscription Interval'
       subscription_interval: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       // 'Shops' Shop handles
       shops: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'shops', {

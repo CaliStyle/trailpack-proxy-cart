@@ -85,12 +85,20 @@ module.exports = class ProductCsvService extends Service {
       options: {}
     }
 
+    _.each(row, (data, key) => {
+      if (data === '') {
+        row[key] = null
+      }
+    })
+
+    row = _.omitBy(row, _.isNil)
+
     if (_.isEmpty(row)) {
       return Promise.resolve({})
     }
 
     _.each(row, (data, key) => {
-      if (data !== '') {
+      if (data) {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
@@ -125,10 +133,10 @@ module.exports = class ProductCsvService extends Service {
             upload[k] = data.split(',').map(shopQty => { return parseInt(shopQty.trim())})
           }
           else if (k == 'weight_unit') {
-            upload[k] = data.toLowerCase()
+            upload[k] = data.toLowerCase().trim()
           }
           else if (k == 'inventory_policy') {
-            upload[k] = data.toLowerCase()
+            upload[k] = data.toLowerCase().trim()
           }
           else {
             upload[k] = data
@@ -389,12 +397,20 @@ module.exports = class ProductCsvService extends Service {
       data: {}
     }
 
+    _.each(row, (data, key) => {
+      if (data === '') {
+        row[key] = null
+      }
+    })
+
+    row = _.omitBy(row, _.isNil)
+
     if (_.isEmpty(row)) {
       return Promise.resolve({})
     }
 
     _.each(row, (data, key) => {
-      if (data !== '') {
+      if (data) {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
