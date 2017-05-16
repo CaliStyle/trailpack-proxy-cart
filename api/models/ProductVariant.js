@@ -30,12 +30,32 @@ module.exports = class ProductVariant extends Model {
             // paranoid: false,
             order: [['position','ASC']]
           },
-          // hooks: {
-          //   beforeValidate: (values, options, fn) => {
-          //     console.log('beforeCreate',values)
-          //     fn()
-          //   }
-          // },
+          hooks: {
+            beforeValidate(values, options, fn) {
+              if (!values.calculated_price && values.price) {
+                values.calculated_price = values.price
+              }
+              fn()
+            },
+            beforeCreate(values, options, fn) {
+              app.services.ProductService.beforeVariantCreate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            beforeUpdate(values, options, fn) {
+              app.services.ProductService.beforeVariantUpdate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            }
+          },
           classMethods: {
             /**
              * Expose UNITS enums

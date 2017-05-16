@@ -1458,5 +1458,39 @@ module.exports = class ProductService extends Service {
     }
     return variant
   }
+
+  beforeCreate(product, options) {
+    if (product.body) {
+      return this.app.services.RenderGenericService.render(product.body)
+        .then(doc => {
+          product.html = doc.document
+          return product
+        })
+    }
+    else {
+      return Promise.resolve(product)
+    }
+  }
+
+  beforeUpdate(product, options) {
+    if (product.body) {
+      return this.app.services.RenderGenericService.render(product.body)
+        .then(doc => {
+          product.html = doc.document
+          return product
+        })
+    }
+    else {
+      return Promise.resolve(product)
+    }
+  }
+
+  beforeVariantCreate(variant, options) {
+    return Promise.resolve(variant)
+  }
+
+  beforeVariantUpdate(variant, options) {
+    return Promise.resolve(variant)
+  }
 }
 

@@ -11,6 +11,14 @@ const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_
  * @description Discount Service
  */
 module.exports = class DiscountService extends Service {
+
+  create(data, options){
+    return Promise.resolve(data)
+  }
+  update(data, options){
+    return Promise.resolve(data)
+  }
+
   /**
    *
    * @param cart Instance

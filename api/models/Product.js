@@ -35,31 +35,28 @@ module.exports = class Product extends Model {
               if (!values.handle && values.title) {
                 values.handle = values.title
               }
+              if (!values.calculated_price && values.price) {
+                values.calculated_price = values.price
+              }
               fn()
             },
             beforeCreate(values, options, fn) {
-              if (values.body) {
-                app.services.RenderGenericService.render(values.body)
-                  .then(doc => {
-                    values.html = doc.document
-                    return fn(null, values)
-                  })
-              }
-              else {
-                return fn(null, values)
-              }
+              app.services.ProductService.beforeCreate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             },
             beforeUpdate(values, options, fn) {
-              if (values.body) {
-                app.services.RenderGenericService.render(values.body)
-                  .then(doc => {
-                    values.html = doc.document
-                    return fn()
-                  })
-              }
-              else {
-                return fn()
-              }
+              app.services.ProductService.beforeUpdate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             }
           },
           classMethods: {
