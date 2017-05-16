@@ -157,8 +157,8 @@ module.exports = class ProductUpload extends Model {
         defaultValue: INVENTORY_POLICY.DENY
       },
       max_quantity: {
-        type: Sequelize.INTEGER,
-        defaultValue: -1
+        type: Sequelize.INTEGER
+        // defaultValue: -1
       },
       // 'Variant Fulfillment Service'
       fulfillment_service: {
@@ -222,8 +222,8 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Subscription Interval'
       subscription_interval: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0
+        type: Sequelize.INTEGER
+        // defaultValue: 0
       },
       // 'Shops' Shop handles
       shops: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'shops', {
