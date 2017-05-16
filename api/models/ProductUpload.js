@@ -142,8 +142,8 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Variant Inventory Quantity'
       inventory_quantity: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0
+        type: Sequelize.INTEGER
+        // defaultValue: 0
       },
       // The average amount of days to come in stock if out of stock
       inventory_lead_time: {
