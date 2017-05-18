@@ -122,15 +122,17 @@ module.exports = class Order extends Model {
               // models.Order.belongsTo(models.Customer, {
               //   foreignKey: 'last_order_id'
               // })
-
+              // The individual items of this order
               models.Order.hasMany(models.OrderItem, {
                 as: 'order_items',
                 foreignKey: 'order_id'
               })
+              // The fulfillments for this order
               models.Order.hasMany(models.Fulfillment, {
                 as: 'fulfillments',
                 foreignKey: 'order_id'
               })
+              // The transactions for this order
               models.Order.hasMany(models.Transaction, {
                 as: 'transactions',
                 foreignKey: 'order_id'
@@ -153,6 +155,7 @@ module.exports = class Order extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              // The tags added to this order
               models.Order.belongsToMany(models.Tag, {
                 as: 'tags',
                 through: {
@@ -165,6 +168,17 @@ module.exports = class Order extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              // The paymnet source used to pay this order
+              models.Order.belongsToMany(models.Source, {
+                as: 'sources',
+                through: {
+                  model: models.OrderSource,
+                  unique: false
+                },
+                foreignKey: 'order_id',
+                constraints: false
+              })
+              // The events tied to this order
               models.Order.hasMany(models.Event, {
                 as: 'events',
                 foreignKey: 'object_id',
@@ -328,6 +342,8 @@ module.exports = class Order extends Model {
               let totalPartialFulfillments = 0
               let totalSentFulfillments = 0
               let totalNonFulfillments = 0
+              let totalCancelledFulfillments = 0
+
               fulfillments.forEach(fulfilment => {
                 if (fulfilment.status == FULFILLMENT_STATUS.FULFILLED) {
                   totalFulfillments++
@@ -340,6 +356,9 @@ module.exports = class Order extends Model {
                 }
                 else if (fulfilment.status == FULFILLMENT_STATUS.NONE) {
                   totalNonFulfillments++
+                }
+                else if (fulfilment.status == FULFILLMENT_STATUS.CANCELLED) {
+                  totalCancelledFulfillments++
                 }
               })
               if (totalFulfillments == fulfillments.length) {
@@ -354,6 +373,15 @@ module.exports = class Order extends Model {
               else if (totalNonFulfillments == fulfillments.length) {
                 fulfillmentStatus = ORDER_FULFILLMENT.NONE // back to default
               }
+              else if (totalCancelledFulfillments == fulfillments.length) {
+                fulfillmentStatus = ORDER_FULFILLMENT.CANCELLED // back to default
+              }
+
+              this.total_fulfilled_fulfillments = totalFulfillments
+              this.total_partial_fulfillments = totalPartialFulfillments
+              this.total_sent_fulfillments  = totalSentFulfillments
+              this.total_cancelled_fulfillments  = totalCancelledFulfillments
+              this.total_not_fulfilled = totalNonFulfillments
               this.fulfillment_status = fulfillmentStatus
               return this
             }
@@ -525,7 +553,7 @@ module.exports = class Order extends Model {
         processed_at: {
           type: Sequelize.DATE
         },
-        // States the type of payment processing method. Valid values are: checkout, direct, manual, offsite or express.
+        // States the type of payment processing method. Valid values are: checkout, subscription, direct, manual, offsite or express.
         processing_method: {
           type: Sequelize.ENUM,
           values: _.values(PAYMENT_PROCESSING_METHOD)
@@ -643,6 +671,30 @@ module.exports = class Order extends Model {
         },
         // The sum of all the weights of the line items in the order, in grams.
         total_weight: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount of Fulfillments fulfilled
+        total_fulfilled_fulfillments: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount of Fulfillments partially fulfilled
+        total_partial_fulfillments: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount of Fulfillments left to send to fulfillment
+        total_sent_fulfillments: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        total_cancelled_fulfillments: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount of Fulfillments not yet fulfilled
+        total_not_fulfilled: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

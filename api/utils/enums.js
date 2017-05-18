@@ -229,7 +229,9 @@ module.exports = {
     // Nothing has happened yet, None of the line items in the order have been fulfilled.
     NONE: 'none',
     // Fulfillment has partially fulfilled order, At least one line item in the order has been fulfilled.
-    PARTIAL: 'partial'
+    PARTIAL: 'partial',
+    // Fulfillment has been cancelled for this order
+    CANCELLED: 'cancelled'
   },
   ORDER_FULFILLMENT_KIND: {
     // Schedule to fulfill order immediately upon creating order
@@ -249,7 +251,9 @@ module.exports = {
     // Nothing has happened yet
     NONE: 'none',
     // Fulfillment has partially fulfilled order
-    PARTIAL: 'partial'
+    PARTIAL: 'partial',
+    // Fulfillment has been cancelled
+    CANCELLED: 'cancelled'
   },
   FULFILLMENT_EVENT_STATUS: {
     // The shipping carrier confirms that they have received the shipment request.

@@ -524,12 +524,12 @@ module.exports = class OrderService extends Service {
         }
         // Completely Refund the order
         else {
-          const refundable = transactions.filter(transaction => {
+          const canRefund = transactions.filter(transaction => {
             if (transaction.kind == TRANSACTION_KIND.CAPTURE || transaction.kind == TRANSACTION_KIND.SALE) {
               return transaction
             }
           })
-          return Promise.all(refundable.map(transaction => {
+          return Promise.all(canRefund.map(transaction => {
             return this.app.services.TransactionService.refund(transaction)
           }))
         }
@@ -563,14 +563,135 @@ module.exports = class OrderService extends Service {
   }
 
   /**
+   *
+   * @param order
+   * @param captures
+   * @returns {Promise.<TResult>}
+   */
+  capture(order, captures) {
+    if (!captures) {
+      captures = []
+    }
+    let resOrder
+    return this.resolve(order)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        return order
+      })
+      .then(order => {
+        resOrder = order
+        if (!order.transactions || order.transactions.length == 0) {
+          return order.getTransactions()
+        }
+        else {
+          return order.transactions
+        }
+      })
+      .then(transactions => {
+        if (!transactions) {
+          transactions = []
+        }
+        // Partially Capture
+        if (captures.length > 0) {
+          return Promise.all(captures.map(capture => {
+            const captureTransaction = transactions.find(transaction => transaction.id == capture.transaction)
+            if (captureTransaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+              return this.app.services.TransactionService.capture(captureTransaction)
+            }
+          }))
+        }
+        // Completely Capture the order
+        else {
+          const canCapture = transactions.filter(transaction => {
+            if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+              return transaction
+            }
+          })
+          return Promise.all(canCapture.map(transaction => {
+            return this.app.services.TransactionService.capture(transaction)
+          }))
+        }
+      })
+      .then(captures => {
+        return resOrder.saveFinancialStatus()
+      })
+      .then(order => {
+        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+      })
+
+  }
+
+  /**
+   *
+   * @param order
+   * @param voids
+   * @returns {Promise.<TResult>}
+   */
+  void(order, voids) {
+    if (!voids) {
+      voids = []
+    }
+    let resOrder
+    return this.resolve(order)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        return order
+      })
+      .then(order => {
+        resOrder = order
+        if (!order.transactions || order.transactions.length == 0) {
+          return order.getTransactions()
+        }
+        else {
+          return order.transactions
+        }
+      })
+      .then(transactions => {
+        if (!transactions) {
+          transactions = []
+        }
+        // Partially Void
+        if (voids.length > 0) {
+          return Promise.all(voids.map(tVoid => {
+            const voidTransaction = transactions.find(transaction => transaction.id == tVoid.transaction)
+            if (voidTransaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+              return this.app.services.TransactionService.void(voidTransaction)
+            }
+          }))
+        }
+        // Completely Void the order
+        else {
+          const canVoid = transactions.filter(transaction => {
+            if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+              return transaction
+            }
+          })
+          return Promise.all(canVoid.map(transaction => {
+            return this.app.services.TransactionService.void(transaction)
+          }))
+        }
+      })
+      .then(voids => {
+        return resOrder.saveFinancialStatus()
+      })
+      .then(order => {
+        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+      })
+  }
+
+  /**
    * Cancel and Order
    * @param order
    * @returns {Promise.<TResult>}
    */
-  // TODO cancel fulfillments, refund transactions
+  // TODO cancel fulfillments
   cancel(order) {
     const reason = order.cancel_reason
-    let resOrder
+    let resOrder, canRefund = [], canVoid = []
     return this.resolve(order)
       .then(order => {
         resOrder = order
@@ -586,20 +707,30 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(transactions => {
-        // const refundable = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.SALE || transaction.kind == TRANSACTION_KIND.CAPTURE )
-        // const voidable = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
-
-        return resOrder
+        canRefund = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.SALE || transaction.kind == TRANSACTION_KIND.CAPTURE )
+        canVoid = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
+        return
       })
-      .then(order => {
-        if (!order.fulfillments || order.fulfillments.length == 0) {
-          return order.getFulfillments()
+      .then(() => {
+        return Promise.all(canRefund.map(transaction => {
+          return this.app.services.TransactionService.refund(transaction)
+        }))
+      })
+      .then(() => {
+        return Promise.all(canVoid.map(transaction => {
+          return this.app.services.TransactionService.void(transaction)
+        }))
+      })
+      .then(() => {
+        if (!resOrder.fulfillments || resOrder.fulfillments.length == 0) {
+          return resOrder.getFulfillments()
         }
         else {
-          return order.fulfillments
+          return resOrder.fulfillments
         }
       })
       .then(fulfillments => {
+        // TODO cancel fulfillments
 
         resOrder.cancelled_at = new Date()
         resOrder.closed_at = resOrder.cancelled_at
@@ -817,7 +948,7 @@ module.exports = class OrderService extends Service {
   }
 
   afterUpdate(order, options) {
-    this.app.services.ProxyEngineService.publish('order.update', order)
+    this.app.services.ProxyEngineService.publish('order.updated', order)
     return Promise.resolve(order)
   }
 }

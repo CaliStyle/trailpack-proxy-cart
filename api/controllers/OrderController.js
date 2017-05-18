@@ -233,6 +233,44 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
+  capture(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.capture(req.body)
+      .then(values => {
+        return OrderService.capture(req.params.id, req.body)
+      })
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  void(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.void(req.body)
+      .then(values => {
+        return OrderService.void(req.params.id, req.body)
+      })
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   refund(req, res) {
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.refund(req.body)

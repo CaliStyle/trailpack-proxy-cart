@@ -157,6 +157,10 @@ module.exports = class Fulfillment extends Model {
           values: _.values(FULFILLMENT_STATUS),
           defaultValue: FULFILLMENT_STATUS.NONE
         },
+        // The URL pointing to the order status web page.
+        status_url: {
+          type: Sequelize.STRING
+        },
         service: {
           type: Sequelize.STRING,
           defaultValue: FULFILLMENT_SERVICE.MANUAL
