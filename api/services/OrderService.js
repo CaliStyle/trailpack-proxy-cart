@@ -86,6 +86,9 @@ module.exports = class OrderService extends Service {
    * @returns {Promise}
    */
   // TODO handle inventory policy and coupon policy
+  // TODO Set Order Status
+  // TODO Select Vendor
+  // TODO Set Order Payment Sources
   create(obj) {
     const Address = this.app.orm.Address
     const Customer = this.app.orm.Customer

@@ -205,6 +205,12 @@ module.exports = {
     // other: The order was cancelled for a reason not in the list above.
     OTHER: 'other'
   },
+  ORDER_STATUS: {
+    // The order is open
+    OPEN: 'open',
+    // The order is closed
+    CLOSED: 'closed'
+  },
   ORDER_FINANCIAL: {
     // pending: The finances are pending.
     PENDING: 'pending',

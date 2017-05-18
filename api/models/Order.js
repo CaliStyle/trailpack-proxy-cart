@@ -7,6 +7,7 @@ const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const shortid = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
+const ORDER_STATUS = require('../utils/enums').ORDER_STATUS
 const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
 const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
@@ -75,6 +76,7 @@ module.exports = class Order extends Model {
             }
           },
           classMethods: {
+            ORDER_STATUS: ORDER_STATUS,
             ORDER_CANCEL: ORDER_CANCEL,
             ORDER_FINANCIAL: ORDER_FINANCIAL,
             ORDER_FULFILLMENT: ORDER_FULFILLMENT,
@@ -484,6 +486,11 @@ module.exports = class Order extends Model {
             'longitude': null
           }
         }),
+        status: {
+          type: Sequelize.ENUM,
+          values: _.values(ORDER_STATUS),
+          defaultValue: ORDER_STATUS.OPEN
+        },
         // The time the order was closed at.
         closed_at: {
           type: Sequelize.DATE
@@ -697,10 +704,6 @@ module.exports = class Order extends Model {
         total_not_fulfilled: {
           type: Sequelize.INTEGER,
           defaultValue: 0
-        },
-        // The URL pointing to the order status web page.
-        status_url: {
-          type: Sequelize.STRING
         },
         // IP addresses
         ip: {
