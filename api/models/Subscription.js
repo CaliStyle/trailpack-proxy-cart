@@ -127,6 +127,7 @@ module.exports = class Subscription extends Model {
               const line = {
                 subscription_id: this.id,
                 product_id: data.product_id,
+                product_handle: data.Product.handle,
                 variant_id: data.id || data.variant_id,
                 type: data.type,
                 sku: data.sku,
@@ -134,6 +135,7 @@ module.exports = class Subscription extends Model {
                 variant_title: data.title,
                 name: data.title == data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
                 properties: data.properties,
+                option: data.option,
                 barcode: data.barcode,
                 price: data.price,
                 calculated_price: data.price,

@@ -315,6 +315,10 @@ module.exports = class Order extends Model {
               // refunded: The finances have been refunded.
               // voided: The finances have been voided.
               this.financial_status = financialStatus
+              this.total_authorized = totalAuthorized
+              this.total_captured = totalSale
+              this.total_refunds = totalRefund
+              this.total_voided = totalVoided
               this.total_due = Math.max(0, this.total_price - totalSale)
               return this
             },
@@ -582,24 +586,43 @@ module.exports = class Order extends Model {
           type: Sequelize.STRING,
           unique: true
         },
-        // The total amount of the discounts to be applied to the price of the order.
+        // The total amount of the discounts applied to the price of the order.
         total_discounts: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The total amount of coupons applied to the price of the order
         total_coupons: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The total amount of shipping applied to the price of the order
         total_shipping: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The total still due
         total_due: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The total amount of refunded transactions
         total_refunds: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount of authorized transactions
+        total_authorized: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount of captured transactions
+        total_captured: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount of voided transactions
+        total_voided: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
@@ -631,13 +654,15 @@ module.exports = class Order extends Model {
         ip: {
           type: Sequelize.STRING
         },
+        // IP address that created the order
         create_ip: {
           type: Sequelize.STRING
         },
+        // IP address that last updated the order
         update_ip: {
           type: Sequelize.STRING
         },
-
+        // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode
