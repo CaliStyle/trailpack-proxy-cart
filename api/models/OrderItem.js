@@ -153,6 +153,11 @@ module.exports = class OrderItem extends Model {
           //   key: 'id'
           // }
         },
+        // The option that this Variant is
+        option: helpers.JSONB('OrderItem', app, Sequelize, 'option', {
+          // name: string, value:string
+          defaultValue: {}
+        }),
         // The amount available to fulfill. This is the quantity - max(refunded_quantity, fulfilled_quantity) - pending_fulfilled_quantity - open_fulfilled_quantity.
         fulfillable_quantity: {
           type: Sequelize.INTEGER

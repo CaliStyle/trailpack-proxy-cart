@@ -66,6 +66,7 @@ module.exports = class Cart extends Model {
                 variant_title: data.title,
                 name: data.title == data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
                 properties: data.properties,
+                option: data.option,
                 barcode: data.barcode,
                 price: data.price,
                 calculated_price: data.price,

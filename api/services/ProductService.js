@@ -1407,7 +1407,7 @@ module.exports = class ProductService extends Service {
       product.tax_code = PRODUCT_DEFAULTS.TAX_CODE
     }
 
-    // Variant Defaults for addProduct
+    // Variant Defaults for addProduct/updateProduct
     if (_.isNil(product.max_quantity)) {
       product.max_quantity = VARIANT_DEFAULTS.MAX_QUANTITY
     }
