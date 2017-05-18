@@ -460,5 +460,74 @@ module.exports = class CollectionService extends Service {
           })
       })
   }
+
+
+  /**
+   *
+   * @param collection
+   * @param subCollection
+   * @returns {Promise.<TResult>}
+   */
+  addCollection(collection, subCollection){
+    let resCollection, resSubCollection
+    return this.resolve(collection)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
+        }
+        resCollection = collection
+        return this.resolve(subCollection)
+      })
+      .then(subCollection => {
+        if (!subCollection) {
+          throw new Errors.FoundError(Error('Sub Collection not found'))
+        }
+        resSubCollection = subCollection
+        return resCollection.hasCollection(resSubCollection.id)
+      })
+      .then(hasCollection => {
+        if (!hasCollection) {
+          return resCollection.addCollection(resSubCollection.id)
+        }
+        return resCollection
+      })
+      .then(collection => {
+        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+      })
+  }
+
+  /**
+   *
+   * @param collection
+   * @param subCollection
+   * @returns {Promise.<TResult>}
+   */
+  removeCollection(collection, subCollection){
+    let resCollection, resSubCollection
+    return this.resolve(collection)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
+        }
+        resCollection = collection
+        return this.resolve(subCollection)
+      })
+      .then(subCollection => {
+        if (!subCollection) {
+          throw new Errors.FoundError(Error('Sub Collection not found'))
+        }
+        resSubCollection = subCollection
+        return resCollection.hasCollection(resSubCollection.id)
+      })
+      .then(hasCollection => {
+        if (hasCollection) {
+          return resCollection.removeCollection(resSubCollection.id)
+        }
+        return resCollection
+      })
+      .then(collection => {
+        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+      })
+  }
 }
 

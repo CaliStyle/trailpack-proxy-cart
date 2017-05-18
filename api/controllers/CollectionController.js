@@ -137,6 +137,7 @@ module.exports = class CollectionController extends Controller {
         }
       ]
     })
+
     Collection.findAndCountDefault({
       where: defaults,
       order: sort,
@@ -188,6 +189,42 @@ module.exports = class CollectionController extends Controller {
         req.body.id = req.params.id
         return CollectionService.update(req.body)
       })
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addCollection(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addCollection(req.params.id, req.params.collection)
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeCollection(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.removeCollection(req.params.id, req.params.collection)
       .then(collection => {
         return res.json(collection)
       })
