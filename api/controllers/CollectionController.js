@@ -235,6 +235,78 @@ module.exports = class CollectionController extends Controller {
   }
 
   /**
+   *
+   * @param req
+   * @param res
+   */
+  addProduct(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addProduct(req.params.id, req.params.product)
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeProduct(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.removeProduct(req.params.id, req.params.product)
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addCustomer(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addCustomer(req.params.id, req.params.customer)
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeCustomer(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.removeCustomer(req.params.id, req.params.customer)
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
    * upload CSV
    * @param req
    * @param res

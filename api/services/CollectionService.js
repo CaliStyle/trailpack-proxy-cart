@@ -529,5 +529,141 @@ module.exports = class CollectionService extends Service {
         return this.app.orm['Collection'].findByIdDefault(resCollection.id)
       })
   }
+
+  /**
+   *
+   * @param collection
+   * @param product
+   * @returns {Promise.<TResult>}
+   */
+  addProduct(collection, product){
+    let resCollection, resProduct
+    return this.resolve(collection)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
+        }
+        resCollection = collection
+        return this.app.services.ProductService.resolve(product)
+      })
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return resCollection.hasProduct(resProduct.id)
+      })
+      .then(hasCollection => {
+        if (!hasCollection) {
+          return resCollection.addProduct(resProduct.id)
+        }
+        return resCollection
+      })
+      .then(collection => {
+        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+      })
+  }
+
+  /**
+   *
+   * @param collection
+   * @param product
+   * @returns {Promise.<TResult>}
+   */
+  removeProduct(collection, product){
+    let resCollection, resProduct
+    return this.resolve(collection)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
+        }
+        resCollection = collection
+        return this.app.services.ProductService.resolve(product)
+      })
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error('Product not found'))
+        }
+        resProduct = product
+        return resCollection.hasProduct(resProduct.id)
+      })
+      .then(hasCollection => {
+        if (hasCollection) {
+          return resCollection.removeProduct(resProduct.id)
+        }
+        return resCollection
+      })
+      .then(collection => {
+        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+      })
+  }
+
+  /**
+   *
+   * @param collection
+   * @param customer
+   * @returns {Promise.<TResult>}
+   */
+  addCustomer(collection, customer){
+    let resCollection, resCustomer
+    return this.resolve(collection)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
+        }
+        resCollection = collection
+        return this.app.services.CustomerService.resolve(customer)
+      })
+      .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resCustomer = customer
+        return resCollection.hasCustomer(resCustomer.id)
+      })
+      .then(hasCollection => {
+        if (!hasCollection) {
+          return resCollection.addCustomer(resCustomer.id)
+        }
+        return resCollection
+      })
+      .then(collection => {
+        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+      })
+  }
+
+  /**
+   *
+   * @param collection
+   * @param customer
+   * @returns {Promise.<TResult>}
+   */
+  removeCustomer(collection, customer){
+    let resCollection, resCustomer
+    return this.resolve(collection)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
+        }
+        resCollection = collection
+        return this.app.services.CustomerService.resolve(customer)
+      })
+      .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resCustomer = customer
+        return resCollection.hasCustomer(resCustomer.id)
+      })
+      .then(hasCollection => {
+        if (hasCollection) {
+          return resCollection.removeCustomer(resCustomer.id)
+        }
+        return resCollection
+      })
+      .then(collection => {
+        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+      })
+  }
 }
 

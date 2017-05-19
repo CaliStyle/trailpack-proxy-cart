@@ -502,6 +502,127 @@ Returns updated Cart
 #### CollectionController
 Handles Collection operations
 
+##### CollectionController.create
+Creates a new Collection. Some interesting things to note:
+- A collection has many products associated to it.  In addition, it can have a discount that applies to the products which is reflected in their calculated price.  This is different then the discount object (which effects an individual product).  For the collection, you can have the discount be ignored for certain product types.  Put those product type strings in the `discount_product_exclude` array.  But let’s say that the product types you want to discount is shorter then the product types you don’t want to discount, in which case, you would use the `discount_product_include`. You would never want to use both. If the `discount_product_exclude`'s length is greater than 0, `discount_product_include` will be ignored.
+
+```
+//POST `<api>/collection`
+{
+  handle: "customer-discount-test",
+  title: "Customer Discount",
+  body: "# Customer Discount",
+  published: true,
+  sort_order: "price-desc",
+  discount_type: "fixed",
+  discount_scope: "global",
+  discount_rate: 100,
+  primary_purpose: "discount",
+  discount_product_exclude: [
+    "subscription"
+  ],
+  collections: [
+    // Add an existing sub collection
+    "existing-collection-handle",
+    // Create a new collection
+    {
+      handle: 'new-collection-handle',
+      title: 'New Collection'
+    }
+  ]
+}
+```
+Returns created collection
+```
+{}
+```
+
+##### CollectionController.update
+Updates a Collection
+```
+//POST `<api>/collection/:id`
+{}
+```
+Returns updated collection
+```
+{}
+```
+
+##### CollectionController.add
+Adds a Collection to a collection
+```
+//POST `<api>/collection/:id/add/:collection`
+```
+Returns updated collection
+```
+{}
+```
+
+##### CollectionController.remove
+Remove a Collection from a collection
+```
+//POST `<api>/collection/:id/remove/:collection`
+```
+Returns updated collection
+```
+{}
+```
+
+##### CollectionController.addProduct
+Add a product to a Collection
+```
+//POST `<api>/collection/:id/addProduct/:product`
+```
+Returns updated collection
+```
+{}
+```
+
+##### CollectionController.removeProduct
+Removes a product from a Collection
+```
+//POST `<api>/collection/:id/removeProduct/:product`
+```
+Returns updated collection
+```
+{}
+```
+
+##### CollectionController.addCustomer
+Add a customer to a Collection
+```
+//POST `<api>/collection/:id/addCustomer/:customer`
+```
+Returns updated collection
+```
+{}
+```
+
+##### CollectionController.removeCustomer
+Removes a customer from a Collection
+```
+//POST `<api>/collection/:id/removeCustomer/:customer`
+```
+Returns updated collection
+```
+{}
+```
+
+##### CustomerController.uploadCSV
+Uploads a Customer CSV using a template and makes it ready to process
+```
+//POST <api>/customer/uploadCSV
+name: csv
+```
+Returns statistics of the upload
+
+##### CustomerController.processUpload
+Processes Uploaded CSV
+```
+//POST <api>/customer/processUpload/:uploadID
+```
+Returns statistics of the processed upload
+
 #### FulfillmentController
 Handles Fulfillment operations
 
