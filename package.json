@@ -33,7 +33,7 @@
     "sqlite3": "^3.1.4",
     "striptags": "^3.0.1",
     "trailpack": "^2.0.0",
-    "trailpack-proxy-cart-countries": "^0.0.4",
+    "trailpack-proxy-cart-countries": "^0.0.5",
     "trailpack-proxy-generics": "^0.0.34",
     "trailpack-proxy-passport": "^0.0.10",
     "trailpack-proxy-permissions": "^0.0.34"
