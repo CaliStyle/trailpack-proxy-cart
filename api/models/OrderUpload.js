@@ -140,6 +140,14 @@ module.exports = class OrderUpload extends Model {
       // Billing Postal/Zip Code
       billing_postal_code: {
         type: Sequelize.STRING
+      },
+      // 'Tags'
+      tags: helpers.ARRAY('OrderUpload', app, Sequelize, Sequelize.STRING, 'tags', {
+        defaultValue: []
+      }),
+      // Note
+      note: {
+        type: Sequelize.TEXT
       }
     }
     return schema

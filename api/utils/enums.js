@@ -66,6 +66,8 @@ module.exports = {
     shipping_province: 'Shipping Province',
     shipping_postal_code: 'Shipping Postal Code',
     shipping_country: 'Shipping Country',
+    tags: 'Tags',
+    note: 'Note'
   },
   PRODUCT_UPLOAD: {
     handle: 'Handle',
