@@ -7,6 +7,7 @@ const collections = require('../../fixtures/collections')
 describe('CollectionController', () => {
   let request
   let collectionID
+  let collection2ID
   let uploadID
   before((done) => {
     request = supertest('http://localhost:3000')
@@ -36,13 +37,17 @@ describe('CollectionController', () => {
         done(err)
       })
   })
-  it('should create another collection collection', (done) => {
+  it('should create another collection', (done) => {
     const collection = collections[1]
     request
       .post('/collection')
       .send(collection)
       .expect(200)
       .end((err, res) => {
+        collection2ID = res.body.id
+        assert.equal(res.body.handle, 'customer-discount-test')
+        assert.equal(res.body.title, 'Customer Discount')
+        assert.equal(res.body.body, '# Customer Discount')
         done(err)
       })
   })
@@ -80,9 +85,35 @@ describe('CollectionController', () => {
   })
   it.skip('should remove tag from collection', (done) => {
   })
-  it.skip('should add collection to collection', (done) => {
+  it.skip('should add product to collection', (done) => {
   })
-  it.skip('should should remove collection from collection', (done) => {
+  it.skip('should remove product from collection', (done) => {
+  })
+  it.skip('should add customer to collection', (done) => {
+  })
+  it.skip('should remove customer from collection', (done) => {
+  })
+  it('should add collection to collection', (done) => {
+    request
+      .post(`/collection/${collectionID}/add/${collection2ID}`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body.collections.length, 1)
+        done(err)
+      })
+  })
+  it('should should remove collection from collection', (done) => {
+    request
+      .post(`/collection/${collectionID}/remove/${collection2ID}`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body.collections.length, 0)
+        done(err)
+      })
   })
 
   it('It should upload collection_upload.csv', (done) => {

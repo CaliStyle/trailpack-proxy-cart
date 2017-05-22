@@ -27,8 +27,15 @@ module.exports = class Province extends Model {
                 as: 'counties'
               })
               models.Province.belongsToMany(models.ShippingZone, {
-                // as: 'country_id'
-                through: 'ShippingZoneProvince'
+                through: {
+                  model: models.ItemShippingZone,
+                  unique: false,
+                  scope: {
+                    model: 'province'
+                  }
+                },
+                foreignKey: 'shipping_zone_id',
+                constraints: false
               })
             }
           }

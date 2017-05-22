@@ -1,6 +1,7 @@
 exports.Address = require('./Address')
 exports.Cart = require('./Cart')
 exports.City = require('./City')
+exports.Collection = require('./Collection')
 exports.Country = require('./Country')
 exports.Coupon = require('./Coupon')
 exports.Customer = require('./Customer')

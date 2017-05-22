@@ -5,6 +5,7 @@
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
+const queryDefaults = require('../utils/queryDefaults')
 const COLLECTION_SORT_ORDER = require('../utils/enums').COLLECTION_SORT_ORDER
 const COLLECTION_PURPOSE = require('../utils/enums').COLLECTION_PURPOSE
 const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
@@ -145,7 +146,7 @@ module.exports = class Collection extends Model {
                 options = {}
               }
 
-              options = _.merge(options, {})
+              options = _.merge(options, queryDefaults.Collection.default(app))
 
               return this.findById(criteria, options)
             },
@@ -159,6 +160,7 @@ module.exports = class Collection extends Model {
                   handle: handle
                 }
               })
+              options = _.merge(options, queryDefaults.Collection.default(app))
               return this.findOne(options)
             },
             findOneDefault: function(options) {
@@ -166,7 +168,7 @@ module.exports = class Collection extends Model {
                 options = {}
               }
 
-              options = _.merge(options, {})
+              options = _.merge(options, queryDefaults.Collection.default(app))
 
               return this.findOne(options)
             },
