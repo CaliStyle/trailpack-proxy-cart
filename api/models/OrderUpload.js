@@ -64,10 +64,83 @@ module.exports = class OrderUpload extends Model {
       customer: {
         type: Sequelize.STRING
       },
-      // Products
-      products: helpers.ARRAY('OrderUpload', app, Sequelize, Sequelize.JSON, 'products', {
+      // Email
+      email: {
+        type: Sequelize.STRING
+      },
+      // Status
+      status: {
+        type: Sequelize.STRING
+      },
+      // Order Items
+      order_items: helpers.ARRAY('OrderUpload', app, Sequelize, Sequelize.JSON, 'order_items', {
         defaultValue: []
-      })
+      }),
+      // Shipping Line 1
+      shipping_address_1: {
+        type: Sequelize.STRING
+      },
+      // Shipping Line 2
+      shipping_address_2: {
+        type: Sequelize.STRING
+      },
+      // Shipping Line 3
+      shipping_address_3: {
+        type: Sequelize.STRING
+      },
+      // Shipping Company
+      shipping_company: {
+        type: Sequelize.STRING
+      },
+      // Shipping City
+      shipping_city: {
+        type: Sequelize.STRING
+      },
+      // Shipping Province/State abbr
+      shipping_province: {
+        type: Sequelize.STRING
+      },
+      // Shipping Country Code iso-alpha-2
+      shipping_country: {
+        type: Sequelize.STRING
+      },
+      // Shipping Postal/Zip Code
+      shipping_postal_code: {
+        type: Sequelize.STRING
+      },
+
+      // Billing Line 1
+      billing_address_1: {
+        type: Sequelize.STRING
+      },
+      // Billing Line 2
+      billing_address_2: {
+        type: Sequelize.STRING
+      },
+      // Billing Line 3
+      billing_address_3: {
+        type: Sequelize.STRING
+      },
+      // Billing Company
+      billing_company: {
+        type: Sequelize.STRING
+      },
+      // Billing City
+      billing_city: {
+        type: Sequelize.STRING
+      },
+      // Billing Province/State abbr
+      billing_province: {
+        type: Sequelize.STRING
+      },
+      // Billing Country Code iso-alpha-2
+      billing_country: {
+        type: Sequelize.STRING
+      },
+      // Billing Postal/Zip Code
+      billing_postal_code: {
+        type: Sequelize.STRING
+      }
     }
     return schema
   }

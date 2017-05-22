@@ -41,6 +41,28 @@ module.exports = class City extends Model {
     const schema = {
       name: {
         type: Sequelize.STRING
+      },
+      tax_rate: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
+      },
+      tax_percentage: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
+      },
+      tax_type: {
+        type: Sequelize.STRING
+      },
+      tax_name: {
+        type: Sequelize.STRING
+      },
+      position: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
       }
     }
     return schema

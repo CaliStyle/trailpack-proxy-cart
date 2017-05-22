@@ -8,6 +8,54 @@ const Errors = require('proxy-engine-errors')
  * @description Country Service
  */
 module.exports = class CountryService extends Service {
+  // TODO
+  createCountry(country){
+    return Promise.resolve(country)
+  }
+  // TODO
+  updateCountry(country){
+    return Promise.resolve(country)
+  }
+  // TODO
+  destroyCountry(country){
+    return Promise.resolve(country)
+  }
+  // TODO
+  createProvince(province){
+    return Promise.resolve(province)
+  }
+  // TODO
+  updateProvince(province){
+    return Promise.resolve(province)
+  }
+  // TODO
+  destroyProvince(province){
+    return Promise.resolve(province)
+  }
+  // TODO
+  createCounty(county){
+    return Promise.resolve(county)
+  }
+  // TODO
+  updateCounty(county){
+    return Promise.resolve(county)
+  }
+  // TODO
+  destroyCounty(county){
+    return Promise.resolve(county)
+  }
+  // TODO
+  createCity(city){
+    return Promise.resolve(city)
+  }
+  // TODO
+  updateCity(city){
+    return Promise.resolve(city)
+  }
+  // TODO
+  destroyCity(city){
+    return Promise.resolve(city)
+  }
   /**
    *
    * @param country

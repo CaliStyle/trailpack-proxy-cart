@@ -146,7 +146,30 @@ module.exports = class OrderCsvService extends Service {
             customer: {
               email: order.customer
             },
-            email: order.customer
+            email: order.customer,
+            status: order.status,
+            shipping_address: {},
+            billing_address: {}
+          }
+          _.each(order.get({plain: true}), (value, key) => {
+            if (key.indexOf('shipping_') > -1) {
+              const newKey = key.replace('shipping_', '')
+              if (value && value != '') {
+                create.shipping_address[newKey] = value
+              }
+            }
+            if (key.indexOf('billing_') > -1) {
+              const newKey = key.replace('billing_', '')
+              if (value && value != '') {
+                create.billing_address[newKey] = value
+              }
+            }
+          })
+          if (_.isEmpty(create.shipping_address)) {
+            delete create.shipping_address
+          }
+          if (_.isEmpty(create.billing_address)) {
+            delete create.billing_address
           }
           // console.log('UPLOAD ORDER', create)
           return this.transformFromRow(create)
