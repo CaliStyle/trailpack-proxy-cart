@@ -47,6 +47,9 @@ module.exports = {
     accounts: 'Accounts',
     users: 'Users'
   },
+  ORDER_UPLOAD: {
+    customer: 'Customer Email'
+  },
   PRODUCT_UPLOAD: {
     handle: 'Handle',
     title: 'Title',

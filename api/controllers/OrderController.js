@@ -319,6 +319,48 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   * upload CSV
+   * @param req
+   * @param res
+   */
+  uploadCSV(req, res) {
+    const OrderCsvService = this.app.services.OrderCsvService
+    const csv = req.file
+
+    if (!csv) {
+      const err = new Error('File failed to upload')
+      return res.serverError(err)
+    }
+
+    OrderCsvService.orderCsv(csv.path)
+      .then(result => {
+        return res.json({
+          file: req.file,
+          result: result
+        })
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  processUpload(req, res) {
+    const OrderCsvService = this.app.services.OrderCsvService
+    OrderCsvService.processOrderUpload(req.params.id)
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    *
    * @param req

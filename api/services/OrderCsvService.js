@@ -1,0 +1,224 @@
+/* eslint no-console: [0] */
+'use strict'
+
+const Service = require('trails/service')
+const csvParser = require('babyparse')
+const _ = require('lodash')
+const shortid = require('shortid')
+const fs = require('fs')
+const ORDER_UPLOAD = require('../utils/enums').ORDER_UPLOAD
+
+/**
+ * @module OrderCsvService
+ * @description Order CSV Service
+ */
+module.exports = class OrderCsvService extends Service {
+  /**
+   *
+   * @param file
+   * @returns {Promise}
+   */
+  orderCsv(file) {
+    // TODO validate csv
+    console.time('csv')
+    const uploadID = shortid.generate()
+    const ProxyEngineService = this.app.services.ProxyEngineService
+
+    return new Promise((resolve, reject)=>{
+      const options = {
+        header: true,
+        dynamicTyping: true,
+        step: (results, parser) => {
+          // console.log(parser)
+          // console.log('Row data:', results.data)
+          // TODO handle errors
+          // console.log('Row errors:', results.errors)
+          parser.pause()
+          return this.csvOrderRow(results.data[0], uploadID)
+            .then(row => {
+              parser.resume()
+            })
+            .catch(err => {
+              console.log(err)
+              parser.resume()
+            })
+        },
+        complete: (results, file) => {
+          console.timeEnd('csv')
+          // console.log('Parsing complete:', results, file)
+          results.upload_id = uploadID
+          ProxyEngineService.count('OrderUpload', { where: { upload_id: uploadID }})
+            .then(count => {
+              results.orders = count
+              // Publish the event
+              ProxyEngineService.publish('order_upload.complete', results)
+              return resolve(results)
+            })
+            // TODO handle this more gracefully
+            .catch(err => {
+              return reject(err)
+            })
+        },
+        error: (err, file) => {
+          return reject(err)
+        }
+      }
+      const fileString = fs.readFileSync(file, 'utf8')
+      // Parse the CSV/TSV
+      csvParser.parse(fileString, options)
+    })
+  }
+
+  /**
+   *
+   * @param row
+   * @param uploadID
+   */
+  csvOrderRow(row, uploadID) {
+    // console.log(row)
+    const OrderUpload = this.app.orm.OrderUpload
+    const values = _.values(ORDER_UPLOAD)
+    const keys = _.keys(ORDER_UPLOAD)
+    const upload = {
+      upload_id: uploadID,
+      options: {}
+    }
+
+    _.each(row, (data, key) => {
+      if (!data || data === '') {
+        row[key] = null
+      }
+    })
+
+    row = _.omitBy(row, _.isNil)
+
+    if (_.isEmpty(row)) {
+      return Promise.resolve({})
+    }
+
+    _.each(row, (data, key) => {
+      if (data) {
+        const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
+        const k = keys[i]
+        if (i > -1 && k) {
+          if (k == 'products') {
+            upload[k] = data.split(',').map(product => { return product.trim()})
+          }
+          else {
+            upload[k] = data
+          }
+        }
+      }
+    })
+
+    upload.products = _.map(upload.products, (handle, index) => {
+      return {
+        handle: handle
+      }
+    })
+
+    // customer is required, if not here, then reject whole row without error
+    if (!upload.customer) {
+      return Promise.resolve({})
+    }
+
+    const newOrder = OrderUpload.build(upload)
+
+    return newOrder.save()
+  }
+
+  /**
+   *
+   * @param uploadId
+   * @returns {Promise}
+   */
+  processOrderUpload(uploadId) {
+    return new Promise((resolve, reject) => {
+      const OrderUpload = this.app.orm.OrderUpload
+      let ordersTotal = 0
+      OrderUpload.batch({
+        where: {
+          upload_id: uploadId
+        }
+      }, orders => {
+        return Promise.all(orders.map(order => {
+          const create = {
+            customer: {
+              email: order.customer
+            },
+            email: order.customer
+          }
+          // console.log('UPLOAD ORDER', create)
+          return this.transformFromRow(create)
+        }))
+          .then(results => {
+            // Calculate Totals
+            ordersTotal = ordersTotal + results.length
+          })
+      })
+        .then(results => {
+          return OrderUpload.destroy({where: {upload_id: uploadId }})
+        })
+        .then(destroyed => {
+          const results = {
+            upload_id: uploadId,
+            orders: ordersTotal
+          }
+          this.app.services.ProxyEngineService.publish('order_process.complete', results)
+          return resolve(results)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+    })
+  }
+
+  transformFromRow(obj) {
+    let resCustomer, resProducts
+    const resOrder = this.app.orm['Order'].build()
+
+    return this.app.services.CustomerService.resolve(obj.customer)
+      .then(customer => {
+        resCustomer = customer
+        return this.app.orm['Product'].findAll({
+          where: {
+            handle: obj.products.map(product => product.handle)
+          }
+        })
+      })
+      .then(products => {
+        resProducts = products
+        return Promise.all(resProducts.map(item => {
+          return this.app.services.ProductService.resolveItem(item)
+        }))
+      })
+      .then(resolvedItems => {
+        return Promise.all(resolvedItems.map((item) => {
+          // item = _.omit(item.get({plain: true}), [
+          //   'requires_order',
+          //   'order_unit',
+          //   'order_interval'
+          // ])
+          return resOrder.addLine(item, 1, [])
+        }))
+      })
+      .then(resolvedItems => {
+        resOrder.customer_id = resCustomer.id
+        return resOrder.save()
+      })
+      .then(order => {
+
+        const event = {
+          object_id: order.customer_id,
+          object: 'customer',
+          type: 'customer.order.created',
+          message: 'Imported Order Created',
+          data: order
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return order
+      })
+  }
+}
+

@@ -350,6 +350,13 @@ module.exports = class ProxyCartService extends Service {
         })
     })
   }
+
+  /**
+   *
+   * @param shops
+   * @param address
+   * @returns {Array|*}
+   */
   nearestToAddress(shops, address) {
     shops = _.map(shops, shop => {
       shop.distance = geolib.getDistance(
