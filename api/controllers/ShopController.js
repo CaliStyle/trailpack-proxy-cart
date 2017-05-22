@@ -38,7 +38,7 @@ module.exports = class ShopController extends Controller {
    */
   create(req, res){
     const ShopService = this.app.services.ShopService
-    lib.Validator.validateShop(req.body)
+    lib.Validator.validateShop.create(req.body)
       .then(values => {
         return ShopService.create(req.body)
       })

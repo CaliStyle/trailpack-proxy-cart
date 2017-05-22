@@ -18,6 +18,9 @@ module.exports = class DiscountService extends Service {
   update(data, options){
     return Promise.resolve(data)
   }
+  destroy(data, options){
+    return Promise.resolve(data)
+  }
 
   /**
    *

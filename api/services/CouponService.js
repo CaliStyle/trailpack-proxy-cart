@@ -14,9 +14,13 @@ module.exports = class CouponService extends Service {
   update(data){
     return Promise.resolve(data)
   }
+  destroy(data){
+    return Promise.resolve(data)
+  }
   expire(data){}
   redeem(data){}
   validate(data){}
+
   calculate(obj, collections, resolver){
     return resolver.resolve(obj)
       .then(obj => {
