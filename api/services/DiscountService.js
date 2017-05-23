@@ -4,6 +4,7 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
+const moment = require('moment')
 const COLLECTION_DISCOUNT_TYPE = require('../utils/enums').COLLECTION_DISCOUNT_TYPE
 const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
 /**
@@ -20,6 +21,13 @@ module.exports = class DiscountService extends Service {
   }
   destroy(data, options){
     return Promise.resolve(data)
+  }
+
+  expire(discount, options) {
+    return Promise.resolve(discount)
+  }
+  start(discount, options) {
+    return Promise.resolve(discount)
   }
 
   /**
@@ -180,6 +188,78 @@ module.exports = class DiscountService extends Service {
     product.total_discounts = totalDiscounts
 
     return product
+  }
+
+  /**
+   *
+   * @returns {Promise.<TResult>|*}
+   */
+  expireThisHour() {
+    const start = moment().startOf('hour')
+    const end = start.clone().endOf('hour')
+    const Discount = this.app.orm['Discount']
+    let discountsTotal = 0
+
+    return Discount.batch({
+      where: {
+        ends_at: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss'),
+          $lte: end.format('YYYY-MM-DD HH:mm:ss')
+        },
+        active: true
+      }
+    }, discounts => {
+      return Promise.all(discounts.map(discount => {
+        return this.expire(discount)
+      }))
+        .then(results => {
+          // Calculate Totals
+          discountsTotal = discountsTotal + results.length
+        })
+    })
+      .then(discounts => {
+        const results = {
+          discounts: discountsTotal
+        }
+        this.app.services.ProxyEngineService.publish('discount_cron.complete', results)
+        return results
+      })
+  }
+
+  /**
+   *
+   * @returns {Promise.<TResult>|*}
+   */
+  startThisHour() {
+    const start = moment().startOf('hour')
+    const end = start.clone().endOf('hour')
+    const Discount = this.app.orm['Discount']
+    let discountsTotal = 0
+
+    return Discount.batch({
+      where: {
+        starts_at: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss'),
+          $lte: end.format('YYYY-MM-DD HH:mm:ss')
+        },
+        active: true
+      }
+    }, discounts => {
+      return Promise.all(discounts.map(discount => {
+        return this.start(discount)
+      }))
+        .then(results => {
+          // Calculate Totals
+          discountsTotal = discountsTotal + results.length
+        })
+    })
+      .then(discounts => {
+        const results = {
+          discounts: discountsTotal
+        }
+        this.app.services.ProxyEngineService.publish('discount_cron.complete', results)
+        return results
+      })
   }
 }
 

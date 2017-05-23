@@ -467,12 +467,18 @@ module.exports = class SubscriptionService extends Service {
         return newOrder
       })
   }
-  // TODO run by cron
-  renewToday() {
-    const start = moment().startOf('day')
-    const end = start.clone().endOf('day')
 
-    return this.app.orm['Subscription'].findAll({
+  /**
+   *
+   * @returns {*|Promise.<TResult>}
+   */
+  renewThisHour() {
+    const start = moment().startOf('hour')
+    const end = start.clone().endOf('hour')
+    const Subscription = this.app.orm['Subscription']
+    let subscriptionsTotal = 0
+
+    return Subscription.batch({
       where: {
         renews_on: {
           $gte: start.format('YYYY-MM-DD HH:mm:ss'),
@@ -480,18 +486,39 @@ module.exports = class SubscriptionService extends Service {
         },
         active: true
       }
+    }, subscriptions => {
+      return Promise.all(subscriptions.map(subscription => {
+        return this.renew(subscription)
+      }))
+        .then(results => {
+          // Calculate Totals
+          subscriptionsTotal = subscriptionsTotal + results.length
+        })
     })
       .then(subscriptions => {
-        return subscriptions
+        const results = {
+          subscriptions: subscriptionsTotal
+        }
+        this.app.services.ProxyEngineService.publish('subscription_cron.complete', results)
+        return results
       })
   }
 
-  beforeCreate(subscription) {
+  /**
+   *
+   * @param subscription
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  beforeCreate(subscription, options) {
+    if (!options) {
+      options = {}
+    }
     // If not token was already created, create it
     if (!subscription.token) {
       subscription.token = `subscription_${shortid.generate()}`
     }
-    return this.app.services.ShopService.resolve(subscription.shop_id)
+    return this.app.services.ShopService.resolve(subscription.shop_id, options)
       .then(shop => {
         // console.log('SubscriptionService.beforeCreate', shop)
         subscription.shop_id = shop.id
@@ -502,14 +529,44 @@ module.exports = class SubscriptionService extends Service {
         return subscription.recalculate()
       })
   }
-  beforeUpdate(subscription) {
+
+  /**
+   *
+   * @param subscription
+   * @param options
+   * @returns {*}
+   */
+  beforeUpdate(subscription, options) {
+    if (!options) {
+      options = {}
+    }
     return subscription.recalculate()
   }
-  afterCreate(subscription) {
+
+  /**
+   *
+   * @param subscription
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  afterCreate(subscription, options) {
+    if (!options) {
+      options = {}
+    }
     this.app.services.ProxyEngineService.publish('subscription.created', subscription)
     return Promise.resolve(subscription)
   }
-  afterUpdate(subscription) {
+
+  /**
+   *
+   * @param subscription
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  afterUpdate(subscription, options) {
+    if (!options) {
+      options = {}
+    }
     this.app.services.ProxyEngineService.publish('subscription.updated', subscription)
     return Promise.resolve(subscription)
   }

@@ -1,3 +1,3 @@
-exports.ExpireCouponsCron = require('./ExpireCouponsCron')
-exports.ExpireDiscountsCron = require('./ExpireDiscountsCron')
-exports.RenewSubscriptionCron = require('./RenewSubscriptionsCron')
+exports.CouponsCron = require('./CouponsCron')
+exports.DiscountsCron = require('./DiscountsCron')
+exports.SubscriptionCron = require('./SubscriptionsCron')

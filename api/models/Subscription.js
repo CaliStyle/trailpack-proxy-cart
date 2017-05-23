@@ -117,9 +117,45 @@ module.exports = class Subscription extends Model {
                 foreignKey: 'subscription_id'
               })
             },
+            /**
+             *
+             * @param criteria
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
             findByIdDefault: function(criteria, options) {
               options = _.merge(options, queryDefaults.Subscription.default(app))
               return this.findById(criteria, options)
+            },
+            /**
+             *
+             * @param options
+             * @param batch
+             * @returns Promise.<T>
+             */
+            batch: function (options, batch) {
+              const self = this
+              options.limit = options.limit || 100
+              options.offset = options.offset || 0
+
+              const recursiveQuery = function(options) {
+                let count = 0
+                return self.findAndCountAll(options)
+                  .then(results => {
+                    count = results.count
+                    return batch(results.rows)
+                  })
+                  .then(batched => {
+                    if (count > options.offset + options.limit) {
+                      options.offset = options.offset + options.limit
+                      return recursiveQuery(options)
+                    }
+                    else {
+                      return batched
+                    }
+                  })
+              }
+              return recursiveQuery(options)
             }
           },
           instanceMethods: {

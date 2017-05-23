@@ -31,11 +31,50 @@ module.exports = class Coupon extends Model {
              * Associate the Model
              * @param models
              */
-            // associate: (models) => {
-            //   models.Cart.hasMany(models.Product, {
-            //     as: 'products'
-            //   })
-            // }
+            associate: (models) => {
+              models.Coupon.belongsToMany(models.Product, {
+                as: 'products',
+                through: {
+                  model: models.ItemCoupon,
+                  unique: false,
+                  scope: {
+                    model: 'product'
+                  },
+                  foreignKey: 'model_id',
+                  constraints: false
+                }
+              })
+            },
+            /**
+             *
+             * @param options
+             * @param batch
+             * @returns Promise.<T>
+             */
+            batch: function (options, batch) {
+              const self = this
+              options.limit = options.limit || 100
+              options.offset = options.offset || 0
+
+              const recursiveQuery = function(options) {
+                let count = 0
+                return self.findAndCountAll(options)
+                  .then(results => {
+                    count = results.count
+                    return batch(results.rows)
+                  })
+                  .then(batched => {
+                    if (count > options.offset + options.limit) {
+                      options.offset = options.offset + options.limit
+                      return recursiveQuery(options)
+                    }
+                    else {
+                      return batched
+                    }
+                  })
+              }
+              return recursiveQuery(options)
+            }
           }
         }
       }
@@ -47,7 +86,7 @@ module.exports = class Coupon extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        //
+        // The amount the coupon is valid for
         balance: {
           type: Sequelize.INTEGER,
           defaultValue: 0
@@ -56,7 +95,7 @@ module.exports = class Coupon extends Model {
         currency: {
           type: Sequelize.STRING
         },
-        // Physical copon code
+        // Physical coupon code
         code: {
           type: Sequelize.STRING
         },
@@ -76,9 +115,19 @@ module.exports = class Coupon extends Model {
         disabled_at: {
           type: Sequelize.DATE
         },
+        // If coupon is disabled
+        disabled: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: true
+        },
         // Date to expire
         expires_on: {
           type: Sequelize.DATE
+        },
+        // If Coupon is expired
+        expired: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
         },
         // Live Mode
         live_mode: {
