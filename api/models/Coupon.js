@@ -44,6 +44,18 @@ module.exports = class Coupon extends Model {
                   constraints: false
                 }
               })
+              models.Coupon.belongsToMany(models.Customer, {
+                as: 'customers',
+                through: {
+                  model: models.ItemCoupon,
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  },
+                  foreignKey: 'model_id',
+                  constraints: false
+                }
+              })
             },
             /**
              *
