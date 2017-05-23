@@ -379,6 +379,10 @@ module.exports = class Order extends Model {
                 fulfillmentStatus = ORDER_FULFILLMENT.CANCELLED // back to default
               }
 
+              if (fulfillmentStatus == ORDER_FULFILLMENT.FULFILLED || fulfillmentStatus == ORDER_FULFILLMENT.CANCELLED) {
+                this.status = ORDER_STATUS.CLOSED
+              }
+
               this.total_fulfilled_fulfillments = totalFulfillments
               this.total_partial_fulfillments = totalPartialFulfillments
               this.total_sent_fulfillments  = totalSentFulfillments
