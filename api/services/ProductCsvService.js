@@ -87,51 +87,71 @@ module.exports = class ProductCsvService extends Service {
 
     _.each(row, (data, key) => {
 
-      if (!data || data === '') {
+      if (data === '') {
         row[key] = null
       }
     })
-
+    console.log('ROW BEFORE omit', row)
     row = _.omitBy(row, _.isNil)
-
+    console.log('ROW AFTER omit', row)
     if (_.isEmpty(row)) {
       return Promise.resolve({})
     }
 
     _.each(row, (data, key) => {
-      if (data) {
+      if (data !== '') {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'tags') {
-            upload[k] = data.split(',').map(tag => { return tag.trim()})
+            upload[k] = data.split(',').map(tag => {
+              return tag.trim()
+            })
           }
           else if (k == 'images') {
-            upload[k] = data.split(',').map(image => { return image.trim()})
+            upload[k] = data.split(',').map(image => {
+              return image.trim()
+            })
           }
           else if (k == 'images_alt') {
-            upload[k] = data.split('|').map(alt => { return alt.trim()})
+            upload[k] = data.split('|').map(alt => {
+              return alt.trim()
+            })
           }
           else if (k == 'variant_images') {
-            upload[k] = data.split(',').map(image => { return image.trim()})
+            upload[k] = data.split(',').map(image => {
+              return image.trim()
+            })
           }
           else if (k == 'variant_images_alt') {
-            upload[k] = data.split('|').map(alt => { return alt.trim()})
+            upload[k] = data.split('|').map(alt => {
+              return alt.trim()
+            })
           }
           else if (k == 'collections') {
-            upload[k] = data.split(',').map(collection => { return collection.trim()})
+            upload[k] = data.split(',').map(collection => {
+              return collection.trim()
+            })
           }
           else if (k == 'associations') {
-            upload[k] = data.split(',').map(collection => { return collection.trim()})
+            upload[k] = data.split(',').map(collection => {
+              return collection.trim()
+            })
           }
           else if (k == 'vendors') {
-            upload[k] = data.split(',').map(vendor => { return vendor.trim()})
+            upload[k] = data.split(',').map(vendor => {
+              return vendor.trim()
+            })
           }
           else if (k == 'shops') {
-            upload[k] = data.split(',').map(shop => { return shop.trim()})
+            upload[k] = data.split(',').map(shop => {
+              return shop.trim()
+            })
           }
           else if (k == 'shops_quantity') {
-            upload[k] = data.split(',').map(shopQty => { return parseInt(shopQty.trim())})
+            upload[k] = data.split(',').map(shopQty => {
+              return parseInt(shopQty.trim())
+            })
           }
           else if (k == 'weight_unit') {
             upload[k] = data.toLowerCase().trim()
@@ -216,6 +236,7 @@ module.exports = class ProductCsvService extends Service {
     }
 
     const newProduct = ProductUpload.build(upload)
+    console.log('row after build', upload)
     return newProduct.save()
   }
 
@@ -399,7 +420,7 @@ module.exports = class ProductCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (!data || data === '') {
+      if (data === '') {
         row[key] = null
       }
     })
@@ -411,7 +432,7 @@ module.exports = class ProductCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data) {
+      if (data !== '') {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {

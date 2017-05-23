@@ -85,7 +85,7 @@ module.exports = class OrderCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (!data || data === '') {
+      if (data === '') {
         row[key] = null
       }
     })

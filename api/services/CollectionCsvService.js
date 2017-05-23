@@ -84,6 +84,14 @@ module.exports = class CollectionCsvService extends Service {
       options: {}
     }
 
+    _.each(row, (data, key) => {
+      if (data === '') {
+        row[key] = null
+      }
+    })
+
+    row = _.omitBy(row, _.isNil)
+
     if (_.isEmpty(row)) {
       return Promise.resolve({})
     }
