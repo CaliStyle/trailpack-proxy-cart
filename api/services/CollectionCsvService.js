@@ -136,7 +136,11 @@ module.exports = class CollectionCsvService extends Service {
           upload_id: uploadId
         }
       }, collections => {
-        return Promise.all(collections.map(collection => {
+
+        const Sequelize = this.app.orm.Collection.sequelize
+
+        return Sequelize.Promise.mapSeries(collections, collection => {
+
           const create = {
             title: collection.title,
             handle: collection.handle,
@@ -156,10 +160,11 @@ module.exports = class CollectionCsvService extends Service {
             discount_product_exclude: collection.discount_product_exclude
           }
           return this.app.services.CollectionService.resolve(create)
-        }))
+        })
           .then(results => {
             // Calculate Totals
             collectionsTotal = collectionsTotal + results.length
+            return results
           })
       })
         .then(results => {

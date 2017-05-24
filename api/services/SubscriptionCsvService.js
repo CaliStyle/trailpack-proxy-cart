@@ -140,8 +140,11 @@ module.exports = class SubscriptionCsvService extends Service {
         where: {
           upload_id: uploadId
         }
-      }, subscriptions => {
-        return Promise.all(subscriptions.map(subscription => {
+      }, (subscriptions) => {
+
+        const Sequelize = this.app.orm.Subscription.sequelize
+
+        return Sequelize.Promise.mapSeries(subscriptions, subscription => {
           const create = {
             customer: {
               email: subscription.customer
@@ -155,10 +158,11 @@ module.exports = class SubscriptionCsvService extends Service {
           }
           // console.log('UPLOAD SUBSCRIPTION', create)
           return this.transformFromRow(create)
-        }))
+        })
           .then(results => {
             // Calculate Totals
             subscriptionsTotal = subscriptionsTotal + results.length
+            return results
           })
       })
         .then(results => {

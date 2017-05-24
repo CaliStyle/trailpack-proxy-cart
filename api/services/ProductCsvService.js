@@ -465,7 +465,11 @@ module.exports = class ProductCsvService extends Service {
           upload_id: uploadId
         }
       }, metadatums => {
-        return Promise.all(metadatums.map(metadata => {
+
+        const Sequelize = this.app.orm.Product.sequelize
+
+        return Sequelize.Promise.mapSeries(metadatums, metadata => {
+
           const Type = metadata.handle.indexOf(':') === -1 ? Product : ProductVariant
           let where = {}
           const includes = [
@@ -505,7 +509,7 @@ module.exports = class ProductCsvService extends Service {
               product.metadata.data = metadata.data
               return product.metadata.save()
             })
-        }))
+        })
           .then(results => {
             // Calculate Totals
             productsTotal = productsTotal + results.length

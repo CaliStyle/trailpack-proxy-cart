@@ -154,8 +154,10 @@ module.exports = class CustomerCsvService extends Service {
         where: {
           upload_id: uploadId
         }
-      }, customers => {
-        return Promise.all(customers.map(customer => {
+      }, (customers) => {
+
+        const Sequelize = this.app.orm.Customer.sequelize
+        return Sequelize.Promise.mapSeries(customers, customer => {
           const create = {
             account_balance: customer.account_balance,
             first_name: customer.first_name,
@@ -192,10 +194,11 @@ module.exports = class CustomerCsvService extends Service {
           }
           // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
           return this.app.services.CustomerService.create(create)
-        }))
+        })
           .then(results => {
             // Calculate Totals
             customersTotal = customersTotal + results.length
+            return results
           })
       })
         .then(results => {
