@@ -141,7 +141,8 @@ module.exports = class OrderCsvService extends Service {
           upload_id: uploadId
         }
       }, orders => {
-        return Promise.all(orders.map(order => {
+        const Sequelize = this.app.orm.Product.sequelize
+        return Sequelize.Promise.mapSeries(orders, order => {
           const create = {
             customer: {
               email: order.customer
@@ -173,10 +174,11 @@ module.exports = class OrderCsvService extends Service {
           }
           // console.log('UPLOAD ORDER', create)
           return this.transformFromRow(create)
-        }))
+        })
           .then(results => {
             // Calculate Totals
             ordersTotal = ordersTotal + results.length
+            return results
           })
       })
         .then(results => {

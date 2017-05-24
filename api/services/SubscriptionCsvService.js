@@ -182,9 +182,14 @@ module.exports = class SubscriptionCsvService extends Service {
     })
   }
 
+  /**
+   *
+   * @param obj
+   * @returns {Promise.<TResult>}
+   */
   transformFromRow(obj) {
     let resCustomer, resProducts
-    const resSubscription = this.app.orm['Subscription'].build()
+    const resSubscription = this.app.orm['Subscription'].build(obj)
 
     return this.app.services.CustomerService.resolve(obj.customer)
       .then(customer => {
