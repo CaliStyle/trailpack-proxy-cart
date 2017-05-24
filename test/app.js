@@ -31,8 +31,7 @@ const stores = {
     database: 'ProxyCart',
     storage: './test/test.uploads.sqlite',
     host: '127.0.0.1',
-    dialect: 'sqlite',
-    migrate: 'drop'
+    dialect: 'sqlite'
   }
 }
 
