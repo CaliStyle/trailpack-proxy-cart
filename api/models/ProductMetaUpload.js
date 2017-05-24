@@ -12,7 +12,7 @@ module.exports = class ProductMetaUpload extends Model {
 
   static config (app, Sequelize) {
     const config = {
-      migrate: 'drop', //override default models configurations if needed
+      // migrate: 'drop', //override default models configurations if needed
       store: 'uploads',
       options: {
         underscored: true,
