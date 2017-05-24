@@ -265,7 +265,7 @@ describe('CustomerController', () => {
         // console.log(res.body)
         assert.ok(res.body.result.upload_id)
         uploadID = res.body.result.upload_id
-        assert.equal(res.body.result.customers, 1)
+        assert.equal(res.body.result.customers, 2)
         done()
       })
   })
@@ -275,7 +275,7 @@ describe('CustomerController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.customers, 1)
+        assert.equal(res.body.customers, 2)
         done()
       })
   })
@@ -291,7 +291,7 @@ describe('CustomerController', () => {
         assert.ok(res.headers['x-pagination-limit'])
         assert.ok(res.body)
         // Most Freshly added customer
-        customerID = res.body[0].id
+        customerID = res.body[1].id
         done()
       })
   })

@@ -334,7 +334,7 @@ module.exports = class ProductCsvService extends Service {
               return _.omit(product, ['variant_images'])
             }
           })
-          console.log('BROKE', defaultProduct)
+          // console.log('BROKE', defaultProduct)
           // Add the product with it's variants
           return this.app.services.ProductService.addProduct(defaultProduct, options)
         })
