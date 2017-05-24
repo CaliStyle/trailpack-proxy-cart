@@ -93,7 +93,8 @@ module.exports = class CustomerService extends Service {
       state: customer.state,
       tax_exempt: customer.tax_exempt,
       verified_email: customer.verified_email,
-      metadata: Metadata.transform(customer.metadata || {})
+      metadata: Metadata.transform(customer.metadata || {}),
+      account_balance: customer.account_balance
     }
     if (customer.shipping_address) {
       create.shipping_address = customer.shipping_address
