@@ -104,7 +104,7 @@ module.exports = class TagController extends Controller {
     })
       .then(tags => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, tags.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, tags.count, limit, offset, sort)
         return res.json(tags.rows)
       })
       .catch(err => {
@@ -140,7 +140,7 @@ module.exports = class TagController extends Controller {
     })
       .then(tags => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, tags.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, tags.count, limit, offset, sort)
         return res.json(tags.rows)
       })
       .catch(err => {

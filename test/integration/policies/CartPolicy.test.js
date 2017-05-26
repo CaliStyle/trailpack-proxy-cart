@@ -592,12 +592,16 @@ describe('CartPolicy', () => {
         done()
       })
   })
-  it('It should get all users with associated customer account', (done) => {
+  it('It should get all customers with associated session user account', (done) => {
     agent
       .get('/user/customers')
       .expect(200)
       .end((err, res) => {
         console.log('Customer Users', res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
         assert.ok(res.body)
         assert.equal(res.body.length, 1)
         assert.equal(res.body[0].id, customerID)
@@ -609,14 +613,18 @@ describe('CartPolicy', () => {
       .get(`/user/${ userID }/customers`)
       .expect(200)
       .end((err, res) => {
-        console.log('Customer Users', res.body)
+        // console.log('Customer Users', res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
         assert.ok(res.body)
         assert.equal(res.body.length, 1)
         assert.equal(res.body[0].id, customerID)
         done()
       })
   })
-  it('It should get all users with associated customer account', (done) => {
+  it('It should create a pricing override for a cart', (done) => {
     agent
       .post(`/cart/${ cartIDSwitch }/pricingOverrides`)
       .send([{

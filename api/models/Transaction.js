@@ -50,25 +50,17 @@ module.exports = class Transaction extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Transaction.belongsTo(models.Refund, {
-                through: {
-                  model: models.ItemRefund,
-                  unique: false,
-                  scope: {
-                    model: 'transaction'
-                  }
-                },
-                foreignKey: 'model_id',
-                constraints: false
+              // models.Transaction.belongsTo(models.Refund, {
+              //
+              // })
+              models.Transaction.belongsTo(models.Order, {
+                // as: 'order_id',
+                // allowNull: false
               })
-              // models.Transaction.belongsTo(models.Order, {
-              //   // as: 'order_id',
-              //   allowNull: false
-              // })
-              // models.Transaction.belongsTo(models.Customer, {
-              //   // as: 'customer_id',
-              //   allowNull: true
-              // })
+              models.Transaction.belongsTo(models.Customer, {
+                // as: 'customer_id',
+                // allowNull: true
+              })
             }
           }
         }

@@ -45,7 +45,7 @@ module.exports = class DiscountController extends Controller {
       where: where
     })
       .then(discounts => {
-        this.app.services.ProxyCartService.paginate(res, discounts.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, discounts.count, limit, offset, sort)
         return res.json(discounts.rows)
       })
       .catch(err => {

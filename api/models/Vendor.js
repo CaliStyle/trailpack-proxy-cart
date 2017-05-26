@@ -42,7 +42,7 @@ module.exports = class Vendor extends Model {
               })
               models.Vendor.belongsToMany(models.Address, {
                 as: 'addresses',
-                otherKey: 'address_id',
+                // otherKey: 'address_id',
                 foreignKey: 'model_id',
                 through: {
                   model: models.ItemAddress,

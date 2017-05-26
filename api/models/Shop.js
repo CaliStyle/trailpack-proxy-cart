@@ -41,7 +41,7 @@ module.exports = class Shop extends Model {
               })
               models.Shop.belongsToMany(models.Address, {
                 as: 'addresses',
-                otherKey: 'address_id',
+                // otherKey: 'address_id',
                 foreignKey: 'model_id',
                 through: {
                   model: models.ItemAddress,
@@ -128,6 +128,10 @@ module.exports = class Shop extends Model {
           type: Sequelize.STRING,
           defaultValue: 'en-us',
           allowNull: false
+        },
+        // The Address Id of the shop
+        address_id: {
+          type: Sequelize.INTEGER
         },
         // The three-letter code for the currency that the shop accepts.
         currency: {

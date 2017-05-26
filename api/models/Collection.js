@@ -74,7 +74,8 @@ module.exports = class Collection extends Model {
                   unique: false,
                   scope: {
                     model: 'product'
-                  }
+                  },
+                  constraints: false
                 },
                 foreignKey: 'collection_id',
                 constraints: false
@@ -86,7 +87,8 @@ module.exports = class Collection extends Model {
                   unique: false,
                   scope: {
                     model: 'customer'
-                  }
+                  },
+                  constraints: false
                 },
                 foreignKey: 'collection_id',
                 constraints: false

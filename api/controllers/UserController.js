@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 // const Controller = require('trails/controller')
@@ -51,11 +52,18 @@ module.exports = class UserController extends ModelPermissions {
       const err = new Error('A user id or a user in session are required')
       return res.send(401, err)
     }
+    // console.log('IS BROKE', userId)
 
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
-
+    // this.app.orm['User'].findById(userId)
+    //   .then(user => {
+    //     return user.getCustomers()
+    //   })
+    //   .then(customers => {
+    //     return res.json(customers)
+    //   })
     Customer.findAndCount({
       // TODO fix for sqlite
       // order: sort,
@@ -73,7 +81,7 @@ module.exports = class UserController extends ModelPermissions {
     })
       .then(customers => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, customers.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
         return res.json(customers.rows)
       })
       .catch(err => {

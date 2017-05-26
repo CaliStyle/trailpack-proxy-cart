@@ -57,49 +57,49 @@ module.exports = class Address extends Model {
             associate: (models) => {
               models.Address.belongsToMany(models.Customer, {
                 foreignKey: 'address_id',
-                otherKey: 'model_id',
+                // otherKey: 'model_id',
                 through: {
                   model: models.ItemAddress,
                   scope: {
                     model: 'customer'
                   },
-                  constraints: false
+                  // constraints: false
                 },
                 constraints: false
               })
               models.Address.belongsToMany(models.Shop, {
                 foreignKey: 'address_id',
-                otherKey: 'model_id',
+                // otherKey: 'model_id',
                 through: {
                   model: models.ItemAddress,
                   scope: {
                     model: 'shop'
                   },
-                  constraints: false
+                  // constraints: false
                 },
                 constraints: false
               })
               models.Address.belongsToMany(models.Cart, {
                 foreignKey: 'address_id',
-                otherKey: 'model_id',
+                // otherKey: 'model_id',
                 through: {
                   model: models.ItemAddress,
                   scope: {
                     model: 'cart'
                   },
-                  constraints: false
+                  // constraints: false
                 },
                 constraints: false
               })
               models.Address.belongsToMany(models.Vendor, {
                 foreignKey: 'address_id',
-                otherKey: 'model_id',
+                // otherKey: 'model_id',
                 through: {
                   model: models.ItemAddress,
                   scope: {
                     model: 'vendor'
                   },
-                  constraints: false
+                  // constraints: false
                 },
                 constraints: false
               })

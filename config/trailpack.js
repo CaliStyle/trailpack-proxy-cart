@@ -16,7 +16,9 @@ module.exports = {
        * method is invoked on this Trailpack
        */
       listen: [
-        'trailpack:proxy-generics:configured'
+        'trailpack:proxy-engine:configured',
+        'trailpack:proxy-generics:configured',
+        'trailpack:proxy-permissions:configured'
       ],
 
       /**
@@ -30,7 +32,7 @@ module.exports = {
       listen: [
         'trailpack:sequelize:initialized',
         'trailpack:proxy-engine:initialized',
-        // 'trailpack:proxy-permissions:initialized',
+        'trailpack:proxy-permissions:initialized',
         'trailpack:proxy-generics:initialized'
       ],
       emit: [

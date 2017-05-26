@@ -17,26 +17,45 @@ module.exports = class Source extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            afterCreate: (values, options, fn) => {
+              app.services.AccountService.afterSourceCreate(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            afterDestroy: (values, options, fn) => {
+              app.services.AccountService.afterSourceDestroy(values)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+          },
           classMethods: {
             associate: (models) => {
               models.Source.belongsTo(models.Account, {
-                as: 'account',
-                through: {
-                  model: models.CustomerSource,
-                  unique: false,
-                  foreignKey: 'account_id',
-
-                },
-                constraints: false
+                // as: 'account',
+                // through: {
+                //   model: models.CustomerSource,
+                //   unique: false,
+                //   foreignKey: 'account_id',
+                // }
+                // constraints: false
               })
               models.Source.belongsTo(models.Customer, {
-                as: 'customer',
-                through: {
-                  model: models.CustomerSource,
-                  unique: false,
-                  foreignKey: 'customer_id',
-                },
-                constraints: false
+                // as: 'customer',
+                // through: {
+                //   model: models.CustomerSource,
+                //   unique: false,
+                //   foreignKey: 'customer_id',
+                // }
+                // constraints: false
               })
             }
           }
@@ -55,6 +74,14 @@ module.exports = class Source extends Model {
         //   key: 'id'
         // },
         allowNull: false
+      },
+      account_id: {
+        type: Sequelize.INTEGER,
+        // references: {
+        //   model: 'Customer',
+        //   key: 'id'
+        // },
+        allowNull: true
       },
       // The gateway used to create this source
       gateway: {

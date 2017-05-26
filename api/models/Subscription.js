@@ -75,21 +75,16 @@ module.exports = class Subscription extends Model {
               models.Subscription.belongsTo(models.Customer, {
                 // as: 'customer_id'
               })
+              models.Subscription.belongsTo(models.Shop, {
+                // as: 'customer_id'
+              })
               // // The Shop that originated this order
               // models.Subscription.belongsTo(models.Shop, {
               //   // as: 'shop_id'
               // })
-              // // The Order that Created this Subscription
+              // The Order that Created this Subscription
               // models.Subscription.belongsTo(models.Order, {
               //   as: 'original_order_id'
-              // })
-              // // The Subscription Product
-              // models.Subscription.belongsTo(models.Product, {
-              //   // as: 'product_id'
-              // })
-              // The Subscription Product Variant
-              // models.Subscription.belongsTo(models.ProductVariant, {
-              //   // as: 'product_variant_id'
               // })
               // The collection of subscriptions for a given customer
               models.Subscription.belongsToMany(models.Collection, {
@@ -447,7 +442,7 @@ module.exports = class Subscription extends Model {
           //   key: 'id'
           // },
           // Have to allow null so that these can be created without an order
-          // allowNull: false
+          // allowNull: true
         },
         customer_id: {
           type: Sequelize.INTEGER,

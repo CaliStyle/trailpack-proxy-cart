@@ -127,7 +127,7 @@ module.exports = class CartController extends Controller {
     })
       .then(carts => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, carts.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, carts.count, limit, offset, sort)
         return res.json(carts.rows)
       })
       .catch(err => {

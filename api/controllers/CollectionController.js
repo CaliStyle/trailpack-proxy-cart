@@ -107,7 +107,7 @@ module.exports = class CollectionController extends Controller {
     })
       .then(collections => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, collections.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
         return res.json(collections.rows)
       })
       .catch(err => {
@@ -146,7 +146,7 @@ module.exports = class CollectionController extends Controller {
     })
       .then(collections => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, collections.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
 
         return res.json(collections.rows)
       })

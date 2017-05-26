@@ -75,7 +75,7 @@ module.exports = class OrderController extends Controller {
     })
       .then(orders => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, orders.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, orders.count, limit, offset, sort)
         return res.json(orders.rows)
       })
       .catch(err => {
@@ -125,7 +125,7 @@ module.exports = class OrderController extends Controller {
     })
       .then(orders => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, orders.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, orders.count, limit, offset, sort)
         return res.json(orders.rows)
       })
       .catch(err => {
@@ -312,7 +312,7 @@ module.exports = class OrderController extends Controller {
     })
       .then(refunds => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, refunds.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, refunds.count, limit, offset, sort)
         return res.json(refunds.rows)
       })
       .catch(err => {
@@ -507,7 +507,7 @@ module.exports = class OrderController extends Controller {
     })
       .then(events => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, events.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, events.count, limit, offset, sort)
         return res.json(events.rows)
       })
       .catch(err => {
@@ -543,7 +543,7 @@ module.exports = class OrderController extends Controller {
     })
       .then(transactions => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, transactions.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, transactions.count, limit, offset, sort)
         return res.json(transactions.rows)
       })
       .catch(err => {
@@ -578,7 +578,7 @@ module.exports = class OrderController extends Controller {
     })
       .then(fulfillments => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, fulfillments.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, fulfillments.count, limit, offset, sort)
         return res.json(fulfillments.rows)
       })
       .catch(err => {

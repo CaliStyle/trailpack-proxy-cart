@@ -57,7 +57,7 @@ module.exports = class ReviewController extends Controller {
     })
       .then(reviews => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, reviews.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, reviews.count, limit, offset, sort)
         return res.json(reviews.rows)
       })
       .catch(err => {

@@ -57,7 +57,7 @@ module.exports = class CouponController extends Controller {
       where: where
     })
       .then(coupons => {
-        this.app.services.ProxyCartService.paginate(res, coupons.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, coupons.count, limit, offset, sort)
         return res.json(coupons.rows)
       })
       .catch(err => {

@@ -306,7 +306,7 @@ module.exports = class OrderService extends Service {
 
                 customer.setTotalSpent(totalPrice)
                 customer.setLastOrder(resOrder)
-
+                //
                 return resCustomer.save()
               })
           }
@@ -324,6 +324,7 @@ module.exports = class OrderService extends Service {
               data: resOrder
             }
             this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+            return customer.addOrder(resOrder.id)
           }
           return customer
         })

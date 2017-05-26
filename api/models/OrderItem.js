@@ -84,15 +84,15 @@ module.exports = class OrderItem extends Model {
 
               })
               models.OrderItem.belongsTo(models.Refund, {
-                through: {
-                  model: models.ItemRefund,
-                  unique: false,
-                  scope: {
-                    model: 'order_item'
-                  }
-                },
-                foreignKey: 'model_id',
-                constraints: false
+                // through: {
+                //   model: models.ItemRefund,
+                //   unique: false,
+                //   scope: {
+                //     model: 'order_item'
+                //   }
+                // },
+                // // foreignKey: 'model_id',
+                // constraints: false
               })
             }
           }
@@ -147,6 +147,13 @@ module.exports = class OrderItem extends Model {
           allowNull: false
         },
         subscription_id: {
+          type: Sequelize.INTEGER,
+          // references: {
+          //   model: 'Subscription',
+          //   key: 'id'
+          // }
+        },
+        refund_id: {
           type: Sequelize.INTEGER,
           // references: {
           //   model: 'Subscription',

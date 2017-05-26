@@ -91,9 +91,9 @@ module.exports = class ProductCsvService extends Service {
         row[key] = null
       }
     })
-    console.log('ROW BEFORE omit', row)
+
     row = _.omitBy(row, _.isNil)
-    console.log('ROW AFTER omit', row)
+
     if (_.isEmpty(row)) {
       return Promise.resolve({})
     }

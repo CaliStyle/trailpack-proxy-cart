@@ -345,11 +345,11 @@ module.exports = class Cart extends Model {
                 as: 'owners',
                 through: {
                   model: models.UserItem,
-                  foreign_id: 'user_id',
                   scope: {
                     item: 'cart'
                   }
                 },
+                foreign_id: 'item_id',
                 constraints: false
               })
               // models.Cart.belongsTo(models.Customer, {
@@ -364,7 +364,7 @@ module.exports = class Cart extends Model {
               })
               models.Cart.belongsToMany(models.Address, {
                 as: 'addresses',
-                otherKey: 'address_id',
+                // otherKey: 'address_id',
                 foreignKey: 'model_id',
                 through: {
                   model: models.ItemAddress,

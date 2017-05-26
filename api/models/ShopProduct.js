@@ -31,6 +31,10 @@ module.exports = class ShopProduct extends Model {
           primaryKey: true,
           autoIncrement: true
         },
+        product_id: {
+          type: Sequelize.INTEGER,
+          unique: 'shopproduct_variant'
+        },
         variant_id: {
           type: Sequelize.INTEGER,
           unique: 'shopproduct_variant'

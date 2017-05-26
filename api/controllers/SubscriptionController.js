@@ -76,7 +76,7 @@ module.exports = class SubscriptionController extends Controller {
     })
       .then(subscriptions => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, subscriptions.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, subscriptions.count, limit, offset, sort)
         return res.json(subscriptions.rows)
       })
       .catch(err => {

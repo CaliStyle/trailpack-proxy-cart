@@ -39,10 +39,10 @@ module.exports = class Coupon extends Model {
                   unique: false,
                   scope: {
                     model: 'product'
-                  },
-                  foreignKey: 'model_id',
-                  constraints: false
-                }
+                  }
+                },
+                foreignKey: 'coupon_id',
+                constraints: false
               })
               models.Coupon.belongsToMany(models.Customer, {
                 as: 'customers',
@@ -51,10 +51,10 @@ module.exports = class Coupon extends Model {
                   unique: false,
                   scope: {
                     model: 'customer'
-                  },
-                  foreignKey: 'model_id',
-                  constraints: false
-                }
+                  }
+                },
+                foreignKey: 'coupon_id',
+                constraints: false
               })
             },
             /**

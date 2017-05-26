@@ -30,6 +30,9 @@ module.exports = class Refund extends Model {
               models.Refund.belongsTo(models.Order, {
                 // as: 'order_id'
               })
+              models.Refund.belongsTo(models.Transaction, {
+                // as: 'order_id'
+              })
               models.Refund.belongsToMany(models.OrderItem, {
                 as: 'order_items',
                 through: {

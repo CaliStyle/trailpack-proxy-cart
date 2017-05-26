@@ -92,7 +92,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(customers => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, customers.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
         return res.json(customers.rows)
       })
       .catch(err => {
@@ -144,7 +144,7 @@ module.exports = class CustomerController extends Controller {
       where: where
     })
       .then(customers => {
-        this.app.services.ProxyCartService.paginate(res, customers.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
         return res.json(customers.rows)
       })
       .catch(err => {
@@ -180,7 +180,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(customers => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, customers.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
         return res.json(customers.rows)
       })
       .catch(err => {
@@ -216,7 +216,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(customers => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, customers.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
         return res.json(customers.rows)
       })
       .catch(err => {
@@ -505,7 +505,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(accounts => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, accounts.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, accounts.count, limit, offset, sort)
         return res.json(accounts.rows)
       })
       .catch(err => {
@@ -568,7 +568,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(orders => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, orders.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, orders.count, limit, offset, sort)
         return res.json(orders.rows)
       })
       .catch(err => {
@@ -726,7 +726,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(addresses => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, addresses.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, addresses.count, limit, offset, sort)
         return res.json(addresses.rows)
       })
       .catch(err => {
@@ -939,7 +939,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(sources => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, sources.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, sources.count, limit, offset, sort)
         return res.json(sources.rows)
       })
       .catch(err => {
@@ -1108,7 +1108,13 @@ module.exports = class CustomerController extends Controller {
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
-
+    // this.app.orm['Customer'].findById(customerId)
+    //   .then(customer => {
+    //     return customer.getUsers()
+    //   })
+    //   .then(users => {
+    //     return res.json(users)
+    //   })
     User.findAndCount({
       // TODO fix for sqlite
       // order: sort,
@@ -1126,7 +1132,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(users => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, users.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, users.count, limit, offset, sort)
         return res.json(users.rows)
       })
       .catch(err => {
@@ -1252,7 +1258,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(events => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, events.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, events.count, limit, offset, sort)
         return res.json(events.rows)
       })
       .catch(err => {
@@ -1312,7 +1318,7 @@ module.exports = class CustomerController extends Controller {
     })
       .then(reviews => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, reviews.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, reviews.count, limit, offset, sort)
         return res.json(reviews.rows)
       })
       .catch(err => {

@@ -379,5 +379,33 @@ module.exports = class AccountService extends Service {
         }))
       })
   }
+
+  afterSourceCreate(source, options) {
+    if (!options) {
+      options = {}
+    }
+    return this.app.orm['CustomerSource'].create({
+      source_id: source.id,
+      source: source.gateway,
+      account_id: source.account_id,
+      customer_id: source.customer_id
+    })
+      .then(customerSource => {
+        return source
+      })
+  }
+  afterSourceDestroy(source, options) {
+    if (!options) {
+      options = {}
+    }
+    return this.app.orm['CustomerSource'].destroy({
+      where: {
+        source_id: source.id
+      }
+    })
+      .then(customerSource => {
+        return source
+      })
+  }
 }
 

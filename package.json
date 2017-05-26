@@ -1,6 +1,6 @@
 {
   "name": "trailpack-proxy-cart",
-  "version": "0.0.168",
+  "version": "0.1.0",
   "description": "Cart - Trailpack for Proxy Engine",
   "homepage": "https://cali-style.com",
   "author": {
@@ -35,8 +35,8 @@
     "trailpack": "^2.0.0",
     "trailpack-proxy-cart-countries": "^0.0.5",
     "trailpack-proxy-generics": "^1.0.0",
-    "trailpack-proxy-passport": "^1.0.0",
-    "trailpack-proxy-permissions": "^1.0.0"
+    "trailpack-proxy-passport": "^1.0.1",
+    "trailpack-proxy-permissions": "^1.0.2"
   },
   "devDependencies": {
     "eslint": "^3.17.1",
@@ -49,7 +49,7 @@
     "smokesignals": "^2.0.0",
     "supertest": "^2.0.1",
     "trailpack-express": "^2.0.3",
-    "trailpack-proxy-engine": "^1.0.0",
+    "trailpack-proxy-engine": "^1.0.2",
     "trailpack-router": "^2.0.0",
     "trailpack-sequelize": "^2.0.0",
     "trails": "^2.0.0"

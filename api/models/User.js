@@ -52,8 +52,8 @@ module.exports = class User extends Model {
                 model: models.CustomerUser,
                 unique: true
               },
-              foreignKey: 'user_id',
-              constraints: false
+              foreignKey: 'user_id'
+              // constraints: false
             })
             models.User.hasMany(models.Order, {
               as: 'orders',
@@ -88,7 +88,8 @@ module.exports = class User extends Model {
                 constraints: false
               }
             })
-          }
+          },
+          findByIdDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findByIdDefault
         },
         instanceMethods: {
           toJSON: function() {

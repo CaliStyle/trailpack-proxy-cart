@@ -84,7 +84,7 @@ module.exports = class CountryController extends Controller {
     })
       .then(countries => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, countries.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, countries.count, limit, offset, sort)
         return res.json(countries.rows)
       })
       .catch(err => {
@@ -113,7 +113,7 @@ module.exports = class CountryController extends Controller {
     })
       .then(cities => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, cities.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, cities.count, limit, offset, sort)
         return res.json(cities.rows)
       })
       .catch(err => {
@@ -274,7 +274,7 @@ module.exports = class CountryController extends Controller {
     })
       .then(counties => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, counties.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, counties.count, limit, offset, sort)
         return res.json(counties.rows)
       })
       .catch(err => {
@@ -402,7 +402,7 @@ module.exports = class CountryController extends Controller {
     })
       .then(provinces => {
         // Paginate
-        this.app.services.ProxyCartService.paginate(res, provinces.count, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, provinces.count, limit, offset, sort)
         return res.json(provinces.rows)
       })
       .catch(err => {
