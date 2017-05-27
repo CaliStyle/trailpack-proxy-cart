@@ -4,7 +4,8 @@
     "title": "Have you seen my Pants?",
     "body": "# Honey, have you seen my Pants?",
     "published": true,
-    "sort_order": "price-desc"
+    "sort_order": "price-desc",
+    "collections": ["Lego Movie"]
   },
   {
     "handle": "customer-discount-test",

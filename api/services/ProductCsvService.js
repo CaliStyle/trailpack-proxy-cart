@@ -236,7 +236,6 @@ module.exports = class ProductCsvService extends Service {
     }
 
     const newProduct = ProductUpload.build(upload)
-    console.log('row after build', upload)
     return newProduct.save()
   }
 

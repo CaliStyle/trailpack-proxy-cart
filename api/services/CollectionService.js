@@ -68,7 +68,7 @@ module.exports = class CollectionService extends Service {
           if (resCollection) {
             return resCollection
           }
-          return Collection.create({title: collection})
+          return this.create({title: collection})
         })
     }
     else {
@@ -79,32 +79,108 @@ module.exports = class CollectionService extends Service {
   }
 
   /**
-   *
+   * Add a Collection
    * @param collection
-   * @param options
-   * @returns {collection}
+   * @returns {Promise}
    */
-  create(collection, options) {
-    const Collection =  this.app.orm.Collection
-    return Collection.create(collection, options)
+  add(collection, options) {
+    const Collection = this.app.orm.Collection
+
+    if (!options) {
+      options = {}
+    }
+
+    return Collection.findOne({
+      where: {
+        handle: collection.handle
+      },
+      attributes: ['id'],
+      transaction: options.transaction || null
+    })
+      .then(resCollection => {
+        if (!resCollection) {
+          // Create a new Collection
+          return this.create(collection, options)
+        }
+        else {
+          // Set ID in case it's missing in this transaction
+          collection.id = resCollection.id
+          // Update the existing collection
+          return this.update(collection, options)
+        }
+      })
   }
 
   /**
    *
    * @param collection
    * @param options
-   * @returns {Promise<T>|Collection}
+   */
+  create(collection, options) {
+    options = options || {}
+
+    const Collection =  this.app.orm.Collection
+    let resCollection
+    const create = _.omit(collection, ['collections'])
+    return Collection.create(create, options)
+      .then(createdCollection => {
+        resCollection = createdCollection
+
+        if (collection.collections && collection.collections.length > 0) {
+          // Resolve the collections
+          collection.collections = _.sortedUniq(collection.collections.filter(n => n))
+          // console.log('THIS COLLECTION COLLECTIONS NOW', collection.collections)
+          return Collection.transformCollections(collection.collections, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(collections => {
+        // console.log('THESE COLLECTIONS RESOLVED', collections)
+        if (collections && collections.length > 0) {
+          return resCollection.setCollections(_.map(collections, c => c.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return Collection.findByIdDefault(resCollection.id, options)
+      })
+  }
+
+  /**
+   *
+   * @param collection
+   * @param options
    */
   update(collection, options) {
-    const Collection =  this.app.orm.Collection
+    options = options || {}
+    const Collection =  this.app.orm['Collection']
     if (!collection.id) {
       const err = new Errors.FoundError(Error('Collection is missing id'))
       return Promise.reject(err)
     }
-    const update = _.omit(collection,['id','created_at','updated_at'])
+    let resCollection
+    const update = _.omit(collection,['id','created_at','updated_at','collections'])
     return Collection.findById(collection.id)
       .then(resCollection => {
         return resCollection.update(update, options)
+      })
+      .then(updatedCollection => {
+        resCollection = updatedCollection
+        if (collection.collections && collection.collections.length > 0) {
+          // Resolve the collections
+          collection.collections = _.sortedUniq(collection.collections.filter(n => n))
+          return Collection.transformCollections(collection.collections, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(collections => {
+        if (collections && collections.length > 0) {
+          return resCollection.setCollections(_.map(collections, c => c.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return Collection.findByIdDefault(resCollection.id, options)
       })
   }
 
@@ -491,7 +567,7 @@ module.exports = class CollectionService extends Service {
         }
         return resCollection
       })
-      .then(collection => {
+      .then(() => {
         return this.app.orm['Collection'].findByIdDefault(resCollection.id)
       })
   }

@@ -111,6 +111,11 @@ module.exports = class CollectionCsvService extends Service {
               return discount.trim()
             })
           }
+          else if (k == 'collections') {
+            upload[k] = data.split(',').map(collection => {
+              return collection.trim()
+            })
+          }
           else {
             upload[k] = data
           }
@@ -157,9 +162,12 @@ module.exports = class CollectionCsvService extends Service {
             discount_rate: collection.discount_rate,
             discount_percentage: collection.discount_percentage,
             discount_product_include: collection.discount_product_include,
-            discount_product_exclude: collection.discount_product_exclude
+            discount_product_exclude: collection.discount_product_exclude,
+            collections: collection.collections,
+            image: collection.image,
+            image_alt: collection.image_alt
           }
-          return this.app.services.CollectionService.resolve(create)
+          return this.app.services.CollectionService.add(create)
         })
           .then(results => {
             // Calculate Totals

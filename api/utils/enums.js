@@ -17,7 +17,10 @@ module.exports = {
     discount_rate: 'Discount Rate',
     discount_percentage: 'Discount Percentage',
     discount_product_include: 'Discount Product Include',
-    discount_product_exclude: 'Discount Product Exclude'
+    discount_product_exclude: 'Discount Product Exclude',
+    image: 'Image',
+    image_alt: 'Image Alt',
+    collections: 'Collections'
   },
   CUSTOMER_UPLOAD: {
     account_balance: 'Account Balance',
