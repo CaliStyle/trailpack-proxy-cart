@@ -165,9 +165,18 @@ module.exports = class CustomerUpload extends Model {
       accounts: helpers.ARRAY('CustomerUpload', app, Sequelize, Sequelize.JSON, 'accounts', {
         defaultValue: []
       }),
-      users: helpers.ARRAY('CustomerUpload', app, Sequelize, Sequelize.JSON, 'users', {
+      // 'Customers'
+      customers: helpers.ARRAY('CustomerUpload', app, Sequelize, Sequelize.JSON, 'customers', {
         defaultValue: []
-      })
+      }),
+      // 'Image'
+      image: {
+        type: Sequelize.STRING
+      },
+      // 'Image Alt'
+      image_alt: {
+        type: Sequelize.STRING
+      }
     }
     return schema
   }

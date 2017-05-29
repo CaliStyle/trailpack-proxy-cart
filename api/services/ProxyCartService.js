@@ -383,15 +383,16 @@ module.exports = class ProxyCartService extends Service {
    * @returns {Promise.<TResult>}
    */
   afterUserCreate(user, options) {
+    options = options || {}
     // const Customer = this.app.orm['Customer']
     // const Cart = this.app.orm['Cart']
-
+    // return Promise.resolve(user)
     return this.app.services.CustomerService.resolve({
       id: user.current_customer_id,
       email: user.email,
       accepts_marketing: user.accepts_marketing,
       users: [user]
-    })
+    }, { transaction: options.transaction || null })
       .then(customer => {
         if (!customer) {
           return {
@@ -404,18 +405,25 @@ module.exports = class ProxyCartService extends Service {
         if (!customer.email && user.email) {
           customer.email = user.email
         }
-        return customer.save()
+        return customer.save({transaction: options.transaction || null})
       })
       .then(customer => {
         return this.app.services.CartService.resolve({
           id: user.current_cart_id,
           customer: customer.id
-        })
+        }, { transaction: options.transaction || null })
       })
       .then(cart => {
         // Set the user's current cart id
         user.current_cart_id = cart.id
-        return user.save()
+
+        return user.save({
+          fields: [
+            'current_cart_id',
+            'current_customer_id'
+          ],
+          transaction: options.transaction || null
+        })
       })
   }
 

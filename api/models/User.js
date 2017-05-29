@@ -21,6 +21,7 @@ module.exports = class User extends Model {
             (values, options, fn) => {
               app.services.ProxyCartService.afterUserCreate(values, options)
                 .then(values => {
+                  // console.log('BROKE',values)
                   return fn(null, values)
                 })
                 .catch(err => {
@@ -89,7 +90,8 @@ module.exports = class User extends Model {
               }
             })
           },
-          findByIdDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findByIdDefault
+          findByIdDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findByIdDefault,
+          findOneDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findOneDefault
         },
         instanceMethods: {
           toJSON: function() {

@@ -700,6 +700,7 @@ describe('CartPolicy', () => {
       .expect(200)
       .end((err, res) => {
         console.log('Customer Account Balance', res.body.order)
+
         assert.ok(res.body.order.id)
         assert.equal(res.body.order.total_discounts, 100)
         assert.equal(res.body.order.pricing_overrides[0].price, 100)
@@ -713,6 +714,8 @@ describe('CartPolicy', () => {
         assert.equal(res.body.order.fulfillments[0].status, 'fulfilled')
         assert.equal(res.body.order.financial_status, 'paid')
         assert.equal(res.body.order.fulfillment_status, 'fulfilled')
+        cartIDSwitch = res.body.cart.id
+        assert.ok(res.body.cart)
         done(err)
       })
   })
@@ -723,6 +726,35 @@ describe('CartPolicy', () => {
       .end((err, res) => {
         assert.equal(res.body.account_balance, 0)
         done()
+      })
+  })
+  it('should logout', done => {
+
+    agent
+      .post('/auth/logout')
+      .send({})
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        done()
+      })
+  })
+  it('should logback in', done => {
+    agent
+      .post('/auth/local')
+      .send({
+        identifier: 'newuser',
+        password: 'admin1234',
+      })
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        console.log('This User', res.body)
+        assert.ok(res.body.user.id, userID)
+        assert.ok(res.body.user.username, 'newuser')
+        assert.equal(res.body.user.current_customer_id, customerID)
+        assert.equal(res.body.user.current_cart_id, cartIDSwitch)
+        done(err)
       })
   })
 })

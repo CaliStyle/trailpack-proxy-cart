@@ -110,7 +110,7 @@ module.exports = {
 ```
 
 ## Shops
-A shop represents a physical location that sells a product. When taxes and shipping are calculated per product, they are calculated by the nearest shop to the destination of an order. This means that the same product can be sold in multiple stores and shipped from different locations which may effect shipping and tax rates.
+A shop represents a physical location that sells a product. When taxes and shipping are calculated per product, they are calculated by the nearest shop to the destination of an order. This means that the same product can be sold in multiple stores and shipped from different locations which may effect shipping and tax rates. They also track on hand inventory and inventory lead time.
 
 ## Products
 A Product is a Physical or Digital item.
@@ -188,7 +188,7 @@ A Shipping Restriction is a geographical restriction on the shipping of certain 
 Vendors are companies that distribute a product. In the case of drop shipping, the taxes and shipping are calculated from the vendor address to the customer.
 
 ## Events
-Proxy Cart publishes many subscribable events.
+Proxy Cart publishes many subscribable events using Proxy Engine's pub/sub.
 
 ### Customer Events
 Events published and saved during customer actions.
@@ -243,6 +243,9 @@ Order events published and saved during order operations.
 ### Expire Coupons
 Expires coupons on a schedule
 
+### Start Discounts
+Start discounts on a schedule
+
 ### Expire Discounts
 Expires discounts on a schedule
 
@@ -253,7 +256,7 @@ Renews subscriptions on a schedule
 All of Proxy Carts generics can be overridden by 3rd party generic services. 
 
 ### DefaultFulfillmentProvider
-Default Provider to handle Fulfillments
+Default Provider to handle manual Fulfillments
 
 ### DefaultGeoLocationProvider
 Default Provider to handle Geolocation
@@ -1128,7 +1131,9 @@ Proxy Cart creates many models and extends models from Proxy Engine and Proxy Pe
 #### GiftCard
 #### ItemAddress
 #### ItemCollection
+Join table to handle collection children
 #### ItemDiscount
+Join table to handle discount children
 #### ItemMetadata
 #### ItemRefund
 #### ItemTag
