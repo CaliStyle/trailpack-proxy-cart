@@ -20,7 +20,7 @@ module.exports = class CartService extends Service {
       return Promise.resolve(cart)
     }
     else if (cart && _.isObject(cart) && cart.id) {
-      return Cart.findById(cart.id, options)
+      return Cart.findByIdDefault(cart.id, options)
         .then(resCart => {
           if (!resCart) {
             throw new Errors.FoundError(Error(`Cart ${cart.id} not found`))
@@ -29,7 +29,7 @@ module.exports = class CartService extends Service {
         })
     }
     else if (cart && _.isObject(cart) && cart.token) {
-      return Cart.findOne({
+      return Cart.findOneDefault({
         where: { token: cart.token }
       }, options)
         .then(resCart => {
@@ -43,7 +43,7 @@ module.exports = class CartService extends Service {
       return this.create(cart, options)
     }
     else if (cart && (_.isString(cart) || _.isNumber(cart))) {
-      return Cart.findById(cart, options)
+      return Cart.findByIdDefault(cart, options)
         .then(resCart => {
           if (!resCart) {
             throw new Errors.FoundError(Error(`Cart ${cart} not found`))
@@ -60,37 +60,75 @@ module.exports = class CartService extends Service {
 
   /**
    *
-   * @param data
-   * @returns {Cart}
+   * @param cart
+   * @param options
    */
-  create(data, options){
+  create(cart, options){
     const Cart = this.app.orm.Cart
     if (!options) {
       options = {}
     }
     // If line items is empty
-    if (!data.line_items) {
-      data.line_items = []
+    if (!cart.line_items) {
+      cart.line_items = []
     }
 
     // Remove the items from the cart creation so we can resolve them
-    const items = data.line_items
-    delete data.line_items
+    const items = cart.line_items
+    delete cart.line_items
 
-    const cart = Cart.build(data)
+    const resCart = Cart.build(cart, {
+      include: [
+        {
+          model: this.app.orm['Address'],
+          as: 'shipping_address'
+        },
+        {
+          model: this.app.orm['Address'],
+          as: 'billing_address'
+        }
+      ]
+    })
 
     return Promise.all(items.map(item => {
       return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
     }))
       .then(resolvedItems => {
         return Promise.all(resolvedItems.map((item, index) => {
-          return cart.addLine(item, items[index].quantity, items[index].properties)
+          return resCart.addLine(item, items[index].quantity, items[index].properties)
         }))
       })
       .then(resolvedItems => {
         // console.log('RESOLVED ITEMS', resolvedItems)
         // console.log('THIS CREATED CART', cart)
-        return cart.save({transaction: options.transaction || null})
+        return resCart.save({transaction: options.transaction || null})
+      })
+      .then(() => {
+        if (cart.shipping_address) {
+          if (cart.shipping_address.id) {
+            return resCart.setShipping_address(cart.shipping_address.id, {transaction: options.transaction || null})
+          }
+          else {
+            resCart.shipping_address = _.extend(resCart.shipping_address, cart.shipping_address)
+            return resCart.shipping_address.save({transaction: options.transaction || null})
+          }
+        }
+        return
+      })
+      .then(shippingAddress => {
+        if (cart.billing_address) {
+          if (cart.billing_address.id) {
+            return resCart.setBilling_address(cart.billing_address.id, {transaction: options.transaction || null})
+          }
+          else {
+            resCart.billing_address = _.extend(resCart.billing_address, cart.billing_address)
+            return resCart.billing_address.save({transaction: options.transaction || null})
+          }
+        }
+        return
+      })
+      .then(billingAddress => {
+        return resCart
       })
   }
 
@@ -100,19 +138,46 @@ module.exports = class CartService extends Service {
    * @returns {Promise<T>|Cart}
    */
   update(cart, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
+
     if (!cart.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
     }
-
-    const update = _.omit(cart,['id','created_at','updated_at'])
-    return this.resolve(cart, {transaction: options.transaction || null})
-      .then(cart => {
-        cart = _.extend(cart, update)
-        return cart.save({transaction: options.transaction || null})
+    let resCart
+    // Only allow a few values for update since this can be done from the client side
+    const update = _.pick(cart, ['customer_id', 'host', 'ip', 'update_ip', 'client_details'])
+    return this.resolve(cart.id, {transaction: options.transaction || null})
+      .then(foundCart => {
+        resCart = _.extend(foundCart, update)
+        return resCart.save({transaction: options.transaction || null})
+      })
+      .then(() => {
+        if (cart.shipping_address) {
+          if (cart.shipping_address.id) {
+            return resCart.setShipping_address(cart.shipping_address.id, {transaction: options.transaction || null})
+          }
+          else {
+            resCart.shipping_address = _.extend(resCart.shipping_address, cart.shipping_address)
+            return resCart.shipping_address.save({transaction: options.transaction || null})
+          }
+        }
+        return
+      })
+      .then(shippingAddress => {
+        if (cart.billing_address) {
+          if (cart.billing_address.id) {
+            return resCart.setBilling_address(cart.billing_address.id, {transaction: options.transaction || null})
+          }
+          else {
+            resCart.billing_address = _.extend(resCart.billing_address, cart.billing_address)
+            return resCart.billing_address.save({transaction: options.transaction || null})
+          }
+        }
+        return
+      })
+      .then(billingAddress => {
+        return resCart
       })
   }
 

@@ -23,15 +23,74 @@ describe('CartController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['CartController'])
   })
-  it('should create a cart with no items', (done) => {
+  it('should create a cart with no items and a shipping address', (done) => {
     request
       .post('/cart')
       .send({
+        shipping_address: {
+          first_name: 'Scotty',
+          last_name: 'W',
+          address_1: '1600 Pennsylvania Ave NW',
+          address_2: '',
+          company: 'Shipping Department',
+          city: 'Washington',
+          phone: '',
+          province_code: 'DC',
+          country_code: 'US',
+          postal_code: '20500'
+        }
       })
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.id)
+        cartID = res.body.id
         assert.equal(res.body.total_items, 0)
+        assert.equal(res.body.shipping_address.first_name, 'Scotty')
+        assert.equal(res.body.shipping_address.last_name, 'W')
+        assert.equal(res.body.shipping_address.address_1, '1600 Pennsylvania Ave NW')
+        assert.equal(res.body.shipping_address.address_2, '')
+        assert.equal(res.body.shipping_address.company, 'Shipping Department')
+        assert.equal(res.body.shipping_address.city, 'Washington')
+        assert.equal(res.body.shipping_address.phone, '')
+        assert.equal(res.body.shipping_address.province_code, 'DC')
+        assert.equal(res.body.shipping_address.country_code, 'US')
+        assert.equal(res.body.shipping_address.postal_code, '20500')
+        done(err)
+      })
+  })
+  it('should update a cart with no items and a shipping address', (done) => {
+    request
+      .post(`/cart/${cartID}`)
+      .send({
+        shipping_address: {
+          first_name: 'Scottie',
+          last_name: 'W',
+          address_1: '1600 Pennsylvania Ave NW',
+          address_2: '',
+          company: 'Shipping Department',
+          city: 'Washington',
+          phone: '',
+          province_code: 'DC',
+          country_code: 'US',
+          postal_code: '20500'
+        }
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('BROKE',res.body)
+        assert.ok(res.body.id)
+        cartID = res.body.id
+        assert.equal(res.body.total_items, 0)
+        assert.equal(res.body.shipping_address.first_name, 'Scottie')
+        assert.equal(res.body.shipping_address.last_name, 'W')
+        assert.equal(res.body.shipping_address.address_1, '1600 Pennsylvania Ave NW')
+        assert.equal(res.body.shipping_address.address_2, '')
+        assert.equal(res.body.shipping_address.company, 'Shipping Department')
+        assert.equal(res.body.shipping_address.city, 'Washington')
+        assert.equal(res.body.shipping_address.phone, '')
+        assert.equal(res.body.shipping_address.province_code, 'DC')
+        assert.equal(res.body.shipping_address.country_code, 'US')
+        assert.equal(res.body.shipping_address.postal_code, '20500')
         done(err)
       })
   })
@@ -283,7 +342,6 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('BROKE CHECKOUT', res.body)
         orderID = res.body.order.id
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
@@ -320,6 +378,16 @@ describe('CartController', () => {
         assert.equal(res.body.order.events[0].object_id, orderID)
         assert.equal(res.body.order.events[1].object_id, orderID)
 
+        done(err)
+      })
+  })
+  it('should get checked out cart and status should be ordered', (done) => {
+    request
+      .get(`/cart/${cartID}`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.status, 'ordered')
         done(err)
       })
   })

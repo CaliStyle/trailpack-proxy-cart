@@ -184,6 +184,52 @@ module.exports = class CartController extends Controller {
    * @param req
    * @param res
    */
+  update(req, res) {
+    const CartService = this.app.services.CartService
+
+    if (req.customer && !req.body.customer_id) {
+      req.body.customer_id = req.customer.id
+    }
+    if (req.user && !req.body.owners) {
+      req.body.owners = [req.user]
+    }
+    if (!req.body.id) {
+      req.body.id = req.params.id
+    }
+    lib.Validator.validateCart.update(req.body)
+      .then(values => {
+        console.log(values)
+        return CartService.update(req.body)
+      })
+      .then(cart => {
+        if (!cart) {
+          throw new Error('Unexpected Error while creating cart')
+        }
+        // console.log('THIS CREATED CART', cart)
+        return new Promise((resolve,reject) => {
+          req.loginCart(cart, function (err) {
+            if (err) {
+              return reject(err)
+            }
+            return resolve(cart)
+          })
+        })
+      })
+      .then(cart => {
+        return res.json(cart)
+      })
+      .catch(err => {
+        // console.log('ProductController.create', err)
+        return res.serverError(err)
+      })
+
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   checkout(req, res) {
     if (!req.body.cart) {
       req.body.cart = {}

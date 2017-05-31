@@ -6,6 +6,7 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const CART_STATUS = require('../utils/enums').CART_STATUS
+const queryDefaults = require('../utils/queryDefaults')
 
 /**
  * @module Cart
@@ -411,6 +412,20 @@ module.exports = class Cart extends Model {
               //   as: 'gift_cards'
               //   // constraints: false
               // })
+            },
+            findByIdDefault: function(criteria, options) {
+              if (!options) {
+                options = {}
+              }
+              options = _.merge(options, queryDefaults.Cart.default(app))
+              return this.findById(criteria, options)
+            },
+            findOneDefault: function(options) {
+              if (!options) {
+                options = {}
+              }
+              options = _.merge(options, queryDefaults.Cart.default(app))
+              return this.findOne(options)
             }
           }
         }

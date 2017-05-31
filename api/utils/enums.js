@@ -139,6 +139,27 @@ module.exports = {
     active: 'Active',
     token: 'Token'
   },
+  VENDOR_UPLOAD: {
+    handle: 'Handle',
+    name: 'Name',
+    billing_address_1: 'Billing Address 1',
+    billing_address_2: 'Billing Address 2',
+    billing_address_3: 'Billing Address 3',
+    billing_company: 'Billing Company',
+    billing_city: 'Billing City',
+    billing_province: 'Billing Province',
+    billing_postal_code: 'Billing Postal Code',
+    billing_country: 'Billing Country',
+    shipping_address_1: 'Shipping Address 1',
+    shipping_address_2: 'Shipping Address 2',
+    shipping_address_3: 'Shipping Address 3',
+    shipping_company: 'Shipping Company',
+    shipping_city: 'Shipping City',
+    shipping_province: 'Shipping Province',
+    shipping_postal_code: 'Shipping Postal Code',
+    shipping_country: 'Shipping Country',
+    products: 'Products'
+  },
   UNITS: {
     // Grams
     G: 'g',
