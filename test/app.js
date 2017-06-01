@@ -188,6 +188,61 @@ const App = {
           }
           return Promise.resolve(user)
         }
+      },
+      onUserRecovered: {
+        cart: (req, app, user) => {
+          if (!req || !user.current_cart_id) {
+            return Promise.resolve(user)
+          }
+          else {
+            return new Promise((resolve, reject) => {
+              app.orm['Cart'].findById(user.current_cart_id)
+                .then(cart => {
+                  if (!cart) {
+                    return resolve(user)
+                  }
+                  if (user.current_customer_id) {
+                    cart.customer_id = user.current_customer_id
+                  }
+                  return cart.save()
+                })
+                .then(cart => {
+                  req.loginCart(cart, (err) => {
+                    if (err) {
+                      return reject(err)
+                    }
+                    else {
+                      return resolve(user)
+                    }
+                  })
+                })
+            })
+          }
+        },
+        customer: (req, app, user) => {
+          if (!req || !user.current_customer_id) {
+            return Promise.resolve(user)
+          }
+          else {
+            return new Promise((resolve, reject) => {
+              app.orm['Customer'].findById(user.current_customer_id)
+                .then(customer => {
+                  if (!customer) {
+                    return resolve(user)
+                  }
+                  // console.log(customer)
+                  req.loginCustomer(customer, (err) => {
+                    if (err) {
+                      return reject(err)
+                    }
+                    else {
+                      return resolve(user)
+                    }
+                  })
+                })
+            })
+          }
+        }
       }
     },
     proxyPermissions: {
