@@ -38,7 +38,7 @@ module.exports = class PaymentService extends Service {
           object_id: transaction.order_id,
           object: 'order',
           type: `order.transaction.authorize.${transaction.status}`,
-          message: `Order transaction authorize ${transaction.status}`,
+          message: `Order ID ${transaction.order_id} transaction authorize of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -83,7 +83,7 @@ module.exports = class PaymentService extends Service {
           object_id: transaction.order_id,
           object: 'order',
           type: `order.transaction.capture.${transaction.status}`,
-          message: `Order transaction capture ${transaction.status}`,
+          message: `Order ID ${transaction.order_id} transaction capture of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -122,7 +122,7 @@ module.exports = class PaymentService extends Service {
           object_id: transaction.order_id,
           object: 'order',
           type: `order.transaction.sale.${transaction.status}`,
-          message: `Order transaction sale ${transaction.status}`,
+          message: `Order ID ${transaction.order_id} transaction sale of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -180,7 +180,7 @@ module.exports = class PaymentService extends Service {
           object_id: transaction.order_id,
           object: 'order',
           type: `order.transaction.void.${transaction.status}`,
-          message: `Order transaction void ${transaction.status}`,
+          message: `Order ID ${transaction.order_id} transaction void of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -223,7 +223,7 @@ module.exports = class PaymentService extends Service {
           object_id: transaction.order_id,
           object: 'order',
           type: `order.transaction.refund.${transaction.status}`,
-          message: `Order transaction refund ${transaction.status}`,
+          message: `Order ID ${transaction.order_id} transaction refund of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

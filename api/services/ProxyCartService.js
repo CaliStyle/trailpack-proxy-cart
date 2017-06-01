@@ -64,6 +64,7 @@ module.exports = class ProxyCartService extends Service {
       const request = require('request').defaults({ encoding: null })
       request.get(url, function (err, res, body) {
         if (err) {
+          console.log('BROKE', err, res)
           return reject(err)
         }
         return resolve(body)

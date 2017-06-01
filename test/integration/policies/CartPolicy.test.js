@@ -6,7 +6,7 @@ const supertest = require('supertest')
 
 describe('CartPolicy', () => {
   let request, agent, userID, customerID, cartID, cartIDSwitch, orderID, subscriptionID, sourceID
-  let shopProducts
+  let shopProducts, recovery
 
   before(done => {
     request = supertest('http://localhost:3000')
@@ -754,6 +754,61 @@ describe('CartPolicy', () => {
         assert.ok(res.body.user.username, 'newuser')
         assert.equal(res.body.user.current_customer_id, customerID)
         assert.equal(res.body.user.current_cart_id, cartIDSwitch)
+        done(err)
+      })
+  })
+
+  it('should logout', done => {
+    agent
+      .post('/auth/logout')
+      .send({})
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        done()
+      })
+  })
+
+  it('should start a recovery', (done) => {
+    agent
+      .post('/auth/recover')
+      .set('Accept', 'application/json') //set header for this test
+      .send({
+        identifier: 'newuser'
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('BROKE', res.body)
+        assert.equal(res.body.redirect, '/')
+        // assert.equal(res.body.user.username, 'newuser')
+        // recovery = res.body.user.recovery
+        done(err)
+      })
+  })
+  it('should get the recovery of the user', (done) => {
+    agent
+      .get(`/user/${userID}`)
+      .expect(200)
+      .end((err, res) => {
+        recovery = res.body.recovery
+        done(err)
+      })
+  })
+  it('should end a recovery and customer id and cart id should be the same', (done) => {
+    request
+      .post('/auth/local/recover')
+      .set('Accept', 'application/json') //set header for this test
+      .send({
+        recovery: recovery,
+        password: 'adminNewNew'
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.redirect, '/')
+        assert.equal(res.body.user.username, 'newuser')
+        assert.equal(res.body.user.current_customer_id, customerID)
+        assert.equal(res.body.user.current_cart_id, cartIDSwitch)
+        assert.equal()
         done(err)
       })
   })

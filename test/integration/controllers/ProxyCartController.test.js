@@ -44,7 +44,7 @@ describe('ProxyCartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS Provinces', res.body)
+        // console.log('THIS Provinces', res.body)
         assert.ok(res.body)
         assert.equal(res.body.length, 57)
         done(err)

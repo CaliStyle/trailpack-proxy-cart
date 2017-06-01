@@ -685,4 +685,28 @@ describe('ProductController', () => {
         done()
       })
   })
+  // TEST LARGE UPLOAD
+  // it('It should upload product_upload_staging.csv', (done) => {
+  //   request
+  //     .post('/product/uploadCSV')
+  //     .attach('csv', 'test/fixtures/product_upload_staging.csv')
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.ok(res.body.result.upload_id)
+  //       uploadID = res.body.result.upload_id
+  //       assert.equal(res.body.result.products, 338)
+  //       done()
+  //     })
+  // })
+  // it('It should process upload', (done) => {
+  //   request
+  //     .post(`/product/processUpload/${uploadID}`)
+  //     .send({})
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.equal(res.body.products, 32)
+  //       assert.equal(res.body.variants, 319)
+  //       done()
+  //     })
+  // })
 })

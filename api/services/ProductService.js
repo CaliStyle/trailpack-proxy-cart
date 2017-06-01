@@ -464,7 +464,9 @@ module.exports = class ProductService extends Service {
         return Promise.all(images.map(image => {
           // image.product_id = resProduct.id
           if (typeof image.variant !== 'undefined') {
-            image.product_variant_id = resProduct.variants[image.variant].id
+            if (resProduct.variants[image.variant]) {
+              image.product_variant_id = resProduct.variants[image.variant].id
+            }
             delete image.variant
           }
           return resProduct.createImage(image, {transaction: options.transaction || null})

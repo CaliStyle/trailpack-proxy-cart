@@ -104,9 +104,9 @@ module.exports = class ProductCsvService extends Service {
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'tags') {
-            upload[k] = data.split(',').map(tag => {
+            upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => {
               return tag.trim()
-            })
+            }))
           }
           else if (k == 'images') {
             upload[k] = data.split(',').map(image => {
@@ -129,9 +129,9 @@ module.exports = class ProductCsvService extends Service {
             })
           }
           else if (k == 'collections') {
-            upload[k] = data.split(',').map(collection => {
+            upload[k] = _.uniq(data.split(',').map(collection => {
               return collection.trim()
-            })
+            }))
           }
           else if (k == 'associations') {
             upload[k] = data.split(',').map(collection => {
@@ -323,10 +323,15 @@ module.exports = class ProductCsvService extends Service {
           // Construct Root Product
           const defaultProduct = products.shift()
           // Add Product Variants
-          defaultProduct.variants = _.map(products, product => {
-            // Sku is required for a variant
-            if (!product.sku) {
+          defaultProduct.variants = products.filter( product => {
+            if (!product) {
               errorsCount++
+              // return
+            }
+            // Sku is required for a variant
+            else if (!product.sku) {
+              errorsCount++
+              // return
             }
             else {
               product.images = product.variant_images

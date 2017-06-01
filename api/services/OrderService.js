@@ -86,7 +86,6 @@ module.exports = class OrderService extends Service {
    * @returns {Promise}
    */
   // TODO handle inventory policy and coupon policy
-  // TODO Set Order Status
   // TODO Select Vendor
   // TODO Set Order Payment Sources
   create(obj) {
@@ -184,7 +183,6 @@ module.exports = class OrderService extends Service {
             totalDue = totalDue + prevPrice
             totalPrice = totalPrice + prevPrice
           }
-          // console.log('Broke 2', totalDue, totalPrice)
           // Add the account balance to the overrides
           if (resCustomer.account_balance > 0) {
             // Apply Customer Account balance

@@ -77,7 +77,7 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('BROKE',res.body)
+        // console.log('BROKE',res.body)
         assert.ok(res.body.id)
         cartID = res.body.id
         assert.equal(res.body.total_items, 0)

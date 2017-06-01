@@ -64,9 +64,9 @@ module.exports = class Tag extends Model {
             transformTags: (tags, options) => {
               const Tag = app.orm['Tag']
               const Sequelize = Tag.sequelize
-              if (!options) {
-                options = {}
-              }
+
+              options = options || {}
+
               if (!tags) {
                 tags = []
               }

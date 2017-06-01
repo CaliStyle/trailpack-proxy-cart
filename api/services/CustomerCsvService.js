@@ -102,7 +102,7 @@ module.exports = class CustomerCsvService extends Service {
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'tags') {
-            upload[k] = data.split(',').map(tag => { return tag.trim()})
+            upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => { return tag.trim()}))
           }
           else if (k == 'collections') {
             upload[k] = data.split(',').map(collection => { return collection.trim()})
