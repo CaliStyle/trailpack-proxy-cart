@@ -249,10 +249,12 @@ module.exports = class CartService extends Service {
         }
 
         if (cart.status !== CART_STATUS.OPEN) {
+          // TODO CREATE PROPER ERROR
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
 
         resCart = cart
+        resCart.close(CART_STATUS.CLOSED)
         return resCart.recalculate()
         // return resCart.save()
       })

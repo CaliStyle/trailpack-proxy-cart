@@ -162,6 +162,10 @@ module.exports = class Transaction extends Model {
           type: Sequelize.STRING,
           defaultValue: 'USD'
         },
+        // A description of the Transaction
+        description: {
+          type: Sequelize.STRING
+        },
         // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,

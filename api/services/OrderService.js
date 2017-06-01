@@ -350,7 +350,9 @@ module.exports = class OrderService extends Service {
               // Specify the gateway to use
               gateway: detail.gateway,
               // Set the device (that input the credit card) or null
-              device_id: obj.device_id || null
+              device_id: obj.device_id || null,
+              // Set the Description
+              description: `Order ${resOrder.name} original transaction ${orderPayment}`
             }
             // Return the Payment Service
             return PaymentService[orderPayment](transaction)

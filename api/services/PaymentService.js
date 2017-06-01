@@ -27,6 +27,7 @@ module.exports = class PaymentService extends Service {
       return Promise.reject(err)
     }
     let resTransaction
+    transaction.description = transaction.description || 'Transaction Authorize'
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
       .then(transaction => {
@@ -67,6 +68,7 @@ module.exports = class PaymentService extends Service {
     }
     let resTransaction
     // Resolve the authorized transaction
+    transaction.description = transaction.description || 'Transaction Capture'
     return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
         if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
@@ -111,6 +113,7 @@ module.exports = class PaymentService extends Service {
     }
     // console.log('cart checkout', transaction)
     let resTransaction
+    transaction.description = transaction.description || 'Transaction Sale'
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
       .then(transaction => {
@@ -164,6 +167,7 @@ module.exports = class PaymentService extends Service {
       return Promise.reject(err)
     }
     let resTransaction
+    transaction.description = transaction.description || 'Transaction Void'
     return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
         if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
@@ -207,6 +211,7 @@ module.exports = class PaymentService extends Service {
       return Promise.reject(err)
     }
     let resTransaction
+    transaction.description = transaction.description || 'Transaction Refund'
     return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
         if (transaction.kind !== TRANSACTION_KIND.CAPTURE && transaction.kind !== TRANSACTION_KIND.SALE) {
