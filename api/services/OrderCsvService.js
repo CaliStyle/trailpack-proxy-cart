@@ -201,8 +201,8 @@ module.exports = class OrderCsvService extends Service {
   transformFromRow(obj) {
     let resCustomer, resProducts
     const resOrder = this.app.orm['Order'].build()
-
-    return this.app.services.CustomerService.resolve(obj.customer)
+    const Customer = this.app.orm['Customer']
+    return Customer.resolve(obj.customer)
       .then(customer => {
         resCustomer = customer
         return this.app.orm['Product'].findAll({

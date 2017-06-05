@@ -71,6 +71,9 @@ module.exports = class Fulfillment extends Model {
                 foreignKey: 'fulfillment_id',
                 as: 'order_items'
               })
+            },
+            resolve: function(fulfillment, options){
+              //
             }
           },
           instanceMethods: {

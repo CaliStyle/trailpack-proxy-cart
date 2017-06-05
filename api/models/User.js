@@ -5,6 +5,7 @@ const Model = require('trails/model')
 const ModelPassport = require('trailpack-proxy-passport/api/models/User')
 const ModelPermissions = require('trailpack-proxy-permissions/api/models/User')
 const _ = require('lodash')
+// const shortid = require('shortid')
 
 module.exports = class User extends Model {
   static config(app, Sequelize) {
@@ -125,10 +126,12 @@ module.exports = class User extends Model {
     const PermissionsTrailpackSchema = ModelPermissions.schema(app, Sequelize)
 
     const schema = {
+      //
       accepts_marketing: {
         type: Sequelize.BOOLEAN,
         defaultValue: true
       },
+      // The current Customer ID this user is logged in with
       current_customer_id: {
         type: Sequelize.INTEGER,
         // references: {
@@ -137,6 +140,7 @@ module.exports = class User extends Model {
         // },
         allowNull: true
       },
+      // The current Cart ID this user is logged in with
       current_cart_id: {
         type: Sequelize.INTEGER,
         // references: {
@@ -146,6 +150,7 @@ module.exports = class User extends Model {
         allowNull: true
       },
       // Live Mode
+      // TODO: Discussion: should this be moved to proxy permissions?
       live_mode: {
         type: Sequelize.BOOLEAN,
         defaultValue: app.config.proxyEngine.live_mode

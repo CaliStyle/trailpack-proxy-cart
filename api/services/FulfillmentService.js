@@ -43,7 +43,8 @@ module.exports = class FulfillmentService extends Service {
   }
 
   sendOrderToFulfillment(order) {
-    return this.app.services.OrderService.resolve(order)
+    const Order = this.app.orm['Order']
+    return Order.resolve(order)
       .then(order => {
         if (!order.order_items || order.order_items.length == 0) {
           return order.getOrder_items()
@@ -73,19 +74,20 @@ module.exports = class FulfillmentService extends Service {
    */
   create(order, items, service) {
     const Fulfillment = this.app.orm['Fulfillment']
-    // const OrderItem = this.app.orm['OrderItem']
+    const Order = this.app.orm['Order']
+    const OrderItem = this.app.orm['OrderItem']
     let resOrder, resFulfillment, resItems
 
     if (!order || !items || !service) {
       throw new Error('Fulfillment.create requires an order, items, and a service')
     }
     // Resolve the Order
-    return this.app.services.OrderService.resolve(order)
+    return Order.resolve(order)
       .then(order => {
         resOrder = order
         // Resolve instance of each item
         return Promise.all(items.map(item => {
-          return this.app.services.OrderService.resolveItem(item)
+          return OrderItem.resolve(item)
         }))
       })
       .then(items => {
@@ -151,6 +153,15 @@ module.exports = class FulfillmentService extends Service {
         return resFulfillment
       })
   }
+
+
+  // TODO
+  cancel(fulfillment, options) {
+    options = options || {}
+    return Promise.resolve(fulfillment)
+  }
+
+
   beforeCreate(fulfillment){
     return Promise.resolve(fulfillment)
   }

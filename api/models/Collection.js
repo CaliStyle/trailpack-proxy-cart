@@ -3,6 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
+const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const queryDefaults = require('../utils/queryDefaults')
@@ -153,51 +154,96 @@ module.exports = class Collection extends Model {
               //   as: 'images'
               // })
             },
-            findByIdDefault: function(criteria, options) {
-              if (!options) {
-                options = {}
-              }
-
-              options = _.merge(options, queryDefaults.Collection.default(app))
-
-              return this.findById(criteria, options)
+            findByIdDefault: function(id, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
+              return this.findById(id, options)
             },
             findByHandle: function(handle, options) {
-              if (!options) {
-                options = {}
-              }
-
-              options = _.merge(options, {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Collection.default(app), {
                 where: {
                   handle: handle
                 }
               })
-              options = _.merge(options, queryDefaults.Collection.default(app))
               return this.findOne(options)
             },
             findOneDefault: function(options) {
-              if (!options) {
-                options = {}
-              }
-
-              options = _.merge(options, queryDefaults.Collection.default(app))
-
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
               return this.findOne(options)
             },
             findAllDefault: function(options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, {})
-
+              options = options || {}
+              options = _.defaultsDeep(options, {})
               return this.findAll(options)
             },
             findAndCountDefault: function(options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, {})
+              options = options || {}
+              options = _.defaultsDeep(options, {})
               return this.findAndCount(options)
+            },
+            /**
+             *
+             * @param collection
+             * @param options
+             * @returns {*}
+             */
+            resolve: function(collection, options){
+              options = options || {}
+              const Collection =  this
+
+              if (collection instanceof Collection.Instance){
+                return Promise.resolve(collection)
+              }
+              else if (collection && _.isObject(collection) && collection.id) {
+                return Collection.findById(collection.id, options)
+                  .then(foundCollection => {
+                    if (!foundCollection) {
+                      // TODO create proper error
+                      throw new Errors.FoundError(Error(`Collection ${collection.id} not found`))
+                    }
+                    return foundCollection
+                  })
+              }
+              else if (collection && _.isObject(collection) && (collection.handle || collection.title)) {
+                return Collection.findOne({
+                  where: {
+                    $or: {
+                      handle: collection.handle,
+                      title: collection.title
+                    }
+                  }
+                }, options)
+                  .then(resCollection => {
+                    if (resCollection) {
+                      return resCollection
+                    }
+                    return Collection.create(collection, options)
+                  })
+              }
+              else if (collection && _.isString(collection)) {
+                return Collection.findOne({
+                  where: {
+                    $or: {
+                      handle: collection,
+                      title: collection,
+                      id: collection
+                    }
+                  }
+                }, options)
+                  .then(resCollection => {
+                    if (resCollection) {
+                      return resCollection
+                    }
+                    return this.create({title: collection})
+                  })
+              }
+              else {
+                // TODO make Proper Error
+                const err = new Error(`Not able to resolve collection ${collection}`)
+                return Promise.reject(err)
+              }
             },
             transformCollections: (collections, options) => {
               const Collection = app.orm['Collection']

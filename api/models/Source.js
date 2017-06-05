@@ -4,6 +4,8 @@
 
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
+const Errors = require('proxy-engine-errors')
+const _ = require('lodash')
 
 /**
  * @module Source
@@ -57,6 +59,26 @@ module.exports = class Source extends Model {
                 // }
                 // constraints: false
               })
+            },
+            resolve: function(source, options){
+              const Source =  this
+              if (source instanceof Source.Instance){
+                return Promise.resolve(source)
+              }
+              else if (source && _.isObject(source) && source.id) {
+                return Source.findById(source.id, options)
+                  .then(resSource => {
+                    if (!resSource) {
+                      throw new Errors.FoundError(Error(`Source ${source.id} not found`))
+                    }
+                    return resSource
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Source ${source}`)
+                return Promise.reject(err)
+              }
             }
           }
         }

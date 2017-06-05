@@ -34,6 +34,9 @@ module.exports = class Country extends Model {
                 foreignKey: 'shipping_zone_id',
                 constraints: false
               })
+            },
+            resolve: function(country, options){
+              //
             }
           }
         }

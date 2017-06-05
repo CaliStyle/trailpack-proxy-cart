@@ -17,9 +17,7 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   authorize(transaction, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -31,7 +29,7 @@ module.exports = class PaymentService extends Service {
     transaction = Transaction.build(transaction)
     return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
       .then(transaction => {
-        return transaction.save({transaction: options.transaction || null })
+        return transaction.save()
       })
       .then(transaction => {
         resTransaction = transaction
@@ -57,9 +55,8 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   capture(transaction, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
+    const Transaction = this.app.orm['Transaction']
     // const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -69,7 +66,7 @@ module.exports = class PaymentService extends Service {
     let resTransaction
     // Resolve the authorized transaction
     transaction.description = transaction.description || 'Transaction Capture'
-    return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
+    return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
         if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
           throw new Error(`Transaction status must be '${TRANSACTION_KIND.AUTHORIZE}' to be captured`)
@@ -77,7 +74,7 @@ module.exports = class PaymentService extends Service {
         return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
       })
       .then(transaction => {
-        return transaction.save({transaction: options.transaction || null })
+        return transaction.save()
       })
       .then(transaction => {
         resTransaction = transaction
@@ -102,9 +99,8 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   sale(transaction, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
+
     const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -114,10 +110,10 @@ module.exports = class PaymentService extends Service {
     // console.log('cart checkout', transaction)
     let resTransaction
     transaction.description = transaction.description || 'Transaction Sale'
-    transaction = Transaction.build(transaction)
+    transaction = Transaction.build(transaction, options)
     return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
       .then(transaction => {
-        return transaction.save({transaction: options.transaction || null })
+        return transaction.save()
       })
       .then(transaction => {
         resTransaction = transaction
@@ -142,11 +138,9 @@ module.exports = class PaymentService extends Service {
    * @returns {Promise}
    */
   manual(transaction, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     const Transaction = this.app.orm.Transaction
-    transaction = Transaction.build(transaction)
+    transaction = Transaction.build(transaction, options)
     return Promise.resolve(transaction)
   }
 
@@ -157,9 +151,8 @@ module.exports = class PaymentService extends Service {
    * @returns {*}
    */
   void(transaction, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
+    const Transaction = this.app.orm['Transaction']
     // const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -168,7 +161,7 @@ module.exports = class PaymentService extends Service {
     }
     let resTransaction
     transaction.description = transaction.description || 'Transaction Void'
-    return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
+    return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
         if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
           throw new Error(`Transaction status must be '${TRANSACTION_KIND.AUTHORIZE}' to be voided`)
@@ -176,7 +169,7 @@ module.exports = class PaymentService extends Service {
         return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
       })
       .then(transaction => {
-        return transaction.save({transaction: options.transaction || null })
+        return transaction.save()
       })
       .then(transaction => {
         resTransaction = transaction
@@ -201,18 +194,18 @@ module.exports = class PaymentService extends Service {
    * @returns {*}
    */
   refund(transaction, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
+    const Transaction = this.app.orm['Transaction']
     // const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
+      // TODO throw proper error
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
     let resTransaction
     transaction.description = transaction.description || 'Transaction Refund'
-    return this.app.services.TransactionService.resolve(transaction, {transaction: options.transaction || null })
+    return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
         if (transaction.kind !== TRANSACTION_KIND.CAPTURE && transaction.kind !== TRANSACTION_KIND.SALE) {
           throw new Error(`Transaction kind must be '${TRANSACTION_KIND.CAPTURE}' or '${TRANSACTION_KIND.SALE}' to be refunded`)
@@ -220,7 +213,7 @@ module.exports = class PaymentService extends Service {
         return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
       })
       .then(transaction => {
-        return transaction.save({transaction: options.transaction || null })
+        return transaction.save()
       })
       .then(transaction => {
         resTransaction = transaction

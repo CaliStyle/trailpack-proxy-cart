@@ -3,6 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
+const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const UNITS = require('../utils/enums').UNITS
 const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
@@ -217,10 +218,8 @@ module.exports = class Product extends Model {
               // })
             },
             findByIdDefault: function(criteria, options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Product.default(app))
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Product.default(app))
               // console.log('Product.findByIdDefault', options)
               // console.log(criteria, options)
               let resProduct
@@ -256,16 +255,12 @@ module.exports = class Product extends Model {
                 })
             },
             findByHandleDefault: function(handle, options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Product.default(app))
-              options = _.merge(options, {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Product.default(app), {
                 where: {
                   handle: handle
                 }
               })
-              // console.log('Product.findByHandle', options)
               let resProduct
               return this.findOne(options)
                 .then(product => {
@@ -299,10 +294,8 @@ module.exports = class Product extends Model {
                 })
             },
             findOneDefault: function(criteria, options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Product.default(app))
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Product.default(app))
               // console.log('Product.findOneDefault', options)
               let resProduct
               return this.findOne(criteria, options)
@@ -340,21 +333,73 @@ module.exports = class Product extends Model {
 
                 })
             },
+            /**
+             *
+             * @param options
+             * @returns {*|Promise.<Array.<Instance>>}
+             */
             findAllDefault: function(options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Product.default(app))
-              // console.log('Product.findAllDefault', options)
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Product.default(app))
               return this.findAll(options)
             },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<Object>}
+             */
             findAndCountDefault: function(options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Product.default(app))
-              // console.log('Product.findAndCountDefault', options)
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Product.default(app))
               return this.findAndCount(options)
+            },
+            /**
+             *
+             * @param product
+             * @param options
+             * @returns {*}
+             */
+            resolve: function(product, options){
+              options = options || {}
+              const Product =  this
+
+              if (product instanceof Product.Instance){
+                return Promise.resolve(product)
+              }
+              else if (product && _.isObject(product) && product.id) {
+                return Product.findById(product.id, options)
+                  .then(resProduct => {
+                    if (!resProduct) {
+                      throw new Errors.FoundError(Error(`Product ${product.id} not found`))
+                    }
+                    return resProduct
+                  })
+              }
+              else if (product && _.isObject(product) && product.handle) {
+                return Product.findOne({
+                  where: { handle: product.handle }
+                }, options)
+                  .then(resProduct => {
+                    if (!resProduct) {
+                      throw new Errors.FoundError(Error(`Product ${product.handle} not found`))
+                    }
+                    return resProduct
+                  })
+              }
+              else if (product && (_.isString(product) || _.isNumber(product))) {
+                return Product.findById(product, options)
+                  .then(resProduct => {
+                    if (!resProduct) {
+                      throw new Errors.FoundError(Error(`Product ${product} not found`))
+                    }
+                    return resProduct
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Product ${product}`)
+                return Promise.reject(err)
+              }
             }
           },
           instanceMethods: {

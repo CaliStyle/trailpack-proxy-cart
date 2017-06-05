@@ -2,6 +2,7 @@
 'use strict'
 
 const Model = require('trails/model')
+const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 /**
  * @module Vendor
@@ -61,6 +62,63 @@ module.exports = class Vendor extends Model {
                 },
                 constraints: false
               })
+            },
+            resolve: function(vendor, options){
+              const Vendor =  this
+              // const Sequelize = Vendor.sequelize
+
+              if (vendor instanceof Vendor.Instance){
+                return Promise.resolve(vendor)
+              }
+              else if (vendor && _.isObject(vendor) && vendor.id) {
+                return Vendor.findById(vendor.id, options)
+                  .then(foundVendor => {
+                    if (!foundVendor) {
+                      throw new Errors.FoundError(Error(`Vendor ${vendor.id} not found`))
+                    }
+                    return foundVendor
+                  })
+              }
+              else if (vendor && _.isObject(vendor) && (vendor.handle || vendor.name)) {
+                return Vendor.find({
+                  where: {
+                    $or: {
+                      handle: vendor.handle,
+                      name: vendor.name
+                    }
+                  }
+                }, options)
+                  .then(resVendor => {
+                    if (resVendor) {
+                      return resVendor
+                    }
+                    return Vendor.create(vendor, options)
+                  })
+              }
+              else if (vendor && _.isString(vendor)) {
+                return Vendor.find({
+                  where: {
+                    $or: {
+                      handle: vendor,
+                      name: vendor,
+                      id: vendor
+                    }
+                  }
+                }, options)
+                  .then(resVendor => {
+                    if (resVendor) {
+                      return resVendor
+                    }
+                    // TODO make Proper Error
+                    const err = new Error(`Not able to resolve vendor ${vendor}`)
+                    return Promise.reject(err)
+                  })
+              }
+              else {
+                // TODO make Proper Error
+                const err = new Error(`Not able to resolve vendor ${vendor}`)
+                return Promise.reject(err)
+              }
             },
             transformVendors: (vendors, options) => {
               const Vendor = app.orm['Vendor']

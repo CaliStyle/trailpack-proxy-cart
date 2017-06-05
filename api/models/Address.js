@@ -103,6 +103,9 @@ module.exports = class Address extends Model {
                 },
                 constraints: false
               })
+            },
+            resolve: function(address, options){
+              //
             }
           }
         }

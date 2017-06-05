@@ -29,6 +29,9 @@ module.exports = class City extends Model {
               models.City.belongsTo(models.Country, {
                 // as: 'country_id'
               })
+            },
+            resolve: function(city, options){
+              //
             }
           }
         }

@@ -5,6 +5,7 @@
 const Model = require('trails/model')
 const _ = require('lodash')
 const moment = require('moment')
+const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const queryDefaults = require('../utils/queryDefaults')
 const INTERVALS = require('../utils/enums').INTERVALS
@@ -119,8 +120,24 @@ module.exports = class Subscription extends Model {
              * @returns {*|Promise.<Instance>}
              */
             findByIdDefault: function(criteria, options) {
-              options = _.merge(options, queryDefaults.Subscription.default(app))
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Subscription.default(app))
               return this.findById(criteria, options)
+            },
+            /**
+             *
+             * @param token
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
+            findByTokenDefault: function(token, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Subscription.default(app), {
+                where: {
+                  token: token
+                }
+              })
+              return this.findOne(options)
             },
             /**
              *
@@ -151,7 +168,59 @@ module.exports = class Subscription extends Model {
                   })
               }
               return recursiveQuery(options)
+            },
+            /**
+             *
+             * @param subscription
+             * @param options
+             * @returns {*}
+             */
+            resolve: function(subscription, options){
+              options = options || {}
+              // console.log('TYPEOF subscription',typeof subscription)
+              const Subscription =  this
+
+              if (subscription instanceof Subscription.Instance){
+                return Promise.resolve(subscription)
+              }
+              else if (subscription && _.isObject(subscription) && subscription.id) {
+                return Subscription.findById(subscription.id, options)
+                  .then(resSubscription => {
+                    if (!resSubscription) {
+                      throw new Errors.FoundError(Error(`Subscription ${subscription.id} not found`))
+                    }
+                    return resSubscription
+                  })
+              }
+              else if (subscription && _.isObject(subscription) && subscription.token) {
+                return Subscription.findOne({
+                  where: {
+                    token: subscription.token
+                  }
+                }, options)
+                  .then(resSubscription => {
+                    if (!resSubscription) {
+                      throw new Errors.FoundError(Error(`Subscription ${subscription.token} not found`))
+                    }
+                    return resSubscription
+                  })
+              }
+              else if (subscription && (_.isString(subscription) || _.isNumber(subscription))) {
+                return Subscription.findById(subscription, options)
+                  .then(resSubscription => {
+                    if (!resSubscription) {
+                      throw new Errors.FoundError(Error(`Subscription ${subscription} not found`))
+                    }
+                    return resSubscription
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Subscription ${subscription}`)
+                return Promise.reject(err)
+              }
             }
+
           },
           instanceMethods: {
             line: function(data){
@@ -363,7 +432,7 @@ module.exports = class Subscription extends Model {
                 .then(resCollections => {
                   collections = resCollections
                   // Resolve taxes
-                  return app.services.TaxService.calculate(this, collections, app.services.SubscriptionService)
+                  return app.services.TaxService.calculate(this, collections, app.orm['Subscription'])
                 })
                 .then(tax => {
                   // Add tax lines
@@ -371,7 +440,7 @@ module.exports = class Subscription extends Model {
                     totalTax = totalTax + line.price
                   })
                   // Resolve Shipping
-                  return app.services.ShippingService.calculate(this, collections, app.services.SubscriptionService)
+                  return app.services.ShippingService.calculate(this, collections, app.orm['Subscription'])
                 })
                 .then(shipping => {
                   // Add shipping lines
@@ -380,7 +449,7 @@ module.exports = class Subscription extends Model {
                   _.each(this.shipping_lines, line => {
                     totalShipping = totalShipping + line.price
                   })
-                  return app.services.DiscountService.calculate(this, collections, app.services.SubscriptionService)
+                  return app.services.DiscountService.calculate(this, collections, app.orm['Subscription'])
                 })
                 .then(discounts => {
                   // console.log(discounts)
@@ -388,7 +457,7 @@ module.exports = class Subscription extends Model {
                   _.each(this.discounted_lines, line => {
                     totalDiscounts = totalDiscounts + line.price
                   })
-                  return app.services.CouponService.calculate(this, collections, app.services.SubscriptionService)
+                  return app.services.CouponService.calculate(this, collections, app.orm['Subscription'])
                 })
                 .then(coupons => {
                   _.each(this.coupon_lines, line => {

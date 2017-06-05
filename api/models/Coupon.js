@@ -86,6 +86,9 @@ module.exports = class Coupon extends Model {
                   })
               }
               return recursiveQuery(options)
+            },
+            resolve: function(coupon, options){
+              //
             }
           }
         }

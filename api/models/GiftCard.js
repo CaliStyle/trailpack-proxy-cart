@@ -30,6 +30,9 @@ module.exports = class GiftCard extends Model {
               models.GiftCard.hasOne(models.OrderItem, {
                 as: 'order_item_id'
               })
+            },
+            resolve: function(giftCard, options){
+              //
             }
           }
         }

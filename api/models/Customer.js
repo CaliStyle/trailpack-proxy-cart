@@ -4,9 +4,11 @@
 
 const Model = require('trails/model')
 // const helpers = require('proxy-engine-helpers')
+const _ = require('lodash')
+const shortid = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
 const CUSTOMER_STATE = require('../utils/enums').CUSTOMER_STATE
-const _ = require('lodash')
+
 /**
  * @module Customer
  * @description Customer Model
@@ -28,6 +30,10 @@ module.exports = class Customer extends Model {
             beforeCreate: (values, options, fn) => {
               if (values.ip) {
                 values.create_ip = values.ip
+              }
+              // If not token was already created, create it
+              if (!values.token) {
+                values.token = `customer_${shortid.generate()}`
               }
               fn()
             },
@@ -303,36 +309,108 @@ module.exports = class Customer extends Model {
               //   // foreignKey: 'id'
               // })
             },
+            /**
+             *
+             * @param id
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
             findByIdDefault: function(id, options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Customer.default(app))
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Customer.default(app))
               return this.findById(id, options)
             },
+            /**
+             *
+             * @param token
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
+            findByTokenDefault: function(token, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Customer.default(app), {
+                where: {
+                  token: token
+                }
+              })
+              return this.findOne(options)
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<Object>}
+             */
             findAndCountDefault: function(options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, {})
+              options = options || {}
+              options = _.defaultsDeep(options, {})
               return this.findAndCount(options)
+            },
+            resolve: function(customer, options){
+              options = options || {}
+              const Customer =  this
+              if (customer instanceof Customer.Instance){
+                return Promise.resolve(customer)
+              }
+              else if (customer && _.isObject(customer) && customer.id) {
+                return Customer.findById(customer.id, options)
+                  .then(resCustomer => {
+                    if (!resCustomer) {
+                      return app.services.CustomerService.create(customer, options)
+                    }
+                    return resCustomer
+                  })
+              }
+              else if (customer && _.isObject(customer) && customer.email) {
+                return Customer.findOne({
+                  where: {
+                    email: customer.email
+                  }
+                }, options)
+                  .then(resCustomer => {
+                    if (!resCustomer) {
+                      return app.services.CustomerService.create(customer, options)
+                    }
+                    return resCustomer
+                  })
+              }
+              else if (customer && (_.isString(customer) || _.isNumber(customer))) {
+                return Customer.findById(customer, options)
+              }
+              else {
+                return app.services.CustomerService.create(customer, options)
+              }
             }
           },
           instanceMethods: {
+            /**
+             *
+             * @param order
+             */
             setLastOrder: function(order){
               this.last_order_name = order.name
               this.last_order_id = order.id
               return this
             },
+            /**
+             *
+             * @param orderTotalDue
+             */
             setTotalSpent: function(orderTotalDue) {
               this.total_spent = this.total_spent + orderTotalDue
               return this
             },
+            /**
+             *
+             * @param newBalance
+             */
             // TODO Discussion: should this be pulled with each query or set after order?
             setAccountBalance: function(newBalance){
               this.account_balance = newBalance
               return this
             },
+            /**
+             *
+             */
             toJSON: function() {
               const resp = this.get({ plain: true })
               // Transform Tags to array on toJSON
@@ -369,6 +447,11 @@ module.exports = class Customer extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // Unique identifier for a particular customer.
+        token: {
+          type: Sequelize.STRING,
+          unique: true
+        },
         //
         accepts_marketing: {
           type: Sequelize.BOOLEAN,

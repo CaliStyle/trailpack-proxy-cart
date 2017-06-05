@@ -55,6 +55,9 @@ module.exports = class Tag extends Model {
                 constraints: false
               })
             },
+            resolve: function(tag, options){
+              //
+            },
             /**
              *
              * @param tags

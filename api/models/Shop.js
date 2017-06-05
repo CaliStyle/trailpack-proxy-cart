@@ -61,6 +61,9 @@ module.exports = class Shop extends Model {
                 foreignKey: 'shop_id'
               })
             },
+            resolve: function(shop, options){
+              //
+            },
             transformShops: (shops, options) => {
               const Shop = app.orm['Shop']
               // Transform if necessary to objects

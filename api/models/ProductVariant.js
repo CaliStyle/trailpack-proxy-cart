@@ -3,6 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
+const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const queryDefaults = require('../utils/queryDefaults')
 const UNITS = require('../utils/enums').UNITS
@@ -143,12 +144,58 @@ module.exports = class ProductVariant extends Model {
               //   constraints: false
               // })
             },
-            findByIdDefault: function(criteria, options) {
-              if (!options) {
-                options = {}
+            /**
+             *
+             * @param id
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
+            findByIdDefault: function(id, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.ProductVariant.default(app))
+              return this.findById(id, options)
+            },
+            resolve: function(variant, options){
+              options = options || {}
+              const Variant =  this
+
+              if (variant instanceof Variant.Instance){
+                return Promise.resolve(variant)
               }
-              options = _.merge(options, queryDefaults.ProductVariant.default(app))
-              return this.findById(criteria, options)
+              else if (variant && _.isObject(variant) && variant.id) {
+                return Variant.findById(variant.id, options)
+                  .then(resVariant => {
+                    if (!resVariant) {
+                      throw new Errors.FoundError(Error(`Variant ${variant.id} not found`))
+                    }
+                    return resVariant
+                  })
+              }
+              else if (variant && _.isObject(variant) && variant.sku) {
+                return Variant.findOne({
+                  where: { sku: variant.sku }
+                }, options)
+                  .then(resVariant => {
+                    if (!resVariant) {
+                      throw new Errors.FoundError(Error(`Variant ${variant.sku} not found`))
+                    }
+                    return resVariant
+                  })
+              }
+              else if (variant && (_.isString(variant) || _.isNumber(variant))) {
+                return Variant.findById(variant, options)
+                  .then(resVariant => {
+                    if (!resVariant) {
+                      throw new Errors.FoundError(Error(`Variant ${variant} not found`))
+                    }
+                    return resVariant
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Variant ${variant}`)
+                return Promise.reject(err)
+              }
             }
           },
           instanceMethods: {

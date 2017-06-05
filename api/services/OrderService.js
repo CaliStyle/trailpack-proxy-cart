@@ -16,69 +16,6 @@ const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
  * @description Order Service
  */
 module.exports = class OrderService extends Service {
-  /**
-   * resolves an Order from either an Instance, an ID, or an Object with ID
-   * @param order
-   * @param options
-   * @returns {Promise}
-   */
-  resolve(order, options) {
-    const Order =  this.app.orm['Order']
-    if (order instanceof Order.Instance){
-      return Promise.resolve(order)
-    }
-    else if (order && _.isObject(order) && order.id) {
-      return Order.findById(order.id, options)
-        .then(resOrder => {
-          if (!resOrder) {
-            throw new Errors.FoundError(Error(`Order ${order.id} not found`))
-          }
-          return resOrder
-        })
-    }
-    else if (order && (_.isString(order) || _.isNumber(order))) {
-      return Order.findById(order, options)
-        .then(resOrder => {
-          if (!resOrder) {
-            throw new Errors.FoundError(Error(`Order ${order} not found`))
-          }
-          return resOrder
-        })
-    }
-    else {
-      const err = new Error('Unable to resolve Order')
-      Promise.reject(err)
-    }
-  }
-
-  resolveItem(item, options) {
-    const OrderItem =  this.app.orm.OrderItem
-    if (item instanceof OrderItem.Instance){
-      return Promise.resolve(item)
-    }
-    else if (item && _.isObject(item) && item.id) {
-      return OrderItem.findById(item.id, options)
-        .then(resOrderItem => {
-          if (!resOrderItem) {
-            throw new Errors.FoundError(Error(`Order ${item.id} not found`))
-          }
-          return resOrderItem
-        })
-    }
-    else if (item && (_.isString(item) || _.isNumber(item))) {
-      return OrderItem.findById(item, options)
-        .then(resOrderItem => {
-          if (!resOrderItem) {
-            throw new Errors.FoundError(Error(`Order ${item} not found`))
-          }
-          return resOrderItem
-        })
-    }
-    else {
-      const err = new Error('Unable to resolve Order Item')
-      Promise.reject(err)
-    }
-  }
 
   /**
    *
@@ -220,7 +157,7 @@ module.exports = class OrderService extends Service {
             }
           }
 
-          const order = {
+          const order = Order.build({
             // Order Info
             processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
             processed_at: new Date(),
@@ -268,9 +205,7 @@ module.exports = class OrderService extends Service {
             pricing_override_id: obj.pricing_override_id || null,
             pricing_overrides: obj.pricing_overrides || [],
             total_overrides: obj.total_overrides || 0
-          }
-
-          return Order.create(order, {
+          }, {
             include: [
               {
                 model: OrderItem,
@@ -278,6 +213,8 @@ module.exports = class OrderService extends Service {
               }
             ]
           })
+
+          return order.save()
         })
         .then(order => {
           if (!order) {
@@ -286,7 +223,7 @@ module.exports = class OrderService extends Service {
           resOrder = order
           if (resCustomer.id) {
             // Update the customer with the order
-            return this.app.services.CustomerService.resolve(resCustomer)
+            return Customer.resolve(resCustomer)
               .then(customer => {
                 // Get the total deducted
                 // console.log('BROKE', deduction)
@@ -318,7 +255,7 @@ module.exports = class OrderService extends Service {
               object_id: customer.id,
               object: 'customer',
               type: 'customer.order.created',
-              message: 'Customer order was created',
+              message: `Customer Order ${ resOrder.name } was created`,
               data: resOrder
             }
             this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -397,7 +334,7 @@ module.exports = class OrderService extends Service {
   update(order) {
     const Order = this.app.orm.Order
 
-    return this.resolve(order)
+    return Order.resolve(order)
       .then(resOrder => {
         if (resOrder.fulfillment_status !== (FULFILLMENT_STATUS.NONE || FULFILLMENT_STATUS.SENT) || resOrder.cancelled_at) {
           throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
@@ -428,8 +365,9 @@ module.exports = class OrderService extends Service {
    */
   // TODO handle payment of remaining balance if provided
   pay(order, paymentDetails) {
+    const Order = this.app.orm['Order']
     let resOrder
-    return this.resolve(order)
+    return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -453,7 +391,7 @@ module.exports = class OrderService extends Service {
         if (!transactions) {
           transactions = []
         }
-        const authorized = _.filter(transactions, (transaction) => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
+        const authorized = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
         return Promise.all(authorized.map(transaction => {
           return this.app.services.TransactionService.capture(transaction)
         }))
@@ -479,11 +417,10 @@ module.exports = class OrderService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   refund(order, refunds) {
-    if (!refunds) {
-      refunds = []
-    }
+    refunds = refunds || []
+    const Order = this.app.orm['Order']
     let resOrder
-    return this.resolve(order)
+    return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -514,7 +451,7 @@ module.exports = class OrderService extends Service {
         if (refunds.length > 0) {
           return Promise.all(refunds.map(refund => {
             const refundTransaction = transactions.find(transaction => transaction.id == refund.transaction)
-            if (refundTransaction.kind == TRANSACTION_KIND.CAPTURE || TRANSACTION_KIND.SALE) {
+            if ([TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(refundTransaction.kind) > -1) {
               // If this is a full Transaction refund
               if (refund.amount == refundTransaction.amount) {
                 return this.app.services.TransactionService.refund(refundTransaction)
@@ -529,9 +466,8 @@ module.exports = class OrderService extends Service {
         // Completely Refund the order
         else {
           const canRefund = transactions.filter(transaction => {
-            if (transaction.kind == TRANSACTION_KIND.CAPTURE || transaction.kind == TRANSACTION_KIND.SALE) {
-              return transaction
-            }
+            return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
+
           })
           return Promise.all(canRefund.map(transaction => {
             return this.app.services.TransactionService.refund(transaction)
@@ -562,7 +498,7 @@ module.exports = class OrderService extends Service {
         return resOrder.saveFinancialStatus()
       })
       .then(order => {
-        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+        return Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -573,11 +509,10 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<TResult>}
    */
   capture(order, captures) {
-    if (!captures) {
-      captures = []
-    }
+    captures = captures || []
+    const Order = this.app.orm['Order']
     let resOrder
-    return this.resolve(order)
+    return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -622,7 +557,7 @@ module.exports = class OrderService extends Service {
         return resOrder.saveFinancialStatus()
       })
       .then(order => {
-        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+        return Order.findByIdDefault(resOrder.id)
       })
 
   }
@@ -634,11 +569,10 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<TResult>}
    */
   void(order, voids) {
-    if (!voids) {
-      voids = []
-    }
+    voids = voids || []
+    const Order = this.app.orm['Order']
     let resOrder
-    return this.resolve(order)
+    return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -683,20 +617,21 @@ module.exports = class OrderService extends Service {
         return resOrder.saveFinancialStatus()
       })
       .then(order => {
-        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+        return Order.findByIdDefault(resOrder.id)
       })
   }
 
   /**
-   * Cancel and Order
+   * Cancel an Order
    * @param order
    * @returns {Promise.<TResult>}
    */
-  // TODO cancel fulfillments
-  cancel(order) {
+  cancel(order, options) {
+    options = options || {}
+    const Order = this.app.orm['Order']
     const reason = order.cancel_reason
-    let resOrder, canRefund = [], canVoid = []
-    return this.resolve(order)
+    let resOrder, canRefund = [], canVoid = [], canCancel = []
+    return Order.resolve(order)
       .then(order => {
         resOrder = order
         if (resOrder.fulfillment_status !== ORDER_FULFILLMENT.NONE) {
@@ -717,29 +652,33 @@ module.exports = class OrderService extends Service {
       })
       .then(() => {
         return Promise.all(canRefund.map(transaction => {
-          return this.app.services.TransactionService.refund(transaction)
+          return this.app.services.TransactionService.refund(transaction, {transaction: options.transaction || null})
         }))
       })
       .then(() => {
         return Promise.all(canVoid.map(transaction => {
-          return this.app.services.TransactionService.void(transaction)
+          return this.app.services.TransactionService.void(transaction, {transaction: options.transaction || null})
         }))
       })
       .then(() => {
         if (!resOrder.fulfillments || resOrder.fulfillments.length == 0) {
-          return resOrder.getFulfillments()
+          return resOrder.getFulfillments({transaction: options.transaction || null})
         }
         else {
           return resOrder.fulfillments
         }
       })
       .then(fulfillments => {
-        // TODO cancel fulfillments
-
+        canCancel = fulfillments.filter(fulfillment => fulfillment.status == FULFILLMENT_STATUS.PENDING || FULFILLMENT_STATUS.SENT)
+        return Promise.all(canCancel.map(fulfillment => {
+          return this.app.services.FulfillmentService.cancel(fulfillment, {transaction: options.transaction || null})
+        }))
+      })
+      .then(()=> {
         resOrder.cancelled_at = new Date()
         resOrder.closed_at = resOrder.cancelled_at
         resOrder.cancel_reason = reason
-        return resOrder.save()
+        return resOrder.save({transaction: options.transaction || null})
       })
   }
 
@@ -754,11 +693,11 @@ module.exports = class OrderService extends Service {
     if (orderFulfillmentKind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
       return immediate
     }
-    const successes = _.map(transactions, transaction => {
+    const successes = transactions.filter(transaction => {
       return transaction.status == TRANSACTION_STATUS.SUCCESS
     })
-    const sales = _.map(transactions, transaction => {
-      return transaction.kind == TRANSACTION_KIND.SALE
+    const sales = transactions.filter(transaction => {
+      return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
     })
     if (successes.length == transactions.length && sales.length == transactions.length) {
       immediate = true
@@ -766,16 +705,22 @@ module.exports = class OrderService extends Service {
     return immediate
   }
 
+  /**
+   *
+   * @param transactions
+   * @param hasSubscription
+   * @returns {boolean}
+   */
   resolveSubscribeImmediately(transactions, hasSubscription) {
     let immediate = false
     if (!hasSubscription) {
       return immediate
     }
-    const successes = _.map(transactions, transaction => {
+    const successes = transactions.filter(transaction => {
       return transaction.status == TRANSACTION_STATUS.SUCCESS
     })
-    const sales = _.map(transactions, transaction => {
-      return transaction.kind == TRANSACTION_KIND.SALE
+    const sales = transactions.filter(transaction => {
+      return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
     })
     if (successes.length == transactions.length && sales.length == transactions.length) {
       immediate = true
@@ -812,8 +757,9 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<TResult>}
    */
   addTag(order, tag){
+    const Order = this.app.orm['Order']
     let resOrder, resTag
-    return this.resolve(order)
+    return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -835,7 +781,7 @@ module.exports = class OrderService extends Service {
         return resOrder
       })
       .then(tag => {
-        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+        return Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -847,7 +793,8 @@ module.exports = class OrderService extends Service {
    */
   removeTag(order, tag){
     let resOrder, resTag
-    return this.resolve(order)
+    const Order = this.app.orm['Order']
+    return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -869,13 +816,14 @@ module.exports = class OrderService extends Service {
         return resOrder
       })
       .then(tag => {
-        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+        return Order.findByIdDefault(resOrder.id)
       })
   }
   // TODO
   addItem(order, item) {
     // let resOrder
-    return this.resolve(order)
+    const Order = this.app.orm['Order']
+    return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -887,7 +835,8 @@ module.exports = class OrderService extends Service {
   // TODO
   removeItem(order, item) {
     // let resOrder
-    return this.resolve(order)
+    const Order = this.app.orm['Order']
+    return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))

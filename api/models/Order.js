@@ -4,6 +4,7 @@
 
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
+const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 const shortid = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
@@ -205,20 +206,51 @@ module.exports = class Order extends Model {
                 foreignKey: 'last_order_id'
               })
             },
-            findByIdDefault: function(criteria, options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Order.default(app))
-              return this.findById(criteria, options)
+            findByIdDefault: function(id, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Order.default(app))
+              return this.findById(id, options)
             },
             findAndCountDefault: function(options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Order.default(app))
-              // console.log('Product.findAndCountDefault', options)
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Order.default(app))
               return this.findAndCount(options)
+            },
+            /**
+             *
+             * @param order
+             * @param options
+             * @returns {*}
+             */
+            resolve: function(order, options){
+              options = options || {}
+              const Order =  this
+              if (order instanceof Order.Instance){
+                return Promise.resolve(order)
+              }
+              else if (order && _.isObject(order) && order.id) {
+                return Order.findByIdDefault(order.id, options)
+                  .then(resOrder => {
+                    if (!resOrder) {
+                      throw new Errors.FoundError(Error(`Order ${order.id} not found`))
+                    }
+                    return resOrder
+                  })
+              }
+              else if (order && (_.isString(order) || _.isNumber(order))) {
+                return Order.findByIdDefault(order, options)
+                  .then(resOrder => {
+                    if (!resOrder) {
+                      throw new Errors.FoundError(Error(`Order ${order} not found`))
+                    }
+                    return resOrder
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error('Unable to resolve Order')
+                Promise.reject(err)
+              }
             }
           },
           instanceMethods: {

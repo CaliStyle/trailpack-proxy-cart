@@ -57,7 +57,11 @@ module.exports = class Refund extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+            },
+            resolve: function(refund, options){
+              //
             }
+
           }
         }
       }

@@ -4,8 +4,10 @@
 
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
+const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 const CART_STATUS = require('../utils/enums').CART_STATUS
+const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 const queryDefaults = require('../utils/queryDefaults')
 
 /**
@@ -56,6 +58,10 @@ module.exports = class Cart extends Model {
 
           },
           instanceMethods: {
+            /**
+             *
+             * @param data
+             */
             line: function(data){
               const line = {
                 product_id: data.product_id,
@@ -163,6 +169,12 @@ module.exports = class Cart extends Model {
                   return this
                 })
             },
+            /**
+             *
+             * @param item
+             * @param qty
+             * @returns {Promise.<config>}
+             */
             removeLine: function(item, qty) {
               const lineItems = this.line_items
               if (!qty || !_.isNumber(qty)) {
@@ -181,17 +193,95 @@ module.exports = class Cart extends Model {
                 return Promise.resolve(this)
               }
             },
-            close: function(status) {
-              this.status = status
+            /**
+             *
+             * @param status
+             * @param save
+             */
+            close: function(status, save) {
+              this.status = status || CART_STATUS.CLOSED
+              if (save) {
+                return this.save(save)
+              }
+              return Promise.resolve(this)
             },
-            draft: function () {
-              this.status = CART_STATUS.DRAFT
-              return this
+            /**
+             *
+             * @param status
+             * @param save
+             */
+            draft: function (status, save) {
+              this.status = status || CART_STATUS.DRAFT
+              if (save) {
+                return this.save(save)
+              }
+              return Promise.resolve(this)
             },
-            order: function(order) {
+            /**
+             *
+             * @param order
+             * @param save
+             */
+            order: function(order, save) {
               this.order_id = order.id
               this.status = CART_STATUS.ORDERED
-              return this
+              if (save) {
+                return this.save(save)
+              }
+              return Promise.resolve(this)
+            },
+            /**
+             *
+             * @param options
+             */
+            buildOrder: function(options) {
+              options = options || {}
+              const buildOrder = {
+                // Request info
+                client_details: options.client_details || this.client_details,
+                ip: options.ip || null,
+                payment_details: options.payment_details,
+                payment_kind: options.payment_kind || app.config.proxyCart.order_payment_kind,
+                fulfillment_kind: options.fulfillment_kind || app.config.proxyCart.order_fulfillment_kind,
+                processing_method: options.processing_method || PAYMENT_PROCESSING_METHOD.CHECKOUT,
+                shipping_address: options.shipping_address || this.shipping_address,
+                billing_address: options.billing_address || this.billing_address,
+
+                // Customer Info
+                customer_id: options.customer_id || this.customer_id || null,
+                email: options.email || null,
+
+                // User ID
+                user_id: options.user_id || this.user_id || null,
+
+                // Cart Info
+                cart_token: this.token,
+                currency: this.currency,
+                line_items: this.line_items,
+                tax_lines: this.tax_lines,
+                shipping_lines: this.shipping_lines,
+                discounted_lines: this.discounted_lines,
+                coupon_lines: this.coupon_lines,
+                subtotal_price: this.subtotal_price,
+                taxes_included: this.taxes_included,
+                total_discounts: this.total_discounts,
+                total_coupons: this.total_coupons,
+                total_line_items_price: this.total_line_items_price,
+                total_price: this.total_due,
+                total_due: this.total_due,
+                total_tax: this.total_tax,
+                total_weight: this.total_weight,
+                total_items: this.total_items,
+                shop_id: this.shop_id,
+                has_shipping: this.has_shipping,
+                has_subscription: this.has_subscription,
+
+                //Pricing Overrides
+                pricing_override_id: this.pricing_override_id,
+                pricing_overrides: this.pricing_overrides,
+                total_overrides: this.total_overrides
+              }
+              return buildOrder
             },
             recalculate: function() {
               // Default Values
@@ -251,7 +341,7 @@ module.exports = class Cart extends Model {
                 .then(resCollections => {
                   collections = resCollections
                   // Resolve taxes
-                  return app.services.TaxService.calculate(this, collections, app.services.CartService)
+                  return app.services.TaxService.calculate(this, collections, app.orm['Cart'])
                 })
                 .then(tax => {
                   // Add tax lines
@@ -261,7 +351,7 @@ module.exports = class Cart extends Model {
                   this.total_tax = totalTax
                   this.total_due = this.total_due + totalTax
                   // Resolve Shipping
-                  return app.services.ShippingService.calculate(this, collections, app.services.CartService)
+                  return app.services.ShippingService.calculate(this, collections, app.orm['Cart'])
                 })
                 .then(shipping => {
                   // Add shipping lines
@@ -273,7 +363,7 @@ module.exports = class Cart extends Model {
                   this.total_shipping = totalShipping
                   this.total_due = this.total_due + totalShipping
                   // Resolve Discounts
-                  return app.services.DiscountService.calculate(this, collections, app.services.CartService)
+                  return app.services.DiscountService.calculate(this, collections, app.orm['Cart'])
                 })
                 .then(discounts => {
                   // console.log(discounts)
@@ -283,7 +373,7 @@ module.exports = class Cart extends Model {
                   })
                   this.total_discounts = totalDiscounts
                   this.total_due = this.total_due - totalDiscounts
-                  return app.services.CouponService.calculate(this, collections, app.services.CartService)
+                  return app.services.CouponService.calculate(this, collections, app.orm['Cart'])
                 })
                 .then(coupons => {
                   _.each(this.coupon_lines, line => {
@@ -413,19 +503,85 @@ module.exports = class Cart extends Model {
               //   // constraints: false
               // })
             },
+            /**
+             *
+             * @param criteria
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
             findByIdDefault: function(criteria, options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Cart.default(app))
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Cart.default(app))
               return this.findById(criteria, options)
             },
+            /**
+             *
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
             findOneDefault: function(options) {
-              if (!options) {
-                options = {}
-              }
-              options = _.merge(options, queryDefaults.Cart.default(app))
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Cart.default(app))
               return this.findOne(options)
+            },
+            /**
+             *
+             * @param token
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
+            findByTokenDefault: function(token, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Cart.default(app), {
+                where: {
+                  token: token
+                }
+              })
+              return this.findOne(options)
+            },
+            resolve: function(cart, options){
+              options = options || {}
+              const Cart =  this
+              if (cart instanceof Cart.Instance){
+                return Promise.resolve(cart)
+              }
+              else if (cart && _.isObject(cart) && cart.id) {
+                return Cart.findByIdDefault(cart.id, options)
+                  .then(resCart => {
+                    if (!resCart) {
+                      throw new Errors.FoundError(Error(`Cart ${cart.id} not found`))
+                    }
+                    return resCart
+                  })
+              }
+              else if (cart && _.isObject(cart) && cart.token) {
+                return Cart.findOneDefault({
+                  where: { token: cart.token }
+                }, options)
+                  .then(resCart => {
+                    if (!resCart) {
+                      throw new Errors.FoundError(Error(`Cart ${cart.token} not found`))
+                    }
+                    return resCart
+                  })
+              }
+              else if (cart && _.isObject(cart)) {
+                return this.create(cart, options)
+              }
+              else if (cart && (_.isString(cart) || _.isNumber(cart))) {
+                return Cart.findByIdDefault(cart, options)
+                  .then(resCart => {
+                    if (!resCart) {
+                      throw new Errors.FoundError(Error(`Cart ${cart} not found`))
+                    }
+                    return resCart
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Cart ${cart}`)
+                return Promise.reject(err)
+              }
             }
           }
         }

@@ -10,45 +10,6 @@ const Errors = require('proxy-engine-errors')
  * @description Customer Service
  */
 module.exports = class CustomerService extends Service {
-  /**
-   *
-   * @param customer
-   * @returns {Customer} // An instance of the Customer
-   */
-  resolve(customer, options){
-    const Customer =  this.app.orm.Customer
-    if (customer instanceof Customer.Instance){
-      return Promise.resolve(customer)
-    }
-    else if (customer && _.isObject(customer) && customer.id) {
-      return Customer.findById(customer.id, options)
-        .then(resCustomer => {
-          if (!resCustomer) {
-            return this.create(customer, options)
-          }
-          return resCustomer
-        })
-    }
-    else if (customer && _.isObject(customer) && customer.email) {
-      return Customer.findOne({
-        where: {
-          email: customer.email
-        }
-      }, options)
-        .then(resCustomer => {
-          if (!resCustomer) {
-            return this.create(customer, options)
-          }
-          return resCustomer
-        })
-    }
-    else if (customer && (_.isString(customer) || _.isNumber(customer))) {
-      return Customer.findById(customer, options)
-    }
-    else {
-      return this.create(customer, options)
-    }
-  }
 
   /**
    *
@@ -162,7 +123,7 @@ module.exports = class CustomerService extends Service {
         if (customer.default_cart) {
           // Resolve the Cart
           // console.log('DEFAULT CART', customer.default_cart)
-          return this.app.services.CartService.resolve(customer.default_cart, {transaction: options.transaction || null})
+          return Cart.resolve(customer.default_cart, {transaction: options.transaction || null})
         }
         return
       })
@@ -454,8 +415,9 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   addTag(customer, tag){
+    const Customer = this.app.orm['Customer']
     let resCustomer, resTag
-    return this.resolve(customer)
+    return Customer.resolve(customer)
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
@@ -477,7 +439,7 @@ module.exports = class CustomerService extends Service {
         return resCustomer
       })
       .then(tag => {
-        return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
+        return Customer.findByIdDefault(resCustomer.id)
       })
   }
 
@@ -488,8 +450,9 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   removeTag(customer, tag){
+    const Customer = this.app.orm['Customer']
     let resCustomer, resTag
-    return this.resolve(customer)
+    return Customer.resolve(customer)
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
@@ -511,7 +474,7 @@ module.exports = class CustomerService extends Service {
         return resCustomer
       })
       .then(tag => {
-        return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
+        return Customer.findByIdDefault(resCustomer.id)
       })
   }
 
@@ -522,14 +485,16 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   addCollection(customer, collection){
+    const Customer = this.app.orm['Customer']
+    const Collection = this.app.orm['Collection']
     let resCustomer, resCollection
-    return this.resolve(customer)
+    return Customer.resolve(customer)
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
         }
         resCustomer = customer
-        return this.app.services.CollectionService.resolve(collection)
+        return Collection.resolve(collection)
       })
       .then(collection => {
         if (!collection) {
@@ -545,7 +510,7 @@ module.exports = class CustomerService extends Service {
         return resCustomer
       })
       .then(collection => {
-        return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
+        return Customer.findByIdDefault(resCustomer.id)
       })
   }
 
@@ -556,14 +521,16 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   removeCollection(customer, collection){
+    const Customer = this.app.orm['Customer']
+    const Collection = this.app.orm['Collection']
     let resCustomer, resCollection
-    return this.resolve(customer)
+    return Customer.resolve(customer)
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
         }
         resCustomer = customer
-        return this.app.services.CollectionService.resolve(collection)
+        return Collection.resolve(collection)
       })
       .then(collection => {
         if (!collection) {
@@ -579,7 +546,7 @@ module.exports = class CustomerService extends Service {
         return resCustomer
       })
       .then(collection => {
-        return this.app.orm['Customer'].findByIdDefault(resCustomer.id)
+        return Customer.findByIdDefault(resCustomer.id)
       })
   }
 
@@ -590,8 +557,9 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   addAddress(customer, address, type) {
+    const Customer = this.app.orm['Customer']
     let resCustomer, resAddress
-    return this.resolve(customer)
+    return Customer.resolve(customer)
       .then(customer => {
         resCustomer = customer
         return this.app.orm['Address'].create(address)
@@ -634,8 +602,9 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   updateAddress(customer, address, type) {
+    const Customer = this.app.orm['Customer']
     let resCustomer, resAddress
-    return this.resolve(customer)
+    return Customer.resolve(customer)
       .then(customer => {
         resCustomer = customer
         return this.app.orm['Address'].findById(address.id)
@@ -670,8 +639,9 @@ module.exports = class CustomerService extends Service {
    * @returns {*}
    */
   removeAddress(customer, address) {
+    const Customer = this.app.orm['Customer']
     let resCustomer, resAddress
-    return this.resolve(customer)
+    return Customer.resolve(customer)
       .then(customer => {
         resCustomer = customer
         return this.app.orm['Address'].findById(address.id)
@@ -686,11 +656,10 @@ module.exports = class CustomerService extends Service {
   }
 
   setAddresses(customer, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
+    const Customer = this.app.orm['Customer']
     let resCustomer
-    return this.resolve(customer)
+    return Customer.resolve(customer)
       .then(customer => {
         resCustomer = customer
         if (resCustomer.shipping_address_id) {
@@ -739,9 +708,7 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   afterCreate(customer, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     return this.setAddresses(customer, options)
       .then(customerAddresses => {
         this.app.services.ProxyEngineService.publish('customer.created', customer)
@@ -756,9 +723,7 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise.<TResult>}
    */
   afterUpdate(customer, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     this.app.services.ProxyEngineService.publish('customer.updated', customer)
     let updateAccounts = false
     let updateAddresses = false
@@ -870,21 +835,31 @@ module.exports = class CustomerService extends Service {
         return this.app.services.AccountService.updateSource(account, source, updates)
       })
   }
+
+  /**
+   *
+   * @param customer
+   * @param source
+   * @returns {*|Promise.<TResult>}
+   */
   removeCustomerSource(customer, source) {
-    return this.app.services.AccountService.resolveSource(source)
+    const Source = this.app.orm['Source']
+    return Source.resolve(source)
       .then(source => {
         return this.app.services.AccountService.removeSource(source)
       })
   }
 
   calculate(cart) {
+    const Customer = this.app.orm['Customer']
+
     if (!cart.customer_id) {
       return cart
     }
     let deduction = 0
     // let overrides = cart.pricing_overrides
 
-    return this.resolve(cart.customer_id)
+    return Customer.resolve(cart.customer_id)
       .then(customer => {
         const pricingOverrides = []
         cart.pricing_overrides.forEach(override => {

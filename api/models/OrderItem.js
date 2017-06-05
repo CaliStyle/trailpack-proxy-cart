@@ -3,6 +3,7 @@
 'use strict'
 
 const Model = require('trails/model')
+const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 const INTERVALS = require('../utils/enums').INTERVALS
@@ -94,6 +95,35 @@ module.exports = class OrderItem extends Model {
                 // // foreignKey: 'model_id',
                 // constraints: false
               })
+            },
+            resolve: function(item, options){
+              const OrderItem =  this
+              if (item instanceof OrderItem.Instance){
+                return Promise.resolve(item)
+              }
+              else if (item && _.isObject(item) && item.id) {
+                return OrderItem.findById(item.id, options)
+                  .then(resOrderItem => {
+                    if (!resOrderItem) {
+                      throw new Errors.FoundError(Error(`Order ${item.id} not found`))
+                    }
+                    return resOrderItem
+                  })
+              }
+              else if (item && (_.isString(item) || _.isNumber(item))) {
+                return OrderItem.findById(item, options)
+                  .then(resOrderItem => {
+                    if (!resOrderItem) {
+                      throw new Errors.FoundError(Error(`Order ${item} not found`))
+                    }
+                    return resOrderItem
+                  })
+              }
+              else {
+                // TODO throw proper error
+                const err = new Error('Unable to resolve Order Item')
+                Promise.reject(err)
+              }
             }
           }
         }

@@ -12,71 +12,6 @@ const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_
  * @description Collection Service
  */
 module.exports = class CollectionService extends Service {
-  /**
-   *
-   * @param collection
-   * @param options
-   * @returns {Promise<T>|Collection}
-   */
-  resolve(collection, options){
-    const Collection =  this.app.orm.Collection
-
-    if (!options) {
-      options = {}
-    }
-
-    if (collection instanceof Collection.Instance){
-      return Promise.resolve(collection)
-    }
-    else if (collection && _.isObject(collection) && collection.id) {
-      return Collection.findById(collection.id, options)
-        .then(foundCollection => {
-          if (!foundCollection) {
-            // TODO create proper error
-            throw new Error(`Collection with ${collection.id} not found`)
-          }
-          return foundCollection
-        })
-    }
-    else if (collection && _.isObject(collection) && (collection.handle || collection.title)) {
-      return Collection.findOne({
-        where: {
-          $or: {
-            handle: collection.handle,
-            title: collection.title
-          }
-        }
-      }, options)
-        .then(resCollection => {
-          if (resCollection) {
-            return resCollection
-          }
-          return Collection.create(collection, options)
-        })
-    }
-    else if (collection && _.isString(collection)) {
-      return Collection.findOne({
-        where: {
-          $or: {
-            handle: collection,
-            title: collection,
-            id: collection
-          }
-        }
-      }, options)
-        .then(resCollection => {
-          if (resCollection) {
-            return resCollection
-          }
-          return this.create({title: collection})
-        })
-    }
-    else {
-        // TODO make Proper Error
-      const err = new Error(`Not able to resolve collection ${collection}`)
-      return Promise.reject(err)
-    }
-  }
 
   /**
    * Add a Collection
@@ -84,11 +19,8 @@ module.exports = class CollectionService extends Service {
    * @returns {Promise}
    */
   add(collection, options) {
+    options = options || {}
     const Collection = this.app.orm.Collection
-
-    if (!options) {
-      options = {}
-    }
 
     return Collection.findOne({
       where: {
@@ -545,14 +477,15 @@ module.exports = class CollectionService extends Service {
    * @returns {Promise.<TResult>}
    */
   addCollection(collection, subCollection){
+    const Collection = this.app.orm['Collection']
     let resCollection, resSubCollection
-    return this.resolve(collection)
+    return Collection.resolve(collection)
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return this.resolve(subCollection)
+        return Collection.resolve(subCollection)
       })
       .then(subCollection => {
         if (!subCollection) {
@@ -568,7 +501,7 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(() => {
-        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id)
       })
   }
 
@@ -579,14 +512,15 @@ module.exports = class CollectionService extends Service {
    * @returns {Promise.<TResult>}
    */
   removeCollection(collection, subCollection){
+    const Collection = this.app.orm['Collection']
     let resCollection, resSubCollection
-    return this.resolve(collection)
+    return Collection.resolve(collection)
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return this.resolve(subCollection)
+        return Collection.resolve(subCollection)
       })
       .then(subCollection => {
         if (!subCollection) {
@@ -602,7 +536,7 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id)
       })
   }
 
@@ -613,14 +547,16 @@ module.exports = class CollectionService extends Service {
    * @returns {Promise.<TResult>}
    */
   addProduct(collection, product){
+    const Collection = this.app.orm['Collection']
+    const Product = this.app.orm['Product']
     let resCollection, resProduct
-    return this.resolve(collection)
+    return Collection.resolve(collection)
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return this.app.services.ProductService.resolve(product)
+        return Product.resolve(product)
       })
       .then(product => {
         if (!product) {
@@ -636,7 +572,7 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id)
       })
   }
 
@@ -647,14 +583,16 @@ module.exports = class CollectionService extends Service {
    * @returns {Promise.<TResult>}
    */
   removeProduct(collection, product){
+    const Collection = this.app.orm['Collection']
+    const Product = this.app.orm['Product']
     let resCollection, resProduct
-    return this.resolve(collection)
+    return Collection.resolve(collection)
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return this.app.services.ProductService.resolve(product)
+        return Product.resolve(product)
       })
       .then(product => {
         if (!product) {
@@ -670,7 +608,7 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id)
       })
   }
 
@@ -681,14 +619,16 @@ module.exports = class CollectionService extends Service {
    * @returns {Promise.<TResult>}
    */
   addCustomer(collection, customer){
+    const Collection = this.app.orm['Collection']
+    const Customer = this.app.orm['Customer']
     let resCollection, resCustomer
-    return this.resolve(collection)
+    return Collection.resolve(collection)
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return this.app.services.CustomerService.resolve(customer)
+        return Customer.resolve(customer)
       })
       .then(customer => {
         if (!customer) {
@@ -704,7 +644,7 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id)
       })
   }
 
@@ -715,14 +655,16 @@ module.exports = class CollectionService extends Service {
    * @returns {Promise.<TResult>}
    */
   removeCustomer(collection, customer){
+    const Collection = this.app.orm['Collection']
+    const Customer = this.app.orm['Customer']
     let resCollection, resCustomer
-    return this.resolve(collection)
+    return Collection.resolve(collection)
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return this.app.services.CustomerService.resolve(customer)
+        return Customer.resolve(customer)
       })
       .then(customer => {
         if (!customer) {
@@ -738,7 +680,7 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return this.app.orm['Collection'].findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id)
       })
   }
 }

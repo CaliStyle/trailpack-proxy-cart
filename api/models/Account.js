@@ -4,6 +4,8 @@
 
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
+const Errors = require('proxy-engine-errors')
+const _ = require('lodash')
 
 /**
  * @module Account
@@ -16,28 +18,64 @@ module.exports = class Account extends Model {
     if (app.config.database.orm === 'sequelize') {
       config = {
         options: {
-          underscored: true
-        },
-        classMethods: {
-          associate: (models) => {
-            models.Account.belongsTo(models.Customer, {
-              through: {
-                model: models.CustomerAccount,
-                unique: false
-              },
-              foreignKey: 'account_id',
-              constraints: false
-            })
+          underscored: true,
 
-            models.Account.belongsToMany(models.Source, {
-              as: 'sources',
-              through: {
-                model: models.CustomerSource,
+          classMethods: {
+            associate: (models) => {
+              models.Account.belongsTo(models.Customer, {
+                through: {
+                  model: models.CustomerAccount,
+                  unique: false
+                },
                 foreignKey: 'account_id',
-                unique: false
-              },
-              constraints: false
-            })
+                constraints: false
+              })
+
+              models.Account.belongsToMany(models.Source, {
+                as: 'sources',
+                through: {
+                  model: models.CustomerSource,
+                  foreignKey: 'account_id',
+                  unique: false
+                },
+                constraints: false
+              })
+            },
+            resolve: function (account, options) {
+              options = options || {}
+              const Account = this
+              if (account instanceof Account.Instance) {
+                return Promise.resolve(account)
+              }
+              else if (account && _.isObject(account) && account.id) {
+                return Account.findById(account.id, options)
+                  .then(resAccount => {
+                    if (!resAccount) {
+                      throw new Errors.FoundError(Error(`Account ${account.id} not found`))
+                    }
+                    return resAccount
+                  })
+              }
+              else if (account && _.isObject(account) && account.gateway && account.customer_id) {
+                return Account.findOne({
+                  where: {
+                    gateway: account.gateway,
+                    customer_id: account.customer_id
+                  }
+                }, options)
+                  .then(resAccount => {
+                    if (!resAccount) {
+                      throw new Errors.FoundError(Error(`Account with customer id ${account.customer_id} not found`))
+                    }
+                    return resAccount
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Account ${account}`)
+                return Promise.reject(err)
+              }
+            }
           }
         }
       }
@@ -81,6 +119,11 @@ module.exports = class Account extends Model {
       data: helpers.JSONB('Account', app, Sequelize, 'data', {
         defaultValue: {}
       }),
+      // Live Mode
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
+      }
     }
   }
 }

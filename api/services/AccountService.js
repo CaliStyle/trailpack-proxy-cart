@@ -2,67 +2,13 @@
 'use strict'
 
 const Service = require('trails/service')
-const Errors = require('proxy-engine-errors')
+// const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 /**
  * @module AccountService
  * @description 3rd Party Account Service
  */
 module.exports = class AccountService extends Service {
-  resolve(account, options) {
-    const Account =  this.app.orm['Account']
-    if (account instanceof Account.Instance){
-      return Promise.resolve(account)
-    }
-    else if (account && _.isObject(account) && account.id) {
-      return Account.findById(account.id, options)
-        .then(resAccount => {
-          if (!resAccount) {
-            throw new Errors.FoundError(Error(`Account ${account.id} not found`))
-          }
-          return resAccount
-        })
-    }
-    else if (account && _.isObject(account) && account.gateway && account.customer_id) {
-      return Account.findOne({
-        where: {
-          gateway: account.gateway,
-          customer_id: account.customer_id
-        }
-      }, options)
-        .then(resAccount => {
-          if (!resAccount) {
-            throw new Errors.FoundError(Error(`Account with customer id ${account.customer_id} not found`))
-          }
-          return resAccount
-        })
-    }
-    else {
-      // TODO create proper error
-      const err = new Error(`Unable to resolve Account ${account}`)
-      return Promise.reject(err)
-    }
-  }
-  resolveSource(source, options) {
-    const Source =  this.app.orm['Source']
-    if (source instanceof Source.Instance){
-      return Promise.resolve(source)
-    }
-    else if (source && _.isObject(source) && source.id) {
-      return Source.findById(source.id, options)
-        .then(resSource => {
-          if (!resSource) {
-            throw new Errors.FoundError(Error(`Source ${source.id} not found`))
-          }
-          return resSource
-        })
-    }
-    else {
-      // TODO create proper error
-      const err = new Error(`Unable to resolve Source ${source}`)
-      return Promise.reject(err)
-    }
-  }
 
   /**
    *
@@ -116,8 +62,9 @@ module.exports = class AccountService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   update(account, updates) {
+    const Account = this.app.orm['Account']
     let resAccount
-    return this.resolve(account)
+    return Account.resolve(account)
       .then(account => {
         resAccount = account
         let update = {
@@ -217,9 +164,11 @@ module.exports = class AccountService extends Service {
    * @returns {Promise.<TResult>}
    */
   addSource(account, token) {
+    const Account = this.app.orm['Account']
     const Source = this.app.orm['Source']
+
     let resAccount
-    return this.resolve(account)
+    return Account.resolve(account)
       .then(account => {
         if (!account) {
           throw new Error('Account did not resolve')
@@ -259,12 +208,13 @@ module.exports = class AccountService extends Service {
    * @returns {Promise.<TResult>}
    */
   findSource(account, source) {
-    // const Source = this.app.orm['Source']
+    const Account = this.app.orm['Account']
+    const Source = this.app.orm['Source']
     let resAccount, resSource
-    return this.resolve(account)
+    return Account.resolve(account)
       .then(account => {
         resAccount = account
-        return this.resolveSource(source)
+        return Source.resolve(source)
       })
       .then(source => {
         resSource = source
@@ -288,12 +238,13 @@ module.exports = class AccountService extends Service {
    * @returns {Promise.<TResult>}
    */
   updateSource(account, source, updates) {
-    // const Source = this.app.orm['Source']
+    const Account = this.app.orm['Account']
+    const Source = this.app.orm['Source']
     let resAccount, resSource
-    return this.resolve(account)
+    return Account.resolve(account)
       .then(account => {
         resAccount = account
-        return this.resolveSource(source)
+        return Source.resolve(source)
       })
       .then(source => {
         resSource = source
@@ -323,8 +274,9 @@ module.exports = class AccountService extends Service {
   }
 
   removeSource(source) {
+    const Source = this.app.orm['Source']
     let resSource
-    return this.resolveSource(source)
+    return Source.resolve(source)
       .then(source => {
         resSource = source
         return this.app.services.PaymentGenericService.removeCustomerSource(source)
@@ -356,9 +308,11 @@ module.exports = class AccountService extends Service {
    * @returns {Promise.<TResult>}
    */
   syncSources(account) {
+    const Account = this.app.orm['Account']
+    const Source = this.app.orm['Source']
     let resAccount
 
-    return this.resolve(account)
+    return Account.resolve(account)
       .then(account => {
         resAccount = account
         return this.app.services.PaymentGenericService.findCustomerSources(account)
@@ -368,7 +322,7 @@ module.exports = class AccountService extends Service {
           source.gateway = resAccount.gateway
           source.account_id = resAccount.id
           source.customer_id = resAccount.customer_id
-          return this.app.orm['Source'].findOrCreate({
+          return Source.findOrCreate({
             where: {
               customer_id: source.customer_id,
               account_id: source.account_id,
@@ -381,9 +335,7 @@ module.exports = class AccountService extends Service {
   }
 
   afterSourceCreate(source, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     return this.app.orm['CustomerSource'].create({
       source_id: source.id,
       source: source.gateway,
@@ -395,9 +347,7 @@ module.exports = class AccountService extends Service {
       })
   }
   afterSourceDestroy(source, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     return this.app.orm['CustomerSource'].destroy({
       where: {
         source_id: source.id

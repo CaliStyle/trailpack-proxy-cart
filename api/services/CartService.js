@@ -13,50 +13,6 @@ const CART_STATUS = require('../utils/enums').CART_STATUS
  * @description Cart Service
  */
 module.exports = class CartService extends Service {
-  resolve(cart, options){
-    // console.log('TYPEOF cart',typeof cart)
-    const Cart =  this.app.orm.Cart
-    if (cart instanceof Cart.Instance){
-      return Promise.resolve(cart)
-    }
-    else if (cart && _.isObject(cart) && cart.id) {
-      return Cart.findByIdDefault(cart.id, options)
-        .then(resCart => {
-          if (!resCart) {
-            throw new Errors.FoundError(Error(`Cart ${cart.id} not found`))
-          }
-          return resCart
-        })
-    }
-    else if (cart && _.isObject(cart) && cart.token) {
-      return Cart.findOneDefault({
-        where: { token: cart.token }
-      }, options)
-        .then(resCart => {
-          if (!resCart) {
-            throw new Errors.FoundError(Error(`Cart ${cart.token} not found`))
-          }
-          return resCart
-        })
-    }
-    else if (cart && _.isObject(cart)) {
-      return this.create(cart, options)
-    }
-    else if (cart && (_.isString(cart) || _.isNumber(cart))) {
-      return Cart.findByIdDefault(cart, options)
-        .then(resCart => {
-          if (!resCart) {
-            throw new Errors.FoundError(Error(`Cart ${cart} not found`))
-          }
-          return resCart
-        })
-    }
-    else {
-      // TODO create proper error
-      const err = new Error(`Unable to resolve Cart ${cart}`)
-      return Promise.reject(err)
-    }
-  }
 
   /**
    *
@@ -139,7 +95,7 @@ module.exports = class CartService extends Service {
    */
   update(cart, options){
     options = options || {}
-
+    const Cart = this.app.orm['Cart']
     if (!cart.id) {
       const err = new Errors.FoundError(Error('Cart is missing id'))
       return Promise.reject(err)
@@ -147,7 +103,7 @@ module.exports = class CartService extends Service {
     let resCart
     // Only allow a few values for update since this can be done from the client side
     const update = _.pick(cart, ['customer_id', 'host', 'ip', 'update_ip', 'client_details'])
-    return this.resolve(cart.id, {transaction: options.transaction || null})
+    return Cart.resolve(cart.id, {transaction: options.transaction || null})
       .then(foundCart => {
         resCart = _.extend(foundCart, update)
         return resCart.save({transaction: options.transaction || null})
@@ -183,7 +139,7 @@ module.exports = class CartService extends Service {
 
   /**
    *
-   * @param data
+   * @param req
    * @returns {Promise.<*>}
    */
   checkout(req){
@@ -210,7 +166,7 @@ module.exports = class CartService extends Service {
             object_id: order.customer_id,
             object: 'customer',
             type: 'customer.cart.checkout',
-            message: 'Customer cart checked out',
+            message: `Customer Cart ${ order.cart_token } checked out and created Order ${order.name}`,
             data: order
           }
           this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -233,8 +189,14 @@ module.exports = class CartService extends Service {
       })
   }
 
+  /**
+   *
+   * @param req
+   * @returns {Promise.<TResult>}
+   */
   prepareForOrder(req) {
     const AccountService = this.app.services.AccountService
+    const Cart = this.app.orm['Cart']
     let resCart, resCustomer, customerID, userID
 
     // Establish who placed the order
@@ -242,7 +204,7 @@ module.exports = class CartService extends Service {
       userID = req.user.id
     }
 
-    return this.resolve(req.body.cart)
+    return Cart.resolve(req.body.cart)
       .then(cart => {
         if (!cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
@@ -302,53 +264,23 @@ module.exports = class CartService extends Service {
         }
       })
       .then(paymentDetails => {
-        // console.log('cart checkout paymentDetails', paymentDetails)
-        const newOrder = {
+
+        const newOrder = resCart.buildOrder({
           // Request info
           client_details: req.body.client_details,
           ip: req.body.ip,
           payment_details: paymentDetails,
-          payment_kind: req.body.payment_kind || this.app.config.proxyCart.order_payment_kind,
-          fulfillment_kind: req.body.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind,
+          payment_kind: req.body.payment_kind,
+          fulfillment_kind: req.body.fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
           shipping_address: req.body.shipping_address,
           billing_address: req.body.billing_address,
-
           // Customer Info
           customer_id: customerID,
           email: req.body['email'] || resCustomer['email'] || null,
-
           // User ID
           user_id: userID || null,
-
-          // Cart Info
-          cart_token: resCart.token,
-          currency: resCart.currency,
-          line_items: resCart.line_items,
-          tax_lines: resCart.tax_lines,
-          shipping_lines: resCart.shipping_lines,
-          discounted_lines: resCart.discounted_lines,
-          coupon_lines: resCart.coupon_lines,
-          subtotal_price: resCart.subtotal_price,
-          taxes_included: resCart.taxes_included,
-          total_discounts: resCart.total_discounts,
-          total_coupons: resCart.total_coupons,
-          total_line_items_price: resCart.total_line_items_price,
-          total_price: resCart.total_due,
-          total_due: resCart.total_due,
-          total_tax: resCart.total_tax,
-          total_weight: resCart.total_weight,
-          total_items: resCart.total_items,
-          shop_id: resCart.shop_id,
-          has_shipping: resCart.has_shipping,
-          has_subscription: resCart.has_subscription,
-
-          //Pricing Overrides
-          pricing_override_id: resCart.pricing_override_id,
-          pricing_overrides: resCart.pricing_overrides,
-          total_overrides: resCart.total_overrides
-        }
-        // console.log('cart checkout prepare', newOrder)
+        })
         return newOrder
       })
   }
@@ -360,7 +292,8 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   afterOrder(req, order){
-    return this.resolve(req.body.cart)
+    const Cart = this.app.orm['Cart']
+    return Cart.resolve(req.body.cart)
       .then(cart => {
         cart.order(order)
         return cart.save()
@@ -374,7 +307,7 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   pricingOverrides(overrides, id, admin){
-
+    const Cart = this.app.orm['Cart']
     if (_.isObject(overrides) && overrides.pricing_overrides){
       overrides = overrides.pricing_overrides
     }
@@ -383,7 +316,7 @@ module.exports = class CartService extends Service {
       return override
     })
     // console.log(overrides, id, admin)
-    return this.resolve(id)
+    return Cart.resolve(id)
       .then(cart => {
         cart.pricing_overrides = overrides
         cart.pricing_override_id = admin.id
@@ -421,11 +354,12 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   addItemsToCart(items, cart){
+    const Cart = this.app.orm['Cart']
     if (items.line_items) {
       items = items.line_items
     }
     let resCart
-    return this.resolve(cart)
+    return Cart.resolve(cart)
       .then(foundCart => {
         if (!foundCart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
@@ -458,11 +392,12 @@ module.exports = class CartService extends Service {
    * @returns {Promise}
    */
   removeItemsFromCart(items, cart){
+    const Cart = this.app.orm['Cart']
     if (items.line_items) {
       items = items.line_items
     }
     let resCart
-    return this.resolve(cart)
+    return Cart.resolve(cart)
       .then(foundCart => {
         if (!foundCart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
@@ -485,29 +420,21 @@ module.exports = class CartService extends Service {
         return resCart.save()
       })
   }
-  clearCart(cart){
-    return new Promise((resolve, reject) => {
-      this.resolve(cart)
-        .then(foundCart => {
-          if (!foundCart) {
-            const err = new Errors.FoundError(Error('Cart Not Found'))
-            return reject(err)
-          }
-          if (foundCart.status !== CART_STATUS.OPEN) {
-            const err = new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
-            return reject(err)
-          }
-          cart = foundCart
-          cart = _.extend(cart, { line_items: [] })
-          return cart.save()
-        })
-        .then(cart => {
-          return resolve(cart)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+  clearCart(cart, options){
+    options = options || {}
+    const Cart = this.app.orm['Cart']
+    return Cart.resolve(cart, options)
+      .then(foundCart => {
+        if (!foundCart) {
+          throw new Errors.FoundError(Error('Cart Not Found'))
+        }
+        if (foundCart.status !== CART_STATUS.OPEN) {
+          throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        }
+        cart = foundCart
+        cart = _.extend(cart, { line_items: [] })
+        return cart.save()
+      })
   }
 
   /**

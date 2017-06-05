@@ -5,6 +5,7 @@ const fs = require('fs')
 const path = require('path')
 // const bodyParser = require('body-parser')
 // const lib = require('../lib')
+const Service = require('trails/service')
 
 const packs = [
   require('trailpack-router'),
@@ -87,7 +88,16 @@ if ( SERVER == 'express' ) {
 }
 
 const App = {
-  api: require('../api'),
+  api: _.defaultsDeep(require('../api'), {
+    services: {
+      FailTransaction: class FailTransaction extends Service {
+
+      },
+      FailFulfillment: class FailFulfillment extends Service {
+
+      }
+    }
+  }),
   pkg: {
     name: 'trailpack-proxy-cart-test',
     version: '1.0.0'

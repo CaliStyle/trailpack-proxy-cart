@@ -29,6 +29,9 @@ module.exports = class County extends Model {
               models.County.belongsTo(models.Country, {
                 // as: 'country_id'
               })
+            },
+            resolve: function(county, options){
+              //
             }
           }
         }

@@ -10,14 +10,26 @@ describe('CartService', () => {
     CartService = global.app.services['CartService']
     Cart = global.app.services.ProxyEngineService.getModel('Cart')
   })
-  it('should resolve a cart instance', (done) => {
-    CartService.resolve(Cart.build({}))
+  it('should not allow a closed cart to checkout', () => {
+    let resCart
+    CartService.create({})
       .then(cart => {
-        assert.ok(cart instanceof Cart.Instance)
-        done()
+        resCart = cart
+        return resCart.close(null, {})
+        // return resCart.save()
+      })
+      .then(updatedCart => {
+        return CartService.checkout({
+          body: {
+            cart: resCart
+          }
+        })
+      })
+      .then(() => {
+        throw new Error('This should have thrown an error')
       })
       .catch(err => {
-        done(err)
+        assert.equal(err.message, 'Error: Cart is not open')
       })
   })
 })

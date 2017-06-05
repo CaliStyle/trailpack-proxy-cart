@@ -37,6 +37,9 @@ module.exports = class Province extends Model {
                 foreignKey: 'shipping_zone_id',
                 constraints: false
               })
+            },
+            resolve: function(province, options){
+              //
             }
           }
         }

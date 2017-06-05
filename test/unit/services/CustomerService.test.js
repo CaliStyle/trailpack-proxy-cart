@@ -12,7 +12,7 @@ describe('CustomerService', () => {
     Customer = global.app.services.ProxyEngineService.getModel('Customer')
   })
   it('should resolve a customer instance', (done) => {
-    CustomerService.resolve(Customer.build({}))
+    Customer.resolve(Customer.build({}))
       .then(customer => {
         assert.ok(customer instanceof Customer.Instance)
         done()

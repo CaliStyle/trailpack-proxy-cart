@@ -129,6 +129,9 @@ module.exports = class Discount extends Model {
                   })
               }
               return recursiveQuery(options)
+            },
+            resolve: function(discount, options){
+              //
             }
           }
         }

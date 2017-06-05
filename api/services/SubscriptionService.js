@@ -72,7 +72,8 @@ module.exports = class SubscriptionService extends Service {
    * @returns {Promise.<TResult>}
    */
   setupSubscriptions(order, active) {
-    return this.app.services.OrderService.resolve(order)
+    const Order = this.app.orm['Order']
+    return Order.resolve(order)
       .then(order => {
         if (!order.order_items || order.order_items.length == 0) {
           return order.getOrder_items()
@@ -195,7 +196,8 @@ module.exports = class SubscriptionService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   cancel(body, subscription) {
-    return this.resolve(subscription)
+    const Subscription = this.app.orm['Subscription']
+    return Subscription.resolve(subscription)
       .then(resSubscription => {
         resSubscription.cancel_reason = body.reason || SUBSCRIPTION_CANCEL.OTHER
         resSubscription.cancelled_at = new Date()
@@ -224,7 +226,8 @@ module.exports = class SubscriptionService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   activate(body, subscription) {
-    return this.resolve(subscription)
+    const Subscription = this.app.orm['Subscription']
+    return Subscription.resolve(subscription)
       .then(resSubscription => {
         resSubscription.cancel_reason = null
         resSubscription.cancelled_at = null
@@ -252,7 +255,8 @@ module.exports = class SubscriptionService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   deactivate(body, subscription) {
-    return this.resolve(subscription)
+    const Subscription = this.app.orm['Subscription']
+    return Subscription.resolve(subscription)
       .then(resSubscription => {
         resSubscription.cancel_reason = null
         resSubscription.cancelled_at = null
@@ -274,11 +278,12 @@ module.exports = class SubscriptionService extends Service {
   }
 
   addItems(items, subscription) {
+    const Subscription = this.app.orm['Subscription']
     if (items.line_items) {
       items = items.line_items
     }
     let resSubscription
-    return this.resolve(subscription)
+    return Subscription.resolve(subscription)
       .then(foundSubscription => {
         if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
@@ -313,11 +318,12 @@ module.exports = class SubscriptionService extends Service {
       })
   }
   removeItems(items, subscription) {
+    const Subscription = this.app.orm['Subscription']
     if (items.line_items) {
       items = items.line_items
     }
     let resSubscription
-    return this.resolve(subscription)
+    return Subscription.resolve(subscription)
       .then(foundSubscription => {
         if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
@@ -351,8 +357,9 @@ module.exports = class SubscriptionService extends Service {
   }
 
   renew(subscription) {
+    const Subscription = this.app.orm['Subscription']
     let resSubscription, resOrder
-    return this.resolve(subscription)
+    return Subscription.resolve(subscription)
       .then(subscription => {
         if (!subscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
@@ -394,9 +401,10 @@ module.exports = class SubscriptionService extends Service {
   }
 
   prepareForOrder(subscription) {
+    const Subscription = this.app.orm['Subscription']
     let resSubscription, resCustomer
 
-    return this.resolve(subscription)
+    return Subscription.resolve(subscription)
       .then(subscription => {
         resSubscription = subscription
         return this.app.orm['Customer'].findById(resSubscription.customer_id, {
