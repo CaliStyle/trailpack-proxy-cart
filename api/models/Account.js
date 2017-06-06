@@ -35,10 +35,10 @@ module.exports = class Account extends Model {
                 as: 'sources',
                 through: {
                   model: models.CustomerSource,
-                  foreignKey: 'account_id',
                   unique: false
                 },
-                constraints: false
+                foreignKey: 'account_id'
+                // constraints: false
               })
             },
             resolve: function (account, options) {

@@ -151,7 +151,7 @@ module.exports = class SubscriptionService extends Service {
           object_id: resSubscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.subscribed',
-          message: 'Customer subscribed to subscription',
+          message: `Customer subscribed to subscription ${resSubscription.token}`,
           data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -181,7 +181,7 @@ module.exports = class SubscriptionService extends Service {
           object_id: subscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.updated',
-          message: 'Customer subscription updated',
+          message: `Customer subscription ${subscription.token} updated`,
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -210,7 +210,7 @@ module.exports = class SubscriptionService extends Service {
           object_id: resSubscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.cancelled',
-          message: 'Customer subscription was cancelled',
+          message: `Customer subscription ${resSubscription.token} was cancelled`,
           data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -240,7 +240,7 @@ module.exports = class SubscriptionService extends Service {
           object_id: resSubscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.activated',
-          message: 'Customer subscription was activated',
+          message: `Customer subscription ${resSubscription.token} was activated`,
           data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -269,7 +269,7 @@ module.exports = class SubscriptionService extends Service {
           object_id: resSubscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.deactivated',
-          message: 'Customer subscription was deactivated',
+          message: `Customer subscription ${resSubscription.token} was deactivated`,
           data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -309,7 +309,7 @@ module.exports = class SubscriptionService extends Service {
           object_id: resSubscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.items_added',
-          message: 'Customer subscription had items added',
+          message: `Customer subscription ${resSubscription.token} had items added`,
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -347,7 +347,7 @@ module.exports = class SubscriptionService extends Service {
           object_id: resSubscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.items_removed',
-          message: 'Customer subscription had items removed',
+          message: `Customer subscription ${resSubscription.token} had items removed`,
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -385,16 +385,16 @@ module.exports = class SubscriptionService extends Service {
       .then(newSubscription => {
         // Tack Event
         const event = {
-          object_id: newSubscription.customer_id,
+          object_id: resSubscription.customer_id,
           object: 'customer',
           type: 'customer.subscription.renewed',
-          message: 'Customer subscription was renewed',
-          data: newSubscription
+          message: `Customer subscription ${resSubscription.token} was renewed`,
+          data: resSubscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
 
         return {
-          subscription: newSubscription,
+          subscription: resSubscription,
           order: resOrder
         }
       })

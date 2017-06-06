@@ -161,7 +161,7 @@ module.exports = class CustomerService extends Service {
                     object_id: account.customer_id,
                     object: 'customer',
                     type: 'customer.account.created',
-                    message: 'Customer account created',
+                    message: `Customer account ${account.foreign_id} created on ${ account.gateway }`,
                     data: account
                   }
                   this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
