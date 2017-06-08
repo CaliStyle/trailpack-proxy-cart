@@ -103,8 +103,8 @@ module.exports = class Order extends Model {
               //   constraints: false
               // })
               // models.Order.belongsTo(models.Customer, {
-              //   as: 'customer_id',
-              //   constraints: false
+              //   // as: 'customer_id',
+              //   // constraints: false
               // })
               // models.Order.belongsTo(models.Shop, {
               //   as: 'shop_id',
@@ -254,7 +254,8 @@ module.exports = class Order extends Model {
             }
           },
           instanceMethods: {
-            saveFinancialStatus: function() {
+            saveFinancialStatus: function(options) {
+              options = options || {}
               const Transaction = app.orm['Transaction']
 
               if (!this.id) {
@@ -263,14 +264,16 @@ module.exports = class Order extends Model {
               return Transaction.findAll({
                 where: {
                   order_id: this.id
-                }
+                }//,
+                //transaction: options.transaction || null
               })
                 .then(transactions => {
                   this.setFinancialStatus(transactions)
                   return this.save()
                 })
             },
-            saveFulfillmentStatus: function() {
+            saveFulfillmentStatus: function(options) {
+              options = options || {}
               const Fulfillment = app.orm['Fulfillment']
               if (!this.id) {
                 return Promise.resolve(this)
@@ -278,7 +281,8 @@ module.exports = class Order extends Model {
               return Fulfillment.findAll({
                 where: {
                   order_id: this.id
-                }
+                }// ,
+                // transaction: options.transaction || {}
               })
                 .then(fulfillments => {
                   this.setFulfillmentStatus(fulfillments)
@@ -449,8 +453,14 @@ module.exports = class Order extends Model {
           //   key: 'token'
           // }
         },
+        // Unique identifier for a particular order.
+        token: {
+          type: Sequelize.STRING,
+          unique: true
+        },
         customer_id: {
           type: Sequelize.INTEGER,
+          allowNull: true
           // references: {
           //   model: app.models['Customer'],
           //   key: 'id'
@@ -651,11 +661,6 @@ module.exports = class Order extends Model {
         // States whether or not taxes are included in the order subtotal. Valid values are "true" or "false".
         taxes_included: {
           type: Sequelize.BOOLEAN
-        },
-        // Unique identifier for a particular order.
-        token: {
-          type: Sequelize.STRING,
-          unique: true
         },
         // The total amount of the discounts applied to the price of the order.
         total_discounts: {

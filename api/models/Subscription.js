@@ -84,9 +84,9 @@ module.exports = class Subscription extends Model {
               //   // as: 'shop_id'
               // })
               // The Order that Created this Subscription
-              // models.Subscription.belongsTo(models.Order, {
-              //   as: 'original_order_id'
-              // })
+              models.Subscription.belongsTo(models.Order, {
+                as: 'original_order'
+              })
               // The collection of subscriptions for a given customer
               models.Subscription.belongsToMany(models.Collection, {
                 as: 'collections',

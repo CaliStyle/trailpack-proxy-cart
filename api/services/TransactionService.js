@@ -2,6 +2,7 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
+const Errors = require('proxy-engine-errors')
 
 /**
  * @module TransactionService
@@ -47,6 +48,9 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, options)
       .then(transaction => {
+        if (!transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
         return this.app.services.PaymentService.capture(transaction, options)
       })
   }
@@ -62,6 +66,9 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, options)
       .then(transaction => {
+        if (!transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
         return this.app.services.PaymentService.sale(transaction, options)
       })
   }
@@ -77,6 +84,9 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, options)
       .then(transaction => {
+        if (!transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
         return this.app.services.PaymentService.void(transaction, options)
       })
   }
@@ -92,6 +102,9 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, options)
       .then(transaction => {
+        if (!transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
         return this.app.services.PaymentService.refund(transaction, options)
       })
   }
@@ -129,9 +142,7 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<transaction>}
    */
   afterCreate(transaction, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     const Order = this.app.orm['Order']
     return Order.findById(transaction.order_id, {transaction: options.transaction || null})
       .then(order => {
@@ -148,9 +159,7 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<transaction>}
    */
   afterUpdate(transaction, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     const Order = this.app.orm['Order']
     return Order.findById(transaction.order_id, {transaction: options.transaction || null})
       .then(order => {

@@ -411,11 +411,100 @@ module.exports = class OrderService extends Service {
       return this.pay(order)
     }))
   }
+
+  /**
+   *
+   * @param orderItem
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  refundOrderItem(orderItem, options) {
+    const OrderItem = this.app.orm['OrderItem']
+    const Order = this.app.orm['Order']
+    let resOrderItem, resOrder
+    return OrderItem.resolve(orderItem)
+      .then(orderItem => {
+        if (!orderItem) {
+          throw new Errors.FoundError(Error('OrderItem not found'))
+        }
+        resOrderItem = orderItem
+        return resOrderItem
+      })
+      .then(() => {
+        return resOrderItem.getOrder()
+      })
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        const allowedStatuses = [ORDER_FINANCIAL.PAID, ORDER_FINANCIAL.PARTIALLY_PAID, ORDER_FINANCIAL.PARTIALLY_REFUNDED]
+        if (allowedStatuses.indexOf(order.financial_status) == -1) {
+          throw new Error(
+            `Order status is ${order.financial_status} not 
+            '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`
+          )
+        }
+
+        resOrder = order
+
+        if (!resOrder.transactions || resOrder.transactions.length == 0) {
+          return resOrder.getTransactions()
+        }
+        else {
+          return resOrder.transactions
+        }
+      })
+      .then(transactions => {
+        transactions = transactions || []
+        const canRefund = transactions.filter(transaction => {
+          return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
+        })
+        // TODO, refund multiple transactions is necessary
+        const toRefund = canRefund.find(transaction => transaction.amount >= resOrderItem.calculated_price)
+        if (!toRefund) {
+          // TODO CREATE PROPER ERROR
+          throw new Error('No transaction available to refund this item\'s calculated price')
+        }
+        return this.app.services.TransactionService.partiallyRefund(toRefund, resOrderItem.calculated_price)
+      })
+      .then(transaction => {
+        if (transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+          return this.app.orm['Refund'].create({
+            order_id: resOrder.id,
+            transaction_id: transaction.id,
+            amount: transaction.amount,
+            restock: options.restock || null
+          })
+        }
+        else {
+          throw new Error('Was unable to refund this transaction')
+        }
+      })
+      .then(refund => {
+        return resOrderItem.setRefund(refund.id)
+      })
+      .then(newRefund => {
+        return resOrder.getRefunds()
+      })
+      .then(refunds => {
+        // console.log('THIS REFUNDS', refunds)
+        let totalRefunds = 0
+        refunds.forEach(refund => {
+          totalRefunds = totalRefunds + refund.amount
+        })
+        resOrder.total_refunds = totalRefunds
+        return resOrder.saveFinancialStatus()
+      })
+      .then(order => {
+        return Order.findByIdDefault(resOrder.id)
+      })
+  }
   /**
    * Refund an Order or Partially Refund an Order
    * @param order
    * @returns {*|Promise.<TResult>}
    */
+  // TODO restock
   refund(order, refunds) {
     refunds = refunds || []
     const Order = this.app.orm['Order']
@@ -436,17 +525,15 @@ module.exports = class OrderService extends Service {
       })
       .then(order => {
         resOrder = order
-        if (!order.transactions || order.transactions.length == 0) {
-          return order.getTransactions()
+        if (!resOrder.transactions || resOrder.transactions.length == 0) {
+          return resOrder.getTransactions()
         }
         else {
-          return order.transactions
+          return resOrder.transactions
         }
       })
       .then(transactions => {
-        if (!transactions) {
-          transactions = []
-        }
+        transactions = transactions || []
         // Partially Refund
         if (refunds.length > 0) {
           return Promise.all(refunds.map(refund => {
@@ -476,7 +563,7 @@ module.exports = class OrderService extends Service {
       })
       .then(refundedTransactions => {
         return Promise.all(refundedTransactions.map(transaction => {
-          if (transaction.kind == TRANSACTION_KIND.REFUND) {
+          if (transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS) {
             return this.app.orm['Refund'].create({
               order_id: resOrder.id,
               transaction_id: transaction.id,
@@ -521,11 +608,11 @@ module.exports = class OrderService extends Service {
       })
       .then(order => {
         resOrder = order
-        if (!order.transactions || order.transactions.length == 0) {
-          return order.getTransactions()
+        if (!resOrder.transactions || resOrder.transactions.length == 0) {
+          return resOrder.getTransactions()
         }
         else {
-          return order.transactions
+          return resOrder.transactions
         }
       })
       .then(transactions => {
@@ -581,11 +668,11 @@ module.exports = class OrderService extends Service {
       })
       .then(order => {
         resOrder = order
-        if (!order.transactions || order.transactions.length == 0) {
-          return order.getTransactions()
+        if (!resOrder.transactions || resOrder.transactions.length == 0) {
+          return resOrder.getTransactions()
         }
         else {
-          return order.transactions
+          return resOrder.transactions
         }
       })
       .then(transactions => {
@@ -634,8 +721,8 @@ module.exports = class OrderService extends Service {
     return Order.resolve(order)
       .then(order => {
         resOrder = order
-        if (resOrder.fulfillment_status !== ORDER_FULFILLMENT.NONE) {
-          throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}'`)
+        if ([ORDER_FULFILLMENT.NONE, ORDER_FULFILLMENT.PENDING].indexOf(resOrder.fulfillment_status) < 0) {
+          throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}' or '${ORDER_FULFILLMENT.PENDING}'`)
         }
 
         if (!resOrder.transactions || resOrder.transactions.length == 0) {
@@ -646,8 +733,10 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(transactions => {
-        canRefund = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.SALE || transaction.kind == TRANSACTION_KIND.CAPTURE )
-        canVoid = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
+        canRefund = transactions.filter(transaction =>
+          [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
+        canVoid = transactions.filter(transaction =>
+          transaction.kind == TRANSACTION_KIND.AUTHORIZE)
         return
       })
       .then(() => {
@@ -669,7 +758,8 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(fulfillments => {
-        canCancel = fulfillments.filter(fulfillment => fulfillment.status == FULFILLMENT_STATUS.PENDING || FULFILLMENT_STATUS.SENT)
+        canCancel = fulfillments.filter(fulfillment =>
+          [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.SENT].indexOf(fulfillment.status) > -1)
         return Promise.all(canCancel.map(fulfillment => {
           return this.app.services.FulfillmentService.cancel(fulfillment, {transaction: options.transaction || null})
         }))
@@ -696,9 +786,8 @@ module.exports = class OrderService extends Service {
     const successes = transactions.filter(transaction => {
       return transaction.status == TRANSACTION_STATUS.SUCCESS
     })
-    const sales = transactions.filter(transaction => {
-      return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
-    })
+    const sales = transactions.filter(transaction =>
+      [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
     if (successes.length == transactions.length && sales.length == transactions.length) {
       immediate = true
     }
@@ -716,12 +805,10 @@ module.exports = class OrderService extends Service {
     if (!hasSubscription) {
       return immediate
     }
-    const successes = transactions.filter(transaction => {
-      return transaction.status == TRANSACTION_STATUS.SUCCESS
-    })
-    const sales = transactions.filter(transaction => {
-      return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
-    })
+    const successes = transactions.filter(transaction =>
+      transaction.status == TRANSACTION_STATUS.SUCCESS)
+    const sales = transactions.filter(transaction =>
+      [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
     if (successes.length == transactions.length && sales.length == transactions.length) {
       immediate = true
     }

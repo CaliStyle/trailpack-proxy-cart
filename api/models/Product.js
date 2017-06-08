@@ -143,7 +143,7 @@ module.exports = class Product extends Model {
                   unique: false,
                 },
                 foreignKey: 'product_id',
-                constraints: false
+                // constraints: false
               })
               models.Product.belongsToMany(models.Tag, {
                 as: 'tags',

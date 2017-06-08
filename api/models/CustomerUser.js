@@ -28,7 +28,7 @@ module.exports = class CustomerUser extends Model {
         },
         role: {
           type: Sequelize.STRING,
-          defaultsValue: 'admin'
+          defaultValue: 'admin'
         },
         user_id: {
           type: Sequelize.INTEGER,

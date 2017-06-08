@@ -3,7 +3,7 @@
 
 const Service = require('trails/service')
 // const _ = require('lodash')
-// const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
+const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 /**
  * @module PaymentService
@@ -69,7 +69,10 @@ module.exports = class PaymentService extends Service {
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
         if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
-          throw new Error(`Transaction status must be '${TRANSACTION_KIND.AUTHORIZE}' to be captured`)
+          throw new Error(`Transaction kind must be '${TRANSACTION_KIND.AUTHORIZE}' to be captured`)
+        }
+        if (transaction.status !== TRANSACTION_STATUS.SUCCESS) {
+          throw new Error(`Transaction status must be '${TRANSACTION_STATUS.SUCCESS}' to be captured`)
         }
         return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
       })
@@ -164,7 +167,10 @@ module.exports = class PaymentService extends Service {
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
         if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
-          throw new Error(`Transaction status must be '${TRANSACTION_KIND.AUTHORIZE}' to be voided`)
+          throw new Error(`Transaction kind must be '${TRANSACTION_KIND.AUTHORIZE}' to be voided`)
+        }
+        if (transaction.status !== TRANSACTION_STATUS.SUCCESS) {
+          throw new Error(`Transaction status must be '${TRANSACTION_STATUS.SUCCESS}' to be voided`)
         }
         return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
       })
@@ -177,7 +183,7 @@ module.exports = class PaymentService extends Service {
           object_id: transaction.order_id,
           object: 'order',
           type: `order.transaction.void.${transaction.status}`,
-          message: `Order ID ${transaction.order_id} transaction void of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
+          message: `Order ID ${transaction.order_id} transaction voided of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -207,8 +213,11 @@ module.exports = class PaymentService extends Service {
     transaction.description = transaction.description || 'Transaction Refund'
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(transaction => {
-        if (transaction.kind !== TRANSACTION_KIND.CAPTURE && transaction.kind !== TRANSACTION_KIND.SALE) {
+        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(transaction.kind) == -1) {
           throw new Error(`Transaction kind must be '${TRANSACTION_KIND.CAPTURE}' or '${TRANSACTION_KIND.SALE}' to be refunded`)
+        }
+        if (transaction.status !== TRANSACTION_STATUS.SUCCESS) {
+          throw new Error(`Transaction status must be '${TRANSACTION_STATUS.SUCCESS}' to be refunded`)
         }
         return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
       })

@@ -78,9 +78,9 @@ module.exports = class OrderItem extends Model {
               models.OrderItem.belongsTo(models.Product, {
 
               })
-              models.OrderItem.belongsTo(models.ProductVariant, {
-
-              })
+              // models.OrderItem.belongsTo(models.ProductVariant, {
+              //   as: 'variant_id'
+              // })
               models.OrderItem.belongsTo(models.Vendor, {
 
               })

@@ -60,7 +60,7 @@ module.exports = class Vendor extends Model {
                   model: models.VendorProduct,
                   foreignKey: 'vendor_id'
                 },
-                constraints: false
+                //constraints: false
               })
             },
             resolve: function(vendor, options){

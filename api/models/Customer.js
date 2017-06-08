@@ -197,6 +197,9 @@ module.exports = class Customer extends Model {
                 // constraints: false
               })
               // models.Customer.hasMany(models.Order, {
+              //   foreignKey: 'customer_id'
+              // })
+              // models.Customer.hasMany(models.Order, {
               //   as: 'orders',
               //   foreignKey: 'customer_id'
               // })

@@ -173,7 +173,7 @@ module.exports = class Cart extends Model {
              *
              * @param item
              * @param qty
-             * @returns {Promise.<config>}
+             * @returns {Promise.<this>}
              */
             removeLine: function(item, qty) {
               const lineItems = this.line_items
@@ -203,7 +203,7 @@ module.exports = class Cart extends Model {
               if (save) {
                 return this.save(save)
               }
-              return Promise.resolve(this)
+              return this //Promise.resolve(this)
             },
             /**
              *
@@ -215,7 +215,7 @@ module.exports = class Cart extends Model {
               if (save) {
                 return this.save(save)
               }
-              return Promise.resolve(this)
+              return this //Promise.resolve(this)
             },
             /**
              *
@@ -228,7 +228,7 @@ module.exports = class Cart extends Model {
               if (save) {
                 return this.save(save)
               }
-              return Promise.resolve(this)
+              return this //Promise.resolve(this)
             },
             /**
              *
