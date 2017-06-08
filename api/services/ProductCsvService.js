@@ -247,6 +247,7 @@ module.exports = class ProductCsvService extends Service {
   processProductUpload(uploadId) {
     return new Promise((resolve, reject) => {
       const ProductUpload = this.app.orm.ProductUpload
+      const errors = []
       let productsTotal = 0
       let variantsTotal = 0
       ProductUpload.batch({
@@ -273,6 +274,9 @@ module.exports = class ProductCsvService extends Service {
               variantsTotal = variantsTotal + results.variants
               return results
             })
+            .catch(err => {
+              errors.push(err)
+            })
         })
         // })
       })
@@ -283,9 +287,10 @@ module.exports = class ProductCsvService extends Service {
           const results = {
             upload_id: uploadId,
             products: productsTotal,
-            variants: variantsTotal
+            variants: variantsTotal,
+            errors: errors
           }
-          console.log('RESULTS', results)
+          // console.log('RESULTS', results)
           this.app.services.ProxyEngineService.publish('product_process.complete', results)
           return resolve(results)
         })
@@ -463,6 +468,7 @@ module.exports = class ProductCsvService extends Service {
       const Metadata = this.app.orm.Metadata
       const Product = this.app.orm.Product
       const ProductVariant = this.app.orm.ProductVariant
+      const errors = []
       let productsTotal = 0
       ProductMetaUpload.batch({
         where: {
@@ -513,6 +519,9 @@ module.exports = class ProductCsvService extends Service {
               product.metadata.data = metadata.data
               return product.metadata.save()
             })
+            .catch(err => {
+              errors.push(err)
+            })
         })
           .then(results => {
             // Calculate Totals
@@ -528,7 +537,8 @@ module.exports = class ProductCsvService extends Service {
         .then(destroyed => {
           const results = {
             upload_id: uploadId,
-            products: productsTotal
+            products: productsTotal,
+            errors: errors
           }
           this.app.services.ProxyEngineService.publish('product_metadata_process.complete', results)
           return resolve(results)

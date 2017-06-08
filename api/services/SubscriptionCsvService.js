@@ -135,6 +135,7 @@ module.exports = class SubscriptionCsvService extends Service {
   processSubscriptionUpload(uploadId) {
     return new Promise((resolve, reject) => {
       const SubscriptionUpload = this.app.orm.SubscriptionUpload
+      const errors = []
       let subscriptionsTotal = 0
       SubscriptionUpload.batch({
         where: {
@@ -158,6 +159,9 @@ module.exports = class SubscriptionCsvService extends Service {
           }
           // console.log('UPLOAD SUBSCRIPTION', create)
           return this.transformFromRow(create)
+            .catch(err => {
+              errors.push(err)
+            })
         })
           .then(results => {
             // Calculate Totals
@@ -171,7 +175,8 @@ module.exports = class SubscriptionCsvService extends Service {
         .then(destroyed => {
           const results = {
             upload_id: uploadId,
-            subscriptions: subscriptionsTotal
+            subscriptions: subscriptionsTotal,
+            errors: errors
           }
           this.app.services.ProxyEngineService.publish('subscription_process.complete', results)
           return resolve(results)
