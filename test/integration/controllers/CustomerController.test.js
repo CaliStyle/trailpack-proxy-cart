@@ -259,7 +259,7 @@ describe('CustomerController', () => {
   it('It should upload customer_upload.csv', (done) => {
     request
       .post('/customer/uploadCSV')
-      .attach('csv', 'test/fixtures/customer_upload.csv')
+      .attach('file', 'test/fixtures/customer_upload.csv')
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)

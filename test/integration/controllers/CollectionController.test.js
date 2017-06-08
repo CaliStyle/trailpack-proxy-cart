@@ -134,7 +134,7 @@ describe('CollectionController', () => {
   it('It should upload collection_upload.csv', (done) => {
     request
       .post('/collection/uploadCSV')
-      .attach('csv', 'test/fixtures/collection_upload.csv')
+      .attach('file', 'test/fixtures/collection_upload.csv')
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)

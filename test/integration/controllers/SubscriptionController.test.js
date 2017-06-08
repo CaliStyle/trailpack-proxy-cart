@@ -49,7 +49,7 @@ describe('SubscriptionController', () => {
   it('It should upload subscription_upload.csv', (done) => {
     request
       .post('/subscription/uploadCSV')
-      .attach('csv', 'test/fixtures/subscription_upload.csv')
+      .attach('file', 'test/fixtures/subscription_upload.csv')
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
