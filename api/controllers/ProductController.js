@@ -68,7 +68,7 @@ module.exports = class ProductController extends Controller {
     const sort = req.query.sort || 'title DESC'
     const term = req.query.term
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
-    const defaults = _.defaults(where, {
+    const defaults = _.defaultsDeep(where, {
       $or: [
         {
           title: {
@@ -180,9 +180,16 @@ module.exports = class ProductController extends Controller {
       where: {
         '$tags.name$': req.params.tag
       },
+      // include: [{
+      //   model: this.app.orm['Tag'],
+      //   as: 'tags',
+      //   where: {
+      //     name: req.params.tag
+      //   }
+      // }],
       order: sort,
       offset: offset,
-      req: req
+      req: req,
       // limit: limit // TODO Sequelize breaks if a limit is here.
     })
       .then(products => {
@@ -207,6 +214,7 @@ module.exports = class ProductController extends Controller {
     const limit = req.query.limit || 10
     const offset = req.query.offset || 0
     const sort = req.query.sort || 'created_at DESC'
+
     Product.findAndCountDefault({
       where: {
         '$collections.handle$': req.params.handle

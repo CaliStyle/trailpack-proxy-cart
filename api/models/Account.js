@@ -57,12 +57,12 @@ module.exports = class Account extends Model {
                   })
               }
               else if (account && _.isObject(account) && account.gateway && account.customer_id) {
-                return Account.findOne({
+                return Account.findOne(_.defaultsDeep({
                   where: {
                     gateway: account.gateway,
                     customer_id: account.customer_id
                   }
-                }, options)
+                }, options))
                   .then(resAccount => {
                     if (!resAccount) {
                       throw new Errors.FoundError(Error(`Account with customer id ${account.customer_id} not found`))

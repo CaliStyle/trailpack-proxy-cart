@@ -207,23 +207,23 @@ module.exports = class Collection extends Model {
                   })
               }
               else if (collection && _.isObject(collection) && (collection.handle || collection.title)) {
-                return Collection.findOne({
+                return Collection.findOne(_.defaultsDeep({
                   where: {
                     $or: {
                       handle: collection.handle,
                       title: collection.title
                     }
                   }
-                }, options)
+                }, options))
                   .then(resCollection => {
                     if (resCollection) {
                       return resCollection
                     }
-                    return Collection.create(collection, options)
+                    return Collection.create(collection, {transaction: options.transaction})
                   })
               }
               else if (collection && _.isString(collection)) {
-                return Collection.findOne({
+                return Collection.findOne(_.defaultsDeep({
                   where: {
                     $or: {
                       handle: collection,
@@ -231,12 +231,12 @@ module.exports = class Collection extends Model {
                       id: collection
                     }
                   }
-                }, options)
+                }, options))
                   .then(resCollection => {
                     if (resCollection) {
                       return resCollection
                     }
-                    return this.create({title: collection})
+                    return this.create({title: collection}, {transaction: options.transaction || null})
                   })
               }
               else {
@@ -248,12 +248,8 @@ module.exports = class Collection extends Model {
             transformCollections: (collections, options) => {
               const Collection = app.orm['Collection']
               const Sequelize = Collection.sequelize
-              if (!options) {
-                options = {}
-              }
-              if (!collections) {
-                collections = []
-              }
+              options = options || {}
+              collections = collections || []
 
               // Transform if necessary to objects
               collections = collections.map(collection => {

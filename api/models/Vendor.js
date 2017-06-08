@@ -80,23 +80,23 @@ module.exports = class Vendor extends Model {
                   })
               }
               else if (vendor && _.isObject(vendor) && (vendor.handle || vendor.name)) {
-                return Vendor.find({
+                return Vendor.findOne(_.defaultsDeep({
                   where: {
                     $or: {
                       handle: vendor.handle,
                       name: vendor.name
                     }
                   }
-                }, options)
+                }, options))
                   .then(resVendor => {
                     if (resVendor) {
                       return resVendor
                     }
-                    return Vendor.create(vendor, options)
+                    return Vendor.create(vendor, { transaction: options.transaction || null})
                   })
               }
               else if (vendor && _.isString(vendor)) {
-                return Vendor.find({
+                return Vendor.findOne(_.defaultsDeep({
                   where: {
                     $or: {
                       handle: vendor,
@@ -104,7 +104,7 @@ module.exports = class Vendor extends Model {
                       id: vendor
                     }
                   }
-                }, options)
+                }, options))
                   .then(resVendor => {
                     if (resVendor) {
                       return resVendor
@@ -121,14 +121,10 @@ module.exports = class Vendor extends Model {
               }
             },
             transformVendors: (vendors, options) => {
+              options = options || {}
+              vendors = vendors || []
               const Vendor = app.orm['Vendor']
-
-              if (!options) {
-                options = {}
-              }
-              if (!vendors) {
-                vendors = []
-              }
+              const Sequelize = Vendor.sequelize
 
               vendors = _.map(vendors, vendor => {
                 if (vendor && _.isString(vendor)) {
@@ -144,7 +140,8 @@ module.exports = class Vendor extends Model {
               })
               // console.log('THESE VENDORS', vendors)
               // return Vendor.sequelize.transaction(t => {
-              return Promise.all(vendors.map((vendor, index) => {
+              return Sequelize.Promise.mapSeries(vendors, vendor => {
+                const newVendor = vendor
                 return Vendor.findOne({
                   where: vendor,
                   attributes: ['id', 'name', 'handle'],
@@ -157,18 +154,23 @@ module.exports = class Vendor extends Model {
                     }
                     else {
                       // console.log('CREATING VENDOR',vendors[index])
-                      return Vendor.create(vendors[index], {
+                      return Vendor.create(newVendor, {
                         transaction: options.transaction || null
                       })
                     }
                   })
-              }))
+              })
             },
             transform: function (vendor) {
-              if (typeof vendor.name !== 'undefined') {
+              if (vendor && _.isObject(vendor)) {
                 return vendor
               }
-              return { name: vendor }
+              else if (vendor && _.isString(vendor)) {
+                return {
+                  handle: app.services.ProxyCartService.slug(vendor),
+                  name: vendor
+                }
+              }
             },
             reverseTransform: function (vendor) {
               if (typeof vendor.name !== 'undefined') {

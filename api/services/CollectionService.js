@@ -64,7 +64,7 @@ module.exports = class CollectionService extends Service {
           // console.log('THIS COLLECTION COLLECTIONS NOW', collection.collections)
           return Collection.transformCollections(collection.collections, {transaction: options.transaction || null})
         }
-        return
+        return []
       })
       .then(collections => {
         // console.log('THESE COLLECTIONS RESOLVED', collections)

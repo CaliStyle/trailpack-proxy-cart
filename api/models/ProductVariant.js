@@ -172,9 +172,9 @@ module.exports = class ProductVariant extends Model {
                   })
               }
               else if (variant && _.isObject(variant) && variant.sku) {
-                return Variant.findOne({
+                return Variant.findOne(_.defaultsDeep({
                   where: { sku: variant.sku }
-                }, options)
+                }, options))
                   .then(resVariant => {
                     if (!resVariant) {
                       throw new Errors.FoundError(Error(`Variant ${variant.sku} not found`))

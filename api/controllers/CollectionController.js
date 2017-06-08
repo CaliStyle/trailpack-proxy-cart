@@ -128,7 +128,7 @@ module.exports = class CollectionController extends Controller {
     const sort = req.query.sort || 'created_at DESC'
     const term = req.query.term
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
-    const defaults = _.defaults(where, {
+    const defaults = _.defaultsDeep(where, {
       $or: [
         {
           title: {

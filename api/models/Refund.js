@@ -59,7 +59,7 @@ module.exports = class Refund extends Model {
               })
             },
             resolve: function(refund, options){
-              //
+              // options = options || {}
             }
 
           }

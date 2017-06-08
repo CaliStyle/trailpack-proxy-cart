@@ -364,14 +364,14 @@ module.exports = class Customer extends Model {
                   })
               }
               else if (customer && _.isObject(customer) && customer.email) {
-                return Customer.findOne({
+                return Customer.findOne(_.defaultsDeep({
                   where: {
                     email: customer.email
                   }
-                }, options)
+                }, options))
                   .then(resCustomer => {
                     if (!resCustomer) {
-                      return app.services.CustomerService.create(customer, options)
+                      return app.services.CustomerService.create(customer, {transaction: options.transaction || null})
                     }
                     return resCustomer
                   })

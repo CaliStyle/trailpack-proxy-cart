@@ -52,6 +52,9 @@ module.exports = class ProductImage extends Model {
                 //   allowNull: true
                 // }
               })
+            },
+            resolve: function(image, options) {
+              //
             }
           }
         }

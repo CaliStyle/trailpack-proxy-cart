@@ -34,7 +34,7 @@ describe('CollectionController', () => {
       .expect(200)
       .end((err, res) => {
         collectionID = res.body.id
-        // console.log('this collection', res.body)
+        console.log('this collection', res.body)
         assert.equal(res.body.handle, 'have-you-seen-my-pants')
         assert.equal(res.body.title, 'Have you seen my Pants?')
         assert.equal(res.body.body, '# Honey, have you seen my Pants?')

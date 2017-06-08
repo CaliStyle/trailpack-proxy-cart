@@ -65,7 +65,10 @@ module.exports = class Shop extends Model {
               //
             },
             transformShops: (shops, options) => {
+              options = options || {}
+              shops = shops || []
               const Shop = app.orm['Shop']
+              const Sequelize = Shop.sequelize
               // Transform if necessary to objects
               shops = _.map(shops, shop => {
                 if (shop && _.isString(shop)) {
@@ -77,7 +80,8 @@ module.exports = class Shop extends Model {
                 }
               })
               // console.log('THESE SHOPS', shops)
-              return Promise.all(shops.map((shop, index) => {
+              return Sequelize.Promise.mapSeries(shops, shop => {
+                const newShop = shop
                 return Shop.findOne({
                   where: shop,
                   attributes: ['id', 'name', 'handle'],
@@ -90,12 +94,12 @@ module.exports = class Shop extends Model {
                     }
                     else {
                       // console.log('CREATING SHOP',shops[index])
-                      return Shop.create(shops[index], {
+                      return Shop.create(newShop, {
                         transaction: options.transaction || null
                       })
                     }
                   })
-              }))
+              })
             },
           }
         }

@@ -73,7 +73,7 @@ module.exports = class Fulfillment extends Model {
               })
             },
             resolve: function(fulfillment, options){
-              //
+              // options = options || {}
             }
           },
           instanceMethods: {

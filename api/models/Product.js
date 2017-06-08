@@ -376,9 +376,9 @@ module.exports = class Product extends Model {
                   })
               }
               else if (product && _.isObject(product) && product.handle) {
-                return Product.findOne({
+                return Product.findOne(_.defaultsDeep({
                   where: { handle: product.handle }
-                }, options)
+                }, options))
                   .then(resProduct => {
                     if (!resProduct) {
                       throw new Errors.FoundError(Error(`Product ${product.handle} not found`))
