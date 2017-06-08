@@ -10,7 +10,7 @@ const multer = require('multer')
 module.exports = class VendorPolicy extends Policy {
   csv(req, res, next) {
     const upload = multer({dest: 'test/uploads/'})
-    upload.single('csv')(req, res, err => {
+    upload.single('file')(req, res, err => {
       if (err) {
         this.log.info(err)
       }

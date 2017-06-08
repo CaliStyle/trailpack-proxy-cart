@@ -574,7 +574,7 @@ describe('ProductController', () => {
   it('It should upload product_upload.csv', (done) => {
     request
       .post('/product/uploadCSV')
-      .attach('csv', 'test/fixtures/product_upload.csv')
+      .attach('file', 'test/fixtures/product_upload.csv')
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.result.upload_id)
@@ -598,7 +598,7 @@ describe('ProductController', () => {
   it('It should upload product_meta_upload.csv', (done) => {
     request
       .post('/product/uploadMetaCSV')
-      .attach('csv', 'test/fixtures/product_meta_upload.csv')
+      .attach('file', 'test/fixtures/product_meta_upload.csv')
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
