@@ -253,6 +253,7 @@ module.exports = class ProductService extends Service {
 
     // Assign the variants to the create model
     create.variants = variants
+    create.total_variants = variants.length
 
     // Map image positions
     _.map(images, (image, index) => {
@@ -516,6 +517,7 @@ module.exports = class ProductService extends Service {
         _.each(resProduct.variants, (variant, index) => {
           variant.position = index + 1
         })
+        resProduct.total_variants = resProduct.variants.length
 
         // Set the new product options
         _.each(resProduct.variants, variant => {
@@ -734,6 +736,7 @@ module.exports = class ProductService extends Service {
       })
       .then(updatedVariants => {
         resProduct.options = product.options
+        resProduct.total_variants = updatedVariants.length
         return resProduct.save({transaction: options.transaction || null})
       })
       .then(updatedProduct => {
@@ -863,6 +866,7 @@ module.exports = class ProductService extends Service {
       })
       .then(updatedVariants => {
         resProduct.options = productOptions
+        resProduct.total_variants = updatedVariants.length
         return resProduct.save({transaction: options.transaction || null})
       })
       .then(updatedProduct => {

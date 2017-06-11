@@ -618,6 +618,19 @@ describe('ProductController', () => {
         done()
       })
   })
+  it('It should get product with uploaded meta', (done) => {
+    request
+      .get('/product/handle/hydroflask')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS PRODUCT', res.body)
+        //recycle: 'no', material: 'plastic', condition: 'new'
+        assert.equal(res.body.metadata['recycle'], 'no')
+        assert.equal(res.body.metadata['material'], 'plastic')
+        assert.equal(res.body.metadata['condition'], 'new')
+        done()
+      })
+  })
 
   it('It should get products', (done) => {
     request

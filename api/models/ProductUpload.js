@@ -76,7 +76,7 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Body'
       body: {
-        type: Sequelize.STRING
+        type: Sequelize.TEXT
       },
       // 'SEO Title'
       seo_title: {
@@ -84,7 +84,7 @@ module.exports = class ProductUpload extends Model {
       },
       // 'SEO Description'
       seo_description: {
-        type: Sequelize.STRING
+        type: Sequelize.TEXT
       },
       // 'Vendors'
       vendors: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSON, 'vendors', {
@@ -207,7 +207,7 @@ module.exports = class ProductUpload extends Model {
       },
       // 'Metadata'
       metadata: {
-        type: Sequelize.STRING
+        type: Sequelize.TEXT
       },
       // 'Subscription'
       requires_subscription: {
