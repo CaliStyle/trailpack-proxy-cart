@@ -45,7 +45,7 @@ module.exports = class CustomerService extends Service {
     }
 
     let resCustomer = {}
-    const create = {
+    const create =  Customer.build({
       first_name: customer.first_name,
       last_name: customer.last_name,
       email: customer.email,
@@ -55,19 +55,11 @@ module.exports = class CustomerService extends Service {
       tax_exempt: customer.tax_exempt,
       verified_email: customer.verified_email,
       metadata: Metadata.transform(customer.metadata || {}),
-      account_balance: customer.account_balance
-    }
-    if (customer.shipping_address) {
-      create.shipping_address = customer.shipping_address
-    }
-    if (customer.billing_address) {
-      create.billing_address = customer.billing_address
-    }
-    if (customer.default_address) {
-      create.default_address = customer.default_address
-    }
-
-    return Customer.create(create, {
+      account_balance: customer.account_balance,
+      shipping_address: customer.shipping_address || null,
+      billing_address: customer.billing_address || null,
+      default_address: customer.default_address || null
+    },{
       include: [
         {
           model: Cart,
@@ -97,13 +89,11 @@ module.exports = class CustomerService extends Service {
           model: Metadata,
           as: 'metadata'
         }
-        // {
-        //   model: Account,
-        //   as: 'accounts'
-        // }
       ],
       transaction: options.transaction || null
     })
+
+    return create.save()
       .then(createdCustomer => {
         resCustomer = createdCustomer
         if (customer.tags && customer.tags.length > 0) {
@@ -584,7 +574,7 @@ module.exports = class CustomerService extends Service {
       })
       .then(defaultAddress => {
         if (!type) {
-          return resCustomer.addAddress(resAddress.id, {address: 'address'})
+          return resCustomer.addAddress(resAddress.id)
         }
       })
       .then(address => {

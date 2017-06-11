@@ -69,7 +69,7 @@ module.exports = class CollectionService extends Service {
       .then(collections => {
         // console.log('THESE COLLECTIONS RESOLVED', collections)
         if (collections && collections.length > 0) {
-          return resCollection.setCollections(_.map(collections, c => c.id), {transaction: options.transaction || null})
+          return resCollection.setCollections(collections.map( c => c.id), {transaction: options.transaction || null})
         }
         return
       })
@@ -92,7 +92,7 @@ module.exports = class CollectionService extends Service {
     }
     let resCollection
     const update = _.omit(collection,['id','created_at','updated_at','collections'])
-    return Collection.findById(collection.id)
+    return Collection.findByIdDefault(collection.id)
       .then(resCollection => {
         return resCollection.update(update, options)
       })
@@ -107,12 +107,12 @@ module.exports = class CollectionService extends Service {
       })
       .then(collections => {
         if (collections && collections.length > 0) {
-          return resCollection.setCollections(_.map(collections, c => c.id), {transaction: options.transaction || null})
+          return resCollection.setCollections(collections.map(c => c.id), {transaction: options.transaction || null})
         }
         return
       })
       .then(() => {
-        return Collection.findByIdDefault(resCollection.id, options)
+        return resCollection.reload()
       })
   }
 

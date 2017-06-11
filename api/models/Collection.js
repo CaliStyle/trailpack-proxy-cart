@@ -1,5 +1,5 @@
 /* eslint new-cap: [0] */
-
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
@@ -130,33 +130,12 @@ module.exports = class Collection extends Model {
                 },
                 foreignKey: 'model_id',
                 constraints: false
-                // through: {
-                //   model: models.CollectionCollection,
-                //   unique: false
-                // },
-                // foreignKey: 'subcollection_id',
-                // constraints: false
               })
-              // models.Collection.belongsToMany(models.ProductVariant, {
-              //   through: {
-              //     model: models.ItemCollection,
-              //     unique: false
-              //   },
-              //   foreignKey: 'collection_id'
-              // })
-              // models.ProductCollection.hasMany(models.ProductCollection, {
-              //   as: 'collections'
-              // })
-              // models.ProductCollection.hasMany(models.Product, {
-              //   as: 'products'
-              // })
-              // models.ProductCollection.hasMany(models.ProductImage, {
-              //   as: 'images'
-              // })
             },
             findByIdDefault: function(id, options) {
               options = options || {}
               options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
+              // console.log('THIS COLLECTION',options)
               return this.findById(id, options)
             },
             findByHandle: function(handle, options) {
