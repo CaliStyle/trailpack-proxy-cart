@@ -68,7 +68,7 @@ describe('CartPolicy', () => {
   })
   it('should add customer to collection', (done) => {
     global.app.orm['Collection']
-      .findByHandle('customer-discount-test')
+      .findByHandleDefault('customer-discount-test')
       .then(collection => {
         if (!collection) {
           const err = 'Not Found'

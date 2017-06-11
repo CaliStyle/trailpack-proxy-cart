@@ -137,6 +137,12 @@ module.exports = class CollectionUpload extends Model {
       discount_product_exclude: helpers.ARRAY('CollectionUpload', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
         defaultValue: []
       }),
+      images: helpers.ARRAY('CollectionUpload', app, Sequelize, Sequelize.JSON, 'images', {
+        defaultValue: []
+      }),
+      collections: helpers.ARRAY('CollectionUpload', app, Sequelize, Sequelize.JSON, 'collections', {
+        defaultValue: []
+      })
     }
     return schema
   }

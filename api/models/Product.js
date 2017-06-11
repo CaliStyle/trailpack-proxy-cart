@@ -82,6 +82,18 @@ module.exports = class Product extends Model {
                 through: null,
                 onDelete: 'CASCADE'
               })
+              // models.Product.belongsToMany(models.Image, {
+              //   as: 'images',
+              //   through: {
+              //     model: models.ItemImage,
+              //     unique: false,
+              //     scope: {
+              //       model: 'product'
+              //     }
+              //   },
+              //   foreignKey: 'model_id',
+              //   constraints: false
+              // })
               models.Product.hasMany(models.ProductVariant, {
                 as: 'variants',
                 foreignKey: 'product_id',
@@ -131,10 +143,10 @@ module.exports = class Product extends Model {
                   unique: false,
                   scope: {
                     model: 'product'
-                  },
-                  foreignKey: 'model_id',
-                  constraints: false
-                }
+                  }
+                },
+                // foreignKey: 'model_id',
+                // constraints: false
               })
               models.Product.belongsToMany(models.Vendor, {
                 as: 'vendors',

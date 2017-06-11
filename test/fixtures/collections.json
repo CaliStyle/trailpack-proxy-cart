@@ -5,7 +5,17 @@
     "body": "# Honey, have you seen my Pants?",
     "published": true,
     "sort_order": "price-desc",
-    "collections": ["Lego Movie"]
+    "collections": ["Lego Movie"],
+    "images": [
+      {
+        "src": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150",
+        "alt": "Hello World"
+      },
+      {
+        "src": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150",
+        "alt": "Hello World 2"
+      }
+    ]
   },
   {
     "handle": "customer-discount-test",

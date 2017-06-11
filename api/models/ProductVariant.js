@@ -94,6 +94,18 @@ module.exports = class ProductVariant extends Model {
               //   //   allowNull: false
               //   // }
               // })
+              // models.ProductVariant.belongsToMany(models.Image, {
+              //   as: 'images',
+              //   through: {
+              //     model: models.ItemImage,
+              //     unique: false,
+              //     scope: {
+              //       model: 'variant'
+              //     }
+              //   },
+              //   foreignKey: 'model_id',
+              //   constraints: false
+              // })
               models.ProductVariant.hasMany(models.ProductImage, {
                 as: 'images',
                 foreignKey: 'product_variant_id',

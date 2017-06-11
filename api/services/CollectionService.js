@@ -50,10 +50,19 @@ module.exports = class CollectionService extends Service {
    */
   create(collection, options) {
     options = options || {}
-
+    // options = _.defaultsDeep(options, {
+    //   include: [
+    //     {
+    //       model: this.app.orm['Image'],
+    //       as: 'images'
+    //     }
+    //   ]
+    // })
     const Collection =  this.app.orm.Collection
+    const Image =  this.app.orm.Image
+
     let resCollection
-    const create = _.omit(collection, ['collections'])
+    const create = _.omit(collection, ['collections','images'])
     return Collection.create(create, options)
       .then(createdCollection => {
         resCollection = createdCollection
@@ -73,6 +82,23 @@ module.exports = class CollectionService extends Service {
         }
         return
       })
+      .then(collections => {
+        if (collection.images && collection.images.length > 0) {
+          // Resolve the images
+          collection.images = _.sortedUniq(collection.images.filter(n => n))
+          return Image.transformImages(collection.images, {transaction: options.transaction || null})
+        }
+        return []
+      })
+      .then(images => {
+        // console.log('THESE COLLECTIONS RESOLVED', collections)
+        if (images && images.length > 0) {
+          return Promise.all(images.map((image, index) => {
+            return resCollection.addImage(image.id, {position: index + 1})
+          }))
+        }
+        return
+      })
       .then(() => {
         return Collection.findByIdDefault(resCollection.id, options)
       })
@@ -86,12 +112,14 @@ module.exports = class CollectionService extends Service {
   update(collection, options) {
     options = options || {}
     const Collection =  this.app.orm['Collection']
+    const Image =  this.app.orm['Image']
+
     if (!collection.id) {
       const err = new Errors.FoundError(Error('Collection is missing id'))
       return Promise.reject(err)
     }
     let resCollection
-    const update = _.omit(collection,['id','created_at','updated_at','collections'])
+    const update = _.omit(collection,['id','created_at','updated_at','collections','images'])
     return Collection.findByIdDefault(collection.id)
       .then(resCollection => {
         return resCollection.update(update, options)
@@ -108,6 +136,23 @@ module.exports = class CollectionService extends Service {
       .then(collections => {
         if (collections && collections.length > 0) {
           return resCollection.setCollections(collections.map(c => c.id), {transaction: options.transaction || null})
+        }
+        return []
+      })
+      .then(collections => {
+        if (collection.images && collection.images.length > 0) {
+          // Resolve the images
+          collection.images = _.sortedUniq(collection.images.filter(n => n))
+          return Image.transformImages(collection.images, {transaction: options.transaction || null})
+        }
+        return []
+      })
+      .then(images => {
+        // console.log('THESE COLLECTIONS RESOLVED', collections)
+        if (images && images.length > 0) {
+          return Promise.all(images.map((image, index) => {
+            return resCollection.addImage(image.id, {position: index + 1})
+          }))
         }
         return
       })

@@ -18,8 +18,8 @@ module.exports = {
     discount_percentage: 'Discount Percentage',
     discount_product_include: 'Discount Product Include',
     discount_product_exclude: 'Discount Product Exclude',
-    image: 'Image',
-    image_alt: 'Image Alt',
+    images: 'Images',
+    images_alt: 'Images Alt',
     collections: 'Collections'
   },
   CUSTOMER_UPLOAD: {

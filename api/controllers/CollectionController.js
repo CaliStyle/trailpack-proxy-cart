@@ -54,7 +54,7 @@ module.exports = class CollectionController extends Controller {
   findByHandle(req, res){
     const orm = this.app.orm
     const Collection = orm['Collection']
-    Collection.findByHandle(req.params.handle)
+    Collection.findByHandleDefault(req.params.handle)
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error(`Collection handle ${ req.params.handle } not found`))
@@ -80,6 +80,9 @@ module.exports = class CollectionController extends Controller {
       where: where
     })
       .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error(`Collection id ${ req.params.id } not found`))
+        }
         return res.json(collection)
       })
       .catch(err => {
@@ -168,6 +171,9 @@ module.exports = class CollectionController extends Controller {
         return CollectionService.create(req.body)
       })
       .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection Could was not Created'))
+        }
         return res.json(collection)
       })
       .catch(err => {
@@ -190,6 +196,9 @@ module.exports = class CollectionController extends Controller {
         return CollectionService.update(req.body)
       })
       .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection was not updated'))
+        }
         return res.json(collection)
       })
       .catch(err => {

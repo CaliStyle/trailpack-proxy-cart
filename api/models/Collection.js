@@ -131,6 +131,19 @@ module.exports = class Collection extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Collection.belongsToMany(models.Image, {
+                as: 'images',
+                through: {
+                  model: models.ItemImage,
+                  unique: false,
+                  scope: {
+                    model: 'collection'
+                  },
+                  constraints: false
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
             },
             findByIdDefault: function(id, options) {
               options = options || {}
@@ -138,7 +151,7 @@ module.exports = class Collection extends Model {
               // console.log('THIS COLLECTION',options)
               return this.findById(id, options)
             },
-            findByHandle: function(handle, options) {
+            findByHandleDefault: function(handle, options) {
               options = options || {}
               options = _.defaultsDeep(options, queryDefaults.Collection.default(app), {
                 where: {
@@ -154,12 +167,12 @@ module.exports = class Collection extends Model {
             },
             findAllDefault: function(options) {
               options = options || {}
-              options = _.defaultsDeep(options, {})
+              options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
               return this.findAll(options)
             },
             findAndCountDefault: function(options) {
               options = options || {}
-              options = _.defaultsDeep(options, {})
+              options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
               return this.findAndCount(options)
             },
             /**
@@ -261,6 +274,10 @@ module.exports = class Collection extends Model {
                     else {
                       // console.log('CREATING COLLECTION',collections[index])
                       return Collection.create(newCollection, {
+                        include: [{
+                          model: app.orm['Image'],
+                          as: 'images'
+                        }],
                         transaction: options.transaction || null
                       })
                     }

@@ -929,7 +929,6 @@ module.exports = class ProductService extends Service {
           return image.save({
             transaction: options.transaction || null
           })
-          // return FootprintService.update('ProductImage',image.id, { position: image.position })
         }))
       })
       .then(updatedImages => {

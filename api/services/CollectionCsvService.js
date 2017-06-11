@@ -116,12 +116,32 @@ module.exports = class CollectionCsvService extends Service {
               return collection.trim()
             })
           }
+          else if (k == 'images') {
+            upload[k] = data.split(',').map(images => {
+              return images.trim()
+            })
+          }
+          else if (k == 'images_alt') {
+            upload[k] = data.split(',').map(images => {
+              return images.trim()
+            })
+          }
           else {
             upload[k] = data
           }
         }
       }
     })
+
+    // Map images
+    upload.images = _.map(upload.images, (image, index) => {
+      return {
+        src: image,
+        alt: upload.images_alt ? upload.images_alt[index] : ''
+      }
+    })
+
+    // upload.images = _.omitBy(upload.images, _.isNil)
 
     const newCollection = CollectionUpload.build(upload)
     return newCollection.save()
@@ -164,8 +184,7 @@ module.exports = class CollectionCsvService extends Service {
             discount_product_include: collection.discount_product_include,
             discount_product_exclude: collection.discount_product_exclude,
             collections: collection.collections,
-            image: collection.image,
-            image_alt: collection.image_alt
+            images: collection.images
           }
           return this.app.services.CollectionService.add(create)
         })
