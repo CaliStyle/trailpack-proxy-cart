@@ -362,7 +362,7 @@ module.exports = class Product extends Model {
              */
             findAndCountDefault: function(options) {
               options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Product.default(app))
+              options = _.defaultsDeep(options, queryDefaults.Product.default(app), {distinct: true})
               return this.findAndCount(options)
             },
             /**

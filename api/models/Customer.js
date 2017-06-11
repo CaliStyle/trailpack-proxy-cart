@@ -345,7 +345,7 @@ module.exports = class Customer extends Model {
              */
             findAndCountDefault: function(options) {
               options = options || {}
-              options = _.defaultsDeep(options, {})
+              options = _.defaultsDeep(options, {distinct: true})
               return this.findAndCount(options)
             },
             resolve: function(customer, options){

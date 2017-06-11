@@ -4,11 +4,17 @@ module.exports = {
       include: [
         {
           model: app.orm['Collection'],
-          as: 'collections'
+          as: 'collections',
+          attributes: {
+            exclude: ['created_at','updated_at']
+          }
         },
         {
           model: app.orm['Image'],
-          as: 'images'
+          as: 'images',
+          attributes: {
+            exclude: ['src','created_at','updated_at']
+          }
         }
       ]
     }
