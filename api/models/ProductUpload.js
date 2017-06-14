@@ -64,11 +64,13 @@ module.exports = class ProductUpload extends Model {
   static schema (app, Sequelize) {
     const schema = {
       upload_id: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       // 'Handle'
       handle: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       // 'Title'
       title: {
@@ -92,7 +94,8 @@ module.exports = class ProductUpload extends Model {
       }),
       // 'Type'
       type: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       // 'Tags'
       tags: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.STRING, 'tags', {
@@ -284,6 +287,10 @@ module.exports = class ProductUpload extends Model {
       // 'Google Shopping / Custom Label 4'
       g_custom_label_4: {
         type: Sequelize.STRING
+      },
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
       }
     }
 

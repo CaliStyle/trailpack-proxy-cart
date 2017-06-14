@@ -78,7 +78,11 @@ module.exports = class ProductMetaUpload extends Model {
       },
       data: helpers.JSONB('ProductMetaUpload', app, Sequelize, 'data', {
         defaultValue: {}
-      })
+      }),
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
+      }
     }
     return schema
   }

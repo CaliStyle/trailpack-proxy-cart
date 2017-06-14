@@ -40,7 +40,7 @@ module.exports = class ProductCsvService extends Service {
               parser.resume()
             })
             .catch(err => {
-              console.log(err)
+              console.log('ROW ERROR',err)
               parser.resume()
             })
         },
@@ -276,6 +276,7 @@ module.exports = class ProductCsvService extends Service {
             })
             .catch(err => {
               errors.push(err)
+              return
             })
         })
         // })
@@ -521,6 +522,7 @@ module.exports = class ProductCsvService extends Service {
             })
             .catch(err => {
               errors.push(err)
+              return
             })
         })
           .then(results => {

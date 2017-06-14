@@ -91,7 +91,11 @@ module.exports = class SubscriptionUpload extends Model {
       // Products
       products: helpers.ARRAY('SubscriptionUpload', app, Sequelize, Sequelize.JSON, 'products', {
         defaultValue: []
-      })
+      }),
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
+      }
     }
     return schema
   }

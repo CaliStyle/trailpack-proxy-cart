@@ -156,6 +156,7 @@ module.exports = class CollectionCsvService extends Service {
     return new Promise((resolve, reject) => {
       const CollectionUpload = this.app.orm.CollectionUpload
       let collectionsTotal = 0
+      const errors = []
       CollectionUpload.batch({
         where: {
           upload_id: uploadId
@@ -193,6 +194,10 @@ module.exports = class CollectionCsvService extends Service {
             collectionsTotal = collectionsTotal + results.length
             return results
           })
+          .catch(err => {
+            errors.push(err)
+            return err
+          })
       })
         .then(results => {
           return CollectionUpload.destroy({where: {upload_id: uploadId }})
@@ -200,7 +205,8 @@ module.exports = class CollectionCsvService extends Service {
         .then(destroyed => {
           const results = {
             upload_id: uploadId,
-            collections: collectionsTotal
+            collections: collectionsTotal,
+            errors: errors
           }
           this.app.services.ProxyEngineService.publish('collection_process.complete', results)
           return resolve(results)

@@ -142,7 +142,11 @@ module.exports = class CollectionUpload extends Model {
       }),
       collections: helpers.ARRAY('CollectionUpload', app, Sequelize, Sequelize.JSON, 'collections', {
         defaultValue: []
-      })
+      }),
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
+      }
     }
     return schema
   }

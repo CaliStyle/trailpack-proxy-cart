@@ -161,6 +161,7 @@ module.exports = class SubscriptionCsvService extends Service {
           return this.transformFromRow(create)
             .catch(err => {
               errors.push(err)
+              return
             })
         })
           .then(results => {

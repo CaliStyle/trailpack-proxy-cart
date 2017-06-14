@@ -204,6 +204,7 @@ module.exports = class CustomerCsvService extends Service {
           })
           .catch(err => {
             errors.push(err)
+            return
           })
       })
         .then(results => {
