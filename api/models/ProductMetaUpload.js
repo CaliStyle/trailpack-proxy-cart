@@ -67,10 +67,12 @@ module.exports = class ProductMetaUpload extends Model {
   static schema (app, Sequelize) {
     const schema = {
       upload_id: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       handle: {
         type: Sequelize.STRING,
+        allowNull: false
         // references: {
         //   model: 'Product',
         //   key: 'handle'
