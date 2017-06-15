@@ -24,6 +24,7 @@ module.exports = class ProductCsvService extends Service {
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
+    const errors = []
 
     return new Promise((resolve, reject)=>{
       const options = {
@@ -40,7 +41,8 @@ module.exports = class ProductCsvService extends Service {
               parser.resume()
             })
             .catch(err => {
-              console.log('ROW ERROR',err)
+              this.app.log.error('ROW ERROR',err)
+              errors.push(err)
               parser.resume()
             })
         },
@@ -51,6 +53,7 @@ module.exports = class ProductCsvService extends Service {
           ProxyEngineService.count('ProductUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.products = count
+              results.errors = errors
               // Publish the event
               ProxyEngineService.publish('product_upload.complete', results)
               return resolve(results)
@@ -61,7 +64,7 @@ module.exports = class ProductCsvService extends Service {
             })
         },
         error: (err, file) => {
-          reject(err)
+          return reject(err)
         }
       }
       const fileString = fs.readFileSync(file, 'utf8')

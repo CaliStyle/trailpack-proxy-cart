@@ -338,6 +338,7 @@ module.exports = class Collection extends Model {
           values: _.values(COLLECTION_PURPOSE),
           defaultValue: COLLECTION_PURPOSE.GROUP
         },
+
         // Multi Site Support
         // TODO possibly switch to store_id for multi tenant support?
         host: {
@@ -370,6 +371,11 @@ module.exports = class Collection extends Model {
         // When the collection was unpublished
         unpublished_at: {
           type: Sequelize.DATE
+        },
+        // The position this collection is in reference to the other collections when displayed.
+        position: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
         // The way Items are displayed in this collection
         sort_order: {

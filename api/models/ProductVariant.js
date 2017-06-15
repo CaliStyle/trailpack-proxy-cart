@@ -220,11 +220,15 @@ module.exports = class ProductVariant extends Model {
               let allowed = true
               if (qty > this.inventory_quantity && this.inventory_policy == INVENTORY_POLICY.DENY) {
                 allowed = false
+                qty = Math.max(0, qty + ( this.inventory_quantity - qty))
+              }
+              if (this.inventory_policy == INVENTORY_POLICY.RESTRICT) {
+                qty = Math.max(0, qty + ( this.inventory_quantity - qty))
               }
               const res = {
                 title: this.title,
                 allowed: allowed,
-                quantity: this.inventory_quantity
+                quantity: qty
               }
               return Promise.resolve(res)
             }

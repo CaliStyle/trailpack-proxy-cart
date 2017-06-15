@@ -90,6 +90,10 @@ module.exports = class CollectionUpload extends Model {
         values: _.values(COLLECTION_PURPOSE),
         defaultValue: COLLECTION_PURPOSE.GROUP
       },
+      position: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
       sort_order: {
         type: Sequelize.ENUM,
         values: _.values(COLLECTION_SORT_ORDER),

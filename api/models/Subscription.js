@@ -10,6 +10,7 @@ const helpers = require('proxy-engine-helpers')
 const queryDefaults = require('../utils/queryDefaults')
 const INTERVALS = require('../utils/enums').INTERVALS
 const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
+const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 
 /**
  * @module Subscription
@@ -349,6 +350,59 @@ module.exports = class Subscription extends Model {
             renew: function() {
               this.renewed_at = new Date(Date.now())
               this.total_renewals++
+            },
+            /**
+             *
+             * @param options
+             */
+            buildOrder: function(options) {
+              options = options || {}
+              const buildOrder = {
+                // Request info
+                client_details: options.client_details || this.client_details,
+                ip: options.ip || null,
+                payment_details: options.payment_details,
+                payment_kind: options.payment_kind || app.config.proxyCart.order_payment_kind,
+                fulfillment_kind: options.fulfillment_kind || app.config.proxyCart.order_fulfillment_kind,
+                processing_method: options.processing_method || PAYMENT_PROCESSING_METHOD.CHECKOUT,
+                shipping_address: options.shipping_address || this.shipping_address,
+                billing_address: options.billing_address || this.billing_address,
+
+                // Customer Info
+                customer_id: options.customer_id || this.customer_id || null,
+                email: options.email || null,
+
+                // User ID
+                user_id: options.user_id || this.user_id || null,
+
+                // Cart Info
+                cart_token: this.token,
+                currency: this.currency,
+                line_items: this.line_items,
+                tax_lines: this.tax_lines,
+                shipping_lines: this.shipping_lines,
+                discounted_lines: this.discounted_lines,
+                coupon_lines: this.coupon_lines,
+                subtotal_price: this.subtotal_price,
+                taxes_included: this.taxes_included,
+                total_discounts: this.total_discounts,
+                total_coupons: this.total_coupons,
+                total_line_items_price: this.total_line_items_price,
+                total_price: this.total_due,
+                total_due: this.total_due,
+                total_tax: this.total_tax,
+                total_weight: this.total_weight,
+                total_items: this.total_items,
+                shop_id: this.shop_id,
+                has_shipping: this.has_shipping,
+                has_subscription: this.has_subscription,
+
+                //Pricing Overrides
+                pricing_override_id: this.pricing_override_id,
+                pricing_overrides: this.pricing_overrides,
+                total_overrides: this.total_overrides
+              }
+              return buildOrder
             },
             recalculate: function() {
               // Default Values

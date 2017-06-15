@@ -7,6 +7,7 @@ module.exports = {
     body: 'Body',
     primary_purpose: 'Primary Purpose',
     published: 'Published',
+    position: 'Position',
     sort_order: 'Sort Order',
     tax_rate: 'Tax Rate',
     tax_percentage: 'Tax Percentage',
@@ -190,6 +191,8 @@ module.exports = {
   INVENTORY_POLICY: {
     // deny (default): Customers are not allowed to place orders for a product variant when it's out of stock.
     DENY: 'deny',
+    // restrict: Customers are allowed to place an order for products, but the quantity is limited by stock
+    RESTRICT: 'restrict',
     // continue: Customers are allowed to place orders for a product variant when it's out of stock.
     CONTINUE: 'continue'
   },

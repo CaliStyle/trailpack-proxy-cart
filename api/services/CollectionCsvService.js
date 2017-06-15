@@ -23,7 +23,7 @@ module.exports = class CollectionCsvService extends Service {
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
-
+    const errors = []
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
@@ -39,7 +39,8 @@ module.exports = class CollectionCsvService extends Service {
               parser.resume()
             })
             .catch(err => {
-              console.log(err)
+              this.app.log.error('ROW ERROR',err)
+              errors.push(err)
               parser.resume()
             })
         },
@@ -50,6 +51,7 @@ module.exports = class CollectionCsvService extends Service {
           ProxyEngineService.count('CollectionUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.collections = count
+              results.errors = errors
               // Publish the event
               ProxyEngineService.publish('collection_upload.complete', results)
               return resolve(results)
@@ -172,6 +174,7 @@ module.exports = class CollectionCsvService extends Service {
             handle: collection.handle,
             body: collection.body,
             primary_purpose: collection.primary_purpose,
+            position: collection.position,
             sort_order: collection.sort_order,
             published: collection.published,
             tax_rate: collection.tax_rate,
@@ -188,15 +191,15 @@ module.exports = class CollectionCsvService extends Service {
             images: collection.images
           }
           return this.app.services.CollectionService.add(create)
+            .catch(err => {
+              errors.push(err)
+              return err
+            })
         })
           .then(results => {
             // Calculate Totals
             collectionsTotal = collectionsTotal + results.length
             return results
-          })
-          .catch(err => {
-            errors.push(err)
-            return err
           })
       })
         .then(results => {
