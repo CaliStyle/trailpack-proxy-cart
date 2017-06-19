@@ -371,7 +371,7 @@ module.exports = class ProductCsvService extends Service {
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
-
+    const errors = []
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
@@ -387,7 +387,8 @@ module.exports = class ProductCsvService extends Service {
               parser.resume()
             })
             .catch(err => {
-              console.log(err)
+              errors.push(err)
+              this.app.log.error('ROW ERROR',err)
               parser.resume()
             })
         },
@@ -398,6 +399,7 @@ module.exports = class ProductCsvService extends Service {
           ProxyEngineService.count('ProductMetaUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.products = count
+              results.errors = errors
               // Publish the event
               ProxyEngineService.publish('product_meta_upload.complete', results)
               return resolve(results)
@@ -473,6 +475,7 @@ module.exports = class ProductCsvService extends Service {
       const Product = this.app.orm.Product
       const ProductVariant = this.app.orm.ProductVariant
       const errors = []
+
       let productsTotal = 0
       ProductMetaUpload.batch({
         where: {

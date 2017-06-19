@@ -603,10 +603,11 @@ describe('ProductController', () => {
       .attach('file', 'test/fixtures/product_meta_upload.csv')
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        console.log('testing',res.body)
         assert.ok(res.body.result.upload_id)
         uploadMetaID = res.body.result.upload_id
-        assert.equal(res.body.result.products, 1)
+        assert.equal(res.body.result.products, 2)
+        assert.equal(res.body.result.errors.length, 1)
         done()
       })
   })
@@ -616,7 +617,8 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.products, 1)
+        console.log('TESTING',res.body)
+        assert.equal(res.body.products, 2)
         done()
       })
   })
@@ -625,11 +627,12 @@ describe('ProductController', () => {
       .get('/product/handle/hydroflask')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS PRODUCT', res.body)
+        console.log('THIS PRODUCT', res.body)
         //recycle: 'no', material: 'plastic', condition: 'new'
         assert.equal(res.body.metadata['recycle'], 'no')
         assert.equal(res.body.metadata['material'], 'plastic')
         assert.equal(res.body.metadata['condition'], 'new')
+        assert.equal(res.body.variants[0].metadata['material'], 'metal')
         done()
       })
   })
