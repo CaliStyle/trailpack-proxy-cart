@@ -565,7 +565,7 @@ module.exports = class Product extends Model {
           defaultValue: PRODUCT_DEFAULTS.CURRENCY
         },
         // Discounts applied
-        discounted_lines: helpers.ARRAY('Product', app, Sequelize, Sequelize.JSON, 'discounted_lines', {
+        discounted_lines: helpers.JSONB('Product', app, Sequelize, 'discounted_lines', {
           defaultValue: PRODUCT_DEFAULTS.DISCOUNTED_LINES
         }),
         // Total value of discounts
@@ -593,7 +593,7 @@ module.exports = class Product extends Model {
           type: Sequelize.DATE
         },
         // Options for the product (size, color, etc.)
-        options: helpers.ARRAY('Product', app, Sequelize, Sequelize.STRING, 'options', {
+        options: helpers.JSONB('Product', app, Sequelize, 'options', {
           defaultValue: PRODUCT_DEFAULTS.OPTIONS
         }),
         // Weight of the product, defaults to grams

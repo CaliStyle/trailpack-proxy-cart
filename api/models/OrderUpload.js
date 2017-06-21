@@ -73,7 +73,7 @@ module.exports = class OrderUpload extends Model {
         type: Sequelize.STRING
       },
       // Order Items
-      order_items: helpers.ARRAY('OrderUpload', app, Sequelize, Sequelize.JSON, 'order_items', {
+      order_items: helpers.JSONB('OrderUpload', app, Sequelize, 'order_items', {
         defaultValue: []
       }),
       // Shipping Line 1
@@ -142,7 +142,7 @@ module.exports = class OrderUpload extends Model {
         type: Sequelize.STRING
       },
       // 'Tags'
-      tags: helpers.ARRAY('OrderUpload', app, Sequelize, Sequelize.STRING, 'tags', {
+      tags: helpers.JSONB('OrderUpload', app, Sequelize, 'tags', {
         defaultValue: []
       }),
       // Note

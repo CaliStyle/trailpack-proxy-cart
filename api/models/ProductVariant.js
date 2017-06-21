@@ -290,7 +290,7 @@ module.exports = class ProductVariant extends Model {
           defaultValue: 0
         },
         // The discounts applied to the product
-        discounted_lines: helpers.ARRAY('ProductVariant', app, Sequelize, Sequelize.JSON, 'discounted_lines', {
+        discounted_lines: helpers.JSONB('ProductVariant', app, Sequelize, 'discounted_lines', {
           defaultValue: []
         }),
         // The total Discounts applied to the product
@@ -358,7 +358,6 @@ module.exports = class ProductVariant extends Model {
           defaultValue: VARIANT_DEFAULTS.INVENTORY_MANAGEMENT
         },
         // Specifies whether or not customers are allowed to place an order for a product variant when it's out of stock.
-        //
         inventory_policy: {
           type: Sequelize.ENUM,
           values: _.values(INVENTORY_POLICY),

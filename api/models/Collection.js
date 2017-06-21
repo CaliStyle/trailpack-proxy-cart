@@ -440,13 +440,19 @@ module.exports = class Collection extends Model {
           defaultValue: 0.0
         },
         // List of product types allowed to discount
-        discount_product_include: helpers.ARRAY('Collection', app, Sequelize, Sequelize.STRING, 'discount_product_include', {
+        discount_product_include: helpers.JSONB('Collection', app, Sequelize, 'discount_product_include', {
           defaultValue: []
         }),
+        // discount_product_include: helpers.ARRAY('Collection', app, Sequelize, Sequelize.STRING, 'discount_product_include', {
+        //   defaultValue: []
+        // }),
         // List of product types to forcefully excluded from discount
-        discount_product_exclude: helpers.ARRAY('Collection', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
+        discount_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'discount_product_exclude', {
           defaultValue: []
         }),
+        // discount_product_exclude: helpers.ARRAY('Collection', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
+        //   defaultValue: []
+        // }),
         // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,

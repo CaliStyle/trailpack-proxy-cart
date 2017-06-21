@@ -599,9 +599,12 @@ module.exports = class Order extends Model {
           defaultValue: {}
         }),
         // The list of all payment gateways used for the order.
-        payment_gateway_names: helpers.ARRAY('Order', app, Sequelize, Sequelize.STRING, 'payment_gateway_names', {
+        payment_gateway_names: helpers.JSONB('Order', app, Sequelize, 'payment_gateway_names', {
           defaultValue: []
         }),
+        // payment_gateway_names: helpers.ARRAY('Order', app, Sequelize, Sequelize.STRING, 'payment_gateway_names', {
+        //   defaultValue: []
+        // }),
         // The date and time when the order was imported, in ISO 8601 format. This value can be set to dates in the past when importing from other systems. If no value is provided, it will be auto-generated.
         processed_at: {
           type: Sequelize.DATE
@@ -616,21 +619,33 @@ module.exports = class Order extends Model {
           type: Sequelize.STRING
         },
         // An array of shipping_line objects, each of which details the shipping methods used.
-        shipping_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
+        shipping_lines: helpers.JSONB('Order', app, Sequelize, 'shipping_lines', {
           defaultValue: []
         }),
+        // shipping_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB, 'shipping_lines', {
+        //   defaultValue: []
+        // }),
         // The line_items that have discounts
-        discounted_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+        discounted_lines: helpers.JSONB('Order', app, Sequelize, 'discounted_lines', {
           defaultValue: []
         }),
+        // discounted_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB,  'discounted_lines', {
+        //   defaultValue: []
+        // }),
         // The line_items that have coupons
-        coupon_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+        coupon_lines: helpers.JSONB('Order', app, Sequelize, 'coupon_lines', {
           defaultValue: []
         }),
+        // coupon_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB,  'coupon_lines', {
+        //   defaultValue: []
+        // }),
         // The pricing overrides
-        pricing_overrides: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'pricing_overrides', {
+        pricing_overrides: helpers.JSONB('Order', app, Sequelize, 'pricing_overrides', {
           defaultValue: []
         }),
+        // pricing_overrides: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB, 'pricing_overrides', {
+        //   defaultValue: []
+        // }),
         // The total amount of pricing overrides
         total_overrides: {
           type: Sequelize.INTEGER,
@@ -651,13 +666,19 @@ module.exports = class Order extends Model {
           defaultValue: 0
         },
         // An array of tax_line objects, each of which details the total taxes applicable to the order.
-        tax_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'tax_lines', {
+        tax_lines: helpers.JSONB('Order', app, Sequelize, 'tax_lines', {
           defaultValue: []
         }),
+        // tax_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB, 'tax_lines', {
+        //   defaultValue: []
+        // }),
         // An array of refund_line objects, each of which details the total refunds applicable to the order.
-        refunded_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSON, 'refunded_lines', {
+        refunded_lines: helpers.JSONB('Order', app, Sequelize, 'refunded_lines', {
           defaultValue: []
         }),
+        // refunded_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB, 'refunded_lines', {
+        //   defaultValue: []
+        // }),
         // States whether or not taxes are included in the order subtotal. Valid values are "true" or "false".
         taxes_included: {
           type: Sequelize.BOOLEAN

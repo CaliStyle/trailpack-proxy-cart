@@ -632,39 +632,57 @@ module.exports = class Cart extends Model {
           defaultValue: 'USD'
         },
         // The items in the cart
-        line_items: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'line_items', {
+        line_items: helpers.JSONB('Cart', app, Sequelize, 'line_items', {
           defaultValue: []
         }),
+        // line_items: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'line_items', {
+        //   defaultValue: []
+        // }),
         // Price of the checkout before shipping and taxes
         subtotal_price: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
         // The line_items that have discounts
-        discounted_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+        discounted_lines: helpers.JSONB('Cart', app, Sequelize, 'discounted_lines', {
           defaultValue: []
         }),
+        // discounted_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB,  'discounted_lines', {
+        //   defaultValue: []
+        // }),
         // The line_items that have discounts
-        coupon_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+        coupon_lines: helpers.JSONB('Cart', app, Sequelize, 'coupon_lines', {
           defaultValue: []
         }),
+        // coupon_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB,  'coupon_lines', {
+        //   defaultValue: []
+        // }),
         // The line_items that require shipping
-        shipping_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'shipping_lines', {
+        shipping_lines: helpers.JSONB('Cart', app, Sequelize, 'shipping_lines', {
           defaultValue: []
         }),
+        // shipping_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'shipping_lines', {
+        //   defaultValue: []
+        // }),
         // If the cost of shipping is included
         shipping_included: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
         // An array of selected shipping_rates
-        shipping_rate: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'shipping_rate', {
+        shipping_rate: helpers.JSONB('Cart', app, Sequelize, 'shipping_rate', {
           defaultValue: []
         }),
+        // shipping_rate: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'shipping_rate', {
+        //   defaultValue: []
+        // }),
         // An array of shipping_rate objects, each of which details the shipping methods available.
-        shipping_rates: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'shipping_rates', {
+        shipping_rates: helpers.JSONB('Cart', app, Sequelize, 'shipping_rates', {
           defaultValue: []
         }),
+        // shipping_rates: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'shipping_rates', {
+        //   defaultValue: []
+        // }),
         // If this cart contains an item that requires a subscription
         has_subscription: {
           type: Sequelize.BOOLEAN,
@@ -685,9 +703,12 @@ module.exports = class Cart extends Model {
           defaultValue: false
         },
         // The line_items that have taxes
-        tax_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'tax_lines', {
+        tax_lines: helpers.JSONB('Cart', app, Sequelize, 'tax_lines', {
           defaultValue: []
         }),
+        // tax_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'tax_lines', {
+        //   defaultValue: []
+        // }),
         // The rate at which taxes are applied
         tax_rate: {
           type: Sequelize.FLOAT,
@@ -713,9 +734,12 @@ module.exports = class Cart extends Model {
           defaultValue: 0
         },
         // The line_items that have taxes
-        pricing_overrides: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSON, 'pricing_overrides', {
+        pricing_overrides: helpers.JSONB('Cart', app, Sequelize, 'pricing_overrides', {
           defaultValue: []
         }),
+        // pricing_overrides: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'pricing_overrides', {
+        //   defaultValue: []
+        // }),
         // The total amount of pricing overrides
         total_overrides: {
           type: Sequelize.INTEGER,

@@ -88,7 +88,7 @@ module.exports = class Refund extends Model {
           type: Sequelize.DATE,
           defaultValue: Sequelize.NOW
         },
-        // refund_order_items: helpers.ARRAY('Refund', app, Sequelize, Sequelize.JSON, 'refund_order_items', {
+        // refund_order_items: helpers.ARRAY('Refund', app, Sequelize, Sequelize.JSONB, 'refund_order_items', {
         //   defaultValue: []
         // }),
         restock: {

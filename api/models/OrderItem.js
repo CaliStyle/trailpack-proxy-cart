@@ -281,9 +281,12 @@ module.exports = class OrderItem extends Model {
           type: Sequelize.BOOLEAN
         },
         // An array of custom information for an item that has been added to the cart. Often used to provide product customization options. For more information, see the documentation on collecting customization information on the product page.
-        properties: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.STRING, 'properties', {
+        properties: helpers.JSONB('OrderItem', app, Sequelize, 'properties', {
           defaultValue: []
         }),
+        // properties: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.STRING, 'properties', {
+        //   defaultValue: []
+        // }),
         // States whether or not the product was taxable. Values are: true or false.
         taxable: {
           type: Sequelize.BOOLEAN
@@ -293,21 +296,34 @@ module.exports = class OrderItem extends Model {
           defaultValue: 'P000000' // Physical Good
         },
         // The line_items that have discounts
-        discounted_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSON,  'discounted_lines', {
+        discounted_lines: helpers.JSONB('OrderItem', app, Sequelize, 'discounted_lines', {
           defaultValue: []
         }),
+        // discounted_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSONB,  'discounted_lines', {
+        //   defaultValue: []
+        // }),
         // The line_items that have discounts
-        coupon_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSON,  'coupon_lines', {
+        coupon_lines: helpers.JSONB('OrderItem', app, Sequelize, 'coupon_lines', {
           defaultValue: []
         }),
+        // coupon_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSONB,  'coupon_lines', {
+        //   defaultValue: []
+        // }),
         // The line_items that have shipping
-        shipping_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSON,  'shipping_lines', {
+        shipping_lines: helpers.JSONB('OrderItem', app, Sequelize, 'shipping_lines', {
           defaultValue: []
         }),
+        // shipping_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSONB,  'shipping_lines', {
+        //   defaultValue: []
+        // }),
+
         // A list of tax_line objects, each of which details the taxes applicable to this line_item.
-        tax_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSON, 'tax_lines', {
+        tax_lines: helpers.JSONB('OrderItem', app, Sequelize, 'tax_lines', {
           defaultValue: []
         }),
+        // tax_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSONB, 'tax_lines', {
+        //   defaultValue: []
+        // }),
         // The total discounts amount applied to this line item. This value is not subtracted in the line item price.
         total_discounts: {
           type: Sequelize.INTEGER,

@@ -131,7 +131,7 @@ module.exports = class VendorUpload extends Model {
       billing_postal_code: {
         type: Sequelize.STRING
       },
-      products: helpers.ARRAY('VendorUpload', app, Sequelize, Sequelize.JSON, 'products', {
+      products: helpers.JSONB('VendorUpload', app, Sequelize, 'products', {
         defaultValue: []
       })
     }

@@ -89,7 +89,7 @@ module.exports = class SubscriptionUpload extends Model {
         defaultValue: true
       },
       // Products
-      products: helpers.ARRAY('SubscriptionUpload', app, Sequelize, Sequelize.JSON, 'products', {
+      products: helpers.JSONB('SubscriptionUpload', app, Sequelize, 'products', {
         defaultValue: []
       }),
       live_mode: {

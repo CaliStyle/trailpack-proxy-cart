@@ -137,17 +137,17 @@ module.exports = class CollectionUpload extends Model {
         defaultValue: 0.0
       },
       // List of product types allowed to discount
-      discount_product_include: helpers.ARRAY('CollectionUpload', app, Sequelize, Sequelize.STRING, 'discount_product_include', {
+      discount_product_include: helpers.JSONB('CollectionUpload', app, Sequelize, 'discount_product_include', {
         defaultValue: []
       }),
       // List of product types to forcefully excluded from discount
-      discount_product_exclude: helpers.ARRAY('CollectionUpload', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
+      discount_product_exclude: helpers.JSONB('CollectionUpload', app, Sequelize, 'discount_product_exclude', {
         defaultValue: []
       }),
-      images: helpers.ARRAY('CollectionUpload', app, Sequelize, Sequelize.JSON, 'images', {
+      images: helpers.JSONB('CollectionUpload', app, Sequelize, 'images', {
         defaultValue: []
       }),
-      collections: helpers.ARRAY('CollectionUpload', app, Sequelize, Sequelize.JSON, 'collections', {
+      collections: helpers.JSONB('CollectionUpload', app, Sequelize, 'collections', {
         defaultValue: []
       }),
       live_mode: {
