@@ -236,6 +236,13 @@ module.exports = class ProductUpload extends Model {
       shops_quantity: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.INTEGER, 'shops_quantity', {
         defaultValue: []
       }),
+
+      // The Average Shipping Cost
+      average_shipping: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+
       // 'Google Shopping / Google Product Category'
       g_product_category: {
         type: Sequelize.STRING

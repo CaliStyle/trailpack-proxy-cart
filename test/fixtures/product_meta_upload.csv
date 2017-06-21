@@ -1,4 +1,4 @@
-Handle,material,recycle,condition
-hydroflask,plastic,no,new
-hydroflask:flsk-0,metal,no,used
-,break,break,break
+Handle,material,recycle,condition,meta
+hydroflask,plastic,no,new,"{""nested"": true}"
+hydroflask:flsk-0,metal,no,used,
+,break,break,break,

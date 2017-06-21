@@ -113,6 +113,7 @@ module.exports = {
     subscription_interval: 'Subscription Interval',
     shops: 'Shops',
     shops_quantity: 'Shops Quantity',
+    average_shipping: 'Average Shipping',
     g_product_category: 'Google Shopping / Google Product Category',
     g_gender: 'Google Shopping / Gender',
     g_age_group: 'Google Shopping / Age Group',

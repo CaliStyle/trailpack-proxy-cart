@@ -70,13 +70,16 @@ module.exports = class CollectionUpload extends Model {
     const schema = {
       // Upload ID
       upload_id: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       handle: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       title: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       body: {
         type: Sequelize.TEXT

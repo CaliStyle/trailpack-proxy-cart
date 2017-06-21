@@ -213,6 +213,21 @@ module.exports = class ProxyCartService extends Service {
 
   /**
    *
+   * @param str
+   * @returns {boolean}
+   */
+  isJson(str) {
+    try {
+      JSON.parse(str)
+    }
+    catch (e) {
+      return false
+    }
+    return true
+  }
+
+  /**
+   *
    * @param address
    * @returns {*}
    */

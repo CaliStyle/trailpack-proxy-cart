@@ -549,28 +549,31 @@ module.exports = class Product extends Model {
           type: Sequelize.STRING,
           defaultValue: PRODUCT_DEFAULTS.TAX_CODE // Physical Good
         },
-        // TODO convert to Model tags for the product
         // Default price of the product in cents
         price: {
           type: Sequelize.INTEGER,
           defaultValue: PRODUCT_DEFAULTS.PRICE
         },
+        // Pricing after
         calculated_price: {
           type: Sequelize.INTEGER,
           defaultValue: PRODUCT_DEFAULTS.CALCULATED_PRICE
-        },
-        discounted_lines: helpers.ARRAY('Product', app, Sequelize, Sequelize.JSON, 'discounted_lines', {
-          defaultValue: PRODUCT_DEFAULTS.DISCOUNTED_LINES
-        }),
-        total_discounts: {
-          type: Sequelize.INTEGER,
-          defaultValue: PRODUCT_DEFAULTS.TOTAL_DISCOUNTS
         },
         // Default currency of the product
         currency: {
           type: Sequelize.STRING,
           defaultValue: PRODUCT_DEFAULTS.CURRENCY
         },
+        // Discounts applied
+        discounted_lines: helpers.ARRAY('Product', app, Sequelize, Sequelize.JSON, 'discounted_lines', {
+          defaultValue: PRODUCT_DEFAULTS.DISCOUNTED_LINES
+        }),
+        // Total value of discounts
+        total_discounts: {
+          type: Sequelize.INTEGER,
+          defaultValue: PRODUCT_DEFAULTS.TOTAL_DISCOUNTS
+        },
+
         // The sales channels in which the product is visible.
         published_scope: {
           type: Sequelize.STRING,
@@ -615,10 +618,16 @@ module.exports = class Product extends Model {
           defaultValue: PRODUCT_DEFAULTS.TOTAL_REVIEWS
         },
 
-        // The Total variants
+        // The Total variants count
         total_variants: {
           type: Sequelize.INTEGER,
           defaultValue: PRODUCT_DEFAULTS.TOTAL_VARIANTS
+        },
+
+        // The Average Shipping Cost
+        average_shipping: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
 
         // 'Google Shopping / Google Product Category'

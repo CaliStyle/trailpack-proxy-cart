@@ -162,6 +162,14 @@ module.exports = class ProductCsvService extends Service {
           else if (k == 'inventory_policy') {
             upload[k] = data.toLowerCase().trim()
           }
+          else if (k == 'metadata') {
+            // METADATA uploaded this way MUST be in JSON
+            let formatted = data.trim()
+            if (this.app.services.ProxyCartService.isJson(formatted)) {
+              formatted = JSON.parse(formatted)
+              upload[k] = formatted
+            }
+          }
           else {
             upload[k] = data
           }
@@ -454,7 +462,11 @@ module.exports = class ProductCsvService extends Service {
           upload[k] = data
         }
         else {
-          upload.data[key] = data
+          let formatted = data
+          if (this.app.services.ProxyCartService.isJson(formatted)) {
+            formatted = JSON.parse(formatted)
+          }
+          upload.data[key] = formatted
         }
       }
     })
@@ -488,6 +500,7 @@ module.exports = class ProductCsvService extends Service {
         return Sequelize.Promise.mapSeries(metadatums, metadata => {
 
           const Type = metadata.handle.indexOf(':') === -1 ? Product : ProductVariant
+
           let where = {}
           const includes = [
             {
@@ -502,7 +515,7 @@ module.exports = class ProductCsvService extends Service {
               'handle': metadata.handle
             }
           }
-          else {
+          else if (Type === ProductVariant){
             where = {
               'sku': metadata.handle.split(/:(.+)/)[1],
               '$Product.handle$': metadata.handle.split(/:(.+)/)[0]
@@ -512,19 +525,32 @@ module.exports = class ProductCsvService extends Service {
               attributes: ['handle']
             })
           }
+          else {
+            const err = new Error(`Target ${metadata.handle} not a Product or a Variant`)
+            errors.push(err)
+            return
+          }
 
-          return Type.find(
+          return Type.findOne(
             {
               where: where,
               attributes: ['id'],
               include: includes
             })
-            .then(product => {
-              if (!product) {
+            .then(target => {
+              if (!target) {
+                const err = new Error(`Target ${metadata.handle} not found`)
+                errors.push(err)
                 return
               }
-              product.metadata.data = metadata.data
-              return product.metadata.save()
+              console.log('BROKE',target)
+              if (target.metadata) {
+                target.metadata.data = metadata.data
+                return target.metadata.save()
+              }
+              else {
+                return target.createMetadata({data: metadata.data})
+              }
             })
             .catch(err => {
               errors.push(err)

@@ -170,6 +170,7 @@ module.exports = class ProductService extends Service {
       published_scope: product.published_scope,
       weight: product.weight,
       weight_unit: product.weight_unit,
+      average_shipping: product.average_shipping,
       metadata: Metadata.transform(product.metadata || {}),
       options: []
     }
@@ -275,7 +276,13 @@ module.exports = class ProductService extends Service {
         },
         {
           model: Variant,
-          as: 'variants'
+          as: 'variants',
+          include: [
+            {
+              model: Metadata,
+              as: 'metadata'
+            }
+          ]
             // include: [
             //   {
             //     model: Image,
