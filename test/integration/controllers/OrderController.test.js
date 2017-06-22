@@ -131,6 +131,7 @@ describe('OrderController', () => {
         done(err)
       })
   })
+  // TODO
   it('should add an item to order', (done) => {
     request
       .post(`/order/${orderID}/addItem`)
@@ -142,9 +143,34 @@ describe('OrderController', () => {
         done(err)
       })
   })
+  // TODO
   it('should remove an item from order', (done) => {
     request
       .post(`/order/${orderID}/removeItem`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  // TODO
+  it('should add shipping to order', (done) => {
+    request
+      .post(`/order/${orderID}/addShipping`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  // TODO
+  it('should remove shipping from order', (done) => {
+    request
+      .post(`/order/${orderID}/removeShipping`)
       .send({
 
       })
@@ -186,7 +212,6 @@ describe('OrderController', () => {
       }])
       .expect(200)
       .end((err, res) => {
-        console.log('THIS ORDER', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'partially_refunded')
         assert.equal(res.body.total_refunds, 100)
@@ -211,23 +236,23 @@ describe('OrderController', () => {
         done(err)
       })
   })
-  // TODO complete test
   it('should add tag to an order', (done) => {
     request
       .post(`/order/${orderID}/addTag/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.tags.length, 1)
         done(err)
       })
   })
-  // TODO complete test
   it('should remove tag to an order', (done) => {
     request
       .post(`/order/${orderID}/removeTag/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.tags.length, 0)
         done(err)
       })
   })

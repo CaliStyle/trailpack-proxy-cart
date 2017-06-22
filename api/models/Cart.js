@@ -228,6 +228,7 @@ module.exports = class Cart extends Model {
               if (save) {
                 return this.save(save)
               }
+              // console.log('WANTS PROMISE', this)
               return this //Promise.resolve(this)
             },
             /**

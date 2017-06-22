@@ -42,7 +42,12 @@ module.exports = class ProductAssociation extends Model {
           type: Sequelize.INTEGER,
           unique: 'productassociation_association',
           references: null
-        }
+        },
+        associated_variant_id: {
+          type: Sequelize.STRING,
+          unique: 'productassociation_association',
+          references: null
+        },
       }
     }
     return schema

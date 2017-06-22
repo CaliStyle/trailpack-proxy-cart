@@ -25,6 +25,10 @@ module.exports = {
         {
           model: app.orm['Event'],
           as: 'events'
+        },
+        {
+          model: app.orm['Tag'],
+          as: 'tags'
         }
       ],
       order: [

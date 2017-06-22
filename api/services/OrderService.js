@@ -6,6 +6,7 @@ const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
+const ORDER_STATUS = require('../utils/enums').ORDER_STATUS
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
 const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
@@ -815,6 +816,22 @@ module.exports = class OrderService extends Service {
     return immediate
   }
 
+  // TODO make sure total payment criteria is met.
+  resolveSubscribe(transactions, hasSubscription) {
+    let immediate = false
+    if (!hasSubscription) {
+      return immediate
+    }
+    const successes = transactions.filter(transaction =>
+    transaction.status == TRANSACTION_STATUS.SUCCESS)
+    const sales = transactions.filter(transaction =>
+    [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
+    if (successes.length == transactions.length && sales.length == transactions.length) {
+      immediate = true
+    }
+    return immediate
+  }
+
   /**
    *
    * @param customerAddress
@@ -856,7 +873,7 @@ module.exports = class OrderService extends Service {
       })
       .then(tag => {
         if (!tag) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new Errors.FoundError(Error('Tag not found'))
         }
         resTag = tag
         return resOrder.hasTag(resTag.id)
@@ -891,7 +908,7 @@ module.exports = class OrderService extends Service {
       })
       .then(tag => {
         if (!tag) {
-          throw new Errors.FoundError(Error('Order not found'))
+          throw new Errors.FoundError(Error('Tag not found'))
         }
         resTag = tag
         return resOrder.hasTag(resTag.id)
@@ -907,26 +924,90 @@ module.exports = class OrderService extends Service {
       })
   }
   // TODO
-  addItem(order, item) {
-    // let resOrder
+  addItem(order, item, options) {
+    options = options || {}
+    if (!item) {
+      throw new Errors.FoundError(Error('Item is not defined'))
+    }
+    let resOrder, resItem
     const Order = this.app.orm['Order']
-    return Order.resolve(order)
+    return Order.resolve(order, options)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
+        }
+        resOrder = order
+        return this.app.services.ProductService.resolveItem(item)
+      })
+      .then(foundItem => {
+        resItem = foundItem
+        console.log('addItem',resItem)
+        return resOrder.recalculate()
+      })
+  }
+  // TODO
+  removeItem(order, item, options) {
+    options = options || {}
+    if (!item) {
+      throw new Errors.FoundError(Error('Item is not defined'))
+    }
+    let resOrder, resItem
+    const Order = this.app.orm['Order']
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
+        }
+        // resOrder = order
+        return this.app.services.ProductService.resolveItem(item)
+      })
+      .then(foundItem => {
+        resItem = foundItem
+        console.log('addItem',resItem)
+        return resOrder.recalculate()
+      })
+  }
+
+  addShipping(order, shipping, options) {
+    options = options || {}
+    if (!shipping) {
+      throw new Errors.FoundError(Error('Shipping is not defined'))
+    }
+    // let resOrder
+    const Order = this.app.orm['Order']
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
         }
         // resOrder = order
         return order
       })
   }
-  // TODO
-  removeItem(order, item) {
+
+  removeShipping(order, shipping, options) {
+    options = options || {}
+    if (!shipping) {
+      throw new Errors.FoundError(Error('Shipping is not defined'))
+    }
     // let resOrder
     const Order = this.app.orm['Order']
-    return Order.resolve(order)
+    return Order.resolve(order, options)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
         }
         // resOrder = order
         return order

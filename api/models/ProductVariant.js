@@ -86,6 +86,19 @@ module.exports = class ProductVariant extends Model {
                 // notNull: true
                 // onDelete: 'CASCADE'
               })
+              models.ProductVariant.belongsToMany(models.ProductVariant, {
+                as: 'associations',
+                through: {
+                  model: models.ProductAssociation,
+                  unique: false
+                  // scope: {
+                  //   model: 'product'
+                  // }
+                },
+                foreignKey: 'variant_id',
+                otherKey: 'associated_variant_id'
+                // constraints: false
+              })
               // models.ProductVariant.belongsTo(models.Product, {
               //   // foreignKey: 'variant_id',
               //   // as: 'product_id',

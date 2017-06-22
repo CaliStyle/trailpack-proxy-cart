@@ -478,6 +478,9 @@ module.exports = class Customer extends Model {
           type: Sequelize.STRING,
           validate: {
             isEmail: true
+          },
+          set: function(val) {
+            return this.setDataValue('email', val ? val.toLowerCase() : null)
           }
         },
         //

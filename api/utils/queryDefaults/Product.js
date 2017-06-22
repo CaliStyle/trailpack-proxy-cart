@@ -37,6 +37,11 @@ module.exports = {
             }
           ]
         },
+        // {
+        //   model: app.orm['Product'],
+        //   through: app.orm['ProductAssociation'],
+        //   as: 'associations'
+        // },
         {
           model: app.orm['Metadata'],
           as: 'metadata',

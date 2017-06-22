@@ -254,6 +254,24 @@ module.exports = class Order extends Model {
             }
           },
           instanceMethods: {
+            toJSON: function() {
+              // Make JSON
+              const resp = this.get({ plain: true })
+
+              // Transform Tags to array on toJSON
+              if (resp.tags) {
+                // console.log(resp.tags)
+                resp.tags = resp.tags.map(tag => {
+                  if (tag && _.isString(tag)) {
+                    return tag
+                  }
+                  else if (tag && tag.name && tag.name !== '') {
+                    return tag.name
+                  }
+                })
+              }
+              return resp
+            },
             saveFinancialStatus: function(options) {
               options = options || {}
               const Transaction = app.orm['Transaction']
@@ -426,6 +444,10 @@ module.exports = class Order extends Model {
               this.total_not_fulfilled = totalNonFulfillments
               this.fulfillment_status = fulfillmentStatus
               return this
+            },
+            recalculate: function() {
+
+              return Promise.resolve(this)
             }
           }
         }

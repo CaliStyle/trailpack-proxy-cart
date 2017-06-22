@@ -23,5 +23,14 @@ describe('FulfillmentController', () => {
         done(err)
       })
   })
+  it.skip('should create a manual fulfillment',() => {
+
+  })
+  it.skip('should update a manual fulfillment',() => {
+
+  })
+  it.skip('should destroy a manual fulfillment',() => {
+
+  })
 
 })

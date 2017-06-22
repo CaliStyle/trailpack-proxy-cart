@@ -579,7 +579,7 @@ describe('ProductController', () => {
       .end((err, res) => {
         assert.ok(res.body.result.upload_id)
         uploadID = res.body.result.upload_id
-        assert.equal(res.body.result.products, 4)
+        assert.equal(res.body.result.products, 5)
         assert.equal(res.body.result.errors.length, 1)
         done()
       })
@@ -590,9 +590,19 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.products, 1)
-        assert.equal(res.body.variants, 4)
+        // console.log('BROKE',res.body.errors)
+        assert.equal(res.body.products, 2)
+        assert.equal(res.body.variants, 5)
         assert.equal(res.body.errors.length, 0)
+        done()
+      })
+  })
+  it('It should get product with uploaded association', (done) => {
+    request
+      .get('/product/handle/yeti')
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS PRODUCT', res.body)
         done()
       })
   })
@@ -627,7 +637,7 @@ describe('ProductController', () => {
       .get('/product/handle/hydroflask')
       .expect(200)
       .end((err, res) => {
-        console.log('THIS PRODUCT', res.body)
+        // console.log('THIS PRODUCT', res.body)
         //recycle: 'no', material: 'plastic', condition: 'new'
         assert.equal(res.body.metadata['recycle'], 'no')
         assert.equal(res.body.metadata['material'], 'plastic')
@@ -651,7 +661,7 @@ describe('ProductController', () => {
         assert.ok(res.headers['x-pagination-limit'])
         assert.ok(res.headers['x-pagination-offset'])
         assert.ok(res.headers['x-pagination-sort'])
-        assert.equal(res.headers['x-pagination-total'], '6')
+        assert.equal(res.headers['x-pagination-total'], '7')
         assert.equal(res.headers['x-pagination-pages'], '1')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-limit'], '10')
@@ -666,12 +676,13 @@ describe('ProductController', () => {
       .get('/product/tag/flask')
       .expect(200)
       .end((err, res) => {
+        assert.ok(res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
-        assert.equal(res.headers['x-pagination-total'], '1')
-        assert.ok(res.body)
+        assert.equal(res.headers['x-pagination-total'], '2')
+        assert.equal(res.body.length, 2)
         done()
       })
   })
@@ -686,8 +697,8 @@ describe('ProductController', () => {
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
-        assert.equal(res.headers['x-pagination-total'], '1')
-        assert.equal(res.body.length, 1)
+        assert.equal(res.headers['x-pagination-total'], '2')
+        assert.equal(res.body.length, 2)
         done()
       })
   })

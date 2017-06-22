@@ -83,6 +83,7 @@ module.exports = class CollectionService extends Service {
         return
       })
       .then(collections => {
+        // console.log('added collections', collections)
         if (collection.images && collection.images.length > 0) {
           // Resolve the images
           collection.images = _.sortedUniq(collection.images.filter(n => n))
