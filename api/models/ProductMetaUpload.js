@@ -25,7 +25,7 @@ module.exports = class ProductMetaUpload extends Model {
            */
           batch: function (options, batch) {
             const self = this
-            options.limit = options.limit || 100
+            options.limit = options.limit || 10
             options.offset = options.offset || 0
 
             const recursiveQuery = function(options) {

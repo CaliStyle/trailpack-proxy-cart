@@ -233,6 +233,9 @@ module.exports = class OrderService extends Service {
                   const event = {
                     object_id: customer.id,
                     object: 'customer',
+                    objects: [{
+                      customer: customer.id
+                    }],
                     type: 'customer.account_balance.deducted',
                     message: `Customer account balance was deducted by ${ deduction }`,
                     data: customer
@@ -255,6 +258,11 @@ module.exports = class OrderService extends Service {
             const event = {
               object_id: customer.id,
               object: 'customer',
+              objects: [{
+                customer: customer.id
+              },{
+                order: resOrder.id
+              }],
               type: 'customer.order.created',
               message: `Customer Order ${ resOrder.name } was created`,
               data: resOrder
@@ -923,6 +931,14 @@ module.exports = class OrderService extends Service {
         return Order.findByIdDefault(resOrder.id)
       })
   }
+
+  /**
+   *
+   * @param order
+   * @param item
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
   // TODO
   addItem(order, item, options) {
     options = options || {}
@@ -944,10 +960,101 @@ module.exports = class OrderService extends Service {
       })
       .then(foundItem => {
         resItem = foundItem
-        console.log('addItem',resItem)
+        const itemToCreate = resOrder.buildOrderItem(resItem, item.quantity, item.properties)
+        // console.log('addItem',itemToCreate)
+        return resOrder.addItem(itemToCreate)
+      })
+      .then(() => {
         return resOrder.recalculate()
       })
+      .then(() => {
+        // Track Event
+        const event = {
+          object_id: resOrder.id,
+          object: 'order',
+          objects: [{
+            order: resOrder.id
+          },{
+            customer: resOrder.customer_id
+          },{
+            product: resItem.product_id
+          },{
+            productvariant: resItem.id
+          }],
+          type: 'order.item_added_to_order',
+          message: `Item added to Order ${resOrder.name}`,
+          data: resItem
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return Order.findByIdDefault(resOrder.id)
+      })
   }
+
+  /**
+   *
+   * @param order
+   * @param item
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  // TODO
+  updateItem(order, item, options) {
+    options = options || {}
+    if (!item) {
+      throw new Errors.FoundError(Error('Item is not defined'))
+    }
+    let resOrder, resItem
+    const Order = this.app.orm['Order']
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
+        }
+        resOrder = order
+        return this.app.services.ProductService.resolveItem(item)
+      })
+      .then(foundItem => {
+        resItem = foundItem
+        return resOrder.updateItem(resItem, item.quantity, item.properties)
+      })
+      .then(() => {
+        return resOrder.recalculate()
+      })
+      .then(() => {
+        // Track Event
+        const event = {
+          object_id: resOrder.id,
+          object: 'order',
+          objects: [{
+            order: resOrder.id
+          },{
+            customer: resOrder.customer_id
+          },{
+            product: resItem.product_id
+          },{
+            productvariant: resItem.id
+          }],
+          type: 'order.item_updated_in_order',
+          message: `Item updated in Order ${resOrder.name}`,
+          data: resItem
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return Order.findByIdDefault(resOrder.id)
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param item
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
   // TODO
   removeItem(order, item, options) {
     options = options || {}
@@ -964,22 +1071,53 @@ module.exports = class OrderService extends Service {
         if (order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${order.status}`)
         }
-        // resOrder = order
+        resOrder = order
         return this.app.services.ProductService.resolveItem(item)
       })
       .then(foundItem => {
         resItem = foundItem
-        console.log('addItem',resItem)
+        return resOrder.removeItem(resItem, item.quantity)
+      })
+      .then(() => {
         return resOrder.recalculate()
+      })
+      .then(() => {
+        // Track Event
+        const event = {
+          object_id: resOrder.id,
+          object: 'order',
+          objects: [{
+            order: resOrder.id
+          },{
+            customer: resOrder.customer_id
+          },{
+            product: resItem.product_id
+          },{
+            productvariant: resItem.id
+          }],
+          type: 'order.item_removed_from_order',
+          message: `Item removed from Order ${resOrder.name}`,
+          data: resItem
+        }
+        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+
+        return Order.findByIdDefault(resOrder.id)
       })
   }
 
+  /**
+   *
+   * @param order
+   * @param shipping
+   * @param options
+   * @returns {Promise.<TResult>|*}
+   */
   addShipping(order, shipping, options) {
     options = options || {}
     if (!shipping) {
       throw new Errors.FoundError(Error('Shipping is not defined'))
     }
-    // let resOrder
+    let resOrder
     const Order = this.app.orm['Order']
     return Order.resolve(order, options)
       .then(order => {
@@ -989,17 +1127,24 @@ module.exports = class OrderService extends Service {
         if (order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${order.status}`)
         }
-        // resOrder = order
-        return order
+        resOrder = order
+        return resOrder.recalculate()
       })
   }
 
+  /**
+   *
+   * @param order
+   * @param shipping
+   * @param options
+   * @returns {Promise.<TResult>|*}
+   */
   removeShipping(order, shipping, options) {
     options = options || {}
     if (!shipping) {
       throw new Errors.FoundError(Error('Shipping is not defined'))
     }
-    // let resOrder
+    let resOrder
     const Order = this.app.orm['Order']
     return Order.resolve(order, options)
       .then(order => {
@@ -1009,8 +1154,8 @@ module.exports = class OrderService extends Service {
         if (order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${order.status}`)
         }
-        // resOrder = order
-        return order
+        resOrder = order
+        return resOrder.recalculate()
       })
   }
 

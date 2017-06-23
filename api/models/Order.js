@@ -445,6 +445,112 @@ module.exports = class Order extends Model {
               this.fulfillment_status = fulfillmentStatus
               return this
             },
+            buildOrderItem: function(item, qty, properties) {
+              // console.log('BUILDING', item)
+              return {
+                order_id: this.id,
+                product_id: item.product_id,
+                title: item.Product.title,
+                product_handle: item.Product.handle,
+                variant_id: item.id,
+                variant_title: item.title,
+                sku: item.sku,
+                type: item.type,
+                name: item.title == item.Product.title ? item.title : `${item.Product.title} - ${item.title}`,
+                quantity: qty,
+                properties: properties,
+                option: item.option,
+                barcode: item.barcode,
+                price: item.price,
+                calculated_price: item.price,
+                compare_at_price: item.compare_at_price,
+                currency: item.currency,
+                fulfillment_service: item.fulfillment_service,
+                gift_card: item.gift_card,
+                requires_shipping: item.requires_shipping,
+                taxable: item.requires_tax,
+                tax_code: item.tax_code,
+                tax_lines: [],
+                shipping_lines: [],
+                discounted_lines: [],
+                requires_subscription: item.requires_subscription,
+                subscription_interval: item.subscription_interval,
+                subscription_unit: item.subscription_unit,
+                weight: item.weight,
+                weight_unit: item.weight_unit,
+                images: item.images.length > 0 ? item.images : item.Product.images,
+                fulfillable_quantity: item.fulfillable_quantity,
+                max_quantity: item.max_quantity,
+                grams: app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * qty,
+                total_discounts: 0,
+                vendors: item.Product.vendors,
+                live_mode: item.live_mode
+              }
+            },
+            // TODO add new qty
+            addItem: function(item) {
+              const OrderItem = app.orm['OrderItem']
+              return OrderItem.findOne({
+                where: {
+                  order_id: item.order_id,
+                  product_id: item.product_id,
+                  variant_id: item.id
+                }
+              })
+                .then(prevOrderItem => {
+                  if (!prevOrderItem) {
+                    return OrderItem.create(item)
+                  }
+                  else {
+                    return prevOrderItem
+                  }
+                })
+                .then(orderItem => {
+                  console.log('Order.addItem', orderItem)
+                  return this
+                })
+            },
+            // TODO properties and qty
+            updateItem: function(item, qty, properties) {
+              const OrderItem = app.orm['OrderItem']
+              return OrderItem.findOne({
+                where: {
+                  order_id: this.id,
+                  product_id: item.product_id,
+                  variant_id: item.id
+                }
+              })
+                .then(preOrderItem => {
+                  if (!preOrderItem) {
+                    return
+                  }
+                  return preOrderItem
+                })
+                .then(updatedOrderItem => {
+                  return this
+                })
+            },
+            // TODO remove just a qty instead of full destroy
+            removeItem: function(item, qty) {
+              const OrderItem = app.orm['OrderItem']
+              return OrderItem.findOne({
+                where: {
+                  order_id: this.id,
+                  product_id: item.product_id,
+                  variant_id: item.id
+                }
+              })
+                .then(preOrderItem => {
+                  if (!preOrderItem) {
+                    return
+                  }
+                  return preOrderItem.destroy()
+                })
+                .then(updatedOrderItem => {
+                  return this
+                })
+            },
+            // TODO
             recalculate: function() {
 
               return Promise.resolve(this)

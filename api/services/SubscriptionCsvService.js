@@ -232,6 +232,11 @@ module.exports = class SubscriptionCsvService extends Service {
         const event = {
           object_id: subscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: subscription.customer_id
+          },{
+            subscription: subscription.id
+          }],
           type: 'customer.subscription.subscribed',
           message: `Customer subscribed to imported subscription ${subscription.token}`,
           data: subscription

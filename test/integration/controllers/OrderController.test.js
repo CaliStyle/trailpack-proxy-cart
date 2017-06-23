@@ -136,10 +136,26 @@ describe('OrderController', () => {
     request
       .post(`/order/${orderID}/addItem`)
       .send({
-
+        product_id: shopProducts[2].id,
+        quantity: 1
       })
       .expect(200)
       .end((err, res) => {
+        console.log('ADD ITEM',res.body)
+        assert.equal(res.body.order_items.length, 2)
+        done(err)
+      })
+  })
+  it('should update an item to order', (done) => {
+    request
+      .post(`/order/${orderID}/updateItem`)
+      .send({
+        product_id: shopProducts[2].id,
+        quantity: 1
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.order_items.length, 2)
         done(err)
       })
   })
@@ -148,10 +164,13 @@ describe('OrderController', () => {
     request
       .post(`/order/${orderID}/removeItem`)
       .send({
-
+        product_id: shopProducts[2].id,
+        quantity: 1
       })
       .expect(200)
       .end((err, res) => {
+        console.log('REMOVE ITEM',res.body)
+        assert.equal(res.body.order_items.length, 1)
         done(err)
       })
   })

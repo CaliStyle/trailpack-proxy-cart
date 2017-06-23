@@ -411,7 +411,10 @@ module.exports = class OrderController extends Controller {
    */
   addItem(req, res) {
     const OrderService = this.app.services.OrderService
-    OrderService.addItem(req.params.id, req.body)
+    lib.Validator.validateOrder.addItem(req.body)
+      .then(values => {
+        return OrderService.addItem(req.params.id, req.body)
+      })
       .then(data => {
         return res.json(data)
       })
@@ -419,7 +422,24 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
-
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  updateItem(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.updateItem(req.body)
+      .then(values => {
+        return OrderService.updateItem(req.params.id, req.body)
+      })
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    *
    * @param req
@@ -427,7 +447,10 @@ module.exports = class OrderController extends Controller {
    */
   removeItem(req, res) {
     const OrderService = this.app.services.OrderService
-    OrderService.removeItem(req.params.id, req.body)
+    lib.Validator.validateOrder.removeItem(req.body)
+      .then(values => {
+        return OrderService.removeItem(req.params.id, req.body)
+      })
       .then(data => {
         return res.json(data)
       })

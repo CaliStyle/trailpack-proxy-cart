@@ -150,6 +150,11 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resSubscription.customer_id
+          },{
+            subscription: resSubscription.id
+          }],
           type: 'customer.subscription.subscribed',
           message: `Customer subscribed to subscription ${resSubscription.token}`,
           data: resSubscription
@@ -180,6 +185,11 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: subscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: subscription.customer_id
+          },{
+            subscription: subscription.id
+          }],
           type: 'customer.subscription.updated',
           message: `Customer subscription ${subscription.token} updated`,
           data: subscription
@@ -209,6 +219,11 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resSubscription.customer_id
+          },{
+            subscription: resSubscription.id
+          }],
           type: 'customer.subscription.cancelled',
           message: `Customer subscription ${resSubscription.token} was cancelled`,
           data: resSubscription
@@ -239,6 +254,11 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resSubscription.customer_id
+          },{
+            subscription: resSubscription.id
+          }],
           type: 'customer.subscription.activated',
           message: `Customer subscription ${resSubscription.token} was activated`,
           data: resSubscription
@@ -268,6 +288,11 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resSubscription.customer_id
+          },{
+            subscription: resSubscription.id
+          }],
           type: 'customer.subscription.deactivated',
           message: `Customer subscription ${resSubscription.token} was deactivated`,
           data: resSubscription
@@ -308,6 +333,11 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resSubscription.customer_id
+          },{
+            subscription: resSubscription.id
+          }],
           type: 'customer.subscription.items_added',
           message: `Customer subscription ${resSubscription.token} had items added`,
           data: subscription
@@ -346,6 +376,11 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resSubscription.customer_id
+          },{
+            subscription: resSubscription.id
+          }],
           type: 'customer.subscription.items_removed',
           message: `Customer subscription ${resSubscription.token} had items removed`,
           data: subscription
@@ -387,6 +422,11 @@ module.exports = class SubscriptionService extends Service {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resSubscription.customer_id
+          },{
+            subscription: resSubscription.id
+          }],
           type: 'customer.subscription.renewed',
           message: `Customer subscription ${resSubscription.token} was renewed`,
           data: resSubscription
@@ -481,9 +521,12 @@ module.exports = class SubscriptionService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   renewThisHour() {
+    this.app.log.debug('SubscriptionService.renewThisHour')
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Subscription = this.app.orm['Subscription']
+    const errors = []
+    // let errorsTotal = 0
     let subscriptionsTotal = 0
 
     return Subscription.batch({
@@ -501,13 +544,21 @@ module.exports = class SubscriptionService extends Service {
         .then(results => {
           // Calculate Totals
           subscriptionsTotal = subscriptionsTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
         })
     })
       .then(subscriptions => {
         const results = {
-          subscriptions: subscriptionsTotal
+          subscriptions: subscriptionsTotal,
+          errors: errors
         }
-        this.app.services.ProxyEngineService.publish('subscription_cron.complete', results)
+        this.app.services.ProxyEngineService.publish('subscription.renew.complete', results)
         return results
       })
   }

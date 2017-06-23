@@ -138,15 +138,18 @@ module.exports = class Product extends Model {
               })
               models.Product.hasOne(models.Metadata, {
                 as: 'metadata',
-                through: {
-                  model: models.ItemMetadata,
-                  unique: false,
-                  scope: {
-                    model: 'product'
-                  }
-                },
+                // through: {
+                //   model: models.ItemMetadata,
+                //   unique: false,
+                //   scope: {
+                //     model: 'product'
+                //   }
+                // },
                 // foreignKey: 'model_id',
-                // constraints: false
+                // scope: {
+                //   model: 'product'
+                // },
+                constraints: false
               })
               models.Product.belongsToMany(models.Vendor, {
                 as: 'vendors',

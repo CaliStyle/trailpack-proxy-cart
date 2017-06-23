@@ -292,7 +292,7 @@ module.exports = class ProductService extends Service {
         },
         {
           model: Metadata,
-          as: 'metadata'
+          as: 'metadata',
         },
         {
           model: Vendor,
@@ -422,12 +422,13 @@ module.exports = class ProductService extends Service {
     }
     // let newTags = []
     // return Product.sequelize.transaction(t => {
-    let resProduct = {}
     // Create an empty product options array
     const productOptions = []
     if (!product.id) {
       throw new Errors.FoundError(Error('Product is missing id'))
     }
+
+    let resProduct = {}
     return Product.findByIdDefault(product.id, {
       transaction: options.transaction || null
     })

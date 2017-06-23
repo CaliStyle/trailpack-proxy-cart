@@ -84,6 +84,11 @@ module.exports = class AccountService extends Service {
         const event = {
           object_id: account.customer_id,
           object: 'customer',
+          objects: [{
+            customer: account.customer_id
+          },{
+            account: account.id
+          }],
           type: 'customer.account.updated',
           message: `Customer account ${account.foreign_id} was updated on ${account.gateway}`,
           data: account
@@ -124,6 +129,13 @@ module.exports = class AccountService extends Service {
                   const event = {
                     object_id: source.customer_id,
                     object: 'customer',
+                    objects: [{
+                      customer: resAccount.customer_id
+                    },{
+                      account: resAccount.id
+                    },{
+                      source: source.id
+                    }],
                     type: 'customer.source.created',
                     message: `Customer source ${source.foreign_id} was created on ${ source.gateway }`,
                     data: source
@@ -138,6 +150,11 @@ module.exports = class AccountService extends Service {
             const event = {
               object_id: resAccount.customer_id,
               object: 'customer',
+              objects: [{
+                customer: resAccount.customer_id
+              },{
+                account: resAccount.id
+              }],
               type: 'customer.account.created',
               message: `Customer account ${account.foreign_id} was created on ${account.gateway}`,
               data: resAccount
@@ -191,6 +208,13 @@ module.exports = class AccountService extends Service {
         const event = {
           object_id: source.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resAccount.customer_id
+          },{
+            account: resAccount.id
+          },{
+            source: source.id
+          }],
           type: 'customer.source.created',
           message: `Customer source ${source.foreign_id} was created on ${ source.gateway }`,
           data: source
@@ -263,6 +287,13 @@ module.exports = class AccountService extends Service {
         const event = {
           object_id: source.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resAccount.customer_id
+          },{
+            account: resAccount.id
+          },{
+            source: source.id
+          }],
           type: 'customer.source.updated',
           message: `Customer source ${source.foreign_id} was updated on ${ source.gateway }`,
           data: source
@@ -292,6 +323,13 @@ module.exports = class AccountService extends Service {
         const event = {
           object_id: resSource.customer_id,
           object: 'customer',
+          objects: [{
+            customer: resSource.customer_id
+          },{
+            account: resSource.account_id
+          },{
+            source: resSource.id
+          }],
           type: 'customer.source.removed',
           message: `Customer source ${source.foreign_id} was removed on ${ source.gateway }`,
           data: resSource

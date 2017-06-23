@@ -36,6 +36,11 @@ module.exports = class PaymentService extends Service {
         const event = {
           object_id: transaction.order_id,
           object: 'order',
+          objects: [{
+            order: transaction.order_id
+          },{
+            transaction: transaction.id
+          }],
           type: `order.transaction.authorize.${transaction.status}`,
           message: `Order ID ${transaction.order_id} transaction authorize of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
@@ -84,6 +89,11 @@ module.exports = class PaymentService extends Service {
         const event = {
           object_id: transaction.order_id,
           object: 'order',
+          objects: [{
+            order: transaction.order_id
+          },{
+            transaction: transaction.id
+          }],
           type: `order.transaction.capture.${transaction.status}`,
           message: `Order ID ${transaction.order_id} transaction capture of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
@@ -123,6 +133,11 @@ module.exports = class PaymentService extends Service {
         const event = {
           object_id: transaction.order_id,
           object: 'order',
+          objects: [{
+            order: transaction.order_id
+          },{
+            transaction: transaction.id
+          }],
           type: `order.transaction.sale.${transaction.status}`,
           message: `Order ID ${transaction.order_id} transaction sale of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
@@ -182,6 +197,11 @@ module.exports = class PaymentService extends Service {
         const event = {
           object_id: transaction.order_id,
           object: 'order',
+          objects: [{
+            order: transaction.order_id
+          },{
+            transaction: transaction.id
+          }],
           type: `order.transaction.void.${transaction.status}`,
           message: `Order ID ${transaction.order_id} transaction voided of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
@@ -229,6 +249,11 @@ module.exports = class PaymentService extends Service {
         const event = {
           object_id: transaction.order_id,
           object: 'order',
+          objects: [{
+            order: transaction.order_id
+          },{
+            transaction: transaction.id
+          }],
           type: `order.transaction.refund.${transaction.status}`,
           message: `Order ID ${transaction.order_id} transaction refund of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction

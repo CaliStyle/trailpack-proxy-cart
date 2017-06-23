@@ -24,22 +24,50 @@ module.exports = class Metadata extends Model {
              */
             // TODO associate Metadata with product variant as well.
             associate: (models) => {
-              models.Metadata.belongsTo(models.Product, {
-                through: {
-                  model: models.ItemMetadata,
-                  unique: false
-                },
-                foreignKey: 'meta_id',
-                constraints: false
-              })
-              models.Metadata.belongsTo(models.Customer, {
-                through: {
-                  model: models.ItemMetadata,
-                  unique: false
-                },
-                foreignKey: 'meta_id',
-                constraints: false
-              })
+              // models.Metadata.belongsTo(models.Product, {
+              //   scope: {
+              //     model: 'product'
+              //   },
+              //   foreignKey: 'model_id',
+              //   constraints: false
+              // })
+              // models.Metadata.belongsTo(models.ProductVariant, {
+              //   scope: {
+              //     model: 'product_variant'
+              //   },
+              //   foreignKey: 'id',
+              //   constraints: false
+              // })
+              // models.Metadata.belongsTo(models.Customer, {
+              //   scope: {
+              //     model: 'customer'
+              //   },
+              //   foreignKey: 'id',
+              //   constraints: false
+              // })
+              // models.Metadata.belongsTo(models.User, {
+              //   scope: {
+              //     model: 'user'
+              //   },
+              //   foreignKey: 'id',
+              //   constraints: false
+              // })
+              // models.Metadata.belongsTo(models.Product, {
+              //   through: {
+              //     model: models.ItemMetadata,
+              //     unique: false
+              //   },
+              //   foreignKey: 'meta_id',
+              //   constraints: false
+              // })
+              // models.Metadata.belongsTo(models.Customer, {
+              //   through: {
+              //     model: models.ItemMetadata,
+              //     unique: false
+              //   },
+              //   foreignKey: 'meta_id',
+              //   constraints: false
+              // })
               // models.Metadata.belongsTo(models.Customer, {
               //   // as: 'customer_id'
               // })
@@ -73,6 +101,15 @@ module.exports = class Metadata extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // model: {
+        //   type: Sequelize.STRING,
+        //   unique: 'metadata_model'
+        // },
+        // model_id: {
+        //   type: Sequelize.INTEGER,
+        //   unique: 'metadata_model',
+        //   references: null
+        // },
         data: helpers.JSONB('Metadata', app, Sequelize, 'data', {
           defaultValue: {}
         }),

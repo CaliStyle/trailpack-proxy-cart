@@ -150,6 +150,11 @@ module.exports = class CustomerService extends Service {
                   const event = {
                     object_id: account.customer_id,
                     object: 'customer',
+                    objects: [{
+                      customer: account.customer_id
+                    },{
+                      account: account.id
+                    }],
                     type: 'customer.account.created',
                     message: `Customer account ${account.foreign_id} created on ${ account.gateway }`,
                     data: account
@@ -323,6 +328,9 @@ module.exports = class CustomerService extends Service {
         const event = {
           object_id: customer.id,
           object: 'customer',
+          objects: [{
+            customer: customer.id
+          }],
           type: 'customer.account_balance.updated',
           message: `Customer account balance was updated to ${ customer.account_balance }`,
           data: customer

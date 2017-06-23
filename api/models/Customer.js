@@ -238,15 +238,20 @@ module.exports = class Customer extends Model {
               })
               models.Customer.hasOne(models.Metadata, {
                 as: 'metadata',
-                through: {
-                  model: models.ItemMetadata,
-                  unique: false,
-                  scope: {
-                    model: 'customer'
-                  },
-                  foreignKey: 'model_id'
-                  // constraints: false
-                }
+                // through: {
+                //   model: models.ItemMetadata,
+                //   unique: false,
+                //   scope: {
+                //     model: 'customer'
+                //   },
+                //   foreignKey: 'model_id'
+                //   // constraints: false
+                // }
+                // scope: {
+                //   model: 'customer'
+                // },
+                // foreignKey: 'model_id',
+                constraints: false
               })
               models.Customer.belongsToMany(models.Account, {
                 as: 'accounts',

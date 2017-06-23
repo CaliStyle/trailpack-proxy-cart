@@ -165,6 +165,11 @@ module.exports = class CartService extends Service {
           const event = {
             object_id: order.customer_id,
             object: 'customer',
+            objects: [{
+              customer: order.customer_id
+            },{
+              order: order.id
+            }],
             type: 'customer.cart.checkout',
             message: `Customer Cart ${ order.cart_token } checked out and created Order ${order.name}`,
             data: order

@@ -130,15 +130,20 @@ module.exports = class ProductVariant extends Model {
               })
               models.ProductVariant.hasOne(models.Metadata, {
                 as: 'metadata',
-                through: {
-                  model: models.ItemMetadata,
-                  unique: false,
-                  scope: {
-                    model: 'product_variant'
-                  },
-                  foreignKey: 'model_id',
-                  constraints: false
-                }
+                // through: {
+                //   model: models.ItemMetadata,
+                //   unique: false,
+                //   scope: {
+                //     model: 'product_variant'
+                //   },
+                //   foreignKey: 'model_id',
+                //   constraints: false
+                // }
+                // scope: {
+                //   model: 'product_variant'
+                // },
+                // foreignKey: 'model_id',
+                constraints: false
               })
               models.ProductVariant.belongsToMany(models.Discount, {
                 as: 'discount_codes',
