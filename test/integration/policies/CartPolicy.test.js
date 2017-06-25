@@ -728,6 +728,42 @@ describe('CartPolicy', () => {
         done()
       })
   })
+  it('It should Update Account Balance back to 100', (done) => {
+    agent
+      .post(`/customer/${ customerID }/accountBalance`)
+      .send({
+        account_balance: 100
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('Customer Account Balance', res.body)
+        assert.equal(res.body.account_balance, 100)
+        done()
+      })
+  })
+  it('should renew customer subscription by id and use account balance', done => {
+    agent
+      .post(`/subscription/${ subscriptionID }/renew`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS POLICY subscription', res.body)
+        assert.ok(res.body.subscription)
+        assert.ok(res.body.order)
+        assert.equal(res.body.subscription.id, subscriptionID)
+        assert.equal(res.body.order.total_overrides, 100)
+        done(err)
+      })
+  })
+  it('It should get customer and Account Balance should now be 0', (done) => {
+    agent
+      .get(`/customer/${ customerID }`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.account_balance, 0)
+        done()
+      })
+  })
   it('should logout', done => {
 
     agent
