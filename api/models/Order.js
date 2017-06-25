@@ -730,9 +730,6 @@ module.exports = class Order extends Model {
         payment_gateway_names: helpers.JSONB('Order', app, Sequelize, 'payment_gateway_names', {
           defaultValue: []
         }),
-        // payment_gateway_names: helpers.ARRAY('Order', app, Sequelize, Sequelize.STRING, 'payment_gateway_names', {
-        //   defaultValue: []
-        // }),
         // The date and time when the order was imported, in ISO 8601 format. This value can be set to dates in the past when importing from other systems. If no value is provided, it will be auto-generated.
         processed_at: {
           type: Sequelize.DATE
@@ -750,38 +747,26 @@ module.exports = class Order extends Model {
         shipping_lines: helpers.JSONB('Order', app, Sequelize, 'shipping_lines', {
           defaultValue: []
         }),
-        // shipping_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB, 'shipping_lines', {
-        //   defaultValue: []
-        // }),
         // The line_items that have discounts
         discounted_lines: helpers.JSONB('Order', app, Sequelize, 'discounted_lines', {
           defaultValue: []
         }),
-        // discounted_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB,  'discounted_lines', {
-        //   defaultValue: []
-        // }),
         // The line_items that have coupons
         coupon_lines: helpers.JSONB('Order', app, Sequelize, 'coupon_lines', {
           defaultValue: []
         }),
-        // coupon_lines: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB,  'coupon_lines', {
-        //   defaultValue: []
-        // }),
         // The pricing overrides
         pricing_overrides: helpers.JSONB('Order', app, Sequelize, 'pricing_overrides', {
           defaultValue: []
         }),
-        // pricing_overrides: helpers.ARRAY('Order', app, Sequelize, Sequelize.JSONB, 'pricing_overrides', {
-        //   defaultValue: []
-        // }),
+        // USER id of the admin who did the override
+        pricing_override_id: {
+          type: Sequelize.INTEGER
+        },
         // The total amount of pricing overrides
         total_overrides: {
           type: Sequelize.INTEGER,
           defaultValue: 0
-        },
-        // USER id of the admin who did the override
-        pricing_override_id: {
-          type: Sequelize.INTEGER
         },
         // Where the order originated. May only be set during creation, and is not writable thereafter. Orders created through official Proxy Engine channels have protected values that cannot be assigned by other API clients during order creation. These protected values are: "web", "pos", "iphone", and "android" Orders created via the API may be assigned any other string of your choice. If source_name is unspecified, new orders are assigned the value "api".
         source_name: {

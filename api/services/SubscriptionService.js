@@ -558,6 +558,7 @@ module.exports = class SubscriptionService extends Service {
           subscriptions: subscriptionsTotal,
           errors: errors
         }
+        this.app.log.info(results)
         this.app.services.ProxyEngineService.publish('subscription.renew.complete', results)
         return results
       })

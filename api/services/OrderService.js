@@ -108,6 +108,9 @@ module.exports = class OrderService extends Service {
           if (!obj.payment_details){
             obj.payment_details = []
           }
+          if (!obj.pricing_overrides) {
+            obj.pricing_overrides = []
+          }
           // Map the gateway names being used
           const paymentGatewayNames = obj.payment_details.map(detail => { return detail.gateway })
           // console.log('OrderService.create', resShippingAddress, resBillingAddress)
