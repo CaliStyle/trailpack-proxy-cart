@@ -525,6 +525,7 @@ module.exports = class SubscriptionService extends Service {
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Subscription = this.app.orm['Subscription']
+    const Sequelize = Subscription.sequelize
     const errors = []
     // let errorsTotal = 0
     let subscriptionsTotal = 0
@@ -538,9 +539,9 @@ module.exports = class SubscriptionService extends Service {
         active: true
       }
     }, subscriptions => {
-      return Promise.all(subscriptions.map(subscription => {
+      return Sequelize.Promise.mapSeries(subscriptions, subscription => {
         return this.renew(subscription)
-      }))
+      })
         .then(results => {
           // Calculate Totals
           subscriptionsTotal = subscriptionsTotal + results.length
@@ -561,6 +562,10 @@ module.exports = class SubscriptionService extends Service {
         this.app.log.info(results)
         this.app.services.ProxyEngineService.publish('subscription.renew.complete', results)
         return results
+      })
+      .catch(err => {
+        this.app.log.error(err)
+        return
       })
   }
 

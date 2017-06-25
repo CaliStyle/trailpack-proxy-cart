@@ -13,6 +13,9 @@ module.exports = class SubscriptionsCron extends Cron {
     // Schedule the recurring job
     this.schedule.scheduleJob(rule, () => {
       this.app.services.SubscriptionService.renewThisHour()
+        .catch(err => {
+          this.app.log.error(err)
+        })
     })
   }
 }
