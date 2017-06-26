@@ -604,7 +604,7 @@ module.exports = class SubscriptionService extends Service {
   }
   // TODO
   cancelThisHour() {
-    this.app.log.debug('SubscriptionService.retryThisHour')
+    this.app.log.debug('SubscriptionService.cancelThisHour')
     const Subscription = this.app.orm['Subscription']
     const errors = []
     // let errorsTotal = 0
@@ -617,7 +617,7 @@ module.exports = class SubscriptionService extends Service {
         },
         active: true
       },
-      regressive: false
+      regressive: true
     }, (subscriptions) => {
 
       const Sequelize = Subscription.sequelize
