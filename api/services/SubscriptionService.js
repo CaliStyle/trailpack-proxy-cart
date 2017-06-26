@@ -16,57 +16,6 @@ const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_M
 module.exports = class SubscriptionService extends Service {
   /**
    *
-   * @param subscription
-   * @param options
-   * @returns {*}
-   */
-  resolve(subscription, options){
-    // console.log('TYPEOF subscription',typeof subscription)
-    const Subscription =  this.app.orm['Subscription']
-
-    if (subscription instanceof Subscription.Instance){
-      return Promise.resolve(subscription, options)
-    }
-    else if (subscription && _.isObject(subscription) && subscription.id) {
-      return Subscription.findById(subscription.id, options)
-        .then(resSubscription => {
-          if (!resSubscription) {
-            throw new Errors.FoundError(Error(`Subscription ${subscription.id} not found`))
-          }
-          return resSubscription
-        })
-    }
-    else if (subscription && _.isObject(subscription) && subscription.token) {
-      return Subscription.findOne({
-        where: {
-          token: subscription.token
-        }
-      }, options)
-        .then(resSubscription => {
-          if (!resSubscription) {
-            throw new Errors.FoundError(Error(`Subscription ${subscription.token} not found`))
-          }
-          return resSubscription
-        })
-    }
-    else if (subscription && (_.isString(subscription) || _.isNumber(subscription))) {
-      return Subscription.findById(subscription, options)
-        .then(resSubscription => {
-          if (!resSubscription) {
-            throw new Errors.FoundError(Error(`Subscription ${subscription} not found`))
-          }
-          return resSubscription
-        })
-    }
-    else {
-      // TODO create proper error
-      const err = new Error(`Unable to resolve Subscription ${subscription}`)
-      return Promise.reject(err)
-    }
-  }
-
-  /**
-   *
    * @param order
    * @param active
    * @returns {Promise.<TResult>}
@@ -152,14 +101,16 @@ module.exports = class SubscriptionService extends Service {
           object: 'customer',
           objects: [{
             customer: resSubscription.customer_id
-          },{
+          }, {
             subscription: resSubscription.id
           }],
           type: 'customer.subscription.subscribed',
           message: `Customer subscribed to subscription ${resSubscription.token}`,
           data: resSubscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return resSubscription
       })
   }
@@ -171,31 +122,34 @@ module.exports = class SubscriptionService extends Service {
    * @returns {*}
    */
   update(subscription, options){
-    if (!subscription.id) {
-      const err = new Errors.FoundError(Error('Subscription is missing id'))
-      return Promise.reject(err)
-    }
     const Subscription =  this.app.orm.Subscription
     const update = _.omit(subscription,['id','created_at','updated_at'])
-    return Subscription.findById(subscription.id)
-      .then(resSubscription => {
-        return resSubscription.update(update, options)
+    let resSubscription
+    return Subscription.resolve(subscription, options)
+      .then(foundSubscription => {
+        if (!foundSubscription) {
+          throw new Error('Subscription not found')
+        }
+        resSubscription = foundSubscription
+        return resSubscription.update(update)
       })
-      .then(subscription => {
+      .then(() => {
         const event = {
-          object_id: subscription.customer_id,
+          object_id: resSubscription.customer_id,
           object: 'customer',
           objects: [{
-            customer: subscription.customer_id
-          },{
-            subscription: subscription.id
+            customer: resSubscription.customer_id
+          }, {
+            subscription: resSubscription.id
           }],
           type: 'customer.subscription.updated',
-          message: `Customer subscription ${subscription.token} updated`,
-          data: subscription
+          message: `Customer subscription ${resSubscription.token} updated`,
+          data: resSubscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-        return subscription
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resSubscription
       })
   }
 
@@ -207,29 +161,35 @@ module.exports = class SubscriptionService extends Service {
    */
   cancel(body, subscription) {
     const Subscription = this.app.orm['Subscription']
+    let resSubscription
     return Subscription.resolve(subscription)
-      .then(resSubscription => {
+      .then(foundSubscription => {
+        if (!foundSubscription) {
+          throw new Error('Subscription not found')
+        }
+        resSubscription = foundSubscription
         resSubscription.cancel_reason = body.reason || SUBSCRIPTION_CANCEL.OTHER
         resSubscription.cancelled_at = new Date()
         resSubscription.cancelled = true
         resSubscription.active = false
         return resSubscription.save()
       })
-      .then(resSubscription => {
+      .then(() => {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
           objects: [{
             customer: resSubscription.customer_id
-          },{
+          }, {
             subscription: resSubscription.id
           }],
           type: 'customer.subscription.cancelled',
           message: `Customer subscription ${resSubscription.token} was cancelled`,
           data: resSubscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return resSubscription
       })
   }
@@ -240,30 +200,37 @@ module.exports = class SubscriptionService extends Service {
    * @param subscription
    * @returns {*|Promise.<TResult>}
    */
-  activate(body, subscription) {
+  activate(body, subscription, options) {
     const Subscription = this.app.orm['Subscription']
-    return Subscription.resolve(subscription)
-      .then(resSubscription => {
+    let resSubscription
+    return Subscription.resolve(subscription, options)
+      .then(foundSubscription => {
+        if (!foundSubscription) {
+          throw new Errors.FoundError(Error('Subscription Not Found'))
+        }
+        resSubscription = foundSubscription
         resSubscription.cancel_reason = null
         resSubscription.cancelled_at = null
         resSubscription.cancelled = false
         resSubscription.active = true
         return resSubscription.save()
       })
-      .then(resSubscription => {
+      .then(() => {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
           objects: [{
             customer: resSubscription.customer_id
-          },{
+          }, {
             subscription: resSubscription.id
           }],
           type: 'customer.subscription.activated',
           message: `Customer subscription ${resSubscription.token} was activated`,
           data: resSubscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return resSubscription
       })
   }
@@ -274,41 +241,54 @@ module.exports = class SubscriptionService extends Service {
    * @param subscription
    * @returns {*|Promise.<TResult>}
    */
-  deactivate(body, subscription) {
+  deactivate(body, subscription, options) {
     const Subscription = this.app.orm['Subscription']
+    let resSubscription
     return Subscription.resolve(subscription)
-      .then(resSubscription => {
+      .then(foundSubscription => {
+        if (!foundSubscription) {
+          throw new Errors.FoundError(Error('Subscription Not Found'))
+        }
+        resSubscription = foundSubscription
         resSubscription.cancel_reason = null
         resSubscription.cancelled_at = null
         resSubscription.cancelled = false
         resSubscription.active = false
         return resSubscription.save()
       })
-      .then(resSubscription => {
+      .then(() => {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
           objects: [{
             customer: resSubscription.customer_id
-          },{
+          }, {
             subscription: resSubscription.id
           }],
           type: 'customer.subscription.deactivated',
           message: `Customer subscription ${resSubscription.token} was deactivated`,
           data: resSubscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return resSubscription
       })
   }
 
-  addItems(items, subscription) {
+  /**
+   *
+   * @param items
+   * @param subscription
+   * @returns {Promise.<TResult>}
+   */
+  addItems(items, subscription, options) {
     const Subscription = this.app.orm['Subscription']
     if (items.line_items) {
       items = items.line_items
     }
     let resSubscription
-    return Subscription.resolve(subscription)
+    return Subscription.resolve(subscription, options)
       .then(foundSubscription => {
         if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
@@ -326,39 +306,45 @@ module.exports = class SubscriptionService extends Service {
         }))
       })
       .then(resolvedItems => {
-        // console.log('SubscriptionService.addItemsToSubscription', subscription)
         return resSubscription.save()
       })
-      .then(subscription => {
+      .then(() => {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
           objects: [{
             customer: resSubscription.customer_id
-          },{
+          }, {
             subscription: resSubscription.id
           }],
           type: 'customer.subscription.items_added',
           message: `Customer subscription ${resSubscription.token} had items added`,
-          data: subscription
+          data: resSubscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
-        return subscription
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resSubscription
       })
   }
-  removeItems(items, subscription) {
+
+  /**
+   *
+   * @param items
+   * @param subscription
+   * @returns {Promise.<TResult>}
+   */
+  removeItems(items, subscription, options) {
     const Subscription = this.app.orm['Subscription']
     if (items.line_items) {
       items = items.line_items
     }
     let resSubscription
-    return Subscription.resolve(subscription)
+    return Subscription.resolve(subscription, options)
       .then(foundSubscription => {
         if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-
         resSubscription = foundSubscription
         return Promise.all(items.map(item => {
           return this.app.services.ProductService.resolveItem(item)
@@ -372,7 +358,7 @@ module.exports = class SubscriptionService extends Service {
       .then(resolvedItems => {
         return resSubscription.save()
       })
-      .then(subscription => {
+      .then(() => {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
@@ -383,36 +369,40 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.items_removed',
           message: `Customer subscription ${resSubscription.token} had items removed`,
-          data: subscription
+          data: resSubscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
-        return subscription
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resSubscription
       })
   }
 
-  renew(subscription) {
+  /**
+   *
+   * @param subscription
+   * @returns {Promise.<TResult>}
+   */
+  renew(subscription, options) {
     const Subscription = this.app.orm['Subscription']
     let resSubscription, resOrder
-    return Subscription.resolve(subscription)
-      .then(subscription => {
-        if (!subscription) {
+    return Subscription.resolve(subscription, options)
+      .then(foundSubscription => {
+        if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-        resSubscription = subscription
-        return resSubscription
-      })
-      .then(subscription => {
-        return this.prepareForOrder(subscription)
+        resSubscription = foundSubscription
+        return this.prepareForOrder(resSubscription)
       })
       .then(newOrder => {
         return this.app.services.OrderService.create(newOrder)
       })
       .then(order => {
         if (!order) {
-          throw new Error('Unexpected error during checkout')
+          throw new Error(`Unexpected error during subscription ${resSubscription.id} renewal`)
         }
         resOrder = order
+        // console.log('THIS RENEWED', order)
         // Renew the Subscription
         resSubscription.renew()
         return resSubscription.save()
@@ -424,15 +414,16 @@ module.exports = class SubscriptionService extends Service {
           object: 'customer',
           objects: [{
             customer: resSubscription.customer_id
-          },{
+          }, {
             subscription: resSubscription.id
           }],
           type: 'customer.subscription.renewed',
           message: `Customer subscription ${resSubscription.token} was renewed`,
           data: resSubscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return {
           subscription: resSubscription,
           order: resOrder
@@ -440,17 +431,26 @@ module.exports = class SubscriptionService extends Service {
       })
   }
 
+  // TODO
+  retry(subscription) {
+    return Promise.resolve(subscription)
+  }
+
+  /**
+   *
+   * @param subscription
+   * @returns {Promise.<TResult>}
+   */
   prepareForOrder(subscription) {
     const Subscription = this.app.orm['Subscription']
     let resSubscription, resCustomer
 
     return Subscription.resolve(subscription)
-      .then(subscription => {
-        if (!subscription) {
+      .then(foundSubscription => {
+        if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-
-        resSubscription = subscription
+        resSubscription = foundSubscription
         return this.app.orm['Customer'].findById(resSubscription.customer_id, {
           attributes: ['id', 'email']
         })
@@ -482,8 +482,7 @@ module.exports = class SubscriptionService extends Service {
           })
       })
       .then(paymentDetails => {
-
-        const newOrder = {
+        const newOrder = resSubscription.buildOrder({
           // Request info
           payment_details: paymentDetails.payment_details,
           payment_kind: paymentDetails.payment_kind || this.app.config.proxyCart.order_payment_kind,
@@ -491,35 +490,10 @@ module.exports = class SubscriptionService extends Service {
           processing_method: PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
           shipping_address: resCustomer.shipping_address,
           billing_address: resCustomer.billing_address,
-          pricing_overrides: [],
-
           // Customer Info
           customer_id: resCustomer.id,
-          email: resCustomer.email,
-
-          // Subscription Info
-          subscription_token: resSubscription.token,
-          currency: resSubscription.currency,
-          line_items: resSubscription.line_items,
-          tax_lines: resSubscription.tax_lines,
-          shipping_lines: resSubscription.shipping_lines,
-          discounted_lines: resSubscription.discounted_lines,
-          coupon_lines: resSubscription.coupon_lines,
-          subtotal_price: resSubscription.subtotal_price,
-          taxes_included: resSubscription.taxes_included,
-          total_discounts: resSubscription.total_discounts,
-          total_coupons: resSubscription.total_coupons,
-          total_line_items_price: resSubscription.total_line_items_price,
-          total_price: resSubscription.total_due,
-          total_due: resSubscription.total_due,
-          total_tax: resSubscription.total_tax,
-          total_weight: resSubscription.total_weight,
-          total_items: resSubscription.total_items,
-          shop_id: resSubscription.shop_id,
-          has_shipping: resSubscription.has_shipping,
-          has_subscription: false
-        }
-        // console.log('subscription checkout prepare', newOrder)
+          email: resCustomer.email
+        })
         return newOrder
       })
   }
@@ -537,14 +511,16 @@ module.exports = class SubscriptionService extends Service {
     // let errorsTotal = 0
     let subscriptionsTotal = 0
 
-    return Subscription.batchRegressive({
+    return Subscription.batch({
       where: {
         renews_on: {
           $gte: start.format('YYYY-MM-DD HH:mm:ss'),
           $lte: end.format('YYYY-MM-DD HH:mm:ss')
         },
-        active: true
-      }
+        active: true,
+        total_renewal_attempts: 0
+      },
+      regressive: true
     }, (subscriptions) => {
 
       const Sequelize = Subscription.sequelize
@@ -569,7 +545,104 @@ module.exports = class SubscriptionService extends Service {
           errors: errors
         }
         this.app.log.info(results)
-        this.app.services.ProxyEngineService.publish('subscription.renew.complete', results)
+        this.app.services.ProxyEngineService.publish('subscriptions.renew.complete', results)
+        return results
+      })
+      .catch(err => {
+        this.app.log.error(err)
+        return
+      })
+  }
+
+  // TODO
+  retryThisHour() {
+    this.app.log.debug('SubscriptionService.retryThisHour')
+    const Subscription = this.app.orm['Subscription']
+    const errors = []
+    // let errorsTotal = 0
+    let subscriptionsTotal = 0
+
+    return Subscription.batch({
+      where: {
+        total_renewal_attempts: {
+          $lte: this.app.config.proxyCart.subscriptions.retry_attempts || 1
+        },
+        active: true
+      },
+      regressive: false
+    }, (subscriptions) => {
+
+      const Sequelize = Subscription.sequelize
+      return Sequelize.Promise.mapSeries(subscriptions, subscription => {
+        return this.retry(subscription)
+      })
+        .then(results => {
+          // Calculate Totals
+          subscriptionsTotal = subscriptionsTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
+        })
+    })
+      .then(subscriptions => {
+        const results = {
+          subscriptions: subscriptionsTotal,
+          errors: errors
+        }
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('subscriptions.retry.complete', results)
+        return results
+      })
+      .catch(err => {
+        this.app.log.error(err)
+        return
+      })
+  }
+  // TODO
+  cancelThisHour() {
+    this.app.log.debug('SubscriptionService.retryThisHour')
+    const Subscription = this.app.orm['Subscription']
+    const errors = []
+    // let errorsTotal = 0
+    let subscriptionsTotal = 0
+
+    return Subscription.batch({
+      where: {
+        total_renewal_attempts: {
+          $gte: this.app.config.proxyCart.subscriptions.retry_attempts || 1
+        },
+        active: true
+      },
+      regressive: false
+    }, (subscriptions) => {
+
+      const Sequelize = Subscription.sequelize
+      return Sequelize.Promise.mapSeries(subscriptions, subscription => {
+        return this.cancel({},subscription)
+      })
+        .then(results => {
+          // Calculate Totals
+          subscriptionsTotal = subscriptionsTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
+        })
+    })
+      .then(subscriptions => {
+        const results = {
+          subscriptions: subscriptionsTotal,
+          errors: errors
+        }
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('subscriptions.cancel.complete', results)
         return results
       })
       .catch(err => {

@@ -1,38 +1,6 @@
 module.exports = {
   default: (app) => {
     return {
-      // include: [{ all: true }]
-      // attributes: {
-      //   exclude: [
-      //     'shipping_address_id',
-      //     'billing_address_id',
-      //     'default_address_id'
-      //   ]
-      // },
-      // [
-      //   'Customer.*',
-      //   // 'billing_address.*',
-      //   // 'shipping_address.*',
-      //   // 'metadata.*',
-      //   // 'tags.*',
-      //   // 'default_cart.*'
-      //   // [app.orm['Order'].sequelize.fn('COUNT', app.orm['Order'].sequelize.col('orders.id')), 'orders_count']
-      // ],
-      // {
-      //   // include: [
-      //   //   'billing_address.*',
-      //   //   'shipping_address.*',
-      //   //   'metadata.*',
-      //   //   'tags.*',
-      //   //   'default_cart.*'
-      //   //   // [app.orm['Order'].sequelize.fn('COUNT', app.orm['Order'].sequelize.col('orders.id')), 'orders_count']
-      //   // ],
-      //   exclude: [
-      //     'shipping_address_id',
-      //     'billing_address_id',
-      //     'default_address_id'
-      //   ]
-      // },
       include: [
         {
           model: app.orm['Address'],
@@ -87,6 +55,15 @@ module.exports = {
         //   model: app.orm['Cart'],
         //   as: 'carts'
         // }
+      ],
+      order: [
+        [
+          {
+            model: app.orm['Event'],
+            as: 'events'
+          },
+          'created_at', 'DESC'
+        ]
       ]
     }
   }

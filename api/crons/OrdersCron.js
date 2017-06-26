@@ -2,41 +2,33 @@
 
 const Cron = require('trailpack-proxy-engine').Cron
 
-module.exports = class SubscriptionsCron extends Cron {
+module.exports = class OrdersCron extends Cron {
   /**
-   * Renews Subscriptions
+   * Retry Failed Orders
    */
-  renew() {
-    // Every Hour Check for subscription renewals
-    const rule = new this.schedule.RecurrenceRule()
-    rule.minute = 0
-    // Schedule the recurring job
-    this.schedule.scheduleJob(rule, () => {
-      this.app.services.SubscriptionService.renewThisHour()
-        .catch(err => {
-          this.app.log.error(err)
-        })
-    })
-  }
   retryFailed() {
     // Every Hour at 15 past Check for subscriptions to retry
     const rule = new this.schedule.RecurrenceRule()
     rule.minute = 15
     // Schedule the recurring job
     this.schedule.scheduleJob(rule, () => {
-      this.app.services.SubscriptionService.retryThisHour()
+      this.app.services.OrderService.retryThisHour()
         .catch(err => {
           this.app.log.error(err)
         })
     })
   }
+
+  /**
+   * Cancel Failed Orders after Grace Period
+   */
   cancelFailed() {
     // Every Hour at 30 past Check for subscriptions to cancel
     const rule = new this.schedule.RecurrenceRule()
     rule.minute = 30
     // Schedule the recurring job
     this.schedule.scheduleJob(rule, () => {
-      this.app.services.SubscriptionService.cancelThisHour()
+      this.app.services.OrderService.cancelThisHour()
         .catch(err => {
           this.app.log.error(err)
         })

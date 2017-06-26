@@ -38,6 +38,13 @@ module.exports = {
             as: 'order_items'
           },
           'calculated_price'
+        ],
+        [
+          {
+            model: app.orm['Event'],
+            as: 'events'
+          },
+          'created_at', 'DESC'
         ]
       ]
     }

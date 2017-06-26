@@ -16,6 +16,7 @@ module.exports = {
        * method is invoked on this Trailpack
        */
       listen: [
+        'trailpack:sequelize:configured',
         'trailpack:proxy-engine:configured',
         'trailpack:proxy-generics:configured',
         'trailpack:proxy-permissions:configured'

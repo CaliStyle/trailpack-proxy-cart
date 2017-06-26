@@ -371,7 +371,9 @@ module.exports = {
     // Transaction succeeded
     SUCCESS: 'success',
     // Transaction resulted in error
-    ERROR: 'error'
+    ERROR: 'error',
+    // Transaction was cancelled
+    CANCELLED: 'cancelled'
   },
   TRANSACTION_KIND: {
     // Money that the customer has agreed to pay. Authorization period lasts for up to 7 to 30 days (depending on your payment service) while a store awaits for a customer's capture.

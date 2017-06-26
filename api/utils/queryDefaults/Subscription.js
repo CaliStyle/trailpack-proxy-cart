@@ -10,6 +10,15 @@ module.exports = {
           model: app.orm['Event'],
           as: 'events'
         }
+      ],
+      order: [
+        [
+          {
+            model: app.orm['Event'],
+            as: 'events'
+          },
+          'created_at', 'DESC'
+        ]
       ]
     }
   }

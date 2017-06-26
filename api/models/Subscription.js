@@ -146,11 +146,12 @@ module.exports = class Subscription extends Model {
              * @param batch
              * @returns Promise.<T>
              */
-            batchRegressive: function (options, batch) {
+            batch: function (options, batch) {
               const self = this
               options = options || {}
               options.limit = options.limit || 10
               options.offset = options.offset || 0
+              options.regressive = options.regressive || false
 
               const recursiveQuery = function(options) {
                 let count = 0
@@ -163,13 +164,11 @@ module.exports = class Subscription extends Model {
                     return batch(results.rows)
                   })
                   .then(() => {
-                    if (count >= options.limit) {
-                      // options.offset = options.offset + options.limit
-                      // console.log('Keep Going')
+                    if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+                      options.offset = options.regressive ? 0 : options.offset + options.limit
                       return recursiveQuery(options)
                     }
                     else {
-                      // console.log('DONE')
                       return Promise.resolve()
                     }
                   })
@@ -355,7 +354,13 @@ module.exports = class Subscription extends Model {
             },
             renew: function() {
               this.renewed_at = new Date(Date.now())
+              this.renew_retry_at = null
+              this.total_renewal_attempts = 0
               this.total_renewals++
+            },
+            retry: function() {
+              this.renew_retry_at = new Date(Date.now())
+              this.total_renewal_attempts++
             },
             /**
              *
@@ -370,7 +375,7 @@ module.exports = class Subscription extends Model {
                 payment_details: options.payment_details,
                 payment_kind: options.payment_kind || app.config.proxyCart.order_payment_kind,
                 fulfillment_kind: options.fulfillment_kind || app.config.proxyCart.order_fulfillment_kind,
-                processing_method: options.processing_method || PAYMENT_PROCESSING_METHOD.CHECKOUT,
+                processing_method: options.processing_method || PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
                 shipping_address: options.shipping_address || this.shipping_address,
                 billing_address: options.billing_address || this.billing_address,
 
@@ -381,8 +386,8 @@ module.exports = class Subscription extends Model {
                 // User ID
                 user_id: options.user_id || this.user_id || null,
 
-                // Cart Info
-                cart_token: this.token,
+                // Subscription Info
+                subscription_token: this.token,
                 currency: this.currency,
                 line_items: this.line_items,
                 tax_lines: this.tax_lines,
@@ -405,7 +410,7 @@ module.exports = class Subscription extends Model {
 
                 //Pricing Overrides
                 pricing_override_id: this.pricing_override_id,
-                pricing_overrides: this.pricing_overrides,
+                pricing_overrides: this.pricing_overrides || [],
                 total_overrides: this.total_overrides
               }
               return buildOrder
@@ -618,6 +623,9 @@ module.exports = class Subscription extends Model {
         total_renewals: {
           type: Sequelize.INTEGER,
           defaultValue: 0
+        },
+        renew_retry_at: {
+          type: Sequelize.DATE
         },
         total_renewal_attempts: {
           type: Sequelize.INTEGER,

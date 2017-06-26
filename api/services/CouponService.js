@@ -73,9 +73,10 @@ module.exports = class CouponService extends Service {
         active: true
       }
     }, coupons => {
-      return Promise.all(coupons.map(coupon => {
+      const Sequelize = Coupon.sequelize
+      return Sequelize.Promise.mapSeries(coupons, coupon => {
         return this.expire(coupon)
-      }))
+      })
         .then(results => {
           // Calculate Totals
           couponsTotal = couponsTotal + results.length

@@ -31,6 +31,7 @@ module.exports = class SubscriptionUpload extends Model {
             const self = this
             options.limit = options.limit || 10
             options.offset = options.offset || 0
+            options.regressive = options.regressive || false
 
             const recursiveQuery = function(options) {
               let count = 0
@@ -40,8 +41,8 @@ module.exports = class SubscriptionUpload extends Model {
                   return batch(results.rows)
                 })
                 .then(batched => {
-                  if (count > options.offset + options.limit) {
-                    options.offset = options.offset + options.limit
+                  if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+                    options.offset = options.regressive ? 0 : options.offset + options.limit
                     return recursiveQuery(options)
                   }
                   else {

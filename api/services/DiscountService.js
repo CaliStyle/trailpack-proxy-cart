@@ -245,9 +245,10 @@ module.exports = class DiscountService extends Service {
         active: true
       }
     }, discounts => {
-      return Promise.all(discounts.map(discount => {
+      const Sequelize = Discount.sequelize
+      return Sequelize.Promise.mapSeries(discounts, discount => {
         return this.start(discount)
-      }))
+      })
         .then(results => {
           // Calculate Totals
           discountsTotal = discountsTotal + results.length

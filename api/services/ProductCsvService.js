@@ -270,16 +270,13 @@ module.exports = class ProductCsvService extends Service {
         limit: 10,
         attributes: ['handle'],
         group: ['handle']
+        // distinct: true
       }, (products) => {
 
         const Sequelize = this.app.orm.Product.sequelize
-          // const addedProducts = []
-          // Setup Transaction
-        // return Sequelize.transaction(t => {
+
         return Sequelize.Promise.mapSeries(products, product => {
-          return this.processProductGroup(product.handle, uploadId, {
-            // transaction: t
-          })
+          return this.processProductGroup(product.handle, uploadId, {})
             .then((results) => {
               // Calculate the totals created
               productsTotal = productsTotal + (results.products || 0)

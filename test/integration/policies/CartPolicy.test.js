@@ -393,7 +393,7 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscription', res.body)
+        console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
         assert.equal(res.body.active, true)
         assert.equal(res.body.interval, 2)

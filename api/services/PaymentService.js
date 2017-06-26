@@ -3,6 +3,7 @@
 
 const Service = require('trails/service')
 // const _ = require('lodash')
+const Errors = require('proxy-engine-errors')
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 /**
@@ -131,16 +132,16 @@ module.exports = class PaymentService extends Service {
       .then(transaction => {
         resTransaction = transaction
         const event = {
-          object_id: transaction.order_id,
+          object_id: resTransaction.order_id,
           object: 'order',
           objects: [{
-            order: transaction.order_id
+            order: resTransaction.order_id
           },{
-            transaction: transaction.id
+            transaction: resTransaction.id
           }],
-          type: `order.transaction.sale.${transaction.status}`,
-          message: `Order ID ${transaction.order_id} transaction sale of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
-          data: transaction
+          type: `order.transaction.sale.${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction sale of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
       })
@@ -177,34 +178,37 @@ module.exports = class PaymentService extends Service {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-    let resTransaction
     transaction.description = transaction.description || 'Transaction Void'
+    let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
-      .then(transaction => {
-        if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        resTransaction = foundTransaction
+        if (resTransaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
           throw new Error(`Transaction kind must be '${TRANSACTION_KIND.AUTHORIZE}' to be voided`)
         }
-        if (transaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (resTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error(`Transaction status must be '${TRANSACTION_STATUS.SUCCESS}' to be voided`)
         }
-        return this.app.services.PaymentGenericService.void(transaction, paymentProcessor)
+        return this.app.services.PaymentGenericService.void(resTransaction, paymentProcessor)
       })
-      .then(transaction => {
-        return transaction.save()
+      .then(() => {
+        return resTransaction.save()
       })
-      .then(transaction => {
-        resTransaction = transaction
+      .then(() => {
         const event = {
-          object_id: transaction.order_id,
+          object_id: resTransaction.order_id,
           object: 'order',
           objects: [{
-            order: transaction.order_id
+            order: resTransaction.order_id
           },{
-            transaction: transaction.id
+            transaction: resTransaction.id
           }],
-          type: `order.transaction.void.${transaction.status}`,
-          message: `Order ID ${transaction.order_id} transaction voided of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
-          data: transaction
+          type: `order.transaction.void.${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction voided of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
       })
@@ -232,31 +236,35 @@ module.exports = class PaymentService extends Service {
     let resTransaction
     transaction.description = transaction.description || 'Transaction Refund'
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
-      .then(transaction => {
-        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(transaction.kind) == -1) {
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        resTransaction = foundTransaction
+
+        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(resTransaction.kind) == -1) {
           throw new Error(`Transaction kind must be '${TRANSACTION_KIND.CAPTURE}' or '${TRANSACTION_KIND.SALE}' to be refunded`)
         }
-        if (transaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (resTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error(`Transaction status must be '${TRANSACTION_STATUS.SUCCESS}' to be refunded`)
         }
-        return this.app.services.PaymentGenericService.refund(transaction, paymentProcessor)
+        return this.app.services.PaymentGenericService.refund(resTransaction, paymentProcessor)
       })
-      .then(transaction => {
-        return transaction.save()
+      .then(() => {
+        return resTransaction.save()
       })
-      .then(transaction => {
-        resTransaction = transaction
+      .then(() => {
         const event = {
-          object_id: transaction.order_id,
+          object_id: resTransaction.order_id,
           object: 'order',
           objects: [{
-            order: transaction.order_id
+            order: resTransaction.order_id
           },{
-            transaction: transaction.id
+            transaction: resTransaction.id
           }],
-          type: `order.transaction.refund.${transaction.status}`,
-          message: `Order ID ${transaction.order_id} transaction refund of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
-          data: transaction
+          type: `order.transaction.refund.${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction refund of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
       })

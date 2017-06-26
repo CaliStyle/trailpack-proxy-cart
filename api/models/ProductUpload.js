@@ -31,6 +31,8 @@ module.exports = class ProductUpload extends Model {
             const self = this
             options.limit = options.limit || 10
             options.offset = options.offset || 0
+            options.regressive = options.regressive || false
+
             const recursiveQuery = function(options) {
               let count = 0
               return self.findAndCount(options)
@@ -44,8 +46,8 @@ module.exports = class ProductUpload extends Model {
                 })
                 .then(batched => {
                   // console.log('BROKE', count, options.offset + options.limit )
-                  if (count > options.offset + options.limit) {
-                    options.offset = options.offset + options.limit
+                  if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+                    options.offset = options.regressive ? 0 : options.offset + options.limit
                     return recursiveQuery(options)
                   }
                   else {

@@ -207,6 +207,19 @@ module.exports = class CustomerService extends Service {
         return
       })
       .then(users => {
+        const event = {
+          object_id: resCustomer.id,
+          object: 'customer',
+          objects: [{
+            customer: resCustomer.id
+          }],
+          type: 'customer.created',
+          message: 'Customer created',
+          data: resCustomer
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         // return resCustomer.reload()
         return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
       })
@@ -229,13 +242,13 @@ module.exports = class CustomerService extends Service {
       options = {}
     }
 
-    let resCustomer = {}
+    let resCustomer
     return Customer.findByIdDefault(customer.id, options)
       .then(foundCustomer => {
+        if (!foundCustomer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
         resCustomer = foundCustomer
-        // console.log('resCustomer',resCustomer)
-        // Update Metadata
-
         const update = _.omit(customer, ['tags', 'metadata', 'shipping_address','billing_address','default_address'])
         return resCustomer.update(update)
       })
@@ -298,10 +311,29 @@ module.exports = class CustomerService extends Service {
       })
       .then(defaultAddress => {
         // return resCustomer.reload()
+        const event = {
+          object_id: resCustomer.id,
+          object: 'customer',
+          objects: [{
+            customer: resCustomer.id
+          }],
+          type: 'customer.updated',
+          message: 'Customer updated',
+          data: resCustomer
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
       })
   }
 
+  /**
+   *
+   * @param customer
+   * @param options
+   * @returns {*}
+   */
   accountBalance(customer, options) {
     const Customer = this.app.orm.Customer
 
@@ -323,20 +355,20 @@ module.exports = class CustomerService extends Service {
         resCustomer.account_balance = customer.account_balance
         return resCustomer.save({transaction: options.transaction || null})
       })
-      .then(customer => {
-
+      .then(() => {
         const event = {
-          object_id: customer.id,
+          object_id: resCustomer.id,
           object: 'customer',
           objects: [{
-            customer: customer.id
+            customer: resCustomer.id
           }],
           type: 'customer.account_balance.updated',
-          message: `Customer account balance was updated to ${ customer.account_balance }`,
-          data: customer
+          message: `Customer account balance was updated to ${ resCustomer.account_balance }`,
+          data: resCustomer
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
       })
   }
@@ -348,32 +380,65 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise}
    */
   addCart(customer, cart) {
-    return new Promise((resolve, reject) => {
-      // const FootprintService = this.app.services.FootprintService
-      const Customer = this.app.orm.Customer
-      const customerId = _.isObject(customer) ? customer.id : customer
-      const cartId = _.isObject(cart) ? cart.id : cart
+    // const FootprintService = this.app.services.FootprintService
+    const Customer = this.app.orm.Customer
+    const customerId = _.isObject(customer) ? customer.id : customer
+    const cartId = _.isObject(cart) ? cart.id : cart
 
-      if (!customerId || !cartId) {
-        // TODO Create Proper Error
-        const err = new Error(`Can not Associate ${customerId} with ${cartId} because it is invalid`)
-        return reject(err)
-      }
-      Customer.findById(customerId)
-        .then(customer => {
-          return customer.addCart(cartId)
-        })
-        .then(updatedCustomer => {
-          return resolve(updatedCustomer)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+    if (!customerId || !cartId) {
+      // TODO Create Proper Error
+      const err = new Error(`Can not Associate ${customerId} with ${cartId} because it is invalid`)
+      return Promise.reject(err)
+    }
+    let resCustomer
+    return Customer.findById(customerId)
+      .then(foundCustomer => {
+        if (!foundCustomer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resCustomer = foundCustomer
+        return resCustomer.hasCart(cartId)
+      })
+      .then(hasCart => {
+        if (!hasCart) {
+          return resCustomer.addCart(cartId)
+        }
+        return
+      })
+      .then(() => {
+        return resCustomer
+      })
   }
-  // TODO removeCart
-  removeCart(customer, cart){
 
+  /**
+   *
+   * @param customer
+   * @param cart
+   * @returns {Promise.<TResult>}
+   */
+  removeCart(customer, cart){
+    //
+    const Customer = this.app.orm.Customer
+    const customerId = _.isObject(customer) ? customer.id : customer
+    const cartId = _.isObject(cart) ? cart.id : cart
+    let resCustomer
+    return Customer.findById(customerId)
+      .then(foundCustomer => {
+        if (!foundCustomer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resCustomer = foundCustomer
+        return resCustomer.hasCart(cartId)
+      })
+      .then(hasCart => {
+        if (hasCart) {
+          return resCustomer.removeCart(cartId)
+        }
+        return
+      })
+      .then(() => {
+        return resCustomer
+      })
   }
 
   /**
@@ -382,28 +447,22 @@ module.exports = class CustomerService extends Service {
    * @param cart
    */
   setDefaultCartForCustomer(customer, cart){
-    return new Promise((resolve, reject) => {
-      // const FootprintService = this.app.services.FootprintService
-      const Customer = this.app.orm.Customer
-      const customerId = _.isObject(customer) ? customer.id : customer
-      const cartId = _.isObject(cart) ? cart.id : cart
+    const Customer = this.app.orm.Customer
+    const customerId = _.isObject(customer) ? customer.id : customer
+    const cartId = _.isObject(cart) ? cart.id : cart
 
-      if (!customerId || !cartId) {
-        // TODO Create Proper Error
-        const err = new Error(`Can not Associate ${customerId} with ${cartId} because it is invalid`)
-        return reject(err)
-      }
-      Customer.findById(customerId)
-        .then(customer => {
-          return customer.setDefault_cart(cartId)
-        })
-        .then(updatedCustomer => {
-          return resolve(updatedCustomer)
-        })
-        .catch(err => {
-          return reject(err)
-        })
-    })
+    if (!customerId || !cartId) {
+      // TODO Create Proper Error
+      const err = new Error(`Can not Associate ${customerId} with ${cartId} because it is invalid`)
+      return Promise.reject(err)
+    }
+    return Customer.findById(customerId)
+      .then(customer => {
+        return customer.setDefault_cart(cartId)
+      })
+      .then(updatedCustomer => {
+        return updatedCustomer
+      })
   }
 
   /**
@@ -787,6 +846,13 @@ module.exports = class CustomerService extends Service {
         return this.app.services.AccountService.addSource(account, source.token)
       })
   }
+
+  /**
+   *
+   * @param customer
+   * @param source
+   * @returns {Promise.<TResult>}
+   */
   findCustomerSource(customer, source){
     const Account = this.app.orm['Account']
     return Account.findOne({
@@ -801,6 +867,12 @@ module.exports = class CustomerService extends Service {
       })
   }
 
+  /**
+   *
+   * @param customer
+   * @param account
+   * @returns {Promise.<TResult>}
+   */
   syncCustomerSources(customer, account){
     const Account = this.app.orm['Account']
     return Account.findOne({
@@ -848,6 +920,11 @@ module.exports = class CustomerService extends Service {
       })
   }
 
+  /**
+   *
+   * @param cart
+   * @returns {*}
+   */
   calculate(cart) {
     const Customer = this.app.orm['Customer']
 

@@ -17,6 +17,7 @@ describe('SubscriptionService', () => {
     while (i < 21) {
       subscriptionsToCreate.push({
         customer_id: 1,
+        shop_id: 1,
         token: `subscription_${i}`,
         renews_on: start,
         interval: 1,
