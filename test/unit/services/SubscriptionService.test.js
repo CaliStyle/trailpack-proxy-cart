@@ -42,7 +42,7 @@ describe('SubscriptionService', () => {
       })
   })
   it('should cancel subscriptions that failed all attempts', (done) => {
-    const start = moment().startOf('hour')
+    const start = moment().startOf('hour').subtract(5, 'days')
     const subscriptionsToCreate = []
     let i = 0
     while (i < 21) {

@@ -558,12 +558,16 @@ module.exports = class SubscriptionService extends Service {
   retryThisHour() {
     this.app.log.debug('SubscriptionService.retryThisHour')
     const Subscription = this.app.orm['Subscription']
+    const start = moment().startOf('hour').add((this.app.config.proxyCart.subscriptions.grace_period_days || 1), 'days')
     const errors = []
     // let errorsTotal = 0
     let subscriptionsTotal = 0
 
     return Subscription.batch({
       where: {
+        renews_on: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss')
+        },
         total_renewal_attempts: {
           $lte: this.app.config.proxyCart.subscriptions.retry_attempts || 1
         },
