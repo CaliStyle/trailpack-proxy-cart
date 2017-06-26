@@ -446,12 +446,19 @@ module.exports = class SubscriptionService extends Service {
 
     return Subscription.resolve(subscription)
       .then(subscription => {
+        if (!subscription) {
+          throw new Errors.FoundError(Error('Subscription Not Found'))
+        }
+
         resSubscription = subscription
         return this.app.orm['Customer'].findById(resSubscription.customer_id, {
           attributes: ['id', 'email']
         })
       })
       .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error('Subscription Customer Not Found'))
+        }
         resCustomer = customer
         return this.app.services.AccountService.getDefaultSource(resCustomer)
           .then(source => {
@@ -484,6 +491,7 @@ module.exports = class SubscriptionService extends Service {
           processing_method: PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
           shipping_address: resCustomer.shipping_address,
           billing_address: resCustomer.billing_address,
+          pricing_overrides: [],
 
           // Customer Info
           customer_id: resCustomer.id,
@@ -511,7 +519,7 @@ module.exports = class SubscriptionService extends Service {
           has_shipping: resSubscription.has_shipping,
           has_subscription: false
         }
-        // console.log('cart checkout prepare', newOrder)
+        // console.log('subscription checkout prepare', newOrder)
         return newOrder
       })
   }
@@ -525,12 +533,11 @@ module.exports = class SubscriptionService extends Service {
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Subscription = this.app.orm['Subscription']
-    const Sequelize = Subscription.sequelize
     const errors = []
     // let errorsTotal = 0
     let subscriptionsTotal = 0
 
-    return Subscription.batch({
+    return Subscription.batchRegressive({
       where: {
         renews_on: {
           $gte: start.format('YYYY-MM-DD HH:mm:ss'),
@@ -538,7 +545,9 @@ module.exports = class SubscriptionService extends Service {
         },
         active: true
       }
-    }, subscriptions => {
+    }, (subscriptions) => {
+
+      const Sequelize = Subscription.sequelize
       return Sequelize.Promise.mapSeries(subscriptions, subscription => {
         return this.renew(subscription)
       })

@@ -2,7 +2,7 @@
 'use strict'
 
 const Service = require('trails/service')
-// const Errors = require('proxy-engine-errors')
+const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 /**
  * @module AccountService
@@ -44,6 +44,10 @@ module.exports = class AccountService extends Service {
    * @returns {*}
    */
   getDefaultSource(customer) {
+    if (!customer || !customer.id) {
+      const err = new Errors.FoundError(Error('Customer Not Found'))
+      return Promise.reject(err)
+    }
     const Source = this.app.orm['Source']
     return Source.findOne({
       customer_id: customer.id,

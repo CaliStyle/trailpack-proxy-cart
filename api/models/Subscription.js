@@ -146,25 +146,31 @@ module.exports = class Subscription extends Model {
              * @param batch
              * @returns Promise.<T>
              */
-            batch: function (options, batch) {
+            batchRegressive: function (options, batch) {
               const self = this
+              options = options || {}
               options.limit = options.limit || 10
               options.offset = options.offset || 0
 
               const recursiveQuery = function(options) {
                 let count = 0
+                // let batched = 0
                 return self.findAndCountAll(options)
                   .then(results => {
                     count = results.count
+                    // batched = results.rows.length
+                    // console.log('BROKE', count, batched, options.offset + options.limit)
                     return batch(results.rows)
                   })
-                  .then(batched => {
-                    if (count > options.offset + options.limit) {
-                      options.offset = options.offset + options.limit
+                  .then(() => {
+                    if (count >= options.limit) {
+                      // options.offset = options.offset + options.limit
+                      // console.log('Keep Going')
                       return recursiveQuery(options)
                     }
                     else {
-                      return batched
+                      // console.log('DONE')
+                      return Promise.resolve()
                     }
                   })
               }
@@ -610,6 +616,10 @@ module.exports = class Subscription extends Model {
           defaultValue: Sequelize.NOW
         },
         total_renewals: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        total_renewal_attempts: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
