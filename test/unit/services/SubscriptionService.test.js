@@ -51,6 +51,7 @@ describe('SubscriptionService', () => {
         shop_id: 1,
         token: `subscription_cancel_${i}`,
         renews_on: start,
+        renew_retry_at: start,
         interval: 1,
         interval_unit: 'd',
         active: true,

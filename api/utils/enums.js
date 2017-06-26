@@ -252,8 +252,11 @@ module.exports = {
     FRAUD: 'fraud',
     // inventory: Items in the subscription were not in inventory.
     INVENTORY: 'inventory',
+    // funding: Funding never cleared
+    FUNDING: 'funding',
     // other: The order was cancelled for a reason not in the list above.
     OTHER: 'other'
+
   },
   ORDER_STATUS: {
     // The order is open

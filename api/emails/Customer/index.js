@@ -1,0 +1,1 @@
+exports.newUser = require('./newUser')

@@ -626,7 +626,9 @@ module.exports = class SubscriptionService extends Service {
 
       const Sequelize = Subscription.sequelize
       return Sequelize.Promise.mapSeries(subscriptions, subscription => {
-        return this.cancel({},subscription)
+        return this.cancel({
+          reason: SUBSCRIPTION_CANCEL.FUNDING
+        },subscription)
       })
         .then(results => {
           // Calculate Totals
