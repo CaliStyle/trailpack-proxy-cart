@@ -5,3 +5,6 @@ machine:
     DIALECT: postgres
   services:
     - postgresql
+database:
+  override:
+    - createdb ProxyCart
