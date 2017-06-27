@@ -1,5 +1,7 @@
 machine:
   node:
     version: 6.7.0
+  services:
+    - postgresql
 environment:
   DIALECT: postgres
