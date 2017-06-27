@@ -12,6 +12,7 @@ const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
+const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
 /**
  * @module OrderService
  * @description Order Service
@@ -728,9 +729,9 @@ module.exports = class OrderService extends Service {
   cancel(order, options) {
     options = options || {}
     const Order = this.app.orm['Order']
-    const reason = order.cancel_reason
-    let resOrder, canRefund = [], canVoid = [], canCancel = []
-    return Order.resolve(order)
+    const reason = order.cancel_reason || ORDER_CANCEL.OTHER
+    let resOrder, canRefund = [], canVoid = [], canCancel = [], canCancelFulfillment = []
+    return Order.resolve(order, options)
       .then(order => {
         resOrder = order
         if ([ORDER_FULFILLMENT.NONE, ORDER_FULFILLMENT.PENDING].indexOf(resOrder.fulfillment_status) < 0) {
@@ -745,20 +746,29 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(transactions => {
+        // Transactions that can be refunded
         canRefund = transactions.filter(transaction =>
           [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
-        canVoid = transactions.filter(transaction =>
-          transaction.kind == TRANSACTION_KIND.AUTHORIZE)
-        return
-      })
-      .then(() => {
+        // Transactions that can be voided
+        canVoid = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
+        // Transactions that can be cancelled
+        canCancel = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.PENDING)
+
+        // Start Refunds
         return Promise.all(canRefund.map(transaction => {
           return this.app.services.TransactionService.refund(transaction, {transaction: options.transaction || null})
         }))
       })
       .then(() => {
+        // Start Voids
         return Promise.all(canVoid.map(transaction => {
           return this.app.services.TransactionService.void(transaction, {transaction: options.transaction || null})
+        }))
+      })
+      .then(() => {
+        // Start Cancels
+        return Promise.all(canCancel.map(transaction => {
+          return this.app.services.TransactionService.cancel(transaction, {transaction: options.transaction || null})
         }))
       })
       .then(() => {
@@ -770,17 +780,18 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(fulfillments => {
-        canCancel = fulfillments.filter(fulfillment =>
+        canCancelFulfillment = fulfillments.filter(fulfillment =>
           [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.SENT].indexOf(fulfillment.status) > -1)
-        return Promise.all(canCancel.map(fulfillment => {
+        return Promise.all(canCancelFulfillment.map(fulfillment => {
           return this.app.services.FulfillmentService.cancel(fulfillment, {transaction: options.transaction || null})
         }))
       })
       .then(()=> {
         resOrder.cancelled_at = new Date()
+        resOrder.status = ORDER_STATUS.CLOSED
         resOrder.closed_at = resOrder.cancelled_at
         resOrder.cancel_reason = reason
-        return resOrder.save({transaction: options.transaction || null})
+        return resOrder.save()
       })
   }
 

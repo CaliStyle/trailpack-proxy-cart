@@ -114,6 +114,15 @@ describe('SubscriptionService', () => {
 
     Subscription.bulkCreate(subscriptionsToCreate)
       .then(subscriptions => {
+        return Promise.all(subscriptions.map(subscription => {
+          return Order.create({
+            shop_id: subscription.shop_id,
+            subscription_token: subscription.token,
+            financial_status: 'pending'
+          })
+        }))
+      })
+      .then(orders => {
         // console.log('RENEW THESE',subscriptions)
         return SubscriptionService.cancelThisHour()
           .then(renewals => {

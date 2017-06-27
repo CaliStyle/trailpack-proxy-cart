@@ -104,6 +104,20 @@ module.exports = {
     destroy_product: false,
     // Allows a product variant to be destroyed, Recommended false
     destroy_variant: false
+  },
+  // Subscriptions
+  subscriptions: {
+    // The amount of times a Subscription will retry failed transactions
+    retry_attempts: 5,
+    // The amount of days before a Subscription will cancel from failed transactions
+    grace_period_days: 5
+  },
+  // Orders
+  orders: {
+    // The amount of times a Order will retry failed transactions
+    retry_attempts: 5,
+    // The amount of days before a Order will cancel from failed transactions
+    grace_period_days: 5
   }
 }
 

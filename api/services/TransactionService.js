@@ -3,6 +3,7 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
+const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 
 /**
  * @module TransactionService
@@ -26,7 +27,7 @@ module.exports = class TransactionService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<T>}
+   * @returns {Promise.<transaction>}
    */
   authorize(transaction, options) {
     options = options || {}
@@ -41,7 +42,7 @@ module.exports = class TransactionService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<T>}
+   * @returns {Promise.<transaction>}
    */
   capture(transaction, options) {
     options = options || {}
@@ -59,7 +60,7 @@ module.exports = class TransactionService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<T>}
+   * @returns {Promise.<transaction>}
    */
   sale(transaction, options) {
     options = options || {}
@@ -77,7 +78,7 @@ module.exports = class TransactionService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<T>}
+   * @returns {Promise.<transaction>}
    */
   void(transaction, options) {
     options = options || {}
@@ -95,17 +96,19 @@ module.exports = class TransactionService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<T>}
+   * @returns {Promise.<transaction>}
    */
   refund(transaction, options) {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
+    let resTransaction
     return Transaction.resolve(transaction, options)
-      .then(transaction => {
-        if (!transaction) {
+      .then(foundTransaction => {
+        if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        return this.app.services.PaymentService.refund(transaction, options)
+        resTransaction = foundTransaction
+        return this.app.services.PaymentService.refund(resTransaction, options)
       })
   }
 
@@ -114,24 +117,73 @@ module.exports = class TransactionService extends Service {
    * @param transaction
    * @param amount
    * @param options
-   * @returns {Promise.<T>}
+   * @returns {Promise.<transaction>}
    */
   partiallyRefund(transaction, amount, options) {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
+    let resTransaction
     return Transaction.resolve(transaction, options)
-      .then(transaction => {
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        resTransaction = foundTransaction
         // transaction.amount = amount
-        transaction.amount = Math.max(0, transaction.amount - amount)
-        return transaction.save(options)
+        resTransaction.amount = Math.max(0, resTransaction.amount - amount)
+        return resTransaction.save()
       })
-      .then(transaction => {
-        const newTransaction = _.omit(transaction.get({plain: true}), ['id'])
+      .then(() => {
+        const newTransaction = _.omit(resTransaction.get({plain: true}), ['id'])
         newTransaction.amount = amount
         return this.create(newTransaction, options)
       })
-      .then(transaction => {
-        return this.app.services.PaymentService.refund(transaction, options)
+      .then(newTransaction => {
+        return this.app.services.PaymentService.refund(newTransaction, options)
+      })
+  }
+
+  /**
+   *
+   * @param transaction
+   * @param options
+   * @returns {Promise.<TResult>|*}
+   */
+  cancel(transaction, options) {
+    const Transaction = this.app.orm['Transaction']
+    let resTransaction
+    return Transaction.resolve(transaction, options)
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(foundTransaction.status) === -1) {
+          throw new Error('Transaction can not be cancelled if it is not pending or failed')
+        }
+        resTransaction = foundTransaction
+        return this.app.services.PaymentService.cancel(resTransaction, options)
+      })
+  }
+
+  /**
+   *
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  retry(transaction, options) {
+    const Transaction = this.app.orm['Transaction']
+    let resTransaction
+    return Transaction.resolve(transaction, options)
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        if (foundTransaction.status !== TRANSACTION_STATUS.FAILURE) {
+          throw new Error('Transaction can not retried if it has not yet failed')
+        }
+        resTransaction = foundTransaction
+        return this.app.services.PaymentService.retry(resTransaction, options)
       })
   }
 

@@ -90,10 +90,10 @@ const App = {
   api: _.defaultsDeep(require('../api'), {
     services: {
       FailTransaction: class FailTransaction extends Service {
-
+        // TODO create some failed transactions
       },
       FailFulfillment: class FailFulfillment extends Service {
-
+        // TODO some failed fulfillments
       }
     }
   }),

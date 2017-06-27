@@ -160,10 +160,12 @@ module.exports = class SubscriptionService extends Service {
    * @param subscription
    * @returns {*|Promise.<TResult>}
    */
-  cancel(body, subscription) {
+  cancel(body, subscription, options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
+    const Order = this.app.orm['Order']
     let resSubscription
-    return Subscription.resolve(subscription)
+    return Subscription.resolve(subscription, options)
       .then(foundSubscription => {
         if (!foundSubscription) {
           throw new Error('Subscription not found')
@@ -191,6 +193,25 @@ module.exports = class SubscriptionService extends Service {
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
       })
       .then(event => {
+        if (body.cancel_pending) {
+          return Order.findAll({
+            where: {
+              subscription_token: resSubscription.token,
+              financial_status: ORDER_FINANCIAL.PENDING
+            },
+            transaction: options.transaction || null
+          })
+            .then(orders => {
+              return Promise.all(orders.map(order => {
+                return this.app.services.OrderService.cancel(order, {transaction: options.transaction || null})
+              }))
+            })
+        }
+        else {
+          return
+        }
+      })
+      .then(canceledOrders => {
         return resSubscription
       })
   }
@@ -694,8 +715,9 @@ module.exports = class SubscriptionService extends Service {
       const Sequelize = Subscription.sequelize
       return Sequelize.Promise.mapSeries(subscriptions, subscription => {
         return this.cancel({
-          reason: SUBSCRIPTION_CANCEL.FUNDING
-        },subscription)
+          reason: SUBSCRIPTION_CANCEL.FUNDING,
+          cancel_pending: true
+        }, subscription)
       })
         .then(results => {
           // Calculate Totals

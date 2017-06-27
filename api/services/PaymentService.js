@@ -272,5 +272,69 @@ module.exports = class PaymentService extends Service {
         return resTransaction
       })
   }
+
+  /**
+   *
+   * @param transaction
+   * @param options
+   * @returns {Promise.<TResult>|*}
+   */
+  // TODO
+  retry(transaction, options) {
+    options = options || {}
+    const Transaction = this.app.orm['Transaction']
+    let resTransaction
+    return Transaction.resolve(transaction, {transaction: options.transaction || null })
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        resTransaction = foundTransaction
+        return resTransaction
+      })
+  }
+
+  /**
+   *
+   * @param transaction
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  cancel(transaction, options) {
+    options = options || {}
+    const Transaction = this.app.orm['Transaction']
+    let resTransaction
+    return Transaction.resolve(transaction, {transaction: options.transaction || null })
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(foundTransaction.status) === -1) {
+          throw new Error('Transaction can not be cancelled if it is not pending or failed')
+        }
+        resTransaction = foundTransaction
+        resTransaction.status = TRANSACTION_STATUS.CANCELLED
+
+        return resTransaction.save()
+      })
+      .then(() => {
+        const event = {
+          object_id: resTransaction.order_id,
+          object: 'order',
+          objects: [{
+            order: resTransaction.order_id
+          },{
+            transaction: resTransaction.id
+          }],
+          type: 'order.transaction.cancelled',
+          message: `Order ID ${resTransaction.order_id} transaction of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status} cancelled`,
+          data: resTransaction
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resTransaction
+      })
+  }
 }
 
