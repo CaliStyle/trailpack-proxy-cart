@@ -8,6 +8,7 @@ const moment = require('moment')
 const Errors = require('proxy-engine-errors')
 const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
+const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
 
 /**
  * @module SubscriptionService
@@ -385,7 +386,7 @@ module.exports = class SubscriptionService extends Service {
    */
   renew(subscription, options) {
     const Subscription = this.app.orm['Subscription']
-    let resSubscription, resOrder
+    let resSubscription, resOrder, renewal
     return Subscription.resolve(subscription, options)
       .then(foundSubscription => {
         if (!foundSubscription) {
@@ -404,8 +405,14 @@ module.exports = class SubscriptionService extends Service {
         resOrder = order
         // console.log('THIS RENEWED', order)
         // Renew the Subscription
-        resSubscription.renew()
-        return resSubscription.save()
+        if (resOrder.financial_status !== ORDER_FINANCIAL.PENDING) {
+          renewal = 'success'
+          return resSubscription.renew().save()
+        }
+        else {
+          renewal = 'failure'
+          return resSubscription.retry().save()
+        }
       })
       .then(newSubscription => {
         // Tack Event
@@ -417,8 +424,8 @@ module.exports = class SubscriptionService extends Service {
           }, {
             subscription: resSubscription.id
           }],
-          type: 'customer.subscription.renewed',
-          message: `Customer subscription ${resSubscription.token} was renewed`,
+          type: `customer.subscription.renewed.${renewal}`,
+          message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
           data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -431,9 +438,62 @@ module.exports = class SubscriptionService extends Service {
       })
   }
 
-  // TODO
-  retry(subscription) {
-    return Promise.resolve(subscription)
+  /**
+   *
+   * @param subscription
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  retry(subscription, options) {
+    options = options || {}
+    const Subscription = this.app.orm['Subscription']
+    const Order = this.app.orm['Order']
+    let resSubscription, resOrders, renewal
+    return Subscription.resolve(subscription, options)
+      .then(foundSubscription => {
+        if (!foundSubscription) {
+          throw new Errors.FoundError(Error('Subscription Not Found'))
+        }
+        resSubscription = foundSubscription
+        return Order.findAll({
+          where: {
+            subscription_token: resSubscription.token,
+            financial_status: ORDER_FINANCIAL.PENDING
+          },
+          transaction: options.transaction || null
+        })
+      })
+      .then(orders => {
+        resOrders = orders
+        if (resOrders.length == 0) {
+          renewal = 'success'
+          return resSubscription.renew().save()
+        }
+        else {
+          renewal = 'failure'
+          return resSubscription.retry().save()
+        }
+      })
+      .then(() => {
+        // Tack Event
+        const event = {
+          object_id: resSubscription.customer_id,
+          object: 'customer',
+          objects: [{
+            customer: resSubscription.customer_id
+          }, {
+            subscription: resSubscription.id
+          }],
+          type: `customer.subscription.renewed.${renewal}`,
+          message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
+          data: resSubscription
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resSubscription
+      })
+    //return Promise.resolve(subscription)
   }
 
   /**
@@ -554,28 +614,31 @@ module.exports = class SubscriptionService extends Service {
       })
   }
 
-  // TODO
+  /**
+   *
+   * @returns {Promise.<TResult>}
+   */
   retryThisHour() {
     this.app.log.debug('SubscriptionService.retryThisHour')
     const Subscription = this.app.orm['Subscription']
-    const start = moment().startOf('hour').add((this.app.config.proxyCart.subscriptions.grace_period_days || 1), 'days')
+    const start = moment().startOf('hour')
     const errors = []
     // let errorsTotal = 0
     let subscriptionsTotal = 0
 
     return Subscription.batch({
       where: {
-        renews_on: {
-          $gte: start.format('YYYY-MM-DD HH:mm:ss')
+        renew_retry_at: {
+          $lte: start.format('YYYY-MM-DD HH:mm:ss')
         },
         total_renewal_attempts: {
+          $gt: 0,
           $lte: this.app.config.proxyCart.subscriptions.retry_attempts || 1
         },
         active: true
       },
-      regressive: false
+      regressive: true
     }, (subscriptions) => {
-
       const Sequelize = Subscription.sequelize
       return Sequelize.Promise.mapSeries(subscriptions, subscription => {
         return this.retry(subscription)
@@ -606,7 +669,11 @@ module.exports = class SubscriptionService extends Service {
         return
       })
   }
-  // TODO
+
+  /**
+   *
+   * @returns {Promise.<TResult>}
+   */
   cancelThisHour() {
     this.app.log.debug('SubscriptionService.cancelThisHour')
     const Subscription = this.app.orm['Subscription']

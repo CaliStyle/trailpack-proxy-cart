@@ -357,10 +357,12 @@ module.exports = class Subscription extends Model {
               this.renew_retry_at = null
               this.total_renewal_attempts = 0
               this.total_renewals++
+              return this
             },
             retry: function() {
               this.renew_retry_at = new Date(Date.now())
               this.total_renewal_attempts++
+              return this
             },
             /**
              *
