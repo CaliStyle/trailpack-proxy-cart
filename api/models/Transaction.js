@@ -62,6 +62,42 @@ module.exports = class Transaction extends Model {
                 // as: 'customer_id',
                 // allowNull: true
               })
+              models.Transaction.belongsTo(models.Source, {
+                // as: 'customer_id',
+                // allowNull: true
+              })
+            },
+            /**
+             *
+             * @param options
+             * @param batch
+             * @returns Promise.<T>
+             */
+            batch: function (options, batch) {
+              const self = this
+              options = options || {}
+              options.limit = options.limit || 10
+              options.offset = options.offset || 0
+              options.regressive = options.regressive || false
+
+              const recursiveQuery = function(options) {
+                let count = 0
+                return self.findAndCountAll(options)
+                  .then(results => {
+                    count = results.count
+                    return batch(results.rows)
+                  })
+                  .then(() => {
+                    if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+                      options.offset = options.regressive ? 0 : options.offset + options.limit
+                      return recursiveQuery(options)
+                    }
+                    else {
+                      return Promise.resolve()
+                    }
+                  })
+              }
+              return recursiveQuery(options)
             },
             resolve: function(transaction, options){
               const Transaction =  this
@@ -91,6 +127,18 @@ module.exports = class Transaction extends Model {
                 Promise.reject(err)
               }
             }
+          },
+          instanceMethods: {
+            retry: function() {
+              this.retry_at = new Date(Date.now())
+              this.total_retry_attempts++
+              return this
+            },
+            cancel: function() {
+              this.cancelled_at = new Date(Date.now())
+              this.status = TRANSACTION_STATUS.CANCELLED
+              return this
+            }
           }
         }
       }
@@ -117,6 +165,14 @@ module.exports = class Transaction extends Model {
           //   key: 'id'
           // },
           allowNull: false
+        },
+        source_id: {
+          type: Sequelize.INTEGER,
+          // references: {
+          //   model: 'Order',
+          //   key: 'id'
+          // },
+          allowNull: true
         },
         // TODO Enable User
         // The unique identifier for the user.
@@ -194,6 +250,19 @@ module.exports = class Transaction extends Model {
         // A description of the Transaction
         description: {
           type: Sequelize.STRING
+        },
+        // The datetime the last retry was at
+        retry_at: {
+          type: Sequelize.DATE
+        },
+        // The total amounts of retries
+        total_retry_attempts: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The datetime the transaction was cancelled
+        cancelled_at: {
+          type: Sequelize.DATE
         },
         // Live Mode
         live_mode: {

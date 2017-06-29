@@ -291,6 +291,8 @@ module.exports = class OrderService extends Service {
               customer_id: resCustomer.id,
               // Set the order id
               order_id: resOrder.id,
+              // Set the source if it is given
+              source_id: detail.source ? detail.source.id : null,
               // Set the order currency
               currency: resOrder.currency,
               // Set the amount for this transaction and handle if it is a split transaction
@@ -515,14 +517,16 @@ module.exports = class OrderService extends Service {
   /**
    * Refund an Order or Partially Refund an Order
    * @param order
+   * @param refunds
+   * @param options
    * @returns {*|Promise.<TResult>}
    */
   // TODO restock
-  refund(order, refunds) {
+  refund(order, refunds, options) {
     refunds = refunds || []
     const Order = this.app.orm['Order']
     let resOrder
-    return Order.resolve(order)
+    return Order.resolve(order, options)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -606,13 +610,14 @@ module.exports = class OrderService extends Service {
    *
    * @param order
    * @param captures
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  capture(order, captures) {
+  capture(order, captures, options) {
     captures = captures || []
     const Order = this.app.orm['Order']
     let resOrder
-    return Order.resolve(order)
+    return Order.resolve(order, options)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -668,11 +673,11 @@ module.exports = class OrderService extends Service {
    * @param voids
    * @returns {Promise.<TResult>}
    */
-  void(order, voids) {
+  void(order, voids, options) {
     voids = voids || []
     const Order = this.app.orm['Order']
     let resOrder
-    return Order.resolve(order)
+    return Order.resolve(order, options)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -780,6 +785,7 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(fulfillments => {
+        // Start Cancel fulfillments
         canCancelFulfillment = fulfillments.filter(fulfillment =>
           [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.SENT].indexOf(fulfillment.status) > -1)
         return Promise.all(canCancelFulfillment.map(fulfillment => {
@@ -787,11 +793,7 @@ module.exports = class OrderService extends Service {
         }))
       })
       .then(()=> {
-        resOrder.cancelled_at = new Date()
-        resOrder.status = ORDER_STATUS.CLOSED
-        resOrder.closed_at = resOrder.cancelled_at
-        resOrder.cancel_reason = reason
-        return resOrder.save()
+        return resOrder.cancel({cancel_reason: reason}).save()
       })
   }
 
@@ -953,7 +955,7 @@ module.exports = class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  // TODO
+  // TODO recalculate transactions
   addItem(order, item, options) {
     options = options || {}
     if (!item) {
@@ -1012,7 +1014,7 @@ module.exports = class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  // TODO
+  // TODO recaluclate transactions
   updateItem(order, item, options) {
     options = options || {}
     if (!item) {
@@ -1069,7 +1071,7 @@ module.exports = class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  // TODO
+  // TODO recalculate transactions
   removeItem(order, item, options) {
     options = options || {}
     if (!item) {
@@ -1171,6 +1173,15 @@ module.exports = class OrderService extends Service {
         resOrder = order
         return resOrder.recalculate()
       })
+  }
+
+  retryThisHour() {
+    //
+
+  }
+  cancelThisHour() {
+    //
+
   }
 
   /**

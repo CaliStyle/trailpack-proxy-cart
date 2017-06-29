@@ -650,7 +650,10 @@ module.exports = class SubscriptionService extends Service {
     return Subscription.batch({
       where: {
         renew_retry_at: {
-          $lte: start.format('YYYY-MM-DD HH:mm:ss')
+          $or: {
+            $lte: start.format('YYYY-MM-DD HH:mm:ss'),
+            $eq: null
+          }
         },
         total_renewal_attempts: {
           $gt: 0,

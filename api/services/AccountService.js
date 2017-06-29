@@ -4,6 +4,8 @@
 const Service = require('trails/service')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
+const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
+
 /**
  * @module AccountService
  * @description 3rd Party Account Service
@@ -65,10 +67,11 @@ module.exports = class AccountService extends Service {
    * @param updates
    * @returns {*|Promise.<TResult>}
    */
-  update(account, updates) {
+  update(account, updates, options) {
+    options = options || {}
     const Account = this.app.orm['Account']
     let resAccount
-    return Account.resolve(account)
+    return Account.resolve(account, options)
       .then(account => {
         resAccount = account
         let update = {
@@ -84,28 +87,29 @@ module.exports = class AccountService extends Service {
             return resAccount.save()
           })
       })
-      .then(account => {
+      .then(() => {
         const event = {
-          object_id: account.customer_id,
+          object_id: resAccount.customer_id,
           object: 'customer',
           objects: [{
-            customer: account.customer_id
-          },{
-            account: account.id
+            customer: resAccount.customer_id
+          }, {
+            account: resAccount.id
           }],
           type: 'customer.account.updated',
-          message: `Customer account ${account.foreign_id} was updated on ${account.gateway}`,
-          data: account
+          message: `Customer account ${resAccount.foreign_id} was updated on ${resAccount.gateway}`,
+          data: resAccount
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
-        return account
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resAccount
       })
   }
 
   findAndCreate(account) {
     const Account = this.app.orm['Account']
-    let resAccount
+    let resAccount, resSource
 
     return this.app.services.PaymentGenericService.findCustomer(account)
       .then(serviceCustomer => {
@@ -129,24 +133,29 @@ module.exports = class AccountService extends Service {
               source.customer_id = resAccount.customer_id
               return this.app.orm['Source'].create(source)
                 .then(source => {
+                  if (!source) {
+                    throw new Error('Source was not created')
+                  }
+                  resSource = source
                   // Track Event
                   const event = {
-                    object_id: source.customer_id,
+                    object_id: resSource.customer_id,
                     object: 'customer',
                     objects: [{
                       customer: resAccount.customer_id
-                    },{
+                    }, {
                       account: resAccount.id
-                    },{
-                      source: source.id
+                    }, {
+                      source: resSource.id
                     }],
                     type: 'customer.source.created',
-                    message: `Customer source ${source.foreign_id} was created on ${ source.gateway }`,
-                    data: source
+                    message: `Customer source ${resSource.foreign_id} was created on ${ resSource.gateway }`,
+                    data: resSource
                   }
-                  this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
-                  return source
+                  return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                })
+                .then(event => {
+                  return resSource
                 })
             }))
           })
@@ -156,25 +165,18 @@ module.exports = class AccountService extends Service {
               object: 'customer',
               objects: [{
                 customer: resAccount.customer_id
-              },{
+              }, {
                 account: resAccount.id
               }],
               type: 'customer.account.created',
               message: `Customer account ${account.foreign_id} was created on ${account.gateway}`,
               data: resAccount
             }
-            this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+            return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+          })
+          .then(event => {
             return resAccount
           })
-        // return Account.findOrCreate({
-        //   where: {
-        //     customer_id: account.customer_id,
-        //     foreign_id: serviceCustomer.foreign_id,
-        //     gateway: serviceCustomer.gateway
-        //   },
-        //   defaults: create
-        // })
       })
   }
 
@@ -182,14 +184,16 @@ module.exports = class AccountService extends Service {
    *
    * @param account
    * @param token
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  addSource(account, token) {
+  addSource(account, token, options) {
+    options = options || {}
     const Account = this.app.orm['Account']
     const Source = this.app.orm['Source']
 
-    let resAccount
-    return Account.resolve(account)
+    let resAccount, resSource
+    return Account.resolve(account, options)
       .then(account => {
         if (!account) {
           throw new Error('Account did not resolve')
@@ -206,26 +210,47 @@ module.exports = class AccountService extends Service {
         serviceCustomerSource.account_id = resAccount.id
         serviceCustomerSource.customer_id = resAccount.customer_id
         serviceCustomerSource.is_default = true
-        return Source.create(serviceCustomerSource)
+        return Source.create(serviceCustomerSource, {transaction: options.transaction || null})
       })
       .then(source => {
+        if (!source) {
+          throw new Error('Source was not created')
+        }
+        resSource = source
+        return Source.update({
+          is_default: false
+        }, {
+          where: {
+            account_id: resSource.account_id,
+            id: {
+              $ne: resSource.id
+            }
+          },
+          hooks: false,
+          individualHooks: false,
+          returning: false,
+          transaction: options.transaction || null
+        })
+      })
+      .then(() => {
         const event = {
-          object_id: source.customer_id,
+          object_id: resSource.customer_id,
           object: 'customer',
           objects: [{
             customer: resAccount.customer_id
-          },{
+          }, {
             account: resAccount.id
-          },{
-            source: source.id
+          }, {
+            source: resSource.id
           }],
           type: 'customer.source.created',
-          message: `Customer source ${source.foreign_id} was created on ${ source.gateway }`,
-          data: source
+          message: `Customer source ${resSource.foreign_id} was created on ${ resSource.gateway }`,
+          data: resSource
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
-        return source
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resSource
       })
   }
 
@@ -287,31 +312,33 @@ module.exports = class AccountService extends Service {
         resSource = _.extend(resSource, serviceCustomerSource)
         return resSource.save()
       })
-      .then(source => {
+      .then(() => {
         const event = {
-          object_id: source.customer_id,
+          object_id: resAccount.customer_id,
           object: 'customer',
           objects: [{
             customer: resAccount.customer_id
-          },{
+          }, {
             account: resAccount.id
-          },{
-            source: source.id
+          }, {
+            source: resSource.id
           }],
           type: 'customer.source.updated',
-          message: `Customer source ${source.foreign_id} was updated on ${ source.gateway }`,
-          data: source
+          message: `Customer source ${resSource.foreign_id} was updated on ${ resSource.gateway }`,
+          data: resSource
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
-        return source
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
+        return resSource
       })
   }
 
-  removeSource(source) {
+  removeSource(source, options) {
+    options = options || {}
     const Source = this.app.orm['Source']
     let resSource
-    return Source.resolve(source)
+    return Source.resolve(source, options)
       .then(source => {
         resSource = source
         return this.app.services.PaymentGenericService.removeCustomerSource(source)
@@ -320,7 +347,8 @@ module.exports = class AccountService extends Service {
         return this.app.orm['Source'].destroy({
           where: {
             id: resSource.id
-          }
+          },
+          transaction: options.transaction || null
         })
       })
       .then(destroyedSource => {
@@ -329,17 +357,18 @@ module.exports = class AccountService extends Service {
           object: 'customer',
           objects: [{
             customer: resSource.customer_id
-          },{
+          }, {
             account: resSource.account_id
-          },{
+          }, {
             source: resSource.id
           }],
           type: 'customer.source.removed',
           message: `Customer source ${source.foreign_id} was removed on ${ source.gateway }`,
           data: resSource
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return resSource
       })
   }
@@ -347,14 +376,16 @@ module.exports = class AccountService extends Service {
   /**
    *
    * @param account
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  syncSources(account) {
+  syncSources(account, options) {
+    options = options || {}
     const Account = this.app.orm['Account']
     const Source = this.app.orm['Source']
     let resAccount
 
-    return Account.resolve(account)
+    return Account.resolve(account, options)
       .then(account => {
         resAccount = account
         return this.app.services.PaymentGenericService.findCustomerSources(account)
@@ -370,8 +401,38 @@ module.exports = class AccountService extends Service {
               account_id: source.account_id,
               foreign_id: source.foreign_id
             },
-            defaults: source
+            defaults: source,
+            transaction: options.transaction || null
           })
+        }))
+      })
+  }
+
+  /**
+   *
+   * @param source
+   * @param options
+   */
+  // TODO
+  sourceRetryTransactions(source, options) {
+    options = options || {}
+    const Source = this.app.orm['Source']
+    // const Transaction = this.app.orm['Transaction']
+    let resSource
+    return Source.resolve(source, options)
+      .then(source => {
+        if (!source) {
+          throw new Error('Source could not be resolved')
+        }
+        resSource = source
+        return resSource.getTransactions({
+          status: TRANSACTION_STATUS.FAILURE
+        })
+      })
+      .then(transactions => {
+        return Promise.all(transactions.map(transaction => {
+          transaction.payment_detials.source = resSource
+          return this.app.services.TransactionService.retry(transaction, {transaction: options.transaction || null})
         }))
       })
   }

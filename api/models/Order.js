@@ -272,6 +272,14 @@ module.exports = class Order extends Model {
               }
               return resp
             },
+            cancel(options) {
+              options = options || {}
+              this.cancelled_at = new Date(Date.now())
+              this.status = ORDER_STATUS.CLOSED
+              this.closed_at = this.cancelled_at
+              this.cancel_reason = options.cancel_reason
+              return this
+            },
             saveFinancialStatus: function(options) {
               options = options || {}
               const Transaction = app.orm['Transaction']
@@ -444,6 +452,24 @@ module.exports = class Order extends Model {
               this.total_not_fulfilled = totalNonFulfillments
               this.fulfillment_status = fulfillmentStatus
               return this
+            },
+            resolveSubscribeImmediately: function() {
+              //
+            },
+            resolveSendImmediately: function() {
+              // let immediate = false
+              // if (orderFulfillmentKind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
+              //   return immediate
+              // }
+              // const successes = transactions.filter(transaction => {
+              //   return transaction.status == TRANSACTION_STATUS.SUCCESS
+              // })
+              // const sales = transactions.filter(transaction =>
+              // [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
+              // if (successes.length == transactions.length && sales.length == transactions.length) {
+              //   immediate = true
+              // }
+              // return immediate
             },
             buildOrderItem: function(item, qty, properties) {
               // console.log('BUILDING', item)

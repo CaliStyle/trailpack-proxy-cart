@@ -279,7 +279,6 @@ module.exports = class PaymentService extends Service {
    * @param options
    * @returns {Promise.<TResult>|*}
    */
-  // TODO
   retry(transaction, options) {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
@@ -289,7 +288,36 @@ module.exports = class PaymentService extends Service {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
+        if ([TRANSACTION_STATUS.FAILURE].indexOf(foundTransaction.status) === -1) {
+          throw new Error('Transaction can not be retried if it has not failed')
+        }
+        const paymentProcessor = this.app.config.proxyGenerics[foundTransaction.gateway] || this.app.config.proxyGenerics.payment_processor
+        if (!paymentProcessor || !paymentProcessor.adapter) {
+          throw new Error('Payment Processor is unspecified')
+        }
         resTransaction = foundTransaction
+
+        return this.app.services.PaymentGenericService[resTransaction.kind](resTransaction, paymentProcessor)
+      })
+      .then(() => {
+        return resTransaction.retry().save()
+      })
+      .then(() => {
+        const event = {
+          object_id: resTransaction.order_id,
+          object: 'order',
+          objects: [{
+            order: resTransaction.order_id
+          },{
+            transaction: resTransaction.id
+          }],
+          type: `order.transaction.${resTransaction.kind}.${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ${resTransaction.kind} of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
+          data: resTransaction
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return resTransaction
       })
   }
@@ -313,9 +341,7 @@ module.exports = class PaymentService extends Service {
           throw new Error('Transaction can not be cancelled if it is not pending or failed')
         }
         resTransaction = foundTransaction
-        resTransaction.status = TRANSACTION_STATUS.CANCELLED
-
-        return resTransaction.save()
+        return resTransaction.cancel().save()
       })
       .then(() => {
         const event = {
@@ -327,7 +353,7 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: 'order.transaction.cancelled',
-          message: `Order ID ${resTransaction.order_id} transaction of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status} cancelled`,
+          message: `Order ID ${resTransaction.order_id} transaction of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

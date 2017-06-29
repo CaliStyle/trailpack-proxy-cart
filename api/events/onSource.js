@@ -10,11 +10,18 @@ module.exports = class onSource extends Event {
   }
   created(msg, data) {
     // console.log('onSource.created', msg, data)
-    // try and fix broken/failed transactions
-
+    // // try and fix broken/failed transactions
+    // this.app.services.AccountService.sourceRetryTransactions(data.data)
+    //   .catch(err => {
+    //     this.app.log.error(err)
+    //   })
   }
   updated(msg, data) {
-    // console.log('onSource.updated', msg, data)
+    this.app.log.debug('onSource.updated', msg, data)
     // try and fix broken/failed transactions
+    this.app.services.AccountService.sourceRetryTransactions(data.data)
+      .catch(err => {
+        this.app.log.error(err)
+      })
   }
 }

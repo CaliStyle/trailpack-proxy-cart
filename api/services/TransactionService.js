@@ -1,9 +1,11 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
+const moment = require('moment')
 
 /**
  * @module TransactionService
@@ -189,6 +191,117 @@ module.exports = class TransactionService extends Service {
 
   /**
    *
+   * @returns {Promise.<TResult>}
+   */
+  retryThisHour() {
+    this.app.log.debug('TransactionService.retryThisHour')
+    const Transaction = this.app.orm['Transaction']
+    const start = moment().startOf('hour')
+    const errors = []
+    // let errorsTotal = 0
+    let transactionsTotal = 0
+
+    return Transaction.batch({
+      where: {
+        retry_at: {
+          $or: {
+            $lte: start.format('YYYY-MM-DD HH:mm:ss'),
+            $eq: null
+          }
+        },
+        total_retry_attempts: {
+          $gte: 0,
+          $lte: this.app.config.proxyCart.transactions.retry_attempts || 1
+        },
+        status: TRANSACTION_STATUS.FAILURE
+      },
+      regressive: true
+    }, (transactions) => {
+      const Sequelize = Transaction.sequelize
+      return Sequelize.Promise.mapSeries(transactions, transaction => {
+        return this.retry(transaction)
+      })
+        .then(results => {
+          // Calculate Totals
+          transactionsTotal = transactionsTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
+        })
+    })
+      .then(transactions => {
+        const results = {
+          transactions: transactionsTotal,
+          errors: errors
+        }
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('transactions.retry.complete', results)
+        return results
+      })
+      .catch(err => {
+        this.app.log.error(err)
+        return
+      })
+  }
+
+  /**
+   *
+   * @returns {Promise.<TResult>}
+   */
+  cancelThisHour() {
+    this.app.log.debug('TransactionService.cancelThisHour')
+    const Transaction = this.app.orm['Transaction']
+    const errors = []
+    // let errorsTotal = 0
+    let transactionsTotal = 0
+
+    return Transaction.batch({
+      where: {
+        total_retry_attempts: {
+          $gte: this.app.config.proxyCart.transactions.retry_attempts || 1
+        },
+        status: TRANSACTION_STATUS.FAILURE
+      },
+      regressive: true
+    }, (transactions) => {
+
+      const Sequelize = Transaction.sequelize
+      return Sequelize.Promise.mapSeries(transactions, transaction => {
+        return this.cancel(transaction)
+      })
+        .then(results => {
+          // Calculate Totals
+          transactionsTotal = transactionsTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
+        })
+    })
+      .then(transactions => {
+        const results = {
+          transactions: transactionsTotal,
+          errors: errors
+        }
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('transactions.cancel.complete', results)
+        return results
+      })
+      .catch(err => {
+        this.app.log.error(err)
+        return
+      })
+  }
+
+  /**
+   *
    * @param transaction
    * @param options
    * @returns {Promise.<transaction>}
@@ -217,6 +330,7 @@ module.exports = class TransactionService extends Service {
       .then(order => {
         return order.saveFinancialStatus({transaction: options.transaction || null})
       })
+
       .then(order => {
         return transaction
       })

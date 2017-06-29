@@ -47,5 +47,12 @@ module.exports = {
     retry_attempts: 5,
     // The amount of days before a Order will cancel from failed transactions
     grace_period_days: 5
+  },
+  // Transactions
+  transactions: {
+    // The amount of times a Transaction will retry failed
+    retry_attempts: 5,
+    // The amount of days before a Transaction will cancel from failed
+    grace_period_days: 5
   }
 }
