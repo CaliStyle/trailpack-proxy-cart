@@ -522,17 +522,20 @@ module.exports = class SubscriptionService extends Service {
    * @param subscription
    * @returns {Promise.<TResult>}
    */
-  prepareForOrder(subscription) {
+  prepareForOrder(subscription, options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
+    const Customer = this.app.orm['Customer']
+
     let resSubscription, resCustomer
 
-    return Subscription.resolve(subscription)
+    return Subscription.resolve(subscription, options)
       .then(foundSubscription => {
         if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
         resSubscription = foundSubscription
-        return this.app.orm['Customer'].findById(resSubscription.customer_id, {
+        return Customer.findById(resSubscription.customer_id, {
           attributes: ['id', 'email']
         })
       })

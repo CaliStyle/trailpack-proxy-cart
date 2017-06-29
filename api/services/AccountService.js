@@ -45,18 +45,49 @@ module.exports = class AccountService extends Service {
    * @param customer
    * @returns {*}
    */
-  getDefaultSource(customer) {
-    if (!customer || !customer.id) {
-      const err = new Errors.FoundError(Error('Customer Not Found'))
+  getDefaultSource(customer, options) {
+    options = options || {}
+    if (!customer) {
+      const err = new Errors.FoundError(Error('Customer Not Provided'))
       return Promise.reject(err)
     }
     const Source = this.app.orm['Source']
-    return Source.findOne({
-      customer_id: customer.id,
-      is_default: true
-    })
-  }
+    const Customer = this.app.orm['Customer']
+    let resCustomer
+    return Customer.resolve(customer, {transaction: options.transaction || null })
+      .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error('Customer Not Found'))
+        }
+        resCustomer = customer
 
+        return Source.findOne({
+          where: {
+            customer_id: resCustomer.id,
+            is_default: true
+          },
+          transaction: options.transaction || null
+        })
+      })
+      .then(source => {
+        // If there is no default, find one for the customer
+        if (!source) {
+          return Source.findOne({
+            where: {
+              customer_id: resCustomer.id
+            },
+            transaction: options.transaction || null
+          })
+        }
+        else {
+          return source
+        }
+      })
+      .then(source => {
+        return source
+      })
+  }
+  // TODO
   updateAll(customer) {
     //
   }
@@ -65,6 +96,7 @@ module.exports = class AccountService extends Service {
    *
    * @param account
    * @param updates
+   * @param options
    * @returns {*|Promise.<TResult>}
    */
   update(account, updates, options) {
@@ -107,8 +139,16 @@ module.exports = class AccountService extends Service {
       })
   }
 
-  findAndCreate(account) {
+  /**
+   *
+   * @param account
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  findAndCreate(account, options) {
+    options = options || {}
     const Account = this.app.orm['Account']
+    const Source = this.app.orm['Source']
     let resAccount, resSource
 
     return this.app.services.PaymentGenericService.findCustomer(account)
@@ -123,15 +163,17 @@ module.exports = class AccountService extends Service {
           foreign_key: serviceCustomer.foreign_key,
           data: serviceCustomer.data
         }
-        return Account.create(create)
+        return Account.create(create, options)
           .then(account => {
             resAccount = account
             return this.app.services.PaymentGenericService.getCustomerSources(resAccount)
           })
           .then(accountWithSources => {
-            return Promise.all(accountWithSources.sources.map(source => {
+            return Promise.all(accountWithSources.sources.map((source, index) => {
               source.customer_id = resAccount.customer_id
-              return this.app.orm['Source'].create(source)
+              source.is_default = index == 0 ? true : false
+
+              return Source.create(source, {transaction: options.transaction || null})
                 .then(source => {
                   if (!source) {
                     throw new Error('Source was not created')
@@ -193,7 +235,7 @@ module.exports = class AccountService extends Service {
     const Source = this.app.orm['Source']
 
     let resAccount, resSource
-    return Account.resolve(account, options)
+    return Account.resolve(account, {transaction: options.transaction || null})
       .then(account => {
         if (!account) {
           throw new Error('Account did not resolve')
@@ -260,14 +302,15 @@ module.exports = class AccountService extends Service {
    * @param source
    * @returns {Promise.<TResult>}
    */
-  findSource(account, source) {
+  findSource(account, source, options) {
+    options = options || {}
     const Account = this.app.orm['Account']
     const Source = this.app.orm['Source']
     let resAccount, resSource
-    return Account.resolve(account)
+    return Account.resolve(account, {transaction: options.transaction || null})
       .then(account => {
         resAccount = account
-        return Source.resolve(source)
+        return Source.resolve(source, {transaction: options.transaction || null})
       })
       .then(source => {
         resSource = source
@@ -279,7 +322,27 @@ module.exports = class AccountService extends Service {
       })
       .then(serviceCustomerSource => {
         resSource = _.extend(resSource, serviceCustomerSource)
+        resSource.is_default = true
         return resSource.save()
+      })
+      .then(() => {
+        return Source.update({
+          is_default: false
+        }, {
+          where: {
+            account_id: resSource.account_id,
+            id: {
+              $ne: resSource.id
+            }
+          },
+          hooks: false,
+          individualHooks: false,
+          returning: false,
+          transaction: options.transaction || null
+        })
+      })
+      .then(() => {
+        return resSource
       })
   }
 
@@ -290,9 +353,11 @@ module.exports = class AccountService extends Service {
    * @param updates
    * @returns {Promise.<TResult>}
    */
-  updateSource(account, source, updates) {
+  updateSource(account, source, updates, options) {
+    options = options || {}
     const Account = this.app.orm['Account']
     const Source = this.app.orm['Source']
+
     let resAccount, resSource
     return Account.resolve(account)
       .then(account => {
@@ -311,6 +376,22 @@ module.exports = class AccountService extends Service {
       .then(serviceCustomerSource => {
         resSource = _.extend(resSource, serviceCustomerSource)
         return resSource.save()
+      })
+      .then(() => {
+        return Source.update({
+          is_default: false
+        }, {
+          where: {
+            account_id: resSource.account_id,
+            id: {
+              $ne: resSource.id
+            }
+          },
+          hooks: false,
+          individualHooks: false,
+          returning: false,
+          transaction: options.transaction || null
+        })
       })
       .then(() => {
         const event = {
@@ -334,6 +415,12 @@ module.exports = class AccountService extends Service {
       })
   }
 
+  /**
+   *
+   * @param source
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
   removeSource(source, options) {
     options = options || {}
     const Source = this.app.orm['Source']
@@ -351,7 +438,23 @@ module.exports = class AccountService extends Service {
           transaction: options.transaction || null
         })
       })
-      .then(destroyedSource => {
+      .then(() => {
+        // Set a new default source
+        return Source.findOne({
+          where: {
+            customer_id: resSource.customer_id,
+            account_id: resSource.account_id
+          }
+        })
+          .then(altSource => {
+            if (altSource) {
+              altSource.is_default = true
+              return altSource.save()
+            }
+            return
+          })
+      })
+      .then(() => {
         const event = {
           object_id: resSource.customer_id,
           object: 'customer',
@@ -391,10 +494,12 @@ module.exports = class AccountService extends Service {
         return this.app.services.PaymentGenericService.findCustomerSources(account)
       })
       .then(serviceCustomerSources => {
-        return Promise.all(serviceCustomerSources.map(source => {
+        return Promise.all(serviceCustomerSources.map((source, index) => {
           source.gateway = resAccount.gateway
           source.account_id = resAccount.id
           source.customer_id = resAccount.customer_id
+          source.is_default = index == 0 ? true : false
+
           return Source.findOrCreate({
             where: {
               customer_id: source.customer_id,
@@ -413,7 +518,6 @@ module.exports = class AccountService extends Service {
    * @param source
    * @param options
    */
-  // TODO
   sourceRetryTransactions(source, options) {
     options = options || {}
     const Source = this.app.orm['Source']
