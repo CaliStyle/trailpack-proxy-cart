@@ -8,7 +8,7 @@ const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_M
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 const ORDER_STATUS = require('../utils/enums').ORDER_STATUS
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
-const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
+// const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
@@ -53,7 +53,6 @@ module.exports = class OrderService extends Service {
     let resCustomer = {}
     let resBillingAddress = {}
     let resShippingAddress = {}
-    let resTransactions = []
 
     return Order.sequelize.transaction(t => {
       return Customer.findById(obj.customer_id, {
@@ -191,6 +190,7 @@ module.exports = class OrderService extends Service {
             user_id: obj.user_id || null,
             has_shipping: obj.has_shipping,
             has_subscription: obj.has_subscription,
+            fulfillment_kind: obj.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind,
 
             // Gateway
             payment_gateway_names: paymentGatewayNames,
@@ -311,28 +311,33 @@ module.exports = class OrderService extends Service {
           }))
         })
         .then(transactions => {
-          resTransactions = transactions
-          let orderFulfillment = obj.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind
-          if (!orderFulfillment) {
-            this.app.log.debug(`Order does not have a fulfillment function, defaulting to ${ORDER_FULFILLMENT_KIND.MANUAL}`)
-            orderFulfillment = ORDER_FULFILLMENT_KIND.MANUAL
-          }
+          // Set transactions to the resOrder
+          resOrder.set('transactions', transactions || [])
 
-          // Determine if this can be fulfilled immediately
-          if (this.resolveSendImmediately(resTransactions, orderFulfillment)) {
-            return this.app.services.FulfillmentService.sendOrderToFulfillment(resOrder)
-          }
-          else {
-            return []
-          }
+          return resOrder.resolveSendImmediately()
+            .then(immediate => {
+              if (immediate) {
+                return this.app.services.FulfillmentService.sendOrderToFulfillment(resOrder)
+              }
+              else {
+                return []
+              }
+            })
         })
         .then(fulfillments => {
+          // Set the fulfillments to the resOrder
+          resOrder.set('fulfillments', fulfillments || [])
+
           // Determine if this subscription should be created immediately
-          const subscribe = this.resolveSubscribeImmediately(resTransactions, resOrder.has_subscription)
-          if (resOrder.has_subscription) {
-            return this.app.services.SubscriptionService.setupSubscriptions(resOrder, subscribe)
-          }
-          return []
+          return resOrder.resolveSubscribeImmediately()
+            .then(immediate => {
+              if (immediate) {
+                return this.app.services.SubscriptionService.setupSubscriptions(resOrder, immediate)
+              }
+              else {
+                return []
+              }
+            })
         })
         .then(subscriptions => {
           //console.log('BROKE', subscriptions)
@@ -344,9 +349,10 @@ module.exports = class OrderService extends Service {
   /**
    *
    * @param order
+   * @param options
    * @returns {Promise.<T>}
    */
-  update(order) {
+  update(order, options) {
     const Order = this.app.orm.Order
 
     return Order.resolve(order)
@@ -376,13 +382,16 @@ module.exports = class OrderService extends Service {
   /**
    * Pay an item
    * @param order
-   * @returns {*|Promise.<TResult>}
+   * @param paymentDetails
+   * @param options
+   * @returns {*|Promise.<T>}
    */
   // TODO handle payment of remaining balance if provided
-  pay(order, paymentDetails) {
+  pay(order, paymentDetails, options) {
+    options = options || {}
     const Order = this.app.orm['Order']
     let resOrder
-    return Order.resolve(order)
+    return Order.resolve(order, options)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -391,6 +400,7 @@ module.exports = class OrderService extends Service {
         if (order.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
           throw new Error(`Order status is ${order.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
         }
+
         return order
       })
       .then(order => {
@@ -795,49 +805,6 @@ module.exports = class OrderService extends Service {
       .then(()=> {
         return resOrder.cancel({cancel_reason: reason}).save()
       })
-  }
-
-  /**
-   *
-   * @param transactions
-   * @param orderFulfillmentKind
-   * @returns {boolean}
-   */
-  resolveSendImmediately(transactions, orderFulfillmentKind) {
-    let immediate = false
-    if (orderFulfillmentKind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
-      return immediate
-    }
-    const successes = transactions.filter(transaction => {
-      return transaction.status == TRANSACTION_STATUS.SUCCESS
-    })
-    const sales = transactions.filter(transaction =>
-      [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
-    if (successes.length == transactions.length && sales.length == transactions.length) {
-      immediate = true
-    }
-    return immediate
-  }
-
-  /**
-   *
-   * @param transactions
-   * @param hasSubscription
-   * @returns {boolean}
-   */
-  resolveSubscribeImmediately(transactions, hasSubscription) {
-    let immediate = false
-    if (!hasSubscription) {
-      return immediate
-    }
-    const successes = transactions.filter(transaction =>
-      transaction.status == TRANSACTION_STATUS.SUCCESS)
-    const sales = transactions.filter(transaction =>
-      [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
-    if (successes.length == transactions.length && sales.length == transactions.length) {
-      immediate = true
-    }
-    return immediate
   }
 
   // TODO make sure total payment criteria is met.

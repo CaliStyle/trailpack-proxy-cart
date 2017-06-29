@@ -194,12 +194,13 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<TResult>}
    */
   retryThisHour() {
-    this.app.log.debug('TransactionService.retryThisHour')
     const Transaction = this.app.orm['Transaction']
     const start = moment().startOf('hour')
     const errors = []
     // let errorsTotal = 0
     let transactionsTotal = 0
+
+    this.app.log.debug('TransactionService.retryThisHour', start)
 
     return Transaction.batch({
       where: {
@@ -253,11 +254,12 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<TResult>}
    */
   cancelThisHour() {
-    this.app.log.debug('TransactionService.cancelThisHour')
     const Transaction = this.app.orm['Transaction']
     const errors = []
     // let errorsTotal = 0
     let transactionsTotal = 0
+
+    this.app.log.debug('TransactionService.cancelThisHour')
 
     return Transaction.batch({
       where: {

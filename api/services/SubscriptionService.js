@@ -584,13 +584,14 @@ module.exports = class SubscriptionService extends Service {
    * @returns {*|Promise.<TResult>}
    */
   renewThisHour() {
-    this.app.log.debug('SubscriptionService.renewThisHour')
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Subscription = this.app.orm['Subscription']
     const errors = []
     // let errorsTotal = 0
     let subscriptionsTotal = 0
+
+    this.app.log.debug('SubscriptionService.renewThisHour', start, end)
 
     return Subscription.batch({
       where: {
@@ -640,12 +641,13 @@ module.exports = class SubscriptionService extends Service {
    * @returns {Promise.<TResult>}
    */
   retryThisHour() {
-    this.app.log.debug('SubscriptionService.retryThisHour')
     const Subscription = this.app.orm['Subscription']
     const start = moment().startOf('hour')
     const errors = []
     // let errorsTotal = 0
     let subscriptionsTotal = 0
+
+    this.app.log.debug('SubscriptionService.retryThisHour', start)
 
     return Subscription.batch({
       where: {
@@ -699,11 +701,12 @@ module.exports = class SubscriptionService extends Service {
    * @returns {Promise.<TResult>}
    */
   cancelThisHour() {
-    this.app.log.debug('SubscriptionService.cancelThisHour')
     const Subscription = this.app.orm['Subscription']
     const errors = []
     // let errorsTotal = 0
     let subscriptionsTotal = 0
+
+    this.app.log.debug('SubscriptionService.cancelThisHour')
 
     return Subscription.batch({
       where: {

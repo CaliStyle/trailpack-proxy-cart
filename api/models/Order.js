@@ -14,6 +14,7 @@ const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
+const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
 
@@ -81,6 +82,7 @@ module.exports = class Order extends Model {
             ORDER_CANCEL: ORDER_CANCEL,
             ORDER_FINANCIAL: ORDER_FINANCIAL,
             ORDER_FULFILLMENT: ORDER_FULFILLMENT,
+            ORDER_FULFILLMENT_KIND: ORDER_FULFILLMENT_KIND,
             PAYMENT_PROCESSING_METHOD: PAYMENT_PROCESSING_METHOD,
             TRANSACTION_STATUS: TRANSACTION_STATUS,
             TRANSACTION_KIND: TRANSACTION_KIND,
@@ -316,7 +318,7 @@ module.exports = class Order extends Model {
                 })
             },
             setFinancialStatus: function(transactions){
-
+              transactions = transactions.filter(transaction => transaction.status === TRANSACTION_STATUS.SUCCESS)
               let financialStatus = ORDER_FINANCIAL.PENDING
               // TRANSACTION STATUS pending, failure, success or error
               // TRANSACTION KIND authorize, capture, sale, refund, void
@@ -328,19 +330,19 @@ module.exports = class Order extends Model {
 
               // Calculate the totals of the transactions
               _.each(transactions, transaction => {
-                if (transaction.kind == TRANSACTION_KIND.AUTHORIZE && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
                   totalAuthorized = totalAuthorized + transaction.amount
                 }
-                else if (transaction.kind == TRANSACTION_KIND.VOID && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                else if (transaction.kind == TRANSACTION_KIND.VOID) {
                   totalVoided = totalVoided + transaction.amount
                 }
-                else if (transaction.kind == TRANSACTION_KIND.CAPTURE && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                else if (transaction.kind == TRANSACTION_KIND.CAPTURE) {
                   totalSale = totalSale + transaction.amount
                 }
-                else if (transaction.kind == TRANSACTION_KIND.SALE && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                else if (transaction.kind == TRANSACTION_KIND.SALE) {
                   totalSale = totalSale + transaction.amount
                 }
-                else if (transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+                else if (transaction.kind == TRANSACTION_KIND.REFUND) {
                   totalRefund = totalRefund + transaction.amount
                 }
               })
@@ -453,24 +455,84 @@ module.exports = class Order extends Model {
               this.fulfillment_status = fulfillmentStatus
               return this
             },
+            /**
+             * Resolve if this should subscribe immediately
+             * @returns {*}
+             */
             resolveSubscribeImmediately: function() {
-              //
+              console.log('BROKE',this)
+              let immediate = false
+              if (!this.has_subscription) {
+                return Promise.resolve(immediate)
+              }
+              return Promise.resolve()
+                .then(() => {
+                  if (this.transactions && this.transactions.length > 0) {
+                    return Promise.resolve(this.transactions)
+                  }
+                  else {
+                    return this.getTransactions()
+                  }
+                })
+                .then(transactions => {
+                  let total = 0
+                  const successes = transactions.filter(transaction => transaction.status == TRANSACTION_STATUS.SUCCESS)
+                  successes.forEach(success => {
+                    if (success.kind === TRANSACTION_KIND.CAPTURE) {
+                      total = total + success.amount
+                    }
+                    if (success.kind === TRANSACTION_KIND.SALE) {
+                      total = total + success.amount
+                    }
+                  })
+                  if (total >= this.total_price) {
+                    immediate = true
+                  }
+                  return Promise.resolve(immediate)
+                })
             },
+            /**
+             * Resolve if this should send to fulfillment immediately
+             * @returns {*}
+             */
             resolveSendImmediately: function() {
-              // let immediate = false
-              // if (orderFulfillmentKind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
-              //   return immediate
-              // }
-              // const successes = transactions.filter(transaction => {
-              //   return transaction.status == TRANSACTION_STATUS.SUCCESS
-              // })
-              // const sales = transactions.filter(transaction =>
-              // [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
-              // if (successes.length == transactions.length && sales.length == transactions.length) {
-              //   immediate = true
-              // }
-              // return immediate
+              let immediate = false
+              if (this.fulfillment_kind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
+                return Promise.resolve(immediate)
+              }
+              return Promise.resolve()
+                .then(() => {
+                  if (this.transactions && this.transactions.length > 0) {
+                    return Promise.resolve(this.transactions)
+                  }
+                  else {
+                    return this.getTransactions()
+                  }
+                })
+                .then(transactions => {
+                  let total = 0
+                  const successes = transactions.filter(transaction => transaction.status == TRANSACTION_STATUS.SUCCESS)
+
+                  successes.forEach(success => {
+                    if (success.kind === TRANSACTION_KIND.CAPTURE) {
+                      total = total + success.amount
+                    }
+                    if (success.kind === TRANSACTION_KIND.SALE) {
+                      total = total + success.amount
+                    }
+                  })
+                  if (total >= this.total_price) {
+                    immediate = true
+                  }
+                  return Promise.resolve(immediate)
+                })
             },
+            /**
+             * Builds obj for Order Item
+             * @param item
+             * @param qty
+             * @param properties
+             */
             buildOrderItem: function(item, qty, properties) {
               // console.log('BUILDING', item)
               return {
@@ -726,6 +788,13 @@ module.exports = class Order extends Model {
           type: Sequelize.ENUM,
           values: _.values(ORDER_FULFILLMENT),
           defaultValue: ORDER_FULFILLMENT.NONE
+        },
+        // immediate: immediately send to fulfillment providers
+        // manual: wait until manually sent to fulfillment providers
+        fulfillment_kind: {
+          type: Sequelize.ENUM,
+          values: _.values(ORDER_FULFILLMENT_KIND),
+          defaultValue: app.config.proxyCart.order_fulfillment_kind || ORDER_FULFILLMENT_KIND.MANUAL
         },
         // The site this sale originated from
         landing_site: {
