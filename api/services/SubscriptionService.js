@@ -591,7 +591,7 @@ module.exports = class SubscriptionService extends Service {
     // let errorsTotal = 0
     let subscriptionsTotal = 0
 
-    this.app.log.debug('SubscriptionService.renewThisHour', start, end)
+    this.app.log.debug('SubscriptionService.renewThisHour', start.format('YYYY-MM-DD HH:mm:ss'), end.format('YYYY-MM-DD HH:mm:ss'))
 
     return Subscription.batch({
       where: {
@@ -647,7 +647,7 @@ module.exports = class SubscriptionService extends Service {
     // let errorsTotal = 0
     let subscriptionsTotal = 0
 
-    this.app.log.debug('SubscriptionService.retryThisHour', start)
+    this.app.log.debug('SubscriptionService.retryThisHour', start.format('YYYY-MM-DD HH:mm:ss'))
 
     return Subscription.batch({
       where: {

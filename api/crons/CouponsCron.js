@@ -11,7 +11,7 @@ module.exports = class ExpireCouponsCron extends Cron {
     const rule = new this.schedule.RecurrenceRule()
     rule.minute = 0
     // Schedule the recurring job
-    this.schedule.scheduleJob(rule, function(){
+    this.schedule.scheduleJob('CouponsCron.expire', rule, () => {
       this.app.services.CouponService.expireThisHour()
     })
   }

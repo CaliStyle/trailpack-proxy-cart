@@ -11,7 +11,7 @@ module.exports = class SubscriptionsCron extends Cron {
     const rule = new this.schedule.RecurrenceRule()
     rule.minute = 0
     // Schedule the recurring job
-    this.schedule.scheduleJob(rule, () => {
+    this.schedule.scheduleJob('SubscriptionsCron.renew',rule, () => {
       this.app.services.SubscriptionService.renewThisHour()
         .catch(err => {
           this.app.log.error(err)
@@ -23,7 +23,7 @@ module.exports = class SubscriptionsCron extends Cron {
     const rule = new this.schedule.RecurrenceRule()
     rule.minute = 15
     // Schedule the recurring job
-    this.schedule.scheduleJob(rule, () => {
+    this.schedule.scheduleJob('SubscriptionsCron.retryFailed',rule, () => {
       this.app.services.SubscriptionService.retryThisHour()
         .catch(err => {
           this.app.log.error(err)
@@ -35,7 +35,7 @@ module.exports = class SubscriptionsCron extends Cron {
     const rule = new this.schedule.RecurrenceRule()
     rule.minute = 30
     // Schedule the recurring job
-    this.schedule.scheduleJob(rule, () => {
+    this.schedule.scheduleJob('SubscriptionsCron.cancelFailed',rule, () => {
       this.app.services.SubscriptionService.cancelThisHour()
         .catch(err => {
           this.app.log.error(err)

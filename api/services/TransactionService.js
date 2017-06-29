@@ -200,7 +200,7 @@ module.exports = class TransactionService extends Service {
     // let errorsTotal = 0
     let transactionsTotal = 0
 
-    this.app.log.debug('TransactionService.retryThisHour', start)
+    this.app.log.debug('TransactionService.retryThisHour', start.format('YYYY-MM-DD HH:mm:ss'))
 
     return Transaction.batch({
       where: {
