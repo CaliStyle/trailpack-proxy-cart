@@ -42,22 +42,25 @@ module.exports = class FulfillmentService extends Service {
     }
   }
 
-  sendOrderToFulfillment(order) {
+  sendOrderToFulfillment(order, options) {
+    options = options || {}
     const Order = this.app.orm['Order']
-    return Order.resolve(order)
-      .then(order => {
-        if (!order.order_items || order.order_items.length == 0) {
-          return order.getOrder_items()
+    let resOrder
+    return Order.resolve(order, options)
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Error('Order Not Found')
         }
-        return order
+        resOrder = foundOrder
+        return resOrder.getOrder_items()
       })
-      .then(order => {
-        let groups = _.groupBy(order.order_items, 'fulfillment_service')
+      .then(orderItems => {
+        let groups = _.groupBy(orderItems, 'fulfillment_service')
         groups = _.map(groups, (items, service) => {
           return { service: service, items: items }
         })
         return Promise.all(groups.map((group) => {
-          return this.create(order, group.items, group.service)
+          return this.create(resOrder, group.items, group.service)
         }))
       })
       .then(fulfillments => {

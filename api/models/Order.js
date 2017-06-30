@@ -51,6 +51,9 @@ module.exports = class Order extends Model {
               if (values.ip) {
                 values.update_ip = values.ip
               }
+              if (values.changed('status') && values.status == ORDER_STATUS.CLOSED) {
+                values.close()
+              }
               fn()
             },
 
@@ -282,39 +285,105 @@ module.exports = class Order extends Model {
               this.cancel_reason = options.cancel_reason
               return this
             },
+            close() {
+              this.status = ORDER_STATUS.CLOSED
+              this.closed_at = new Date(Date.now())
+              return this
+            },
             saveFinancialStatus: function(options) {
               options = options || {}
-              const Transaction = app.orm['Transaction']
-
+              // const Transaction = app.orm['Transaction']
+              let currentStatus, previousStatus
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return Transaction.findAll({
-                where: {
-                  order_id: this.id
-                }//,
-                //transaction: options.transaction || null
-              })
+              return Promise.resolve()
+                .then(() => {
+                  return this.getTransactions()
+                })
                 .then(transactions => {
+                  this.set('transactions', transactions)
+
                   this.setFinancialStatus(transactions)
+                  if (this.changed('financial_status')) {
+                    currentStatus = this.financial_status
+                    previousStatus = this.previous('financial_status')
+                  }
                   return this.save()
+                })
+                .then(() => {
+                  if (currentStatus && previousStatus) {
+                    const event = {
+                      object_id: this.id,
+                      object: 'order',
+                      objects: [{
+                        customer: this.customer_id
+                      },{
+                        order: this.id
+                      }],
+                      type: `order.financial_status.${currentStatus}`,
+                      message: `Order ${ this.name } financial status changed from "${previousStatus}" to "${currentStatus}"`,
+                      data: this
+                    }
+                    return app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
+                  if (currentStatus === ORDER_FINANCIAL.PAID && previousStatus !== ORDER_FINANCIAL.PAID) {
+                    return this.attemptImmediate()
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
+                  return this
                 })
             },
             saveFulfillmentStatus: function(options) {
               options = options || {}
-              const Fulfillment = app.orm['Fulfillment']
+              // const Fulfillment = app.orm['Fulfillment']
+              let currentStatus, previousStatus
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return Fulfillment.findAll({
-                where: {
-                  order_id: this.id
-                }// ,
-                // transaction: options.transaction || {}
-              })
+              return Promise.resolve()
+                .then(() => {
+                  return this.getFulfillments()
+                })
                 .then(fulfillments => {
                   this.setFulfillmentStatus(fulfillments)
+                  if (this.changed('fulfillment_status')) {
+                    currentStatus = this.financial_status
+                    previousStatus = this.previous('fulfillment_status')
+                  }
                   return this.save()
+                })
+                .then(() => {
+                  if (currentStatus && previousStatus) {
+                    const event = {
+                      object_id: this.id,
+                      object: 'order',
+                      objects: [{
+                        customer: this.customer_id
+                      },{
+                        order: this.id
+                      }],
+                      type: `order.fulfillment_status.${currentStatus}`,
+                      message: `Order ${ this.name } fulfilment status changed from "${previousStatus}" to "${currentStatus}"`,
+                      data: this
+                    }
+                    return app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
+                  return this
                 })
             },
             setFinancialStatus: function(transactions){
@@ -460,9 +529,11 @@ module.exports = class Order extends Model {
              * @returns {*}
              */
             resolveSubscribeImmediately: function() {
-              console.log('BROKE',this)
               let immediate = false
               if (!this.has_subscription) {
+                return Promise.resolve(immediate)
+              }
+              if (this.fulfillment_status !== ORDER_FULFILLMENT.NONE) {
                 return Promise.resolve(immediate)
               }
               return Promise.resolve()
@@ -500,14 +571,17 @@ module.exports = class Order extends Model {
               if (this.fulfillment_kind !== ORDER_FULFILLMENT_KIND.IMMEDIATE) {
                 return Promise.resolve(immediate)
               }
+              if (this.fulfillment_status !== ORDER_FULFILLMENT.NONE) {
+                return Promise.resolve(immediate)
+              }
               return Promise.resolve()
                 .then(() => {
-                  if (this.transactions && this.transactions.length > 0) {
-                    return Promise.resolve(this.transactions)
-                  }
-                  else {
-                    return this.getTransactions()
-                  }
+                  // if (this.transactions && this.transactions.length > 0) {
+                  //   return Promise.resolve(this.transactions)
+                  // }
+                  // else {
+                  return this.getTransactions()
+                  // }
                 })
                 .then(transactions => {
                   let total = 0
@@ -525,6 +599,43 @@ module.exports = class Order extends Model {
                     immediate = true
                   }
                   return Promise.resolve(immediate)
+                })
+            },
+            attemptImmediate: function() {
+              // console.log('BROKE attemptImmediate')
+              return Promise.resolve()
+                .then(() => {
+                  return this.resolveSendImmediately()
+                })
+                .then(immediate => {
+                  console.log('SEND IMMEDIATELY', immediate)
+                  if (immediate) {
+                    return app.services.FulfillmentService.sendOrderToFulfillment(this)
+                  }
+                  else {
+                    return []
+                  }
+                })
+                .then(fulfillments => {
+                  // Set the fulfillments to the resOrder
+                  this.set('fulfillments', fulfillments || [])
+
+                  // Determine if this subscription should be created immediately
+                  return this.resolveSubscribeImmediately()
+                })
+                .then(immediate => {
+                  console.log('Subscribe IMMEDIATELY', immediate)
+                  if (immediate) {
+                    return app.services.SubscriptionService.setupSubscriptions(this, immediate)
+                  }
+                  else {
+                    return []
+                  }
+                })
+                .then((subscriptions) => {
+                  this.set('subscriptions', subscriptions || [])
+
+                  return this
                 })
             },
             /**

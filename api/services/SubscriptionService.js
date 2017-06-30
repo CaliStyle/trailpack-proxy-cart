@@ -21,20 +21,23 @@ module.exports = class SubscriptionService extends Service {
    * @param active
    * @returns {Promise.<TResult>}
    */
-  setupSubscriptions(order, active) {
+  setupSubscriptions(order, active, options) {
+    options = options || {}
     const Order = this.app.orm['Order']
-    return Order.resolve(order)
-      .then(order => {
-        if (!order.order_items || order.order_items.length == 0) {
-          return order.getOrder_items()
+    let resOrder
+    return Order.resolve(order, options)
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Error('Order nto found')
         }
-        return order
+        resOrder = foundOrder
+        return resOrder.getOrder_items()
       })
-      .then(order => {
-        order.order_items = _.filter(order.order_items, 'requires_subscription')
+      .then(orderItems => {
+        orderItems = _.filter(orderItems, 'requires_subscription')
 
         const groups = []
-        const units = _.groupBy(order.order_items, 'subscription_unit')
+        const units = _.groupBy(orderItems, 'subscription_unit')
 
         _.forEach(units, function(value, unit) {
           // console.log(key, value)
@@ -50,7 +53,7 @@ module.exports = class SubscriptionService extends Service {
         // console.log('the groups',groups)
         return Promise.all(groups.map((group) => {
           // console.log('this group',group)
-          return this.create(order, group.items, group.unit, group.interval, active)
+          return this.create(resOrder, group.items, group.unit, group.interval, active)
         }))
       })
   }

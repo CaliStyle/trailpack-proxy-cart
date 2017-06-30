@@ -313,9 +313,14 @@ module.exports = class TransactionService extends Service {
     const Order = this.app.orm['Order']
     return Order.findById(transaction.order_id, {transaction: options.transaction || null})
       .then(order => {
-        return order.saveFinancialStatus({transaction: options.transaction || null})
+        if (order) {
+          return order.saveFinancialStatus({transaction: options.transaction || null})
+        }
+        else {
+          return
+        }
       })
-      .then(order => {
+      .then(() => {
         return transaction
       })
   }
@@ -330,10 +335,14 @@ module.exports = class TransactionService extends Service {
     const Order = this.app.orm['Order']
     return Order.findById(transaction.order_id, {transaction: options.transaction || null})
       .then(order => {
-        return order.saveFinancialStatus({transaction: options.transaction || null})
+        if (order) {
+          return order.saveFinancialStatus({transaction: options.transaction || null})
+        }
+        else {
+          return
+        }
       })
-
-      .then(order => {
+      .then(() => {
         return transaction
       })
   }

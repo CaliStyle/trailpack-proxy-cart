@@ -26,7 +26,6 @@ module.exports = class OrderService extends Service {
    */
   // TODO handle inventory policy and coupon policy
   // TODO Select Vendor
-  // TODO Set Order Payment Sources
   create(obj) {
     const Address = this.app.orm.Address
     const Customer = this.app.orm.Customer
@@ -108,6 +107,7 @@ module.exports = class OrderService extends Service {
           if (!obj.payment_details){
             obj.payment_details = []
           }
+          // If not pricing_overrides, make blank array
           if (!obj.pricing_overrides) {
             obj.pricing_overrides = []
           }
@@ -247,10 +247,7 @@ module.exports = class OrderService extends Service {
                   this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
                 }
 
-                customer.setTotalSpent(totalPrice)
-                customer.setLastOrder(resOrder)
-                //
-                return resCustomer.save()
+                return customer.setTotalSpent(totalPrice).setLastOrder(resOrder).save()
               })
           }
           else {
@@ -311,36 +308,6 @@ module.exports = class OrderService extends Service {
           }))
         })
         .then(transactions => {
-          // Set transactions to the resOrder
-          resOrder.set('transactions', transactions || [])
-
-          return resOrder.resolveSendImmediately()
-            .then(immediate => {
-              if (immediate) {
-                return this.app.services.FulfillmentService.sendOrderToFulfillment(resOrder)
-              }
-              else {
-                return []
-              }
-            })
-        })
-        .then(fulfillments => {
-          // Set the fulfillments to the resOrder
-          resOrder.set('fulfillments', fulfillments || [])
-
-          // Determine if this subscription should be created immediately
-          return resOrder.resolveSubscribeImmediately()
-            .then(immediate => {
-              if (immediate) {
-                return this.app.services.SubscriptionService.setupSubscriptions(resOrder, immediate)
-              }
-              else {
-                return []
-              }
-            })
-        })
-        .then(subscriptions => {
-          //console.log('BROKE', subscriptions)
           return Order.findByIdDefault(resOrder.id)
         })
     })

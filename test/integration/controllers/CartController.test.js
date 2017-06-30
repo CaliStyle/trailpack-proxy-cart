@@ -374,10 +374,10 @@ describe('CartController', () => {
         assert.equal(res.body.order.transactions[0].order_id, orderID)
 
         // Events
-        assert.equal(res.body.order.events.length, 2)
+        assert.equal(res.body.order.events.length, 3)
         assert.equal(res.body.order.events[0].object_id, orderID)
         assert.equal(res.body.order.events[1].object_id, orderID)
-
+        assert.equal(res.body.order.events[2].object_id, orderID)
         done(err)
       })
   })
