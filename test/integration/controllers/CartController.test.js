@@ -342,30 +342,34 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
+        console.log('Current Work', res.body.order)
         orderID = res.body.order.id
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
 
         assert.equal(res.body.order.financial_status, 'paid')
-        // assert.equal(res.body.order.fulfillment_status, 'fulfilled')
+        assert.equal(res.body.order.fulfillment_status, 'sent')
         assert.equal(res.body.order.currency, 'USD')
         assert.equal(res.body.order.source_name, 'api')
         assert.equal(res.body.order.processing_method, 'checkout')
         assert.ok(res.body.order.subtotal_price)
+        assert.equal(res.body.order.status, 'open')
+        assert.equal(res.body.order.closed_at, null)
         // Order Items
         assert.equal(res.body.order.order_items.length, 3)
+        assert.equal(res.body.order.total_items, 4)
         assert.equal(res.body.order.order_items[0].order_id, orderID)
         assert.equal(res.body.order.order_items[1].order_id, orderID)
         assert.equal(res.body.order.order_items[2].order_id, orderID)
 
-        assert.ok(res.body.order.order_items[0].fulfillment_id)
-        assert.ok(res.body.order.order_items[1].fulfillment_id)
-        assert.ok(res.body.order.order_items[2].fulfillment_id)
-        assert.equal(res.body.order.order_items[0].fulfillment_status, 'fulfilled')
-        assert.equal(res.body.order.order_items[1].fulfillment_status, 'fulfilled')
-        assert.equal(res.body.order.order_items[2].fulfillment_status, 'fulfilled')
+        assert.equal(res.body.order.order_items[0].fulfillment_id, res.body.order.fulfillments[0].id)
+        assert.equal(res.body.order.order_items[1].fulfillment_id, res.body.order.fulfillments[0].id)
+        assert.equal(res.body.order.order_items[2].fulfillment_id, res.body.order.fulfillments[0].id)
+        assert.equal(res.body.order.order_items[0].fulfillment_status, 'sent')
+        assert.equal(res.body.order.order_items[1].fulfillment_status, 'sent')
+        assert.equal(res.body.order.order_items[2].fulfillment_status, 'sent')
 
-        assert.equal(res.body.order.total_items, 4)
+
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
         assert.equal(res.body.order.transactions[0].kind, 'sale')
@@ -373,11 +377,17 @@ describe('CartController', () => {
         assert.equal(res.body.order.transactions[0].source_name, 'web')
         assert.equal(res.body.order.transactions[0].order_id, orderID)
 
+        // Fulfillment
+        assert.equal(res.body.order.fulfillments.length, 1)
+        assert.equal(res.body.order.fulfillments[0].status, 'sent')
+        assert.equal(res.body.order.fulfillments[0].order_id, orderID)
+
         // Events
-        assert.equal(res.body.order.events.length, 3)
+        assert.equal(res.body.order.events.length, 4)
         assert.equal(res.body.order.events[0].object_id, orderID)
         assert.equal(res.body.order.events[1].object_id, orderID)
         assert.equal(res.body.order.events[2].object_id, orderID)
+        assert.equal(res.body.order.events[3].object_id, orderID)
         done(err)
       })
   })

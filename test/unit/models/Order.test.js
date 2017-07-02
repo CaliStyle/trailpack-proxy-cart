@@ -245,7 +245,7 @@ describe('Order Model', () => {
       })
   })
 
-  it('should auto fulfill order when financial_status is updated to paid', (done) => {
+  it('should auto fulfill order when financial_status is updated to paid and fulfillment is immediate', (done) => {
     const resOrder = Order.build({
       shop_id: 1,
       customer_id: 1,
@@ -302,7 +302,6 @@ describe('Order Model', () => {
         return resOrder.reload()
       })
       .then(() => {
-        console.log('BROKE',resOrder)
         assert.equal(resOrder.financial_status, 'paid')
         assert.equal(resOrder.fulfillment_status, 'fulfilled')
         done()

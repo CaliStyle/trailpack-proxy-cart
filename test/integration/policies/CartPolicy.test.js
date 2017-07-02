@@ -294,10 +294,11 @@ describe('CartPolicy', () => {
         assert.equal(res.body.order.transactions[0].order_id, orderID)
 
         // Events
-        assert.equal(res.body.order.events.length, 3)
+        assert.equal(res.body.order.events.length, 4)
         assert.equal(res.body.order.events[0].object_id, orderID)
         assert.equal(res.body.order.events[1].object_id, orderID)
         assert.equal(res.body.order.events[2].object_id, orderID)
+        assert.equal(res.body.order.events[3].object_id, orderID)
 
         done(err)
       })
@@ -454,10 +455,11 @@ describe('CartPolicy', () => {
         assert.equal(body.order.transactions[0].source_name, 'web')
         assert.equal(body.order.transactions[0].order_id, orderID)
         // Events
-        assert.equal(body.order.events.length, 3)
+        assert.equal(body.order.events.length, 4)
         assert.equal(body.order.events[0].object_id, orderID)
         assert.equal(body.order.events[1].object_id, orderID)
         assert.equal(body.order.events[2].object_id, orderID)
+        assert.equal(body.order.events[3].object_id, orderID)
 
         done()
       })
@@ -706,7 +708,8 @@ describe('CartPolicy', () => {
       .expect(200)
       .end((err, res) => {
         console.log('Customer Account Balance', res.body.order)
-
+        cartIDSwitch = res.body.cart.id
+        assert.ok(res.body.cart)
         assert.ok(res.body.order.id)
         assert.equal(res.body.order.total_discounts, 100)
         assert.equal(res.body.order.pricing_overrides[0].price, 100)
@@ -714,14 +717,24 @@ describe('CartPolicy', () => {
         // There's a prior discount on one item of 100
         assert.equal(res.body.order.total_price, 99700)
         assert.equal(res.body.order.total_due, 0)
-        assert.equal(res.body.order.transactions.length, 1)
-        assert.equal(res.body.order.transactions[0].amount, 99700)
-        assert.equal(res.body.order.fulfillments.length, 1)
-        assert.equal(res.body.order.fulfillments[0].status, 'fulfilled')
+        assert.equal(res.body.order.fulfillment_kind, 'immediate')
         assert.equal(res.body.order.financial_status, 'paid')
         assert.equal(res.body.order.fulfillment_status, 'fulfilled')
-        cartIDSwitch = res.body.cart.id
-        assert.ok(res.body.cart)
+        assert.equal(res.body.order.transactions.length, 1)
+        assert.equal(res.body.order.transactions[0].amount, 99700)
+        assert.equal(res.body.order.transactions[0].kind, 'sale')
+        assert.equal(res.body.order.transactions[0].status, 'success')
+        assert.equal(res.body.order.transactions[0].order_id, res.body.order.id)
+        assert.equal(res.body.order.fulfillments.length, 1)
+        assert.equal(res.body.order.fulfillments[0].status, 'fulfilled')
+        assert.equal(res.body.order.fulfillments[0].order_id, res.body.order.id)
+        assert.equal(res.body.order.events.length, 4)
+        assert.equal(res.body.order.events[0].object_id, res.body.order.id)
+        assert.equal(res.body.order.events[1].object_id, res.body.order.id)
+        assert.equal(res.body.order.events[2].object_id, res.body.order.id)
+        assert.equal(res.body.order.events[3].object_id, res.body.order.id)
+
+
         done(err)
       })
   })

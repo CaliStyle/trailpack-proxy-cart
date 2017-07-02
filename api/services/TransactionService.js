@@ -311,7 +311,16 @@ module.exports = class TransactionService extends Service {
   afterCreate(transaction, options) {
     options = options || {}
     const Order = this.app.orm['Order']
-    return Order.findById(transaction.order_id, {transaction: options.transaction || null})
+    return Order.findById(transaction.order_id, {
+      // attributes: [
+      //   'id',
+      //   'financial_status',
+      //   'fulfillment_status',
+      //   'total_due',
+      //   'total_price'
+      // ],
+      transaction: options.transaction || null
+    })
       .then(order => {
         if (order) {
           return order.saveFinancialStatus({transaction: options.transaction || null})
@@ -333,7 +342,16 @@ module.exports = class TransactionService extends Service {
   afterUpdate(transaction, options) {
     options = options || {}
     const Order = this.app.orm['Order']
-    return Order.findById(transaction.order_id, {transaction: options.transaction || null})
+    return Order.findById(transaction.order_id, {
+      // attributes: [
+      //   'id',
+      //   'financial_status',
+      //   'fulfillment_status',
+      //   'total_due',
+      //   'total_price'
+      // ],
+      transaction: options.transaction || null
+    })
       .then(order => {
         if (order) {
           return order.saveFinancialStatus({transaction: options.transaction || null})

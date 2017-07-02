@@ -2,6 +2,7 @@
 
 const Model = require('trails/model')
 const _ = require('lodash')
+const Errors = require('proxy-engine-errors')
 const FULFILLMENT_EVENT_STATUS = require('../utils/enums').FULFILLMENT_EVENT_STATUS
 /**
  * @module FulfillmentEvent
@@ -15,8 +16,46 @@ module.exports = class FulfillmentEvent extends Model {
       config = {
         options: {
           underscored: true,
+          hooks: {
+            beforeCreate: (values, options, fn) => {
+              app.services.FulfillmentService.beforeEventCreate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            beforeUpdate: (values, options, fn) => {
+              app.services.FulfillmentService.beforeEventUpdate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            afterCreate: (values, options, fn) => {
+              app.services.FulfillmentService.afterEventCreate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            },
+            afterUpdate: (values, options, fn) => {
+              app.services.FulfillmentService.afterEventUpdate(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
+            }
+          },
           classMethods: {
-            FULFILLMENT_EVENT_STATUS: FULFILLMENT_EVENT_STATUS
+            FULFILLMENT_EVENT_STATUS: FULFILLMENT_EVENT_STATUS,
             /**
              * Associate the Model
              * @param models
@@ -24,6 +63,34 @@ module.exports = class FulfillmentEvent extends Model {
             // associate: (models) => {
             //
             // }
+            resolve: function(fulfillmentEvent, options){
+              const FulfillmentEvent =  this
+              if (fulfillmentEvent instanceof FulfillmentEvent.Instance){
+                return Promise.resolve(fulfillmentEvent)
+              }
+              else if (fulfillmentEvent && _.isObject(fulfillmentEvent) && fulfillmentEvent.id) {
+                return FulfillmentEvent.findById(fulfillmentEvent.id, options)
+                  .then(resFulfillmentEvent => {
+                    if (!resFulfillmentEvent) {
+                      throw new Errors.FoundError(Error(`FulfillmentEvent ${fulfillmentEvent.id} not found`))
+                    }
+                    return resFulfillmentEvent
+                  })
+              }
+              else if (fulfillmentEvent && (_.isString(fulfillmentEvent) || _.isNumber(fulfillmentEvent))) {
+                return FulfillmentEvent.findById(fulfillmentEvent, options)
+                  .then(resFulfillmentEvent => {
+                    if (!resFulfillmentEvent) {
+                      throw new Errors.FoundError(Error(`FulfillmentEvent ${fulfillmentEvent} not found`))
+                    }
+                    return resFulfillmentEvent
+                  })
+              }
+              else {
+                const err = new Error('Unable to resolve FulfillmentEvent')
+                return Promise.reject(err)
+              }
+            }
           }
         }
       }

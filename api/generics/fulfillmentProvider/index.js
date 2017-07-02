@@ -6,11 +6,19 @@ module.exports = class ManualFulfillmentProvider {
   }
   createOrder(fulfillment){
     fulfillment.status = 'sent'
+    fulfillment.order_items.map(i => {
+      i.staus = 'sent'
+      return i
+    })
     return Promise.resolve(fulfillment)
   }
   createOrders(fulfillments){
     fulfillments = _.map(fulfillments, fulfillment => {
       fulfillment.status = 'sent'
+      fulfillment.order_items.map(i => {
+        i.staus = 'sent'
+        return i
+      })
     })
     return Promise.resolve(fulfillments)
   }

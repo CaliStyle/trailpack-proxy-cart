@@ -343,9 +343,7 @@ module.exports = class Order extends Model {
                   return this
                 })
             },
-            saveFulfillmentStatus: function(options) {
-              options = options || {}
-              // const Fulfillment = app.orm['Fulfillment']
+            saveFulfillmentStatus: function() {
               let currentStatus, previousStatus
               if (!this.id) {
                 return Promise.resolve(this)
@@ -355,9 +353,11 @@ module.exports = class Order extends Model {
                   return this.getFulfillments()
                 })
                 .then(fulfillments => {
+                  this.set('fulfillments', fulfillments)
+
                   this.setFulfillmentStatus(fulfillments)
                   if (this.changed('fulfillment_status')) {
-                    currentStatus = this.financial_status
+                    currentStatus = this.fulfillment_status
                     previousStatus = this.previous('fulfillment_status')
                   }
                   return this.save()
@@ -608,7 +608,6 @@ module.exports = class Order extends Model {
                   return this.resolveSendImmediately()
                 })
                 .then(immediate => {
-                  console.log('SEND IMMEDIATELY', immediate)
                   if (immediate) {
                     return app.services.FulfillmentService.sendOrderToFulfillment(this)
                   }
@@ -624,7 +623,6 @@ module.exports = class Order extends Model {
                   return this.resolveSubscribeImmediately()
                 })
                 .then(immediate => {
-                  console.log('Subscribe IMMEDIATELY', immediate)
                   if (immediate) {
                     return app.services.SubscriptionService.setupSubscriptions(this, immediate)
                   }
@@ -634,7 +632,6 @@ module.exports = class Order extends Model {
                 })
                 .then((subscriptions) => {
                   this.set('subscriptions', subscriptions || [])
-
                   return this
                 })
             },

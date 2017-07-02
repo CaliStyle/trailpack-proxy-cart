@@ -3,6 +3,7 @@
 
 const Model = require('trails/model')
 const _ = require('lodash')
+const Errors = require('proxy-engine-errors')
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
 /**
@@ -73,34 +74,65 @@ module.exports = class Fulfillment extends Model {
               })
             },
             resolve: function(fulfillment, options){
-              // options = options || {}
+              const Fulfillment =  this
+              if (fulfillment instanceof Fulfillment.Instance){
+                return Promise.resolve(fulfillment)
+              }
+              else if (fulfillment && _.isObject(fulfillment) && fulfillment.id) {
+                return Fulfillment.findById(fulfillment.id, options)
+                  .then(resFulfillment => {
+                    if (!resFulfillment) {
+                      throw new Errors.FoundError(Error(`Fulfillment ${fulfillment.id} not found`))
+                    }
+                    return resFulfillment
+                  })
+              }
+              else if (fulfillment && (_.isString(fulfillment) || _.isNumber(fulfillment))) {
+                return Fulfillment.findById(fulfillment, options)
+                  .then(resFulfillment => {
+                    if (!resFulfillment) {
+                      throw new Errors.FoundError(Error(`Fulfillment ${fulfillment} not found`))
+                    }
+                    return resFulfillment
+                  })
+              }
+              else {
+                const err = new Error('Unable to resolve Fulfillment')
+                return Promise.reject(err)
+              }
             }
           },
           instanceMethods: {
-            resolveFulfillmentStatus: function() {
-              const OrderItem = app.orm['OrderItem']
+            resolveFulfillmentStatus: function(options) {
+              options = options || {}
+
               if (!this.id){
                 return Promise.resolve(this)
               }
-              return OrderItem.findAll({
-                where: {
-                  fulfillment_id: this.id
-                }
-              })
+              return Promise.resolve()
+                .then(() => {
+                  if (!this.order_items) {
+                    return this.getOrder_items()
+                  }
+                  else {
+                    return this.order_items
+                  }
+                })
                 .then(orderItems => {
-                  this.setFulfillmentStatus(orderItems)
+                  orderItems = orderItems || []
+                  this.set('order_items', orderItems)
+                  this.setFulfillmentStatus()
                   return this
                 })
             },
-            setFulfillmentStatus: function(orderItems){
-              console.log('THIS STATUS', this.status)
+            setFulfillmentStatus: function(){
               let fulfillmentStatus = FULFILLMENT_STATUS.NONE
               let totalFulfillments = 0
               let totalPartialFulfillments = 0
               let totalSentFulfillments = 0
               let totalNonFulfillments = 0
 
-              orderItems.forEach(item => {
+              this.order_items.forEach(item => {
                 if (item.fulfillment_status == FULFILLMENT_STATUS.FULFILLED) {
                   totalFulfillments++
                 }
@@ -115,19 +147,18 @@ module.exports = class Fulfillment extends Model {
                 }
               })
 
-              if (totalFulfillments == orderItems.length) {
+              if (totalFulfillments == this.order_items.length) {
                 fulfillmentStatus = FULFILLMENT_STATUS.FULFILLED
               }
-              else if (totalSentFulfillments == orderItems.length) {
+              else if (totalSentFulfillments == this.order_items.length) {
                 fulfillmentStatus = FULFILLMENT_STATUS.SENT
               }
               else if (totalPartialFulfillments > 0) {
                 fulfillmentStatus = FULFILLMENT_STATUS.PARTIAL
               }
-              else if (totalNonFulfillments == orderItems.length) {
+              else if (totalNonFulfillments == this.order_items.length) {
                 fulfillmentStatus = FULFILLMENT_STATUS.NONE // back to default
               }
-
               this.status = fulfillmentStatus
               return this
             }
