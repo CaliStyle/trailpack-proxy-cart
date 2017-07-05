@@ -76,13 +76,12 @@ describe('OrderController', () => {
             token: '123'
           }
         ]
-
       })
       .expect(200)
       .end((err, res) => {
         // console.log('THIS ORDER', res.body)
-        assert.ok(res.body.id)
         orderID = res.body.id
+        assert.ok(res.body.id)
         assert.equal(res.body.cart_token, cartToken)
         assert.equal(res.body.email, 'example@example.com')
         // Shipping
@@ -99,6 +98,14 @@ describe('OrderController', () => {
         // console.log('ORDER ITEMS', res.body.order_items)
         // Defaults to not immediately fulfilled: fulfillment_status: none
         assert.equal(res.body.order_items[0].fulfillment_id, null)
+
+        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 100000)
+        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_items, 1)
+
         done(err)
       })
   })
@@ -114,7 +121,6 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS ORDER', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.cart_token, cartToken)
         assert.equal(res.body.email, 'example@example.com')
@@ -128,21 +134,36 @@ describe('OrderController', () => {
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
+
+        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 100000)
+        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_items, 1)
+
         done(err)
       })
   })
-  // TODO
   it('should add an item to order', (done) => {
     request
       .post(`/order/${orderID}/addItem`)
       .send({
         product_id: shopProducts[2].id,
-        quantity: 1
+        quantity: 1,
+        properties: [{ hello: 'world' }]
       })
       .expect(200)
       .end((err, res) => {
         console.log('ADD ITEM',res.body)
+        assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
+        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.subtotal_price, 200000)
+        assert.equal(res.body.total_price, 200000)
+        assert.equal(res.body.total_due, 200000)
+        assert.equal(res.body.total_items, 2)
         done(err)
       })
   })
@@ -151,16 +172,23 @@ describe('OrderController', () => {
       .post(`/order/${orderID}/updateItem`)
       .send({
         product_id: shopProducts[2].id,
-        quantity: 1
+        quantity: 1,
+        properties: [{ hello: 'moon' }]
       })
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
+        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.subtotal_price, 300000)
+        assert.equal(res.body.total_price, 300000)
+        assert.equal(res.body.total_due, 300000)
+        assert.equal(res.body.total_items, 3)
         done(err)
       })
   })
-  // TODO
-  it('should remove an item from order', (done) => {
+  it('should remove an item quantity from order', (done) => {
     request
       .post(`/order/${orderID}/removeItem`)
       .send({
@@ -169,29 +197,57 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('REMOVE ITEM',res.body)
-        assert.equal(res.body.order_items.length, 1)
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.order_items.length, 2)
+
+        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.subtotal_price, 200000)
+        assert.equal(res.body.total_price, 200000)
+        assert.equal(res.body.total_due, 200000)
+        assert.equal(res.body.total_items, 2)
         done(err)
       })
   })
-  // TODO
+  it('should completely remove an item from order', (done) => {
+    request
+      .post(`/order/${orderID}/removeItem`)
+      .send({
+        product_id: shopProducts[2].id,
+        quantity: 1
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.order_items.length, 1)
+
+        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 100000)
+        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_items, 1)
+        done(err)
+      })
+  })
   it('should add shipping to order', (done) => {
     request
       .post(`/order/${orderID}/addShipping`)
       .send({
-
+        name: 'Test Shipping',
+        amount: 100
       })
       .expect(200)
       .end((err, res) => {
         done(err)
       })
   })
-  // TODO
   it('should remove shipping from order', (done) => {
     request
       .post(`/order/${orderID}/removeShipping`)
       .send({
-
+        name: 'Test Shipping',
+        amount: 100
       })
       .expect(200)
       .end((err, res) => {

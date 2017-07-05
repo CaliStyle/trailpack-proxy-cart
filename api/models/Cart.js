@@ -75,9 +75,10 @@ module.exports = class Cart extends Model {
                 properties: data.properties,
                 option: data.option,
                 barcode: data.barcode,
-                price: data.price,
-                calculated_price: data.price,
+                price: data.price * data.quantity,
+                calculated_price: data.price * data.quantity,
                 compare_at_price: data.compare_at_price,
+                price_per_unit: data.price,
                 currency: data.currency,
                 fulfillment_service: data.fulfillment_service,
                 gift_card: data.gift_card,
@@ -90,7 +91,7 @@ module.exports = class Cart extends Model {
                 requires_subscription: data.requires_subscription,
                 subscription_interval: data.subscription_interval,
                 subscription_unit: data.subscription_unit,
-                weight: data.weight,
+                weight: data.weight * data.quantity,
                 weight_unit: data.weight_unit,
                 images: data.images.length > 0 ? data.images : data.Product.images,
                 quantity: data.quantity,
@@ -104,6 +105,7 @@ module.exports = class Cart extends Model {
               }
               return line
             },
+            // TODO reformat price on quantity
             addLine: function(item, qty, properties) {
               // The quantity available of this variant
               let lineQtyAvailable = -1

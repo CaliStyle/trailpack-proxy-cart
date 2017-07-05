@@ -448,6 +448,8 @@ module.exports = class OrderService extends Service {
       })
       .then(transactions => {
         transactions = transactions || []
+        resOrder.set('transactions', transactions)
+
         const canRefund = transactions.filter(transaction => {
           return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
         })
@@ -501,6 +503,7 @@ module.exports = class OrderService extends Service {
   // TODO restock
   refund(order, refunds, options) {
     refunds = refunds || []
+
     const Order = this.app.orm['Order']
     let resOrder
     return Order.resolve(order, options)
@@ -528,10 +531,23 @@ module.exports = class OrderService extends Service {
       })
       .then(transactions => {
         transactions = transactions || []
-        // Partially Refund
+        resOrder.set('transactions', transactions)
+
+        if (!resOrder.refunds) {
+          return resOrder.getRefunds()
+        }
+        else {
+          return resOrder.refunds
+        }
+      })
+      .then(foundRefunds => {
+        foundRefunds = foundRefunds || []
+        resOrder.set('refunds', foundRefunds)
+
+        // Partially Refund because refunds was sent to method
         if (refunds.length > 0) {
           return Promise.all(refunds.map(refund => {
-            const refundTransaction = transactions.find(transaction => transaction.id == refund.transaction)
+            const refundTransaction = resOrder.transactions.find(transaction => transaction.id == refund.transaction)
             if ([TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(refundTransaction.kind) > -1) {
               // If this is a full Transaction refund
               if (refund.amount == refundTransaction.amount) {
@@ -546,7 +562,7 @@ module.exports = class OrderService extends Service {
         }
         // Completely Refund the order
         else {
-          const canRefund = transactions.filter(transaction => {
+          const canRefund = resOrder.transactions.filter(transaction => {
             return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
 
           })
@@ -558,7 +574,7 @@ module.exports = class OrderService extends Service {
       .then(refundedTransactions => {
         return Promise.all(refundedTransactions.map(transaction => {
           if (transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS) {
-            return this.app.orm['Refund'].create({
+            return resOrder.createRefund({
               order_id: resOrder.id,
               transaction_id: transaction.id,
               amount: transaction.amount
@@ -567,12 +583,11 @@ module.exports = class OrderService extends Service {
         }))
       })
       .then(newRefunds => {
-        return resOrder.getRefunds()
+        return resOrder.reload()
       })
-      .then(refunds => {
-        // console.log('THIS REFUNDS', refunds)
+      .then(() => {
         let totalRefunds = 0
-        refunds.forEach(refund => {
+        resOrder.refunds.forEach(refund => {
           totalRefunds = totalRefunds + refund.amount
         })
         resOrder.total_refunds = totalRefunds
@@ -611,9 +626,9 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(transactions => {
-        if (!transactions) {
-          transactions = []
-        }
+        transactions = transactions || []
+        resOrder.set('transactions', transactions)
+
         // Partially Capture
         if (captures.length > 0) {
           return Promise.all(captures.map(capture => {
@@ -671,9 +686,8 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(transactions => {
-        if (!transactions) {
-          transactions = []
-        }
+        transactions = transactions || []
+        resOrder.set('transactions', transactions)
         // Partially Void
         if (voids.length > 0) {
           return Promise.all(voids.map(tVoid => {
@@ -728,6 +742,9 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(transactions => {
+        transactions = transactions || []
+        resOrder.set('transactions', transactions)
+
         // Transactions that can be refunded
         canRefund = transactions.filter(transaction =>
           [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
@@ -762,6 +779,8 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(fulfillments => {
+        fulfillments = fulfillments || []
+        resOrder.set('fulfillments', fulfillments)
         // Start Cancel fulfillments
         canCancelFulfillment = fulfillments.filter(fulfillment =>
           [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.SENT].indexOf(fulfillment.status) > -1)
@@ -889,7 +908,6 @@ module.exports = class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  // TODO recalculate transactions
   addItem(order, item, options) {
     options = options || {}
     if (!item) {
@@ -905,16 +923,32 @@ module.exports = class OrderService extends Service {
         if (order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${order.status}`)
         }
+        // bind the dao
         resOrder = order
-        return this.app.services.ProductService.resolveItem(item)
+        // Populate order items if not already populated
+        if (!resOrder.order_items) {
+          return resOrder.getOrder_items()
+        }
+        else {
+          return resOrder.order_items
+        }
+      }).
+      then(foundOrderItems => {
+        // Overrides with fresh order items if they were not provided
+        resOrder.set('order_items', foundOrderItems)
+        // Resolve the item of the new order item
+        return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null })
       })
       .then(foundItem => {
-        resItem = foundItem
-        const itemToCreate = resOrder.buildOrderItem(resItem, item.quantity, item.properties)
-        // console.log('addItem',itemToCreate)
-        return resOrder.addItem(itemToCreate)
+        if (!foundItem) {
+          throw new Error('Could not resolve product and variant')
+        }
+        // Build the item
+        resItem = resOrder.buildOrderItem(foundItem, item.quantity, item.properties)
+        // Add the item
+        return resOrder.addItem(resItem)
       })
-      .then(() => {
+      .then(createdItem => {
         return resOrder.recalculate()
       })
       .then(() => {
@@ -924,19 +958,20 @@ module.exports = class OrderService extends Service {
           object: 'order',
           objects: [{
             order: resOrder.id
-          },{
+          }, {
             customer: resOrder.customer_id
-          },{
+          }, {
             product: resItem.product_id
-          },{
-            productvariant: resItem.id
+          }, {
+            productvariant: resItem.variant_id
           }],
-          type: 'order.item_added_to_order',
+          type: 'order.item.created',
           message: `Item added to Order ${resOrder.name}`,
           data: resItem
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return Order.findByIdDefault(resOrder.id)
       })
   }
@@ -948,7 +983,6 @@ module.exports = class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  // TODO recaluclate transactions
   updateItem(order, item, options) {
     options = options || {}
     if (!item) {
@@ -964,14 +998,33 @@ module.exports = class OrderService extends Service {
         if (order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${order.status}`)
         }
+        // bind the dao
         resOrder = order
-        return this.app.services.ProductService.resolveItem(item)
+        // Populate order items if not already populated
+        if (!resOrder.order_items) {
+          return resOrder.getOrder_items()
+        }
+        else {
+          return resOrder.order_items
+        }
+      }).
+      then(foundOrderItems => {
+        // Overrides with fresh order items if they were not provided
+        resOrder.set('order_items', foundOrderItems)
+        // Resolve the item
+        return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null})
       })
       .then(foundItem => {
-        resItem = foundItem
-        return resOrder.updateItem(resItem, item.quantity, item.properties)
+        if (!foundItem) {
+          throw new Error('Could not resolve product and variant')
+        }
+        // Build the item
+        resItem = resOrder.buildOrderItem(foundItem, item.quantity, item.properties)
+        // Update the item
+        return resOrder.updateItem(resItem)
       })
-      .then(() => {
+      .then((updatedItem) => {
+       // recalculate
         return resOrder.recalculate()
       })
       .then(() => {
@@ -981,19 +1034,20 @@ module.exports = class OrderService extends Service {
           object: 'order',
           objects: [{
             order: resOrder.id
-          },{
+          }, {
             customer: resOrder.customer_id
-          },{
+          }, {
             product: resItem.product_id
-          },{
-            productvariant: resItem.id
+          }, {
+            productvariant: resItem.variant_id
           }],
-          type: 'order.item_updated_in_order',
+          type: 'order.item.updated',
           message: `Item updated in Order ${resOrder.name}`,
           data: resItem
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return Order.findByIdDefault(resOrder.id)
       })
   }
@@ -1005,7 +1059,6 @@ module.exports = class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
-  // TODO recalculate transactions
   removeItem(order, item, options) {
     options = options || {}
     if (!item) {
@@ -1021,14 +1074,33 @@ module.exports = class OrderService extends Service {
         if (order.status !== ORDER_STATUS.OPEN) {
           throw new Error(`Order is already ${order.status}`)
         }
+        // bind the dao
         resOrder = order
-        return this.app.services.ProductService.resolveItem(item)
+        // populate the order items
+        if (!resOrder.order_items) {
+          return resOrder.getOrder_items()
+        }
+        else {
+          return resOrder.order_items
+        }
+      }).
+      then(foundOrderItems => {
+        // Overrides with fresh order items if they were not provided
+        resOrder.set('order_items', foundOrderItems)
+        // Resolve the item
+        return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null})
       })
       .then(foundItem => {
-        resItem = foundItem
-        return resOrder.removeItem(resItem, item.quantity)
+        if (!foundItem) {
+          throw new Error('Could not resolve product and variant')
+        }
+        // Build the item
+        resItem = resOrder.buildOrderItem(foundItem, item.quantity, item.properties)
+        // Remove the item
+        return resOrder.removeItem(resItem)
       })
       .then(() => {
+        // recalculate
         return resOrder.recalculate()
       })
       .then(() => {
@@ -1038,19 +1110,20 @@ module.exports = class OrderService extends Service {
           object: 'order',
           objects: [{
             order: resOrder.id
-          },{
+          }, {
             customer: resOrder.customer_id
-          },{
+          }, {
             product: resItem.product_id
-          },{
-            productvariant: resItem.id
+          }, {
+            productvariant: resItem.variant_id
           }],
-          type: 'order.item_removed_from_order',
+          type: 'order.item.removed',
           message: `Item removed from Order ${resOrder.name}`,
           data: resItem
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(event => {
         return Order.findByIdDefault(resOrder.id)
       })
   }
@@ -1125,7 +1198,11 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemBeforeCreate(item, options){
-    return Promise.resolve(item)
+    return item.recalculate()
+      .then(() => {
+        return item
+      })
+    // return Promise.resolve(item)
   }
 
   /**
@@ -1135,7 +1212,11 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemBeforeUpdate(item, options){
-    return Promise.resolve(item)
+    return item.recalculate()
+      .then(() => {
+        return item
+      })
+//    return Promise.resolve(item)
   }
   /**
    *

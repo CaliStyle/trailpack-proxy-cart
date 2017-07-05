@@ -283,6 +283,7 @@ describe('Order Model', () => {
         product_id: 1,
         product_handle: 'makerbot-replicator',
         variant_id: 1,
+        price: 10,
         sku: 'printer-w-123',
         type: '3D Printer',
         fulfillable_quantity: 1,
@@ -295,6 +296,8 @@ describe('Order Model', () => {
     ])
     return resOrder.save()
       .then(order => {
+        assert.equal(resOrder.financial_status, 'pending')
+        assert.equal(resOrder.fulfillment_status, 'none')
         const retry = resOrder.transactions.filter(transaction => transaction.status == 'failure')[0]
         return global.app.services.TransactionService.retry(retry)
       })

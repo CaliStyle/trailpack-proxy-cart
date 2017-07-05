@@ -85,15 +85,7 @@ module.exports = class OrderItem extends Model {
 
               })
               models.OrderItem.belongsTo(models.Refund, {
-                // through: {
-                //   model: models.ItemRefund,
-                //   unique: false,
-                //   scope: {
-                //     model: 'order_item'
-                //   }
-                // },
-                // // foreignKey: 'model_id',
-                // constraints: false
+
               })
             },
             resolve: function(item, options){
@@ -124,6 +116,38 @@ module.exports = class OrderItem extends Model {
                 const err = new Error('Unable to resolve Order Item')
                 Promise.reject(err)
               }
+            }
+          },
+          instanceMethods: {
+            recalculate: function() {
+              // const price = this.price
+              let totalDiscounts = 0 // this.total_discounts
+              let totalShipping = 0
+              let totalTaxes = 0
+              let totalCoupons = 0
+
+              this.discounted_lines.map(line => {
+                totalDiscounts = totalDiscounts + (line.price || 0)
+              })
+              this.shipping_lines.map(line => {
+                totalShipping = totalShipping + (line.price || 0)
+              })
+              this.tax_lines.map(line => {
+                totalTaxes = totalTaxes + (line.price || 0)
+              })
+              this.coupon_lines.map(line => {
+                totalCoupons = totalCoupons + (line.price || 0)
+              })
+
+              const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
+
+              this.calculated_price  = calculatedPrice
+              this.total_discounts = totalDiscounts
+              this.total_shipping = totalShipping
+              this.total_coupons = totalCoupons
+              this.total_taxes = totalTaxes
+
+              return Promise.resolve(this)
             }
           }
         }
@@ -186,7 +210,7 @@ module.exports = class OrderItem extends Model {
         refund_id: {
           type: Sequelize.INTEGER,
           // references: {
-          //   model: 'Subscription',
+          //   model: 'Refund',
           //   key: 'id'
           // }
         },
@@ -197,11 +221,13 @@ module.exports = class OrderItem extends Model {
         }),
         // The amount available to fulfill. This is the quantity - max(refunded_quantity, fulfilled_quantity) - pending_fulfilled_quantity - open_fulfilled_quantity.
         fulfillable_quantity: {
-          type: Sequelize.INTEGER
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
         // The maximum allowed per order.
         max_quantity: {
-          type: Sequelize.INTEGER
+          type: Sequelize.INTEGER,
+          defaultValue: -1
         },
         // Service provider who is doing the fulfillment. Valid values are either "manual" or the name of the provider. eg: "amazon", "shipwire", etc.
         fulfillment_service: {
@@ -216,15 +242,23 @@ module.exports = class OrderItem extends Model {
         },
         // The weight of the item in grams.
         grams: {
-          type: Sequelize.INTEGER
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
         // The price of the item before discounts have been applied.
         price: {
-          type: Sequelize.INTEGER
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
         // The price of the item after discounts have been applied.
         calculated_price: {
-          type: Sequelize.INTEGER
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The Unit Price
+        price_per_unit: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
         // The unique numeric identifier for the product in the fulfillment. Can be null if the original product associated with the order is deleted at a later date
         // The number of products that were purchased.
@@ -284,9 +318,6 @@ module.exports = class OrderItem extends Model {
         properties: helpers.JSONB('OrderItem', app, Sequelize, 'properties', {
           defaultValue: []
         }),
-        // properties: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.STRING, 'properties', {
-        //   defaultValue: []
-        // }),
         // States whether or not the product was taxable. Values are: true or false.
         taxable: {
           type: Sequelize.BOOLEAN
@@ -299,33 +330,36 @@ module.exports = class OrderItem extends Model {
         discounted_lines: helpers.JSONB('OrderItem', app, Sequelize, 'discounted_lines', {
           defaultValue: []
         }),
-        // discounted_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSONB,  'discounted_lines', {
-        //   defaultValue: []
-        // }),
         // The line_items that have discounts
         coupon_lines: helpers.JSONB('OrderItem', app, Sequelize, 'coupon_lines', {
           defaultValue: []
         }),
-        // coupon_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSONB,  'coupon_lines', {
-        //   defaultValue: []
-        // }),
         // The line_items that have shipping
         shipping_lines: helpers.JSONB('OrderItem', app, Sequelize, 'shipping_lines', {
           defaultValue: []
         }),
-        // shipping_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSONB,  'shipping_lines', {
-        //   defaultValue: []
-        // }),
 
         // A list of tax_line objects, each of which details the taxes applicable to this line_item.
         tax_lines: helpers.JSONB('OrderItem', app, Sequelize, 'tax_lines', {
           defaultValue: []
         }),
-        // tax_lines: helpers.ARRAY('OrderItem', app, Sequelize, Sequelize.JSONB, 'tax_lines', {
-        //   defaultValue: []
-        // }),
         // The total discounts amount applied to this line item. This value is not subtracted in the line item price.
         total_discounts: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total coupons amount applied to this line item. This value is not subtracted in the line item price.
+        total_coupons: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total shipping amount applied to this line item. This value is not added in the line item price.
+        total_shipping: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total taxes amount applied to this line item. This value is not added in the line item price.
+        total_taxes: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

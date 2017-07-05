@@ -292,16 +292,22 @@ module.exports = class Order extends Model {
             },
             saveFinancialStatus: function(options) {
               options = options || {}
-              // const Transaction = app.orm['Transaction']
               let currentStatus, previousStatus
+              // If not a persisted instance
               if (!this.id) {
                 return Promise.resolve(this)
               }
               return Promise.resolve()
                 .then(() => {
-                  return this.getTransactions()
+                  if (!this.transactions) {
+                    return this.getTransactions()
+                  }
+                  else {
+                    return this.transactions
+                  }
                 })
                 .then(transactions => {
+                  transactions = transactions || []
                   this.set('transactions', transactions)
 
                   this.setFinancialStatus(transactions)
@@ -345,17 +351,25 @@ module.exports = class Order extends Model {
             },
             saveFulfillmentStatus: function() {
               let currentStatus, previousStatus
+              // If not a persisted instance
               if (!this.id) {
                 return Promise.resolve(this)
               }
               return Promise.resolve()
                 .then(() => {
-                  return this.getFulfillments()
+                  if (!this.fulfillments) {
+                    return this.getFulfillments()
+                  }
+                  else {
+                    return this.fulfillments
+                  }
                 })
                 .then(fulfillments => {
+                  fulfillments = fulfillments || []
                   this.set('fulfillments', fulfillments)
 
                   this.setFulfillmentStatus(fulfillments)
+
                   if (this.changed('fulfillment_status')) {
                     currentStatus = this.fulfillment_status
                     previousStatus = this.previous('fulfillment_status')
@@ -387,7 +401,19 @@ module.exports = class Order extends Model {
                 })
             },
             setFinancialStatus: function(transactions){
-              transactions = transactions.filter(transaction => transaction.status === TRANSACTION_STATUS.SUCCESS)
+              const pending = transactions.filter(transaction => [
+                TRANSACTION_STATUS.PENDING,
+                TRANSACTION_STATUS.FAILURE,
+                TRANSACTION_STATUS.ERROR
+              ].indexOf(transaction.status ) > -1)
+              const cancelled = transactions.filter(transaction => [
+                TRANSACTION_STATUS.CANCELLED
+              ].indexOf(transaction.status ) > -1)
+
+              const successes = transactions.filter(transaction => [
+                TRANSACTION_STATUS.SUCCESS
+              ].indexOf(transaction.status ) > -1)
+
               let financialStatus = ORDER_FINANCIAL.PENDING
               // TRANSACTION STATUS pending, failure, success or error
               // TRANSACTION KIND authorize, capture, sale, refund, void
@@ -396,9 +422,11 @@ module.exports = class Order extends Model {
               let totalVoided  = 0
               let totalSale = 0
               let totalRefund = 0
+              let totalCancelled = 0
+              let totalPending = 0
 
-              // Calculate the totals of the transactions
-              _.each(transactions, transaction => {
+              // Calculate the totals of the successful transactions
+              _.each(successes, transaction => {
                 if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
                   totalAuthorized = totalAuthorized + transaction.amount
                 }
@@ -413,6 +441,44 @@ module.exports = class Order extends Model {
                 }
                 else if (transaction.kind == TRANSACTION_KIND.REFUND) {
                   totalRefund = totalRefund + transaction.amount
+                }
+              })
+
+              // Calculate the totals of pending transactions
+              _.each(pending, transaction => {
+                if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+                  totalPending = totalPending + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.CAPTURE) {
+                  totalPending = totalPending + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.SALE) {
+                  totalPending = totalPending + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.VOID) {
+                  totalPending = totalPending - transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.REFUND) {
+                  totalPending = totalPending - transaction.amount
+                }
+              })
+
+              // Calculate the totals of pending transactions
+              _.each(cancelled, transaction => {
+                if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+                  totalCancelled = totalCancelled + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.CAPTURE) {
+                  totalCancelled = totalCancelled + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.SALE) {
+                  totalCancelled = totalCancelled + transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.VOID) {
+                  totalCancelled = totalCancelled - transaction.amount
+                }
+                else if (transaction.kind == TRANSACTION_KIND.REFUND) {
+                  totalCancelled = totalCancelled - transaction.amount
                 }
               })
 
@@ -468,6 +534,8 @@ module.exports = class Order extends Model {
               this.total_captured = totalSale
               this.total_refunds = totalRefund
               this.total_voided = totalVoided
+              this.total_cancelled = totalCancelled
+              this.total_pending = totalPending
               this.total_due = Math.max(0, this.total_price - totalSale)
               return this
             },
@@ -496,22 +564,23 @@ module.exports = class Order extends Model {
                   totalCancelledFulfillments++
                 }
               })
-              if (totalFulfillments == fulfillments.length) {
+
+              if (totalFulfillments == fulfillments.length && fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.FULFILLED
               }
-              else if (totalSentFulfillments == fulfillments.length) {
+              else if (totalSentFulfillments == fulfillments.length && fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.SENT
               }
               else if (totalPartialFulfillments > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.PARTIAL
               }
-              else if (totalNonFulfillments == fulfillments.length) {
+              else if (totalNonFulfillments == fulfillments.length && fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.NONE // back to default
               }
-              else if (totalCancelledFulfillments == fulfillments.length) {
+              else if (totalCancelledFulfillments == fulfillments.length && fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.CANCELLED // back to default
               }
-
+              // IF done or cancelled
               if (fulfillmentStatus == ORDER_FULFILLMENT.FULFILLED || fulfillmentStatus == ORDER_FULFILLMENT.CANCELLED) {
                 this.status = ORDER_STATUS.CLOSED
               }
@@ -601,7 +670,8 @@ module.exports = class Order extends Model {
                   return Promise.resolve(immediate)
                 })
             },
-            attemptImmediate: function() {
+            attemptImmediate: function(options) {
+              options = options || {}
               // console.log('BROKE attemptImmediate')
               return Promise.resolve()
                 .then(() => {
@@ -641,9 +711,12 @@ module.exports = class Order extends Model {
              * @param qty
              * @param properties
              */
+            // TODO resolve vendor, check fulfillable quantity, calculate price
             buildOrderItem: function(item, qty, properties) {
-              // console.log('BUILDING', item)
-              return {
+              qty = qty || 0
+              const OrderItem = app.orm['OrderItem']
+
+              return OrderItem.build({
                 order_id: this.id,
                 product_id: item.product_id,
                 title: item.Product.title,
@@ -658,98 +731,224 @@ module.exports = class Order extends Model {
                 option: item.option,
                 barcode: item.barcode,
                 price: item.price,
-                calculated_price: item.price,
-                compare_at_price: item.compare_at_price,
+                calculated_price: item.price * qty,
+                compare_at_price: item.compare_at_price * qty,
+                price_per_unit: item.price,
                 currency: item.currency,
                 fulfillment_service: item.fulfillment_service,
                 gift_card: item.gift_card,
                 requires_shipping: item.requires_shipping,
                 taxable: item.requires_tax,
                 tax_code: item.tax_code,
-                tax_lines: [],
-                shipping_lines: [],
-                discounted_lines: [],
+                tax_lines: item.tax_lines || [],
+                shipping_lines: item.shipping_lines || [],
+                discounted_lines: item.discounted_lines || [],
+                coupon_lines: item.coupon_lines || [],
                 requires_subscription: item.requires_subscription,
                 subscription_interval: item.subscription_interval,
                 subscription_unit: item.subscription_unit,
-                weight: item.weight,
+                weight: item.weight * qty,
                 weight_unit: item.weight_unit,
                 images: item.images.length > 0 ? item.images : item.Product.images,
-                fulfillable_quantity: item.fulfillable_quantity,
+                fulfillable_quantity: item.fulfillable_quantity || qty,
                 max_quantity: item.max_quantity,
                 grams: app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * qty,
                 total_discounts: 0,
-                vendors: item.Product.vendors,
+                vendor_id: item.Product.vendors ? item.Product.vendors[0].id : null,
                 live_mode: item.live_mode
-              }
-            },
-            // TODO add new qty
-            addItem: function(item) {
-              const OrderItem = app.orm['OrderItem']
-              return OrderItem.findOne({
-                where: {
-                  order_id: item.order_id,
-                  product_id: item.product_id,
-                  variant_id: item.id
-                }
               })
-                .then(prevOrderItem => {
+            },
+            // TODO add new tax_lines shipping_lines coupon_lines discount_lines to parent order
+            addItem: function(orderItem) {
+              if (!this.order_items) {
+                const err = new Error('Order.addItem requires order_items to be populated')
+                return Promise.reject(err)
+              }
+              return Promise.resolve()
+                .then(() => {
+                  const prevOrderItem = this.order_items.find(item =>
+                    item.product_id === orderItem.product_id && item.variant_id === orderItem.variant_id)
+
                   if (!prevOrderItem) {
-                    return OrderItem.create(item)
+                    return orderItem.save()
                   }
                   else {
-                    return prevOrderItem
+                    prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
+                    prevOrderItem.fufillable_quantity = prevOrderItem.fufillable_quantity + orderItem.fulfillable_quantity
+                    prevOrderItem.price = prevOrderItem.price + orderItem.price
+                    prevOrderItem.calculated_price = prevOrderItem.calculated_price + orderItem.calculated_price
+                    prevOrderItem.weight = prevOrderItem.weight + orderItem.weight
+                    prevOrderItem.total_weight = prevOrderItem.total_weight + orderItem.total_weight
+
+                    if (orderItem.properties) {
+                      prevOrderItem.properties = orderItem.properties
+                    }
+                    return prevOrderItem.save()
                   }
                 })
                 .then(orderItem => {
-                  console.log('Order.addItem', orderItem)
-                  return this
+                  return this.reload()
                 })
             },
-            // TODO properties and qty
-            updateItem: function(item, qty, properties) {
-              const OrderItem = app.orm['OrderItem']
-              return OrderItem.findOne({
-                where: {
-                  order_id: this.id,
-                  product_id: item.product_id,
-                  variant_id: item.id
-                }
-              })
-                .then(preOrderItem => {
-                  if (!preOrderItem) {
-                    return
-                  }
-                  return preOrderItem
-                })
-                .then(updatedOrderItem => {
-                  return this
-                })
-            },
-            // TODO remove just a qty instead of full destroy
-            removeItem: function(item, qty) {
-              const OrderItem = app.orm['OrderItem']
-              return OrderItem.findOne({
-                where: {
-                  order_id: this.id,
-                  product_id: item.product_id,
-                  variant_id: item.id
-                }
-              })
-                .then(preOrderItem => {
-                  if (!preOrderItem) {
-                    return
-                  }
-                  return preOrderItem.destroy()
-                })
-                .then(updatedOrderItem => {
-                  return this
-                })
-            },
-            // TODO
-            recalculate: function() {
+            // TODO add new taxlines shippinglines couponlines discountlines to parent order
+            updateItem: function(orderItem) {
+              if (!this.order_items) {
+                const err = new Error('Order.addItem requires order_items to be populated')
+                return Promise.reject(err)
+              }
 
-              return Promise.resolve(this)
+              return Promise.resolve()
+                .then(() => {
+                  const prevOrderItem = this.order_items.find(item =>
+                    item.product_id === orderItem.product_id && item.variant_id === orderItem.variant_id)
+
+                  if (!prevOrderItem) {
+                    return
+                  }
+
+                  prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
+                  prevOrderItem.price = prevOrderItem.price + orderItem.price
+                  prevOrderItem.calculated_price = prevOrderItem.calculated_price + orderItem.calculated_price
+                  prevOrderItem.weight = prevOrderItem.weight + orderItem.weight
+                  prevOrderItem.total_weight = prevOrderItem.total_weight + orderItem.total_weight
+
+                  if (orderItem.properties) {
+                    prevOrderItem.properties = orderItem.properties
+                  }
+
+                  return prevOrderItem.save()
+                })
+                .then(updatedOrderItem => {
+                  return this.reload()
+                })
+            },
+            // TODO remove tax_lines shipping_lines coupon_lines discount_lines to parent order
+            removeItem: function(orderItem) {
+              if (!this.order_items) {
+                const err = new Error('Order.addItem requires order_items to be populated')
+                return Promise.reject(err)
+              }
+
+              return Promise.resolve()
+                .then(() => {
+                  const prevOrderItem = this.order_items.find(item =>
+                    item.product_id === orderItem.product_id && item.variant_id === orderItem.variant_id)
+
+                  if (!prevOrderItem) {
+                    return
+                  }
+
+                  prevOrderItem.quantity = prevOrderItem.quantity - orderItem.quantity
+                  prevOrderItem.price = prevOrderItem.price - orderItem.price
+                  prevOrderItem.calculated_price = prevOrderItem.calculated_price - orderItem.calculated_price
+                  prevOrderItem.weight = prevOrderItem.weight - orderItem.weight
+                  prevOrderItem.total_weight = prevOrderItem.total_weight - orderItem.total_weight
+
+                  if (prevOrderItem.quantity <= 0) {
+                    return prevOrderItem.destroy()
+                  }
+                  else {
+                    return prevOrderItem.save()
+                  }
+                })
+                .then(updatedOrderItem => {
+                  return this.reload()
+                })
+            },
+            // TODO set up new transactions/fulfillments?
+            recalculate: function() {
+              let resOrderItems, resTransactions, resFulfillments
+
+              let totalLineItemsPrice = 0
+              let totalShipping = 0
+              let totalTax = 0
+              let totalDiscounts = 0
+              let totalCoupons = 0
+              let totalOverrides = 0
+              let totalItems = 0
+
+              this.tax_lines.forEach(i => {
+                totalTax = totalTax + i.price
+              })
+              this.shipping_lines.forEach(i => {
+                totalShipping = totalShipping + i.price
+              })
+              this.pricing_overrides.forEach(i => {
+                totalOverrides = totalOverrides + i.price
+              })
+              this.discounted_lines.forEach(i => {
+                totalDiscounts = totalDiscounts + i.price
+              })
+              this.coupon_lines.forEach(i => {
+                totalCoupons = totalCoupons + i.price
+              })
+
+              this.total_tax = totalTax
+              this.total_shipping = totalShipping
+              this.total_discounts = totalShipping
+              this.total_coupons = totalCoupons
+              this.total_overrides = totalOverrides
+
+
+              return Promise.resolve()
+                .then(() => {
+                  if (!this.order_items) {
+                    return this.getOrder_items()
+                  }
+                  else {
+                    return this.order_items
+                  }
+                })
+                .then(foundItems => {
+                  resOrderItems = foundItems || []
+                  this.set('order_items', resOrderItems)
+
+                  resOrderItems.forEach(item => {
+                    totalLineItemsPrice = totalLineItemsPrice + item.price
+                    totalItems = totalItems + item.quantity
+                  })
+                  // Set the Total Items
+                  this.total_items = totalItems
+
+                  // Set the Total Line Items Price
+                  this.total_line_items_price = totalLineItemsPrice
+
+                  if (!this.transactions) {
+                    return this.getTransactions()
+                  }
+                  else {
+                    return this.transactions
+                  }
+                })
+                .then(foundTransactions => {
+                  resTransactions = foundTransactions || []
+
+                  this.set('transactions', resTransactions)
+
+                  this.subtotal_price = Math.max(0, this.total_line_items_price)
+                  this.total_price = Math.max(0, this.total_line_items_price + this.total_tax + this.total_shipping - this.total_discounts - this.total_coupons - this.total_overrides)
+
+                  if (!this.fulfillments) {
+                    return this.getFulfillments()
+                  }
+                  else {
+                    return this.fulfillments
+                  }
+                })
+                .then(foundFulfillments => {
+                  resFulfillments = foundFulfillments || []
+                  this.set('fulfillments', resFulfillments)
+
+                  // Save the new Financial Status
+                  return this.saveFinancialStatus()
+                })
+                .then(() => {
+                  // Save the new Fulfillment Status
+                  return this.saveFulfillmentStatus()
+                })
+                .then(() => {
+                  return this.save()
+                })
             }
           }
         }
@@ -1036,6 +1235,16 @@ module.exports = class Order extends Model {
         },
         // The total amount of voided transactions
         total_voided: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount of voided transactions
+        total_cancelled: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // The total amount awaiting success
+        total_pending: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
