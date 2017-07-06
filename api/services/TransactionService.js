@@ -312,6 +312,20 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Order = this.app.orm['Order']
     return Order.findById(transaction.order_id, {
+      include: [
+        {
+          model: this.app.orm['Transaction'],
+          as: 'transactions'
+        },
+        {
+          model: this.app.orm['OrderItem'],
+          as: 'order_items'
+        },
+        {
+          model: this.app.orm['Fulfillment'],
+          as: 'fulfillments'
+        }
+      ],
       // attributes: [
       //   'id',
       //   'financial_status',
@@ -324,6 +338,10 @@ module.exports = class TransactionService extends Service {
       .then(order => {
         if (order) {
           return order.saveFinancialStatus({transaction: options.transaction || null})
+            .catch(err => {
+              this.app.log.error(err)
+              return transaction
+            })
         }
         else {
           return
@@ -343,6 +361,20 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Order = this.app.orm['Order']
     return Order.findById(transaction.order_id, {
+      include: [
+        {
+          model: this.app.orm['Transaction'],
+          as: 'transactions'
+        },
+        {
+          model: this.app.orm['OrderItem'],
+          as: 'order_items'
+        },
+        {
+          model: this.app.orm['Fulfillment'],
+          as: 'fulfillments'
+        }
+      ],
       // attributes: [
       //   'id',
       //   'financial_status',
@@ -355,6 +387,10 @@ module.exports = class TransactionService extends Service {
       .then(order => {
         if (order) {
           return order.saveFinancialStatus({transaction: options.transaction || null})
+            .catch(err => {
+              this.app.log.error(err)
+              return transaction
+            })
         }
         else {
           return

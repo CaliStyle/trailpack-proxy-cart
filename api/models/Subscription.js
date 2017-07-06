@@ -24,6 +24,29 @@ module.exports = class Subscription extends Model {
       config = {
         options: {
           underscored: true,
+          defaultScope: {
+            where: {
+              live_mode: app.config.proxyEngine.live_mode
+            }
+          },
+          scopes: {
+            active: {
+              where: {
+                active: true
+              }
+            },
+            deactivated: {
+              where: {
+                active: false,
+                cancelled: false
+              }
+            },
+            cancelled: {
+              where: {
+                cancelled: true
+              }
+            }
+          },
           hooks: {
             beforeCreate: (values, options, fn) => {
               app.services.SubscriptionService.beforeCreate(values)
@@ -353,6 +376,10 @@ module.exports = class Subscription extends Model {
                 return Promise.resolve(this)
               }
             },
+            /**
+             *
+             * @returns Instance
+             */
             renew: function() {
               this.renewed_at = new Date(Date.now())
               this.renew_retry_at = null
@@ -360,6 +387,10 @@ module.exports = class Subscription extends Model {
               this.total_renewals++
               return this
             },
+            /**
+             *
+             * @returns Instance
+             */
             retry: function() {
               this.renew_retry_at = new Date(Date.now())
               this.total_renewal_attempts++
@@ -367,27 +398,27 @@ module.exports = class Subscription extends Model {
             },
             /**
              *
-             * @param options
+             * @param data
              */
-            buildOrder: function(options) {
-              options = options || {}
-              const buildOrder = {
+            buildOrder: function(data) {
+              data = data || {}
+              return {
                 // Request info
-                client_details: options.client_details || this.client_details,
-                ip: options.ip || null,
-                payment_details: options.payment_details,
-                payment_kind: options.payment_kind || app.config.proxyCart.order_payment_kind,
-                fulfillment_kind: options.fulfillment_kind || app.config.proxyCart.order_fulfillment_kind,
-                processing_method: options.processing_method || PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
-                shipping_address: options.shipping_address || this.shipping_address,
-                billing_address: options.billing_address || this.billing_address,
+                client_details: data.client_details || this.client_details,
+                ip: data.ip || null,
+                payment_details: data.payment_details,
+                payment_kind: data.payment_kind || app.config.proxyCart.order_payment_kind,
+                fulfillment_kind: data.fulfillment_kind || app.config.proxyCart.order_fulfillment_kind,
+                processing_method: data.processing_method || PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
+                shipping_address: data.shipping_address || this.shipping_address,
+                billing_address: data.billing_address || this.billing_address,
 
                 // Customer Info
-                customer_id: options.customer_id || this.customer_id || null,
-                email: options.email || null,
+                customer_id: data.customer_id || this.customer_id || null,
+                email: data.email || null,
 
                 // User ID
-                user_id: options.user_id || this.user_id || null,
+                user_id: data.user_id || this.user_id || null,
 
                 // Subscription Info
                 subscription_token: this.token,
@@ -416,8 +447,11 @@ module.exports = class Subscription extends Model {
                 pricing_overrides: this.pricing_overrides || [],
                 total_overrides: this.total_overrides
               }
-              return buildOrder
             },
+            /**
+             *
+             * @returns {Promise.<T>}
+             */
             recalculate: function() {
               // Default Values
               let collections = []

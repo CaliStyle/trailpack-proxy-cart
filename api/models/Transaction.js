@@ -22,6 +22,11 @@ module.exports = class Transaction extends Model {
       config = {
         options: {
           underscored: true,
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   }
+          // },
           hooks: {
             afterCreate: (values, options, fn) => {
               app.services.TransactionService.afterCreate(values, options)

@@ -102,28 +102,38 @@ module.exports = class SubscriptionService extends Service {
    *
    * @param order
    * @param active
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
   setupSubscriptions(order, active, options) {
     options = options || {}
     const Order = this.app.orm['Order']
+    const Sequelize = Order.sequelize
+
     let resOrder
-    return Order.resolve(order, options)
+    return Order.resolve(order, { transaction: options.transaction || null})
       .then(foundOrder => {
         if (!foundOrder) {
           throw new Error('Order nto found')
         }
         resOrder = foundOrder
-        return resOrder.getOrder_items()
+        if (!resOrder.order_items) {
+          return resOrder.getOrder_items()
+        }
+        else {
+          return resOrder.order_items
+        }
       })
       .then(orderItems => {
+        orderItems = orderItems || []
+        resOrder.set('order_items', orderItems)
+
         orderItems = _.filter(orderItems, 'requires_subscription')
 
         const groups = []
         const units = _.groupBy(orderItems, 'subscription_unit')
 
         _.forEach(units, function(value, unit) {
-          // console.log(key, value)
           const intervals = _.groupBy(units[unit], 'subscription_interval')
           _.forEach(intervals, (items, interval) => {
             groups.push({
@@ -133,11 +143,9 @@ module.exports = class SubscriptionService extends Service {
             })
           })
         })
-        // console.log('the groups',groups)
-        return Promise.all(groups.map((group) => {
-          // console.log('this group',group)
-          return this.create(resOrder, group.items, group.unit, group.interval, active)
-        }))
+        return Sequelize.Promise.mapSeries(groups, group => {
+          return this.create(resOrder, group.items, group.unit, group.interval, active, { transaction: options.transaction || null})
+        })
       })
   }
 
@@ -150,9 +158,10 @@ module.exports = class SubscriptionService extends Service {
    * @param active
    * @returns {Promise.<TResult>}
    */
-  create(order, items, unit, interval, active) {
+  create(order, items, unit, interval, active, options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
-    const create = {
+    const resSubscription = Subscription.build({
       original_order_id: order.id,
       customer_id: order.customer_id,
       email: order.email,
@@ -171,12 +180,12 @@ module.exports = class SubscriptionService extends Service {
       unit: unit,
       interval: interval,
       active: active
-    }
-    // console.log('this subscription', create)
-    let resSubscription
-    return Subscription.create(create)
-      .then(subscription => {
-        resSubscription = subscription
+    }, {
+      transaction: options.transaction || null
+    })
+
+    return resSubscription.save()
+      .then(() => {
         return Promise.all(items.map(item => {
           item.subscription_id = resSubscription.id
           return item.save()
@@ -510,7 +519,6 @@ module.exports = class SubscriptionService extends Service {
           throw new Error(`Unexpected error during subscription ${resSubscription.id} renewal`)
         }
         resOrder = order
-        // console.log('THIS RENEWED', order)
         // Renew the Subscription
         if (resOrder.financial_status !== ORDER_FINANCIAL.PENDING) {
           renewal = 'success'

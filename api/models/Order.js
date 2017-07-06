@@ -37,6 +37,18 @@ module.exports = class Order extends Model {
               live_mode: app.config.proxyEngine.live_mode
             }
           },
+          scopes: {
+            open: {
+              where: {
+                status: ORDER_STATUS.OPEN
+              }
+            },
+            closed: {
+              where: {
+                status: ORDER_STATUS.CLOSED
+              }
+            }
+          },
           hooks: {
             beforeCreate: (values, options, fn) => {
               if (values.ip) {
@@ -95,41 +107,6 @@ module.exports = class Order extends Model {
              * @param models
              */
             associate: (models) => {
-              // models.Order.belongsTo(models.Cart, {
-              //   as: 'cart_token',
-              //   // targetKey: 'token',
-              //   foreignKey: 'token',
-              //   constraints: false
-              // })
-              // models.Order.belongsTo(models.Subscription, {
-              //   as: 'subscription_token',
-              //   // targetKey: 'token',
-              //   foreignKey: 'token',
-              //   constraints: false
-              // })
-              // models.Order.belongsTo(models.Customer, {
-              //   // as: 'customer_id',
-              //   // constraints: false
-              // })
-              // models.Order.belongsTo(models.Shop, {
-              //   as: 'shop_id',
-              //   constraints: false
-              // })
-              // models.Order.belongsTo(models.Customer, {
-              //   // through: {
-              //   //   model: models.CustomerOrder
-              //   // }
-              //   // as: 'customer_id'
-              // })
-              // models.Order.hasOne(models.CustomerAddress, {
-              //   as: 'billing_address'
-              // })
-              // models.Order.hasOne(models.CustomerAddress, {
-              //   as: 'shipping_address'
-              // })
-              // models.Order.belongsTo(models.Customer, {
-              //   foreignKey: 'last_order_id'
-              // })
               // The individual items of this order
               models.Order.hasMany(models.OrderItem, {
                 as: 'order_items',
@@ -176,7 +153,7 @@ module.exports = class Order extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
-              // The paymnet source used to pay this order
+              // The payment source used to pay this order
               models.Order.belongsToMany(models.Source, {
                 as: 'sources',
                 through: {
@@ -196,16 +173,7 @@ module.exports = class Order extends Model {
                 constraints: false
               })
               models.Order.hasOne(models.Cart, {
-                // as: 'default_cart',
-                // through: {
-                //   model: models.CustomerCart,
-                //   foreignKey: 'customer_id',
-                //   unique: true,
-                //   scope: {
-                //     cart: 'default_cart'
-                //   },
-                //   constraints: false
-                // }
+                foreignKey: 'order_id'
               })
               models.Order.hasOne(models.Customer, {
                 foreignKey: 'last_order_id'
@@ -310,7 +278,7 @@ module.exports = class Order extends Model {
                   transactions = transactions || []
                   this.set('transactions', transactions)
 
-                  this.setFinancialStatus(transactions)
+                  this.setFinancialStatus()
                   if (this.changed('financial_status')) {
                     currentStatus = this.financial_status
                     previousStatus = this.previous('financial_status')
@@ -351,12 +319,23 @@ module.exports = class Order extends Model {
             },
             saveFulfillmentStatus: function() {
               let currentStatus, previousStatus
-              // If not a persisted instance
+              // If not a persisted instance return right away
               if (!this.id) {
                 return Promise.resolve(this)
               }
               return Promise.resolve()
                 .then(() => {
+                  if (!this.order_items) {
+                    return this.getOrder_items()
+                  }
+                  else {
+                    return this.order_items
+                  }
+                })
+                .then(orderItems => {
+                  orderItems = orderItems || []
+                  this.set('order_items', orderItems)
+
                   if (!this.fulfillments) {
                     return this.getFulfillments()
                   }
@@ -367,8 +346,7 @@ module.exports = class Order extends Model {
                 .then(fulfillments => {
                   fulfillments = fulfillments || []
                   this.set('fulfillments', fulfillments)
-
-                  this.setFulfillmentStatus(fulfillments)
+                  this.setFulfillmentStatus()
 
                   if (this.changed('fulfillment_status')) {
                     currentStatus = this.fulfillment_status
@@ -400,17 +378,23 @@ module.exports = class Order extends Model {
                   return this
                 })
             },
-            setFinancialStatus: function(transactions){
-              const pending = transactions.filter(transaction => [
+            setFinancialStatus: function(){
+              if (!this.transactions) {
+                throw new Error('Order.setFinancialStatus requires transactions to be populated')
+                // return Promise.reject(err)
+              }
+
+              const pending = this.transactions.filter(transaction => [
                 TRANSACTION_STATUS.PENDING,
                 TRANSACTION_STATUS.FAILURE,
                 TRANSACTION_STATUS.ERROR
               ].indexOf(transaction.status ) > -1)
-              const cancelled = transactions.filter(transaction => [
+
+              const cancelled = this.transactions.filter(transaction => [
                 TRANSACTION_STATUS.CANCELLED
               ].indexOf(transaction.status ) > -1)
 
-              const successes = transactions.filter(transaction => [
+              const successes = this.transactions.filter(transaction => [
                 TRANSACTION_STATUS.SUCCESS
               ].indexOf(transaction.status ) > -1)
 
@@ -539,7 +523,16 @@ module.exports = class Order extends Model {
               this.total_due = Math.max(0, this.total_price - totalSale)
               return this
             },
-            setFulfillmentStatus: function(fulfillments){
+            setFulfillmentStatus: function(){
+              if (!this.fulfillments) {
+                throw new Error('Order.setFulfillmentStatus requires fulfillments to be populated')
+                // return Promise.reject(err)
+              }
+              if (!this.order_items) {
+                throw new Error('Order.setFulfillmentStatus requires order_items to be populated')
+                // return Promise.reject(err)
+              }
+
               let fulfillmentStatus = ORDER_FULFILLMENT.NONE
               let totalFulfillments = 0
               let totalPartialFulfillments = 0
@@ -547,7 +540,7 @@ module.exports = class Order extends Model {
               let totalNonFulfillments = 0
               let totalCancelledFulfillments = 0
 
-              fulfillments.forEach(fulfilment => {
+              this.fulfillments.forEach(fulfilment => {
                 if (fulfilment.status == FULFILLMENT_STATUS.FULFILLED) {
                   totalFulfillments++
                 }
@@ -565,19 +558,25 @@ module.exports = class Order extends Model {
                 }
               })
 
-              if (totalFulfillments == fulfillments.length && fulfillments.length > 0) {
+              this.order_items.forEach(item => {
+                if (!item.fulfillment_id) {
+                  totalNonFulfillments++
+                }
+              })
+
+              if (totalFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.FULFILLED
               }
-              else if (totalSentFulfillments == fulfillments.length && fulfillments.length > 0) {
+              else if (totalSentFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.SENT
               }
               else if (totalPartialFulfillments > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.PARTIAL
               }
-              else if (totalNonFulfillments == fulfillments.length && fulfillments.length > 0) {
+              else if (totalNonFulfillments >= this.fulfillments.length && this.fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.NONE // back to default
               }
-              else if (totalCancelledFulfillments == fulfillments.length && fulfillments.length > 0) {
+              else if (totalCancelledFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.CANCELLED // back to default
               }
               // IF done or cancelled
@@ -672,7 +671,6 @@ module.exports = class Order extends Model {
             },
             attemptImmediate: function(options) {
               options = options || {}
-              // console.log('BROKE attemptImmediate')
               return Promise.resolve()
                 .then(() => {
                   return this.resolveSendImmediately()
@@ -682,7 +680,7 @@ module.exports = class Order extends Model {
                     return app.services.FulfillmentService.sendOrderToFulfillment(this)
                   }
                   else {
-                    return []
+                    return [] //app.services.FulfillmentService.scheduleOrderToFulfillment(this)
                   }
                 })
                 .then(fulfillments => {
@@ -694,7 +692,7 @@ module.exports = class Order extends Model {
                 })
                 .then(immediate => {
                   if (immediate) {
-                    return app.services.SubscriptionService.setupSubscriptions(this, immediate)
+                    return app.services.SubscriptionService.setupSubscriptions(this, immediate, options)
                   }
                   else {
                     return []

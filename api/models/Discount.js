@@ -16,6 +16,11 @@ module.exports = class Discount extends Model {
       config = {
         options: {
           underscored: true,
+          defaultScope: {
+            where: {
+              live_mode: app.config.proxyEngine.live_mode
+            }
+          },
           classMethods: {
             DISCOUNT_TYPES: DISCOUNT_TYPES,
             DISCOUNT_STATUS: DISCOUNT_STATUS,

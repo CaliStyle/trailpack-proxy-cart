@@ -13,35 +13,12 @@ const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
  * @description Fulfillment Service
  */
 module.exports = class FulfillmentService extends Service {
-  // resolve(fulfillment, options){
-  //   const Fulfillment =  this.app.orm.Fulfillment
-  //   if (fulfillment instanceof Fulfillment.Instance){
-  //     return Promise.resolve(fulfillment)
-  //   }
-  //   else if (fulfillment && _.isObject(fulfillment) && fulfillment.id) {
-  //     return Fulfillment.findById(fulfillment.id, options)
-  //       .then(resFulfillment => {
-  //         if (!resFulfillment) {
-  //           throw new Errors.FoundError(Error(`Fulfillment ${fulfillment.id} not found`))
-  //         }
-  //         return resFulfillment
-  //       })
-  //   }
-  //   else if (fulfillment && (_.isString(fulfillment) || _.isNumber(fulfillment))) {
-  //     return Fulfillment.findById(fulfillment, options)
-  //       .then(resFulfillment => {
-  //         if (!resFulfillment) {
-  //           throw new Errors.FoundError(Error(`Fulfillment ${fulfillment} not found`))
-  //         }
-  //         return resFulfillment
-  //       })
-  //   }
-  //   else {
-  //     const err = new Error('Unable to resolve Fulfillment')
-  //     Promise.reject(err)
-  //   }
-  // }
-
+  /**
+   *
+   * @param order
+   * @param options
+   * @returns {Promise.<T>}
+   */
   sendOrderToFulfillment(order, options) {
     options = options || {}
     const Order = this.app.orm['Order']
@@ -74,7 +51,7 @@ module.exports = class FulfillmentService extends Service {
    * @param items
    * @param service
    * @param options
-   * @returns {*}
+   * @returns {Promise.<T>}
    */
   create(order, items, service, options) {
     options = options || {}
@@ -117,7 +94,7 @@ module.exports = class FulfillmentService extends Service {
           }]
         })
 
-        // If a manually supplied and a non shippable item
+        // If a manually supplied and a non-shippable item mark as fully fulfilled
         if (
           service === FULFILLMENT_SERVICE.MANUAL
           && resItems.filter(item => item.requires_shipping).length == 0
@@ -129,6 +106,7 @@ module.exports = class FulfillmentService extends Service {
           })
           return resFulfillment
         }
+        // If a manually supplied item mark as sent to manual
         else if (service === FULFILLMENT_SERVICE.MANUAL){
           resFulfillment.status = FULFILLMENT_STATUS.SENT
           resFulfillment.order_items.map(item => {
@@ -207,6 +185,20 @@ module.exports = class FulfillmentService extends Service {
     return fulfillment.resolveFulfillmentStatus({transaction: options.transaction || null})
       .then(fulfillment => {
         return Order.findById(fulfillment.order_id, {
+          include: [
+            {
+              model: this.app.orm['Transaction'],
+              as: 'transactions'
+            },
+            {
+              model: this.app.orm['OrderItem'],
+              as: 'order_items'
+            },
+            {
+              model: this.app.orm['Fulfillment'],
+              as: 'fulfillments'
+            }
+          ],
           attributes: [
             'id',
             'fulfillment_status',
@@ -225,6 +217,10 @@ module.exports = class FulfillmentService extends Service {
       .then(order => {
         if (order) {
           return order.saveFulfillmentStatus({transaction: options.transaction || null})
+            .catch(err => {
+              this.app.log.error(err)
+              return fulfillment
+            })
         }
         else {
           return
@@ -247,6 +243,20 @@ module.exports = class FulfillmentService extends Service {
     return fulfillment.resolveFulfillmentStatus({transaction: options.transaction || null})
       .then(fulfillment => {
         return Order.findById(fulfillment.order_id, {
+          include: [
+            {
+              model: this.app.orm['Transaction'],
+              as: 'transactions'
+            },
+            {
+              model: this.app.orm['OrderItem'],
+              as: 'order_items'
+            },
+            {
+              model: this.app.orm['Fulfillment'],
+              as: 'fulfillments'
+            }
+          ],
           attributes: [
             'id',
             'financial_status',
@@ -265,6 +275,10 @@ module.exports = class FulfillmentService extends Service {
       .then(order => {
         if (order) {
           return order.saveFulfillmentStatus({transaction: options.transaction || null})
+            .catch(err => {
+              this.app.log.error(err)
+              return fulfillment
+            })
         }
         else {
           return

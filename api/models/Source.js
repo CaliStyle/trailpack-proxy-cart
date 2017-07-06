@@ -19,6 +19,11 @@ module.exports = class Source extends Model {
       config = {
         options: {
           underscored: true,
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   }
+          // },
           hooks: {
             afterCreate: (values, options, fn) => {
               app.services.AccountService.afterSourceCreate(values)
@@ -151,7 +156,13 @@ module.exports = class Source extends Model {
 
       payment_details: helpers.JSONB('Source', app, Sequelize, 'payment_details', {
         defaultValue: {}
-      })
+      }),
+
+      // Live Mode
+      live_mode: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: app.config.proxyEngine.live_mode
+      }
 
     }
     return schema

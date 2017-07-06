@@ -18,6 +18,38 @@ module.exports = class Fulfillment extends Model {
       config = {
         options: {
           underscored: true,
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   }
+          // },
+          scopes: {
+            none: {
+              where: {
+                status: FULFILLMENT_STATUS.NONE
+              }
+            },
+            sent: {
+              where: {
+                status: FULFILLMENT_STATUS.SENT
+              }
+            },
+            partial: {
+              where: {
+                status: FULFILLMENT_STATUS.PARTIAL
+              }
+            },
+            fulfilled: {
+              where: {
+                status: FULFILLMENT_STATUS.FULFILLED
+              }
+            },
+            cancelled: {
+              where: {
+                status: FULFILLMENT_STATUS.CANCELLED
+              }
+            },
+          },
           hooks: {
             beforeCreate: (values, options, fn) => {
               app.services.FulfillmentService.beforeCreate(values, options)
@@ -103,8 +135,7 @@ module.exports = class Fulfillment extends Model {
             }
           },
           instanceMethods: {
-            resolveFulfillmentStatus: function(options) {
-              options = options || {}
+            resolveFulfillmentStatus: function() {
 
               if (!this.id){
                 return Promise.resolve(this)
@@ -122,10 +153,16 @@ module.exports = class Fulfillment extends Model {
                   orderItems = orderItems || []
                   this.set('order_items', orderItems)
                   this.setFulfillmentStatus()
+
                   return this
                 })
             },
             setFulfillmentStatus: function(){
+              if (!this.order_items) {
+                throw new Error('Fulfillment.setFulfillmentStatus requires order_items to be populated')
+                // return Promise.reject(err)
+              }
+
               let fulfillmentStatus = FULFILLMENT_STATUS.NONE
               let totalFulfillments = 0
               let totalPartialFulfillments = 0
@@ -160,6 +197,9 @@ module.exports = class Fulfillment extends Model {
                 fulfillmentStatus = FULFILLMENT_STATUS.NONE // back to default
               }
               this.status = fulfillmentStatus
+              this.total_fulfilled = totalFulfillments
+              this.total_sent_to_fulfillment = totalSentFulfillments
+              this.total_not_fulfilled = totalNonFulfillments
               return this
             }
           }
@@ -190,6 +230,18 @@ module.exports = class Fulfillment extends Model {
           type: Sequelize.ENUM,
           values: _.values(FULFILLMENT_STATUS),
           defaultValue: FULFILLMENT_STATUS.NONE
+        },
+        total_fulfilled: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        total_sent_to_fulfillment: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        total_not_fulfilled: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
         // The URL pointing to the order status web page.
         status_url: {

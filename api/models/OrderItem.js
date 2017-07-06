@@ -58,6 +58,15 @@ module.exports = class OrderItem extends Model {
                 .catch(err => {
                   return fn(err)
                 })
+            },
+            afterDestroy(values, options, fn) {
+              app.services.OrderService.itemAfterDestroy(values, options)
+                .then(values => {
+                  return fn(null, values)
+                })
+                .catch(err => {
+                  return fn(err)
+                })
             }
           },
           classMethods: {
@@ -147,6 +156,9 @@ module.exports = class OrderItem extends Model {
               this.total_coupons = totalCoupons
               this.total_taxes = totalTaxes
 
+              return Promise.resolve(this)
+            },
+            reconcileFulfillment: function() {
               return Promise.resolve(this)
             }
           }

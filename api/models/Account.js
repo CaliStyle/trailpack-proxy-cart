@@ -19,7 +19,11 @@ module.exports = class Account extends Model {
       config = {
         options: {
           underscored: true,
-
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   }
+          // },
           classMethods: {
             associate: (models) => {
               models.Account.belongsTo(models.Customer, {

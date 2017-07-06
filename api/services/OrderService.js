@@ -308,6 +308,9 @@ module.exports = class OrderService extends Service {
           }))
         })
         .then(transactions => {
+          transactions = transactions || []
+          resOrder.set('transactions', transactions)
+
           return Order.findByIdDefault(resOrder.id)
         })
     })
@@ -380,9 +383,9 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(transactions => {
-        if (!transactions) {
-          transactions = []
-        }
+        transactions = transactions || []
+        resOrder.set('transactions', transactions)
+
         const authorized = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
         return Promise.all(authorized.map(transaction => {
           return this.app.services.TransactionService.capture(transaction)
@@ -1220,6 +1223,9 @@ module.exports = class OrderService extends Service {
   itemBeforeCreate(item, options){
     return item.recalculate()
       .then(() => {
+        return item.reconcileFulfillment()
+      })
+      .then(() => {
         return item
       })
     // return Promise.resolve(item)
@@ -1234,6 +1240,9 @@ module.exports = class OrderService extends Service {
   itemBeforeUpdate(item, options){
     return item.recalculate()
       .then(() => {
+        return item.reconcileFulfillment()
+      })
+      .then(() => {
         return item
       })
 //    return Promise.resolve(item)
@@ -1245,6 +1254,10 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemAfterCreate(item, options){
+    // return item.reconcileFulfillment()
+    //   .then(item => {
+    //     return item.save()
+    //   })
     return Promise.resolve(item)
   }
 
@@ -1255,6 +1268,18 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemAfterUpdate(item, options){
+    // return item.reconcileFulfillment()
+    //   .then(item => {
+    //     return item.save()
+    //   })
+    return Promise.resolve(item)
+  }
+
+  itemAfterDestroy(item, options){
+    // return item.reconcileFulfillment()
+    //   .then(item => {
+    //     return item.save()
+    //   })
     return Promise.resolve(item)
   }
 
@@ -1269,12 +1294,12 @@ module.exports = class OrderService extends Service {
     if (!order.name && order.number) {
       order.name = `#${order.number}`
     }
-    this.app.services.ProxyEngineService.publish('order.created', order)
+    // this.app.services.ProxyEngineService.publish('order.created', order)
     return Promise.resolve(order)
   }
 
   afterUpdate(order, options) {
-    this.app.services.ProxyEngineService.publish('order.updated', order)
+    // this.app.services.ProxyEngineService.publish('order.updated', order)
     return Promise.resolve(order)
   }
 }
