@@ -62,7 +62,7 @@ module.exports = class ProxyCartService extends Service {
   downloadImage(url) {
     return new Promise((resolve, reject) => {
       const request = require('request').defaults({ encoding: null })
-      request.get(url, function (err, res, body) {
+      request.get(url, (err, res, body) => {
         if (err) {
           this.app.log.error(err)
           return reject(err)
