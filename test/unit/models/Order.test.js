@@ -260,7 +260,13 @@ describe('Order Model', () => {
         as: 'order_items'
       },{
         model: global.app.orm['Fulfillment'],
-        as: 'fulfillments'
+        as: 'fulfillments',
+        include: [
+          {
+            model: OrderItem,
+            as: 'order_items'
+          }
+        ]
       },{
         model: global.app.orm['Event'],
         as: 'events'
@@ -276,6 +282,11 @@ describe('Order Model', () => {
         kind: 'capture',
         status: 'failure',
         amount: 5
+      }
+    ])
+    resOrder.set('fulfillments', [
+      {
+        service: 'manual'
       }
     ])
     resOrder.set('order_items', [

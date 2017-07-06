@@ -43,7 +43,7 @@ module.exports = class PaymentService extends Service {
             transaction: transaction.id
           }],
           type: `order.transaction.authorize.${transaction.status}`,
-          message: `Order ID ${transaction.order_id} transaction authorize of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
+          message: `Order ID ${ transaction.order_id} transaction authorize of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
           data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -151,7 +151,7 @@ module.exports = class PaymentService extends Service {
   }
 
   /**
-   * Returns a pending promise (No Transaction Created)
+   * Returns a pending promise (No 3rd party Transaction Created)
    * @param transaction
    * @param options
    * @returns {Promise}
@@ -159,8 +159,9 @@ module.exports = class PaymentService extends Service {
   manual(transaction, options){
     options = options || {}
     const Transaction = this.app.orm.Transaction
+    transaction.status = TRANSACTION_STATUS.PENDING
     transaction = Transaction.build(transaction, options)
-    return Promise.resolve(transaction)
+    return transaction.save()
   }
 
   /**

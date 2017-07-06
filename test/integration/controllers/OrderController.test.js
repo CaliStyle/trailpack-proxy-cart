@@ -97,7 +97,8 @@ describe('OrderController', () => {
         assert.equal(res.body.total_items, 1)
         // console.log('ORDER ITEMS', res.body.order_items)
         // Defaults to not immediately fulfilled: fulfillment_status: none
-        assert.equal(res.body.order_items[0].fulfillment_id, null)
+        assert.ok(res.body.order_items[0].fulfillment_id)
+        assert.equal(res.body.order_items[0].fulfillment_status, 'none')
 
         // assert.equal(res.body.financial_status, 'pending')
         assert.equal(res.body.fulfillment_status, 'none')

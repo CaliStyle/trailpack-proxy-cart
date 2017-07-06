@@ -215,6 +215,20 @@ module.exports = class OrderService extends Service {
               {
                 model: OrderItem,
                 as: 'order_items'
+              },
+              {
+                model: this.app.orm['Fulfillment'],
+                as: 'fulfillments',
+                include: [
+                  {
+                    model: OrderItem,
+                    as: 'order_items'
+                  }
+                ]
+              },
+              {
+                model: this.app.orm['Transaction'],
+                as: 'transactions'
               }
             ]
           })
@@ -241,7 +255,7 @@ module.exports = class OrderService extends Service {
                       customer: customer.id
                     }],
                     type: 'customer.account_balance.deducted',
-                    message: `Customer account balance was deducted by ${ deduction }`,
+                    message: `Customer ${ customer.email || 'ID ' + customer.id } account balance was deducted by ${ deduction }`,
                     data: customer
                   }
                   this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -256,24 +270,36 @@ module.exports = class OrderService extends Service {
         })
         .then(customer => {
           if (customer) {
-            const event = {
-              object_id: customer.id,
-              object: 'customer',
-              objects: [{
-                customer: customer.id
-              },{
-                order: resOrder.id
-              }],
-              type: 'customer.order.created',
-              message: `Customer Order ${ resOrder.name } was created`,
-              data: resOrder
-            }
-            this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
             return customer.addOrder(resOrder.id)
+              .then(() => {
+                const event = {
+                  object_id: customer.id,
+                  object: 'customer',
+                  objects: [{
+                    customer: customer.id
+                  }, {
+                    order: resOrder.id
+                  }],
+                  type: 'customer.order.created',
+                  message: `Customer ${ customer.email || 'ID ' + customer.id } Order ${ resOrder.name } was created`,
+                  data: resOrder
+                }
+                return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+              })
+              .then(event => {
+                return customer
+              })
           }
           return customer
         })
-        .then(customer => {
+        .then(() => {
+          // Group fulfillment by service
+          return this.app.services.FulfillmentService.groupFulfillments(resOrder)
+        })
+        .then(fulfillments => {
+          fulfillments = fulfillments || []
+          resOrder.set('fulfillments', fulfillments)
+
           // Set proxy cart default payment kind if not set by order.create
           let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment_kind
           // Set transaction type to 'manual' if none is specified
@@ -1223,9 +1249,6 @@ module.exports = class OrderService extends Service {
   itemBeforeCreate(item, options){
     return item.recalculate()
       .then(() => {
-        return item.reconcileFulfillment()
-      })
-      .then(() => {
         return item
       })
     // return Promise.resolve(item)
@@ -1239,9 +1262,6 @@ module.exports = class OrderService extends Service {
    */
   itemBeforeUpdate(item, options){
     return item.recalculate()
-      .then(() => {
-        return item.reconcileFulfillment()
-      })
       .then(() => {
         return item
       })
@@ -1268,19 +1288,19 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemAfterUpdate(item, options){
-    // return item.reconcileFulfillment()
-    //   .then(item => {
-    //     return item.save()
-    //   })
-    return Promise.resolve(item)
+    return item.reconcileFulfillment()
+      .then(item => {
+        return item
+      })
+    // return Promise.resolve(item)
   }
 
   itemAfterDestroy(item, options){
-    // return item.reconcileFulfillment()
-    //   .then(item => {
-    //     return item.save()
-    //   })
-    return Promise.resolve(item)
+    return item.reconcileFulfillment()
+      .then(item => {
+        return item
+      })
+    // return Promise.resolve(item)
   }
 
   /**

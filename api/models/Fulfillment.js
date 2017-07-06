@@ -4,6 +4,7 @@
 const Model = require('trails/model')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
+const queryDefaults = require('../utils/queryDefaults')
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
 /**
@@ -105,13 +106,23 @@ module.exports = class Fulfillment extends Model {
                 as: 'order_items'
               })
             },
+            findByIdDefault: function(id, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Fulfillment.default(app))
+              return this.findById(id, options)
+            },
+            findAndCountDefault: function(options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Fulfillment.default(app))
+              return this.findAndCount(options)
+            },
             resolve: function(fulfillment, options){
               const Fulfillment =  this
               if (fulfillment instanceof Fulfillment.Instance){
                 return Promise.resolve(fulfillment)
               }
               else if (fulfillment && _.isObject(fulfillment) && fulfillment.id) {
-                return Fulfillment.findById(fulfillment.id, options)
+                return Fulfillment.findByIdDefault(fulfillment.id, options)
                   .then(resFulfillment => {
                     if (!resFulfillment) {
                       throw new Errors.FoundError(Error(`Fulfillment ${fulfillment.id} not found`))
@@ -120,7 +131,7 @@ module.exports = class Fulfillment extends Model {
                   })
               }
               else if (fulfillment && (_.isString(fulfillment) || _.isNumber(fulfillment))) {
-                return Fulfillment.findById(fulfillment, options)
+                return Fulfillment.findByIdDefault(fulfillment, options)
                   .then(resFulfillment => {
                     if (!resFulfillment) {
                       throw new Errors.FoundError(Error(`Fulfillment ${fulfillment} not found`))
@@ -136,7 +147,7 @@ module.exports = class Fulfillment extends Model {
           },
           instanceMethods: {
             resolveFulfillmentStatus: function() {
-
+              // let currentStatus, previousStatus
               if (!this.id){
                 return Promise.resolve(this)
               }
@@ -154,13 +165,40 @@ module.exports = class Fulfillment extends Model {
                   this.set('order_items', orderItems)
                   this.setFulfillmentStatus()
 
+                  // if (this.changed('status')) {
+                  //   currentStatus = this.status
+                  //   previousStatus = this.previous('status')
+                  // }
+                  // console.log('BROKE resolve', previousStatus, currentStatus)
                   return this
                 })
+                // .then(() => {
+                //   if (currentStatus && previousStatus) {
+                //     const event = {
+                //       object_id: this.id,
+                //       object: 'order',
+                //       objects: [{
+                //         customer: this.customer_id
+                //       },{
+                //         order: this.id
+                //       }],
+                //       type: `order.financial_status.${currentStatus}`,
+                //       message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
+                //       data: this
+                //     }
+                //     return app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                //   }
+                //   else {
+                //     return
+                //   }
+                // })
+                // .then(() => {
+                //   return this
+                // })
             },
             setFulfillmentStatus: function(){
               if (!this.order_items) {
                 throw new Error('Fulfillment.setFulfillmentStatus requires order_items to be populated')
-                // return Promise.reject(err)
               }
 
               let fulfillmentStatus = FULFILLMENT_STATUS.NONE
@@ -168,6 +206,7 @@ module.exports = class Fulfillment extends Model {
               let totalPartialFulfillments = 0
               let totalSentFulfillments = 0
               let totalNonFulfillments = 0
+              let totalCancelledFulfillments = 0
 
               this.order_items.forEach(item => {
                 if (item.fulfillment_status == FULFILLMENT_STATUS.FULFILLED) {
@@ -181,6 +220,9 @@ module.exports = class Fulfillment extends Model {
                 }
                 else if (item.fulfillment_status == FULFILLMENT_STATUS.NONE) {
                   totalNonFulfillments++
+                }
+                else if (item.fulfillment_status == FULFILLMENT_STATUS.CANCELLED) {
+                  totalCancelledFulfillments++
                 }
               })
 
@@ -196,10 +238,15 @@ module.exports = class Fulfillment extends Model {
               else if (totalNonFulfillments == this.order_items.length) {
                 fulfillmentStatus = FULFILLMENT_STATUS.NONE // back to default
               }
+              else if (totalCancelledFulfillments == this.order_items.length) {
+                fulfillmentStatus = FULFILLMENT_STATUS.CANCELLED // back to default
+              }
+
               this.status = fulfillmentStatus
               this.total_fulfilled = totalFulfillments
               this.total_sent_to_fulfillment = totalSentFulfillments
               this.total_not_fulfilled = totalNonFulfillments
+              this.total_cancelled = totalCancelledFulfillments
               return this
             }
           }
@@ -231,14 +278,22 @@ module.exports = class Fulfillment extends Model {
           values: _.values(FULFILLMENT_STATUS),
           defaultValue: FULFILLMENT_STATUS.NONE
         },
+        // Total Order Items Fulfilled
         total_fulfilled: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // Total Order Items Sent to Fulfillment
         total_sent_to_fulfillment: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // Total Order Items Cancelled by Fulfillment
+        total_cancelled: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // Total Order Items not Fulfilled
         total_not_fulfilled: {
           type: Sequelize.INTEGER,
           defaultValue: 0

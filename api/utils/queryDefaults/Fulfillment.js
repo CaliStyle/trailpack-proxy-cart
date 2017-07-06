@@ -1,5 +1,12 @@
 module.exports = {
   default: (app) => {
-    return {}
+    return {
+      include: [
+        {
+          model: app.orm['OrderItem'],
+          as: 'order_items'
+        }
+      ]
+    }
   }
 }

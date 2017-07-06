@@ -296,7 +296,7 @@ module.exports = class Order extends Model {
                         order: this.id
                       }],
                       type: `order.financial_status.${currentStatus}`,
-                      message: `Order ${ this.name } financial status changed from "${previousStatus}" to "${currentStatus}"`,
+                      message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
                       data: this
                     }
                     return app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -337,7 +337,14 @@ module.exports = class Order extends Model {
                   this.set('order_items', orderItems)
 
                   if (!this.fulfillments) {
-                    return this.getFulfillments()
+                    return this.getFulfillments({
+                      include: [
+                        {
+                          model: app.orm['OrderItem'],
+                          as: 'order_items'
+                        }
+                      ]
+                    })
                   }
                   else {
                     return this.fulfillments
@@ -365,7 +372,7 @@ module.exports = class Order extends Model {
                         order: this.id
                       }],
                       type: `order.fulfillment_status.${currentStatus}`,
-                      message: `Order ${ this.name } fulfilment status changed from "${previousStatus}" to "${currentStatus}"`,
+                      message: `Order ${ this.name || 'ID ' + this.id } fulfilment status changed from "${previousStatus}" to "${currentStatus}"`,
                       data: this
                     }
                     return app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -558,11 +565,11 @@ module.exports = class Order extends Model {
                 }
               })
 
-              this.order_items.forEach(item => {
-                if (!item.fulfillment_id) {
-                  totalNonFulfillments++
-                }
-              })
+              // this.order_items.forEach(item => {
+              //   if (!item.fulfillment_id) {
+              //     totalNonFulfillments++
+              //   }
+              // })
 
               if (totalFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.FULFILLED
