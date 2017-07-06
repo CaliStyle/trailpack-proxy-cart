@@ -10,7 +10,14 @@ const lib = require('../../lib')
  */
 module.exports = class SubscriptionController extends Controller {
   generalStats(req, res) {
-    res.json({})
+    const SubscriptionService = this.app.services.SubscriptionService
+    SubscriptionService.generalStats()
+      .then(results => {
+        res.json(results)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
   /**
    * count the amount of subscriptions

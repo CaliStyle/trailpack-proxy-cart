@@ -235,10 +235,12 @@ describe('OrderController', () => {
       .post(`/order/${orderID}/addShipping`)
       .send({
         name: 'Test Shipping',
-        amount: 100
+        price: 100
       })
       .expect(200)
       .end((err, res) => {
+        console.log('Add Shipping', res.body )
+        assert.equal(res.body.total_shipping, 100)
         done(err)
       })
   })
@@ -247,10 +249,12 @@ describe('OrderController', () => {
       .post(`/order/${orderID}/removeShipping`)
       .send({
         name: 'Test Shipping',
-        amount: 100
+        price: 100
       })
       .expect(200)
       .end((err, res) => {
+        console.log('Remove Shipping', res.body )
+        assert.equal(res.body.total_shipping, 0)
         done(err)
       })
   })

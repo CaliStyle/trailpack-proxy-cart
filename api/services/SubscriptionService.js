@@ -15,6 +15,89 @@ const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
  * @description Subscription Service
  */
 module.exports = class SubscriptionService extends Service {
+  generalStats() {
+    const Subscription = this.app.orm['Subscription']
+    let totalSubscriptions = 0
+    let totalActiveSubscriptions = 0
+    let totalDeactivatedSubscriptions = 0
+    let totalCancelledSubscriptions = 0
+    let totalActiveValue = 0
+    let totalDeactivatedValue = 0
+    let totalCancelledValue = 0
+
+    return Subscription.count()
+      .then(total => {
+        totalSubscriptions = total
+
+        return Subscription.count({
+          where: {
+            active: true
+          }
+        })
+      })
+      .then(total => {
+        totalActiveSubscriptions = total
+
+        return Subscription.count({
+          where: {
+            active: false,
+            cancelled: false
+          }
+        })
+      })
+      .then(total => {
+        totalDeactivatedSubscriptions = total
+
+        return Subscription.count({
+          where: {
+            cancelled: true
+          }
+        })
+      })
+      .then(total => {
+        totalCancelledSubscriptions = total
+
+        return Subscription.sum('total_price',{
+          where: {
+            active: true
+          }
+        })
+      })
+      .then(total => {
+        totalActiveValue = total
+
+        return Subscription.sum('total_price',{
+          where: {
+            cancelled: true
+          }
+        })
+      })
+      .then(total => {
+        totalCancelledValue = total
+
+        return Subscription.sum('total_price',{
+          where: {
+            active: true,
+            cancelled: false
+          }
+        })
+      })
+      .then(total => {
+        totalDeactivatedValue = total
+
+        const stats = {
+          total: totalSubscriptions,
+          total_active: totalActiveSubscriptions,
+          total_deactivated: totalDeactivatedSubscriptions,
+          total_cancelled: totalCancelledSubscriptions,
+          total_active_value: totalActiveValue,
+          total_deactivated_value: totalDeactivatedValue,
+          total_cancelled_value: totalCancelledValue
+        }
+
+        return stats
+      })
+  }
   /**
    *
    * @param order

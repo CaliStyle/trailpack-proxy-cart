@@ -466,7 +466,10 @@ module.exports = class OrderController extends Controller {
    */
   addShipping(req, res) {
     const OrderService = this.app.services.OrderService
-    OrderService.addShipping(req.params.id, req.body)
+    lib.Validator.validateOrder.addShipping(req.body)
+      .then(values => {
+        return OrderService.addShipping(req.params.id, req.body)
+      })
       .then(data => {
         return res.json(data)
       })
@@ -482,7 +485,10 @@ module.exports = class OrderController extends Controller {
    */
   removeShipping(req, res) {
     const OrderService = this.app.services.OrderService
-    OrderService.removeShipping(req.params.id, req.body)
+    lib.Validator.validateOrder.removeShipping(req.body)
+      .then(values => {
+        return OrderService.removeShipping(req.params.id, req.body)
+      })
       .then(data => {
         return res.json(data)
       })

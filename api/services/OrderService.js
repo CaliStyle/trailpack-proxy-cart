@@ -793,22 +793,6 @@ module.exports = class OrderService extends Service {
       })
   }
 
-  // TODO make sure total payment criteria is met.
-  resolveSubscribe(transactions, hasSubscription) {
-    let immediate = false
-    if (!hasSubscription) {
-      return immediate
-    }
-    const successes = transactions.filter(transaction =>
-    transaction.status == TRANSACTION_STATUS.SUCCESS)
-    const sales = transactions.filter(transaction =>
-    [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
-    if (successes.length == transactions.length && sales.length == transactions.length) {
-      immediate = true
-    }
-    return immediate
-  }
-
   /**
    *
    * @param customerAddress
@@ -1151,6 +1135,27 @@ module.exports = class OrderService extends Service {
           throw new Error(`Order is already ${order.status}`)
         }
         resOrder = order
+
+        if (_.isArray(shipping)) {
+          shipping.forEach(ship => {
+            const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === ship.name })
+            if ( i > -1) {
+              resOrder.shipping_lines[i] = ship
+            }
+            else {
+              resOrder.shipping_lines.push(ship)
+            }
+          })
+        }
+        else {
+          const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === shipping.name })
+          if ( i > -1) {
+            resOrder.shipping_lines[i] = shipping
+          }
+          else {
+            resOrder.shipping_lines.push(shipping)
+          }
+        }
         return resOrder.recalculate()
       })
   }
@@ -1178,6 +1183,21 @@ module.exports = class OrderService extends Service {
           throw new Error(`Order is already ${order.status}`)
         }
         resOrder = order
+
+        if (_.isArray(shipping)) {
+          shipping.forEach(ship => {
+            const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === ship.name })
+            if ( i > -1) {
+              resOrder.shipping_lines.splice(i, 1)
+            }
+          })
+        }
+        else {
+          const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === shipping.name })
+          if ( i > -1) {
+            resOrder.shipping_lines.splice(i, 1)
+          }
+        }
         return resOrder.recalculate()
       })
   }

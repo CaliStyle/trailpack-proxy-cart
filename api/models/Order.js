@@ -889,7 +889,6 @@ module.exports = class Order extends Model {
               this.total_coupons = totalCoupons
               this.total_overrides = totalOverrides
 
-
               return Promise.resolve()
                 .then(() => {
                   if (!this.order_items) {
@@ -926,6 +925,7 @@ module.exports = class Order extends Model {
                   this.set('transactions', resTransactions)
 
                   this.subtotal_price = Math.max(0, this.total_line_items_price)
+
                   this.total_price = Math.max(0, this.total_line_items_price + this.total_tax + this.total_shipping - this.total_discounts - this.total_coupons - this.total_overrides)
 
                   if (!this.fulfillments) {
