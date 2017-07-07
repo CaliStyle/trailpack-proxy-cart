@@ -147,80 +147,78 @@ module.exports = class CustomerCsvService extends Service {
    * @returns {Promise}
    */
   processCustomerUpload(uploadId) {
-    return new Promise((resolve, reject) => {
-      const CustomerUpload = this.app.orm.CustomerUpload
-      const errors = []
-      let customersTotal = 0
+    const CustomerUpload = this.app.orm.CustomerUpload
+    const errors = []
+    let customersTotal = 0
 
-      CustomerUpload.batch({
-        where: {
-          upload_id: uploadId
+    return CustomerUpload.batch({
+      where: {
+        upload_id: uploadId
+      }
+    }, (customers) => {
+
+      const Sequelize = this.app.orm.Customer.sequelize
+      return Sequelize.Promise.mapSeries(customers, customer => {
+        const create = {
+          account_balance: customer.account_balance,
+          first_name: customer.first_name,
+          last_name: customer.last_name,
+          email: customer.email,
+          company: customer.company,
+          phone: customer.phone,
+          shipping_address: {},
+          billing_address: {},
+          collections: customer.collections,
+          tags: customer.tags,
+          accounts: customer.accounts,
+          users: customer.users
         }
-      }, (customers) => {
-
-        const Sequelize = this.app.orm.Customer.sequelize
-        return Sequelize.Promise.mapSeries(customers, customer => {
-          const create = {
-            account_balance: customer.account_balance,
-            first_name: customer.first_name,
-            last_name: customer.last_name,
-            email: customer.email,
-            company: customer.company,
-            phone: customer.phone,
-            shipping_address: {},
-            billing_address: {},
-            collections: customer.collections,
-            tags: customer.tags,
-            accounts: customer.accounts,
-            users: customer.users
-          }
-          _.each(customer.get({plain: true}), (value, key) => {
-            if (key.indexOf('shipping_') > -1) {
-              const newKey = key.replace('shipping_', '')
-              if (value && value != '') {
-                create.shipping_address[newKey] = value
-              }
+        _.each(customer.get({plain: true}), (value, key) => {
+          if (key.indexOf('shipping_') > -1) {
+            const newKey = key.replace('shipping_', '')
+            if (value && value != '') {
+              create.shipping_address[newKey] = value
             }
-            if (key.indexOf('billing_') > -1) {
-              const newKey = key.replace('billing_', '')
-              if (value && value != '') {
-                create.billing_address[newKey] = value
-              }
+          }
+          if (key.indexOf('billing_') > -1) {
+            const newKey = key.replace('billing_', '')
+            if (value && value != '') {
+              create.billing_address[newKey] = value
             }
-          })
-          if (_.isEmpty(create.shipping_address)) {
-            delete create.shipping_address
           }
-          if (_.isEmpty(create.billing_address)) {
-            delete create.billing_address
-          }
-          // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
-          return this.app.services.CustomerService.create(create)
         })
-          .then(results => {
-            // Calculate Totals
-            customersTotal = customersTotal + results.length
-            return results
+        if (_.isEmpty(create.shipping_address)) {
+          delete create.shipping_address
+        }
+        if (_.isEmpty(create.billing_address)) {
+          delete create.billing_address
+        }
+        // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
+        return this.app.services.CustomerService.create(create)
+          .then(() => {
+            customersTotal++
+            return
           })
           .catch(err => {
-            errors.push(err)
+            errors.push(err.message)
             return
           })
       })
-        .then(results => {
-          return CustomerUpload.destroy({where: {upload_id: uploadId }})
+        .then(() => {
+          return CustomerUpload.destroy({where: {upload_id: uploadId}})
+            .catch(err => {
+              errors.push(err.message)
+              return
+            })
         })
-        .then(destroyed => {
+        .then(() => {
           const results = {
             upload_id: uploadId,
             customers: customersTotal,
             errors: errors
           }
           this.app.services.ProxyEngineService.publish('customer_process.complete', results)
-          return resolve(results)
-        })
-        .catch(err => {
-          return reject(err)
+          return results
         })
     })
   }

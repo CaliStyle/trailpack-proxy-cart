@@ -158,16 +158,15 @@ module.exports = class SubscriptionCsvService extends Service {
         }
         // console.log('UPLOAD SUBSCRIPTION', create)
         return this.transformFromRow(create)
+          .then(() => {
+            subscriptionsTotal++
+            return
+          })
           .catch(err => {
             errors.push(err.message)
             return
           })
       })
-        .then(results => {
-          // Calculate Totals
-          subscriptionsTotal = subscriptionsTotal + results.length
-          return results
-        })
     })
       .then(results => {
         return SubscriptionUpload.destroy({where: {upload_id: uploadId }})

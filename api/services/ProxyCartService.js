@@ -165,6 +165,13 @@ module.exports = class ProxyCartService extends Service {
       .replace(/\-\-+/g, '-')
   }
 
+  safeHandle(text) {
+    return text.toString().toLowerCase().trim()
+      .replace(/\s+/g, '-')           // Replace spaces with -
+      .replace(/&/g, '-and-')         // Replace & with 'and'
+      .replace(/[^\w:\-]+/g, '')      // Remove all non-word chars but colons
+      .replace(/\-\-+/g, '-')
+  }
   /**
    *
    * @param ounces

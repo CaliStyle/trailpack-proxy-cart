@@ -42,7 +42,7 @@ module.exports = class ProductCsvService extends Service {
             })
             .catch(err => {
               this.app.log.error('ROW ERROR',err)
-              errors.push(err)
+              errors.push(err.message)
               parser.resume()
             })
         },
@@ -106,7 +106,7 @@ module.exports = class ProductCsvService extends Service {
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'handle') {
-            upload[k] = this.app.services.ProxyCartService.slug(data)
+            upload[k] = this.app.services.ProxyCartService.safeHandle(data)
           }
           else if (k == 'tags') {
             upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => {
@@ -230,8 +230,8 @@ module.exports = class ProductCsvService extends Service {
 
     // Map associations
     upload.associations = _.map(upload.associations, (association) => {
-      const handle = association.split(/:(.+)/)[0]
-      const sku = association.split(/:(.+)/)[1]
+      const handle = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[0])
+      const sku = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[1])
       const res = {}
       if (handle && handle != '') {
         res.handle = handle
@@ -287,7 +287,7 @@ module.exports = class ProductCsvService extends Service {
             return results
           })
           .catch(err => {
-            errors.push(err)
+            errors.push(err.message)
             return
           })
       })
@@ -295,7 +295,7 @@ module.exports = class ProductCsvService extends Service {
       .then(results => {
         return ProductUpload.destroy({where: {upload_id: uploadId }})
           .catch(err => {
-            errors.push(err)
+            errors.push(err.message)
             return err
           })
       })
@@ -307,7 +307,7 @@ module.exports = class ProductCsvService extends Service {
             return results
           })
           .catch(err => {
-            errors.push(err)
+            errors.push(err.message)
             return
           })
       })
@@ -401,7 +401,7 @@ module.exports = class ProductCsvService extends Service {
           })
           .catch(err => {
             errorsCount++
-            errors.push(err)
+            errors.push(err.message)
             return
           })
       })
@@ -413,7 +413,7 @@ module.exports = class ProductCsvService extends Service {
           })
           .catch(err => {
             errorsCount++
-            errors.push(err)
+            errors.push(err.message)
             return
           })
       })
@@ -454,7 +454,7 @@ module.exports = class ProductCsvService extends Service {
               parser.resume()
             })
             .catch(err => {
-              errors.push(err)
+              errors.push(err.message)
               this.app.log.error('ROW ERROR',err)
               parser.resume()
             })
@@ -519,7 +519,7 @@ module.exports = class ProductCsvService extends Service {
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'handle') {
-            upload[k] = this.app.services.ProxyCartService.slug(data)
+            upload[k] = this.app.services.ProxyCartService.safeHandle(data)
           }
           else {
             upload[k] = data
@@ -589,7 +589,7 @@ module.exports = class ProductCsvService extends Service {
         }
         else {
           const err = new Error(`Target ${metadata.handle} not a Product or a Variant`)
-          errors.push(err)
+          errors.push(err.message)
           return
         }
 
@@ -628,7 +628,7 @@ module.exports = class ProductCsvService extends Service {
           where: {upload_id: uploadId }
         })
           .catch(err => {
-            errors.push(err)
+            errors.push(err.message)
             return err
           })
       })
@@ -675,7 +675,7 @@ module.exports = class ProductCsvService extends Service {
               return
             })
             .catch(err => {
-              errors.push(err)
+              errors.push(err.message)
               return
             })
         })
