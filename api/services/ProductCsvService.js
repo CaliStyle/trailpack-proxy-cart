@@ -106,7 +106,7 @@ module.exports = class ProductCsvService extends Service {
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'handle') {
-            upload[k] = data.toLowerCase().replace(/\s/gm, '').trim()
+            upload[k] = this.app.services.ProxyCartService.slug(data)
           }
           else if (k == 'tags') {
             upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => {
@@ -519,7 +519,7 @@ module.exports = class ProductCsvService extends Service {
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'handle') {
-            upload[k] = data.toLowerCase().replace(/\s/gm, '').trim()
+            upload[k] = this.app.services.ProxyCartService.slug(data)
           }
           else {
             upload[k] = data
