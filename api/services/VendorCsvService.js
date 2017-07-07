@@ -133,69 +133,80 @@ module.exports = class VendorCsvService extends Service {
    * @returns {Promise}
    */
   processVendorUpload(uploadId) {
-    return new Promise((resolve, reject) => {
-      const VendorUpload = this.app.orm.VendorUpload
-      let vendorsTotal = 0
-      VendorUpload.batch({
-        where: {
-          upload_id: uploadId
+    const VendorUpload = this.app.orm.VendorUpload
+    let vendorsTotal = 0
+    const errors = []
+
+    return VendorUpload.batch({
+      where: {
+        upload_id: uploadId
+      }
+    }, vendors => {
+      const Sequelize = this.app.orm.Product.sequelize
+      return Sequelize.Promise.mapSeries(vendors, vendor => {
+        const create = {
+          customer: {
+            email: vendor.customer
+          },
+          email: vendor.customer,
+          status: vendor.status,
+          shipping_address: {},
+          billing_address: {}
         }
-      }, vendors => {
-        const Sequelize = this.app.orm.Product.sequelize
-        return Sequelize.Promise.mapSeries(vendors, vendor => {
-          const create = {
-            customer: {
-              email: vendor.customer
-            },
-            email: vendor.customer,
-            status: vendor.status,
-            shipping_address: {},
-            billing_address: {}
-          }
-          _.each(vendor.get({plain: true}), (value, key) => {
-            if (key.indexOf('shipping_') > -1) {
-              const newKey = key.replace('shipping_', '')
-              if (value && value != '') {
-                create.shipping_address[newKey] = value
-              }
+        _.each(vendor.get({plain: true}), (value, key) => {
+          if (key.indexOf('shipping_') > -1) {
+            const newKey = key.replace('shipping_', '')
+            if (value && value != '') {
+              create.shipping_address[newKey] = value
             }
-            if (key.indexOf('billing_') > -1) {
-              const newKey = key.replace('billing_', '')
-              if (value && value != '') {
-                create.billing_address[newKey] = value
-              }
+          }
+          if (key.indexOf('billing_') > -1) {
+            const newKey = key.replace('billing_', '')
+            if (value && value != '') {
+              create.billing_address[newKey] = value
             }
-          })
-          if (_.isEmpty(create.shipping_address)) {
-            delete create.shipping_address
           }
-          if (_.isEmpty(create.billing_address)) {
-            delete create.billing_address
-          }
-          // console.log('UPLOAD VENDOR', create)
-          return this.transformFromRow(create)
         })
-          .then(results => {
-            // Calculate Totals
-            vendorsTotal = vendorsTotal + results.length
-            return results
+        if (_.isEmpty(create.shipping_address)) {
+          delete create.shipping_address
+        }
+        if (_.isEmpty(create.billing_address)) {
+          delete create.billing_address
+        }
+        // console.log('UPLOAD VENDOR', create)
+        return this.transformFromRow(create)
+          .catch(err => {
+            errors.push(err.message)
+            return err
           })
       })
-        .then(results => {
-          return VendorUpload.destroy({where: {upload_id: uploadId }})
-        })
-        .then(destroyed => {
-          const results = {
-            upload_id: uploadId,
-            vendors: vendorsTotal
+        .then(vendor => {
+          if (!vendor) {
+            return
           }
-          this.app.services.ProxyEngineService.publish('vendor_process.complete', results)
-          return resolve(results)
-        })
-        .catch(err => {
-          return reject(err)
+          else {
+            // Calculate Totals
+            vendorsTotal++
+            return vendor
+          }
         })
     })
+      .then(results => {
+        return VendorUpload.destroy({where: {upload_id: uploadId }})
+          .catch(err => {
+            errors.push(err.message)
+            return err
+          })
+      })
+      .then(destroyed => {
+        const results = {
+          upload_id: uploadId,
+          vendors: vendorsTotal,
+          errors: errors
+        }
+        this.app.services.ProxyEngineService.publish('vendor_process.complete', results)
+        return results
+      })
   }
 
   transformFromRow(obj) {

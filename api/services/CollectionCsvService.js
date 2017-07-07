@@ -40,7 +40,7 @@ module.exports = class CollectionCsvService extends Service {
             })
             .catch(err => {
               this.app.log.error('ROW ERROR',err)
-              errors.push(err)
+              errors.push(err.message)
               parser.resume()
             })
         },
@@ -155,69 +155,67 @@ module.exports = class CollectionCsvService extends Service {
    * @returns {Promise}
    */
   processCollectionUpload(uploadId) {
-    return new Promise((resolve, reject) => {
-      const CollectionUpload = this.app.orm.CollectionUpload
-      let collectionsTotal = 0
-      const errors = []
-      CollectionUpload.batch({
-        where: {
-          upload_id: uploadId
+    const CollectionUpload = this.app.orm.CollectionUpload
+    let collectionsTotal = 0
+    const errors = []
+    return CollectionUpload.batch({
+      where: {
+        upload_id: uploadId
+      }
+    }, collections => {
+
+      const Sequelize = this.app.orm.Collection.sequelize
+
+      return Sequelize.Promise.mapSeries(collections, collection => {
+
+        const create = {
+          title: collection.title,
+          handle: collection.handle,
+          body: collection.body,
+          primary_purpose: collection.primary_purpose,
+          position: collection.position,
+          sort_order: collection.sort_order,
+          published: collection.published,
+          tax_rate: collection.tax_rate,
+          tax_percentage: collection.tax_percentage,
+          tax_type: collection.tax_type,
+          tax_name: collection.tax_name,
+          discount_scope: collection.discount_scope,
+          discount_type: collection.discount_type,
+          discount_rate: collection.discount_rate,
+          discount_percentage: collection.discount_percentage,
+          discount_product_include: collection.discount_product_include,
+          discount_product_exclude: collection.discount_product_exclude,
+          collections: collection.collections,
+          images: collection.images
         }
-      }, collections => {
-
-        const Sequelize = this.app.orm.Collection.sequelize
-
-        return Sequelize.Promise.mapSeries(collections, collection => {
-
-          const create = {
-            title: collection.title,
-            handle: collection.handle,
-            body: collection.body,
-            primary_purpose: collection.primary_purpose,
-            position: collection.position,
-            sort_order: collection.sort_order,
-            published: collection.published,
-            tax_rate: collection.tax_rate,
-            tax_percentage: collection.tax_percentage,
-            tax_type: collection.tax_type,
-            tax_name: collection.tax_name,
-            discount_scope: collection.discount_scope,
-            discount_type: collection.discount_type,
-            discount_rate: collection.discount_rate,
-            discount_percentage: collection.discount_percentage,
-            discount_product_include: collection.discount_product_include,
-            discount_product_exclude: collection.discount_product_exclude,
-            collections: collection.collections,
-            images: collection.images
-          }
-          return this.app.services.CollectionService.add(create)
-            .catch(err => {
-              errors.push(err)
-              return err
-            })
-        })
-          .then(results => {
-            // Calculate Totals
-            collectionsTotal = collectionsTotal + results.length
-            return results
+        return this.app.services.CollectionService.add(create)
+          .then(() => {
+            collectionsTotal++
+            return
+          })
+          .catch(err => {
+            errors.push(err.message)
+            return err
           })
       })
-        .then(results => {
-          return CollectionUpload.destroy({where: {upload_id: uploadId }})
-        })
-        .then(destroyed => {
-          const results = {
-            upload_id: uploadId,
-            collections: collectionsTotal,
-            errors: errors
-          }
-          this.app.services.ProxyEngineService.publish('collection_process.complete', results)
-          return resolve(results)
-        })
-        .catch(err => {
-          return reject(err)
-        })
     })
+      .then(() => {
+        return CollectionUpload.destroy({where: {upload_id: uploadId }})
+          .catch(err => {
+            errors.push(err.message)
+            return err
+          })
+      })
+      .then(destroyed => {
+        const results = {
+          upload_id: uploadId,
+          collections: collectionsTotal,
+          errors: errors
+        }
+        this.app.services.ProxyEngineService.publish('collection_process.complete', results)
+        return results
+      })
   }
 }
 

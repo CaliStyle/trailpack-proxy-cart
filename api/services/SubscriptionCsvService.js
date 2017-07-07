@@ -133,59 +133,58 @@ module.exports = class SubscriptionCsvService extends Service {
    * @returns {Promise}
    */
   processSubscriptionUpload(uploadId) {
-    return new Promise((resolve, reject) => {
-      const SubscriptionUpload = this.app.orm.SubscriptionUpload
-      const errors = []
-      let subscriptionsTotal = 0
-      SubscriptionUpload.batch({
-        where: {
-          upload_id: uploadId
+    const SubscriptionUpload = this.app.orm.SubscriptionUpload
+    const errors = []
+    let subscriptionsTotal = 0
+    return SubscriptionUpload.batch({
+      where: {
+        upload_id: uploadId
+      }
+    }, (subscriptions) => {
+
+      const Sequelize = this.app.orm.Subscription.sequelize
+
+      return Sequelize.Promise.mapSeries(subscriptions, subscription => {
+        const create = {
+          customer: {
+            email: subscription.customer
+          },
+          email: subscription.customer,
+          products: subscription.products,
+          interval: subscription.interval,
+          unit: subscription.unit,
+          active: subscription.active,
+          token: subscription.token
         }
-      }, (subscriptions) => {
-
-        const Sequelize = this.app.orm.Subscription.sequelize
-
-        return Sequelize.Promise.mapSeries(subscriptions, subscription => {
-          const create = {
-            customer: {
-              email: subscription.customer
-            },
-            email: subscription.customer,
-            products: subscription.products,
-            interval: subscription.interval,
-            unit: subscription.unit,
-            active: subscription.active,
-            token: subscription.token
-          }
-          // console.log('UPLOAD SUBSCRIPTION', create)
-          return this.transformFromRow(create)
-            .catch(err => {
-              errors.push(err)
-              return
-            })
-        })
-          .then(results => {
-            // Calculate Totals
-            subscriptionsTotal = subscriptionsTotal + results.length
-            return results
+        // console.log('UPLOAD SUBSCRIPTION', create)
+        return this.transformFromRow(create)
+          .catch(err => {
+            errors.push(err.message)
+            return
           })
       })
         .then(results => {
-          return SubscriptionUpload.destroy({where: {upload_id: uploadId }})
-        })
-        .then(destroyed => {
-          const results = {
-            upload_id: uploadId,
-            subscriptions: subscriptionsTotal,
-            errors: errors
-          }
-          this.app.services.ProxyEngineService.publish('subscription_process.complete', results)
-          return resolve(results)
-        })
-        .catch(err => {
-          return reject(err)
+          // Calculate Totals
+          subscriptionsTotal = subscriptionsTotal + results.length
+          return results
         })
     })
+      .then(results => {
+        return SubscriptionUpload.destroy({where: {upload_id: uploadId }})
+          .catch(err => {
+            errors.push(err.message)
+            return err
+          })
+      })
+      .then(destroyed => {
+        const results = {
+          upload_id: uploadId,
+          subscriptions: subscriptionsTotal,
+          errors: errors
+        }
+        this.app.services.ProxyEngineService.publish('subscription_process.complete', results)
+        return results
+      })
   }
 
   /**
