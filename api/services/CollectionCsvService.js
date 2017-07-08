@@ -195,7 +195,7 @@ module.exports = class CollectionCsvService extends Service {
             return
           })
           .catch(err => {
-            errors.push(err.message)
+            errors.push(`${collection.handle}: ${err.message}`)
             return err
           })
       })

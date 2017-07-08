@@ -163,7 +163,7 @@ module.exports = class SubscriptionCsvService extends Service {
             return
           })
           .catch(err => {
-            errors.push(err.message)
+            errors.push(`${subscription.customer}: ${err.message}`)
             return
           })
       })
@@ -172,7 +172,7 @@ module.exports = class SubscriptionCsvService extends Service {
         return SubscriptionUpload.destroy({where: {upload_id: uploadId }})
           .catch(err => {
             errors.push(err.message)
-            return err
+            return
           })
       })
       .then(destroyed => {

@@ -401,7 +401,7 @@ module.exports = class ProductCsvService extends Service {
           })
           .catch(err => {
             errorsCount++
-            errors.push(err.message)
+            errors.push(`${handle}: ${err.message}`)
             return
           })
       })
@@ -608,14 +608,26 @@ module.exports = class ProductCsvService extends Service {
             if (target.metadata) {
               target.metadata.data = metadata.data
               return target.metadata.save()
+                .then(() => {
+                  productsTotal++
+                  return
+                })
+                .catch(err => {
+                  errors.push(`${metadata.handle}: ${err.message}`)
+                  return
+                })
             }
             else {
               return target.createMetadata({data: metadata.data})
+                .then(() => {
+                  productsTotal++
+                  return
+                })
+                .catch(err => {
+                  errors.push(`${metadata.handle}: ${err.message}`)
+                  return
+                })
             }
-          })
-          .then(() => {
-            productsTotal++
-            return
           })
           .catch(err => {
             errors.push(err.message)
@@ -629,7 +641,7 @@ module.exports = class ProductCsvService extends Service {
         })
           .catch(err => {
             errors.push(err.message)
-            return err
+            return
           })
       })
       .then(destroyed => {
@@ -649,41 +661,44 @@ module.exports = class ProductCsvService extends Service {
    * @returns {Promise}
    */
   processProductAssociationUpload(uploadId) {
-    return new Promise((resolve, reject) => {
-      const AssociationUpload = this.app.orm['ProductAssociationUpload']
-      const ProductService = this.app.services.ProductService
-      const errors = []
+    const AssociationUpload = this.app.orm['ProductAssociationUpload']
+    const ProductService = this.app.services.ProductService
+    const errors = []
 
-      let associationsTotal = 0
-      AssociationUpload.batch({
-        where: {
-          upload_id: uploadId
-        }
-      }, associations => {
+    let associationsTotal = 0
+    return AssociationUpload.batch({
+      where: {
+        upload_id: uploadId
+      }
+    }, associations => {
 
-        const Sequelize = AssociationUpload.sequelize
-        return Sequelize.Promise.mapSeries(associations, association => {
-          return ProductService.addAssociation({
-            handle: association.product_handle,
-            sku: association.product_sku
-          }, {
-            handle: association.associated_product_handle,
-            sku: association.associated_product_sku
-          })
+      const Sequelize = AssociationUpload.sequelize
+      return Sequelize.Promise.mapSeries(associations, association => {
+        return ProductService.addAssociation({
+          handle: association.product_handle,
+          sku: association.product_sku
+        }, {
+          handle: association.associated_product_handle,
+          sku: association.associated_product_sku
+        })
             .then(() => {
               associationsTotal++
               return
             })
             .catch(err => {
-              errors.push(err.message)
+              errors.push(`${association.product_handle} -> ${association.associated_product_handle}: ${err.message}`)
               return
             })
-        })
       })
+    })
         .then(results => {
           return AssociationUpload.destroy({
             where: {upload_id: uploadId }
           })
+            .catch(err => {
+              errors.push(err)
+              return
+            })
         })
         .then(destroyed => {
           const results = {
@@ -692,12 +707,8 @@ module.exports = class ProductCsvService extends Service {
             errors: errors
           }
           this.app.services.ProxyEngineService.publish('product_associations_process.complete', results)
-          return resolve(results)
+          return results
         })
-        .catch(err => {
-          return reject(err)
-        })
-    })
   }
 }
 
