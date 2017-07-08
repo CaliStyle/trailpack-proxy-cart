@@ -103,7 +103,13 @@ module.exports = class CollectionCsvService extends Service {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
-          if (k == 'discount_product_include') {
+          if (k == 'handle') {
+            upload[k] = this.app.services.ProxyCartService.safeHandle(data)
+          }
+          else if (k == 'title') {
+            upload[k] = data.toString().trim()
+          }
+          else if (k == 'discount_product_include') {
             upload[k] = data.split(',').map(discount => {
               return discount.trim()
             })
