@@ -39,7 +39,7 @@ module.exports = class CollectionCsvService extends Service {
               parser.resume()
             })
             .catch(err => {
-              this.app.log.error('ROW ERROR',err)
+              this.app.log.error('ROW ERROR', err)
               errors.push(err.message)
               parser.resume()
             })
@@ -56,9 +56,10 @@ module.exports = class CollectionCsvService extends Service {
               ProxyEngineService.publish('collection_upload.complete', results)
               return resolve(results)
             })
-            // TODO handle this more gracefully
             .catch(err => {
-              return reject(err)
+              errors.push(err.message)
+              results.errors = errors
+              return resolve(results)
             })
         },
         error: (err, file) => {
@@ -77,82 +78,89 @@ module.exports = class CollectionCsvService extends Service {
    * @param uploadID
    */
   csvCollectionRow(row, uploadID) {
-    // console.log(row)
-    const CollectionUpload = this.app.orm.CollectionUpload
-    const values = _.values(COLLECTION_UPLOAD)
-    const keys = _.keys(COLLECTION_UPLOAD)
-    const upload = {
-      upload_id: uploadID,
-      options: {}
-    }
-
-    _.each(row, (data, key) => {
-      if (data === '') {
-        row[key] = null
-      }
-    })
-
-    row = _.omitBy(row, _.isNil)
-
-    if (_.isEmpty(row)) {
-      return Promise.resolve({})
-    }
-
-    _.each(row, (data, key) => {
-      if (data !== '') {
-        const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
-        const k = keys[i]
-        if (i > -1 && k) {
-          if (k == 'handle') {
-            upload[k] = this.app.services.ProxyCartService.safeHandle(data)
-          }
-          else if (k == 'title') {
-            upload[k] = data.toString().trim()
-          }
-          else if (k == 'discount_product_include') {
-            upload[k] = data.split(',').map(discount => {
-              return discount.trim()
-            })
-          }
-          else if (k == 'discount_product_exclude') {
-            upload[k] = data.split(',').map(discount => {
-              return discount.trim()
-            })
-          }
-          else if (k == 'collections') {
-            upload[k] = data.split(',').map(collection => {
-              return collection.trim()
-            })
-          }
-          else if (k == 'images') {
-            upload[k] = data.split(',').map(images => {
-              return images.trim()
-            })
-          }
-          else if (k == 'images_alt') {
-            upload[k] = data.split(',').map(images => {
-              return images.trim()
-            })
-          }
-          else {
-            upload[k] = data
-          }
+    return Promise.resolve()
+      .then(() => {
+        // console.log(row)
+        const CollectionUpload = this.app.orm.CollectionUpload
+        const values = _.values(COLLECTION_UPLOAD)
+        const keys = _.keys(COLLECTION_UPLOAD)
+        const upload = {
+          upload_id: uploadID,
+          options: {}
         }
-      }
-    })
 
-    // Map images
-    upload.images = _.map(upload.images, (image, index) => {
-      return {
-        src: image,
-        alt: upload.images_alt ? upload.images_alt[index] : ''
-      }
-    })
+        _.each(row, (data, key) => {
+          if (data === '') {
+            row[key] = null
+          }
+        })
 
-    // upload.images = _.omitBy(upload.images, _.isNil)
+        row = _.omitBy(row, _.isNil)
 
-    const newCollection = CollectionUpload.build(upload)
-    return newCollection.save()
+        if (_.isEmpty(row)) {
+          return Promise.resolve({})
+        }
+
+        _.each(row, (data, key) => {
+          if (data !== '') {
+            const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
+            const k = keys[i]
+            if (i > -1 && k) {
+              if (k == 'handle') {
+                upload[k] = this.app.services.ProxyCartService.safeHandle(data)
+              }
+              else if (k == 'title') {
+                upload[k] = data.toString().trim()
+              }
+              else if (k == 'discount_product_include') {
+                upload[k] = data.split(',').map(discount => {
+                  return discount.trim()
+                })
+              }
+              else if (k == 'discount_product_exclude') {
+                upload[k] = data.split(',').map(discount => {
+                  return discount.trim()
+                })
+              }
+              else if (k == 'collections') {
+                upload[k] = data.split(',').map(collection => {
+                  return collection.trim()
+                })
+              }
+              else if (k == 'images') {
+                upload[k] = data.split(',').map(images => {
+                  return images.trim()
+                })
+              }
+              else if (k == 'images_alt') {
+                upload[k] = data.split(',').map(images => {
+                  return images.trim()
+                })
+              }
+              else {
+                upload[k] = data
+              }
+            }
+          }
+        })
+
+        // Map images
+        upload.images = _.map(upload.images, (image, index) => {
+          return {
+            src: image,
+            alt: upload.images_alt ? upload.images_alt[index] : ''
+          }
+        })
+
+        // If not collection handle, resolve without doing anything or throwing an error
+        if (!upload.handle) {
+          return Promise.resolve({})
+        }
+        else {
+          const newCollection = CollectionUpload.build(upload)
+          return newCollection.save()
+        }
+      })
   }
 
   /**

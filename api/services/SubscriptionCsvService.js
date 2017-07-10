@@ -75,56 +75,59 @@ module.exports = class SubscriptionCsvService extends Service {
    * @param uploadID
    */
   csvSubscriptionRow(row, uploadID) {
-    // console.log(row)
-    const SubscriptionUpload = this.app.orm.SubscriptionUpload
-    const values = _.values(SUBSCRIPTION_UPLOAD)
-    const keys = _.keys(SUBSCRIPTION_UPLOAD)
-    const upload = {
-      upload_id: uploadID,
-      options: {}
-    }
-
-    _.each(row, (data, key) => {
-      if (data === '') {
-        row[key] = null
-      }
-    })
-
-    row = _.omitBy(row, _.isNil)
-
-    if (_.isEmpty(row)) {
-      return Promise.resolve({})
-    }
-
-    _.each(row, (data, key) => {
-      if (data !== '') {
-        const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
-        const k = keys[i]
-        if (i > -1 && k) {
-          if (k == 'products') {
-            upload[k] = data.split(',').map(product => { return product.trim()})
-          }
-          else {
-            upload[k] = data
-          }
+    // Wrap this in a promise so we can gracefully handle an error
+    return Promise.resolve()
+      .then(() => {
+        const SubscriptionUpload = this.app.orm.SubscriptionUpload
+        const values = _.values(SUBSCRIPTION_UPLOAD)
+        const keys = _.keys(SUBSCRIPTION_UPLOAD)
+        const upload = {
+          upload_id: uploadID,
+          options: {}
         }
-      }
-    })
 
-    upload.products = _.map(upload.products, (handle, index) => {
-      return {
-        handle: handle
-      }
-    })
+        _.each(row, (data, key) => {
+          if (data === '') {
+            row[key] = null
+          }
+        })
 
-    // customer is required, if not here, then reject whole row without error
-    if (!upload.customer) {
-      return Promise.resolve({})
-    }
+        row = _.omitBy(row, _.isNil)
 
-    const newSubscription = SubscriptionUpload.build(upload)
+        if (_.isEmpty(row)) {
+          return Promise.resolve({})
+        }
 
-    return newSubscription.save()
+        _.each(row, (data, key) => {
+          if (data !== '') {
+            const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
+            const k = keys[i]
+            if (i > -1 && k) {
+              if (k == 'products') {
+                upload[k] = data.split(',').map(product => { return product.trim()})
+              }
+              else {
+                upload[k] = data
+              }
+            }
+          }
+        })
+
+        upload.products = _.map(upload.products, (handle, index) => {
+          return {
+            handle: handle
+          }
+        })
+
+        // customer is required, if not here, then reject whole row without error
+        if (!upload.customer) {
+          return Promise.resolve({})
+        }
+
+        const newSubscription = SubscriptionUpload.build(upload)
+
+        return newSubscription.save()
+      })
   }
 
   /**

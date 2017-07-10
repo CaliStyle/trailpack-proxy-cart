@@ -58,9 +58,10 @@ module.exports = class ProductCsvService extends Service {
               ProxyEngineService.publish('product_upload.complete', results)
               return resolve(results)
             })
-            // TODO handle this more gracefully
             .catch(err => {
-              return reject(err)
+              errors.push(err.message)
+              results.errors = errors
+              return resolve(results)
             })
         },
         error: (err, file) => {
@@ -79,177 +80,182 @@ module.exports = class ProductCsvService extends Service {
    * @param uploadID
    */
   csvProductRow(row, uploadID) {
-    // console.log(row)
-    const ProductUpload = this.app.orm.ProductUpload
-    const values = _.values(PRODUCT_UPLOAD)
-    const keys = _.keys(PRODUCT_UPLOAD)
-    const upload = {
-      upload_id: uploadID,
-      options: {}
-    }
+    // Wrap this in a promise so we can gracefully handle an error
+    return Promise.resolve()
+      .then(() => {
 
-    _.each(row, (data, key) => {
-      if (data === '') {
-        row[key] = null
-      }
-    })
-
-    row = _.omitBy(row, _.isNil)
-
-    if (_.isEmpty(row)) {
-      return Promise.resolve({})
-    }
-
-    _.each(row, (data, key) => {
-      if (data !== '') {
-        const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
-        const k = keys[i]
-        if (i > -1 && k) {
-          if (k == 'handle') {
-            upload[k] = this.app.services.ProxyCartService.safeHandle(data)
-          }
-          else if (k == 'tags') {
-            upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => {
-              return tag.trim()
-            }))
-          }
-          else if (k == 'images') {
-            upload[k] = data.split(',').map(image => {
-              return image.trim()
-            })
-          }
-          else if (k == 'images_alt') {
-            upload[k] = data.split('|').map(alt => {
-              return alt.trim()
-            })
-          }
-          else if (k == 'variant_images') {
-            upload[k] = data.split(',').map(image => {
-              return image.trim()
-            })
-          }
-          else if (k == 'variant_images_alt') {
-            upload[k] = data.split('|').map(alt => {
-              return alt.trim()
-            })
-          }
-          else if (k == 'collections') {
-            upload[k] = _.uniq(data.split(',').map(collection => {
-              return collection.trim()
-            }))
-          }
-          else if (k == 'associations') {
-            upload[k] = data.split(',').map(collection => {
-              return collection.trim()
-            })
-          }
-          else if (k == 'vendors') {
-            upload[k] = data.split(',').map(vendor => {
-              return vendor.trim()
-            })
-          }
-          else if (k == 'shops') {
-            upload[k] = data.split(',').map(shop => {
-              return shop.trim()
-            })
-          }
-          else if (k == 'shops_quantity') {
-            upload[k] = data.split(',').map(shopQty => {
-              return parseInt(shopQty.trim())
-            })
-          }
-          else if (k == 'weight_unit') {
-            upload[k] = data.toLowerCase().trim()
-          }
-          else if (k == 'inventory_policy') {
-            upload[k] = data.toLowerCase().trim()
-          }
-          else if (k == 'metadata') {
-            // METADATA uploaded this way MUST be in JSON
-            let formatted = data.trim()
-            if (this.app.services.ProxyCartService.isJson(formatted)) {
-              formatted = JSON.parse(formatted)
-              upload[k] = formatted
-            }
-          }
-          else {
-            upload[k] = data
-          }
+        const ProductUpload = this.app.orm.ProductUpload
+        const values = _.values(PRODUCT_UPLOAD)
+        const keys = _.keys(PRODUCT_UPLOAD)
+        const upload = {
+          upload_id: uploadID,
+          options: {}
         }
-        else {
-          const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
-          const match = optionsReg.exec(key)
-          // console.log(match)
-          if (match && typeof match[3] !== 'undefined' && match[4] !== 'undefined') {
-            const part = match[4].toLowerCase()
-            const index = Number(match[3]) - 1
-            // console.log(index, part)
-            if (typeof upload.options[index] === 'undefined') {
-              upload.options[index] = {
-                name: '',
-                value: ''
+
+        _.each(row, (data, key) => {
+          if (data === '') {
+            row[key] = null
+          }
+        })
+
+        row = _.omitBy(row, _.isNil)
+
+        if (_.isEmpty(row)) {
+          return Promise.resolve({})
+        }
+
+        _.each(row, (data, key) => {
+          if (data !== '') {
+            const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
+            const k = keys[i]
+            if (i > -1 && k) {
+              if (k == 'handle') {
+                upload[k] = this.app.services.ProxyCartService.safeHandle(data)
+              }
+              else if (k == 'tags') {
+                upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => {
+                  return tag.trim()
+                }))
+              }
+              else if (k == 'images') {
+                upload[k] = data.split(',').map(image => {
+                  return image.trim()
+                })
+              }
+              else if (k == 'images_alt') {
+                upload[k] = data.split('|').map(alt => {
+                  return alt.trim()
+                })
+              }
+              else if (k == 'variant_images') {
+                upload[k] = data.split(',').map(image => {
+                  return image.trim()
+                })
+              }
+              else if (k == 'variant_images_alt') {
+                upload[k] = data.split('|').map(alt => {
+                  return alt.trim()
+                })
+              }
+              else if (k == 'collections') {
+                upload[k] = _.uniq(data.split(',').map(collection => {
+                  return collection.trim()
+                }))
+              }
+              else if (k == 'associations') {
+                upload[k] = data.split(',').map(collection => {
+                  return collection.trim()
+                })
+              }
+              else if (k == 'vendors') {
+                upload[k] = data.split(',').map(vendor => {
+                  return vendor.trim()
+                })
+              }
+              else if (k == 'shops') {
+                upload[k] = data.split(',').map(shop => {
+                  return shop.trim()
+                })
+              }
+              else if (k == 'shops_quantity') {
+                upload[k] = data.split(',').map(shopQty => {
+                  return parseInt(shopQty.trim())
+                })
+              }
+              else if (k == 'weight_unit') {
+                upload[k] = data.toLowerCase().trim()
+              }
+              else if (k == 'inventory_policy') {
+                upload[k] = data.toLowerCase().trim()
+              }
+              else if (k == 'metadata') {
+                // METADATA uploaded this way MUST be in JSON
+                let formatted = data.trim()
+                if (this.app.services.ProxyCartService.isJson(formatted)) {
+                  formatted = JSON.parse(formatted)
+                  upload[k] = formatted
+                }
+              }
+              else {
+                upload[k] = data
               }
             }
-            upload.options[index][part] = data.trim()
+            else {
+              const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
+              const match = optionsReg.exec(key)
+              // console.log(match)
+              if (match && typeof match[3] !== 'undefined' && match[4] !== 'undefined') {
+                const part = match[4].toLowerCase()
+                const index = Number(match[3]) - 1
+                // console.log(index, part)
+                if (typeof upload.options[index] === 'undefined') {
+                  upload.options[index] = {
+                    name: '',
+                    value: ''
+                  }
+                }
+                upload.options[index][part] = data.trim()
+              }
+            }
           }
+        })
+
+        // Handle Options
+        upload.option = {}
+        _.map(upload.options, option => {
+          upload.option[option.name] = option.value
+        })
+        delete upload.options
+
+        // Map images
+        upload.images = _.map(upload.images, (image, index) => {
+          return {
+            src: image,
+            alt: upload.images_alt ? upload.images_alt[index] : ''
+          }
+        })
+        delete upload.images_alt
+
+        // Map variant images
+        upload.variant_images = _.map(upload.variant_images, (image, index) => {
+          return {
+            src: image,
+            alt: upload.variant_images_alt ? upload.variant_images_alt[index] : ''
+          }
+        })
+        delete upload.variant_images_alt
+
+        // Map vendors
+        upload.vendors = _.map(upload.vendors, (vendor, index) => {
+          return {
+            name: vendor
+          }
+        })
+
+        // Map associations
+        upload.associations = _.map(upload.associations, (association) => {
+          const handle = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[0])
+          const sku = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[1])
+          const res = {}
+          if (handle && handle != '') {
+            res.handle = handle
+            if (sku && sku != '') {
+              res.sku = sku
+            }
+            return res
+          }
+          return
+        })
+
+        // Handle is required, if not here, then reject whole row without error
+        if (!upload.handle) {
+          return Promise.resolve({})
         }
-      }
-    })
-
-    // Handle Options
-    upload.option = {}
-    _.map(upload.options, option => {
-      upload.option[option.name] = option.value
-    })
-    delete upload.options
-
-    // Map images
-    upload.images = _.map(upload.images, (image, index) => {
-      return {
-        src: image,
-        alt: upload.images_alt ? upload.images_alt[index] : ''
-      }
-    })
-    delete upload.images_alt
-
-    // Map variant images
-    upload.variant_images = _.map(upload.variant_images, (image, index) => {
-      return {
-        src: image,
-        alt: upload.variant_images_alt ? upload.variant_images_alt[index] : ''
-      }
-    })
-    delete upload.variant_images_alt
-
-    // Map vendors
-    upload.vendors = _.map(upload.vendors, (vendor, index) => {
-      return {
-        name: vendor
-      }
-    })
-
-    // Map associations
-    upload.associations = _.map(upload.associations, (association) => {
-      const handle = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[0])
-      const sku = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[1])
-      const res = {}
-      if (handle && handle != '') {
-        res.handle = handle
-        if (sku && sku != '') {
-          res.sku = sku
+        else {
+          const newProduct = ProductUpload.build(upload)
+          return newProduct.save()
         }
-        return res
-      }
-      return
-    })
-
-    // Handle is required, if not here, then reject whole row without error
-    if (!upload.handle) {
-      return Promise.resolve({})
-    }
-
-    const newProduct = ProductUpload.build(upload)
-    return newProduct.save()
+      })
   }
 
   /**
@@ -455,7 +461,7 @@ module.exports = class ProductCsvService extends Service {
             })
             .catch(err => {
               errors.push(err.message)
-              this.app.log.error('ROW ERROR',err)
+              this.app.log.error('ROW ERROR', err)
               parser.resume()
             })
         },
@@ -471,9 +477,10 @@ module.exports = class ProductCsvService extends Service {
               ProxyEngineService.publish('product_meta_upload.complete', results)
               return resolve(results)
             })
-            // TODO handle this more gracefully
             .catch(err => {
-              return reject(err)
+              errors.push(err.message)
+              results.errors = errors
+              return resolve(results)
             })
         },
         error: (err, file) => {
@@ -492,51 +499,60 @@ module.exports = class ProductCsvService extends Service {
    * @param uploadID
    */
   csvProductMetaRow(row, uploadID) {
-    // console.log(row)
-    const ProductMetaUpload = this.app.orm.ProductMetaUpload
-    const values = _.values(PRODUCT_META_UPLOAD)
-    const keys = _.keys(PRODUCT_META_UPLOAD)
-    const upload = {
-      upload_id: uploadID,
-      data: {}
-    }
-
-    _.each(row, (data, key) => {
-      if (data === '') {
-        row[key] = null
-      }
-    })
-
-    row = _.omitBy(row, _.isNil)
-
-    if (_.isEmpty(row)) {
-      return Promise.resolve({})
-    }
-
-    _.each(row, (data, key) => {
-      if (data !== '') {
-        const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
-        const k = keys[i]
-        if (i > -1 && k) {
-          if (k == 'handle') {
-            upload[k] = this.app.services.ProxyCartService.safeHandle(data)
-          }
-          else {
-            upload[k] = data
-          }
+    // Wrap this in a promise so we can gracefully handle an error
+    return Promise.resolve()
+      .then(() => {
+        const ProductMetaUpload = this.app.orm.ProductMetaUpload
+        const values = _.values(PRODUCT_META_UPLOAD)
+        const keys = _.keys(PRODUCT_META_UPLOAD)
+        const upload = {
+          upload_id: uploadID,
+          data: {}
         }
-        else {
-          let formatted = data
-          if (this.app.services.ProxyCartService.isJson(formatted)) {
-            formatted = JSON.parse(formatted)
-          }
-          upload.data[key] = formatted
-        }
-      }
-    })
 
-    const newMeta = ProductMetaUpload.build(upload)
-    return newMeta.save()
+        _.each(row, (data, key) => {
+          if (data === '') {
+            row[key] = null
+          }
+        })
+
+        row = _.omitBy(row, _.isNil)
+
+        if (_.isEmpty(row)) {
+          return Promise.resolve({})
+        }
+
+        _.each(row, (data, key) => {
+          if (data !== '') {
+            const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
+            const k = keys[i]
+            if (i > -1 && k) {
+              if (k == 'handle') {
+                upload[k] = this.app.services.ProxyCartService.safeHandle(data)
+              }
+              else {
+                upload[k] = data
+              }
+            }
+            else {
+              let formatted = data
+              if (this.app.services.ProxyCartService.isJson(formatted)) {
+                formatted = JSON.parse(formatted)
+              }
+              upload.data[key] = formatted
+            }
+          }
+        })
+
+        // If not metadata handle, resolve without doing anything or throwing an error
+        // if (!upload.handle) {
+        //   return Promise.resolve({})
+        // }
+        // else {
+        const newMeta = ProductMetaUpload.build(upload)
+        return newMeta.save()
+        // }
+      })
   }
 
   /**
