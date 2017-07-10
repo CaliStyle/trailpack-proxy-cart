@@ -311,17 +311,21 @@ module.exports = class CartService extends Service {
    * @param id
    * @returns {Promise}
    */
-  pricingOverrides(overrides, id, admin){
+  pricingOverrides(overrides, id, admin, options){
+    options = options || {}
     const Cart = this.app.orm['Cart']
+    // Standardize the input
     if (_.isObject(overrides) && overrides.pricing_overrides){
       overrides = overrides.pricing_overrides
     }
     overrides = overrides.map(override => {
+      // Add the admin id to the override
       override.admin_id = override.admin_id ? override.admin_id : admin.id
+      // Make sure price is a number
+      override.price = parseInt(override.price)
       return override
     })
-    // console.log(overrides, id, admin)
-    return Cart.resolve(id)
+    return Cart.resolve(id, {transaction: options.transaction || null})
       .then(cart => {
         cart.pricing_overrides = overrides
         cart.pricing_override_id = admin.id
@@ -358,13 +362,14 @@ module.exports = class CartService extends Service {
    * @param cart
    * @returns {Promise}
    */
-  addItemsToCart(items, cart){
+  addItemsToCart(items, cart, options){
+    options = options || {}
     const Cart = this.app.orm['Cart']
     if (items.line_items) {
       items = items.line_items
     }
     let resCart
-    return Cart.resolve(cart)
+    return Cart.resolve(cart, {transaction: options.transaction || null})
       .then(foundCart => {
         if (!foundCart) {
           throw new Errors.FoundError(Error('Cart Not Found'))

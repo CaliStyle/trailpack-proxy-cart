@@ -1168,6 +1168,8 @@ module.exports = class OrderService extends Service {
         if (_.isArray(shipping)) {
           shipping.forEach(ship => {
             const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === ship.name })
+            // Make sure shipping price is a number
+            ship.price = parseInt(ship.price)
             if ( i > -1) {
               resOrder.shipping_lines[i] = ship
             }
@@ -1178,6 +1180,9 @@ module.exports = class OrderService extends Service {
         }
         else {
           const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === shipping.name })
+          // Make sure shipping price is a number
+          shipping.price = parseInt(shipping.price)
+
           if ( i > -1) {
             resOrder.shipping_lines[i] = shipping
           }

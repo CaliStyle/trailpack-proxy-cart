@@ -30,6 +30,29 @@ module.exports = class TransactionController extends Controller {
         return res.serverError(err)
       })
   }
+
+  findAll(req, res) {
+    const orm = this.app.orm
+    const Transaction = orm['Transaction']
+    const limit = req.query.limit || 10
+    const offset = req.query.offset || 0
+    const sort = req.query.sort || 'created_at DESC'
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+
+    Transaction.findAndCount({
+      order: sort,
+      offset: offset,
+      limit: limit,
+      where: where
+    })
+      .then(transactions => {
+        this.app.services.ProxyEngineService.paginate(res, transactions.count, limit, offset, sort)
+        return res.json(transactions.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    *
    * @param req
@@ -149,7 +172,10 @@ module.exports = class TransactionController extends Controller {
         return res.serverError(err)
       })
   }
+  // TODO
+  cancel(req, res) {
 
+  }
   // TODO
   create(req, res) {
   }

@@ -4,6 +4,21 @@ const Cron = require('trailpack-proxy-engine').Cron
 
 module.exports = class SubscriptionsCron extends Cron {
   /**
+   * Subscriptions that will renew in X time
+   */
+  willRenew() {
+    // Every Hour Check for subscription that will renew
+    const rule = new this.schedule.RecurrenceRule()
+    rule.minute = 0
+    // Schedule the recurring job
+    this.schedule.scheduleJob('SubscriptionsCron.willRenew',rule, () => {
+      // this.app.services.SubscriptionService.renewThisHour()
+      //   .catch(err => {
+      //     this.app.log.error(err)
+      //   })
+    })
+  }
+  /**
    * Renews Subscriptions
    */
   renew() {
@@ -18,6 +33,10 @@ module.exports = class SubscriptionsCron extends Cron {
         })
     })
   }
+
+  /**
+   * Retry Failed Subscriptions
+   */
   retryFailed() {
     // Every Hour at 15 past Check for subscriptions to retry
     const rule = new this.schedule.RecurrenceRule()
@@ -30,6 +49,10 @@ module.exports = class SubscriptionsCron extends Cron {
         })
     })
   }
+
+  /**
+   * Cancel Failed Subscriptions
+   */
   cancelFailed() {
     // Every Hour at 30 past Check for subscriptions to cancel
     const rule = new this.schedule.RecurrenceRule()
