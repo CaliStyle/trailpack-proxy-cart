@@ -256,7 +256,6 @@ module.exports = {
     FUNDING: 'funding',
     // other: The order was cancelled for a reason not in the list above.
     OTHER: 'other'
-
   },
   ORDER_STATUS: {
     // The order is open
@@ -337,7 +336,7 @@ module.exports = {
     MANUAL: 'manual',
     // Payment processed by 3rd party in network
     OFFSITE: 'offsite',
-    //
+    // Payment was processed without a success/failure
     EXPRESS: 'express'
   },
   TRANSACTION_ERRORS: {

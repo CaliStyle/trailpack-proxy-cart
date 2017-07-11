@@ -37,15 +37,15 @@ module.exports = class ItemAddress extends Model {
           type: Sequelize.STRING,
           // unique: 'itemaddress_address'
         },
-        address: {
-          type: Sequelize.STRING,
-          defaultValue: 'address',
-          // unique: 'itemaddress_address'
-        },
         model_id: {
           type: Sequelize.INTEGER,
           // unique: 'itemaddress_address',
           references: null
+        },
+        address: {
+          type: Sequelize.STRING,
+          defaultValue: 'address',
+          // unique: 'itemaddress_address'
         }
       }
     }

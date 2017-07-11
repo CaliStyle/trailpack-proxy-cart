@@ -15,7 +15,7 @@ module.exports = class PaymentService extends Service {
    * Authorizes and amount
    * @param transaction
    * @param options
-   * @returns {Promise}
+   * @returns {Promise.<T>}
    */
   authorize(transaction, options){
     options = options || {}
@@ -27,7 +27,7 @@ module.exports = class PaymentService extends Service {
     }
     let resTransaction
     transaction.description = transaction.description || 'Transaction Authorize'
-    transaction = Transaction.build(transaction)
+    transaction = Transaction.build(transaction, options)
     return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
       .then(transaction => {
         return transaction.save()
@@ -58,7 +58,7 @@ module.exports = class PaymentService extends Service {
    * Captures and Authorized Amount
    * @param transaction
    * @param options
-   * @returns {Promise}
+   * @returns {Promise.<T>}
    */
   capture(transaction, options){
     options = options || {}
@@ -110,7 +110,7 @@ module.exports = class PaymentService extends Service {
    * Authorizes and Captures an amount
    * @param transaction
    * @param options
-   * @returns {Promise}
+   * @returns {Promise.<T>}
    */
   sale(transaction, options){
     options = options || {}
@@ -151,10 +151,10 @@ module.exports = class PaymentService extends Service {
   }
 
   /**
-   * Returns a pending promise (No 3rd party Transaction Created)
+   * Returns a pending promise (No 3rd party Transaction Created Yet)
    * @param transaction
    * @param options
-   * @returns {Promise}
+   * @returns {Promise.<T>}
    */
   manual(transaction, options){
     options = options || {}
@@ -168,12 +168,11 @@ module.exports = class PaymentService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {*}
+   * @returns {Promise.<T>}
    */
   void(transaction, options){
     options = options || {}
     const Transaction = this.app.orm['Transaction']
-    // const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
@@ -208,7 +207,7 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.void.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction voided of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } voided of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -222,12 +221,11 @@ module.exports = class PaymentService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {*}
+   * @returns {Promise.<T>}
    */
   refund(transaction, options){
     options = options || {}
     const Transaction = this.app.orm['Transaction']
-    // const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
     if (!paymentProcessor || !paymentProcessor.adapter) {
       // TODO throw proper error
@@ -264,7 +262,7 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.refund.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction refund of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } refund of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -278,7 +276,7 @@ module.exports = class PaymentService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<TResult>|*}
+   * @returns {Promise.<T>}
    */
   retry(transaction, options) {
     options = options || {}
@@ -313,7 +311,7 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.${resTransaction.kind}.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction ${resTransaction.kind} of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } ${resTransaction.kind} of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -327,7 +325,7 @@ module.exports = class PaymentService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
   cancel(transaction, options) {
     options = options || {}
@@ -354,7 +352,7 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: 'order.transaction.cancelled',
-          message: `Order ID ${resTransaction.order_id} transaction of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
           data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

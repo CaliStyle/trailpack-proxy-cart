@@ -32,6 +32,13 @@ module.exports = class Product extends Model {
             }
             // paranoid: false
           },
+          scopes: {
+            published: {
+              where: {
+                published: true
+              }
+            }
+          },
           hooks: {
             beforeValidate(values, options, fn) {
               if (!values.handle && values.title) {

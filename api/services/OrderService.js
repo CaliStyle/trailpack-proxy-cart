@@ -191,6 +191,7 @@ module.exports = class OrderService extends Service {
             has_shipping: obj.has_shipping,
             has_subscription: obj.has_subscription,
             fulfillment_kind: obj.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind,
+            payment_kind: obj.payment_kind || this.app.config.proxyCart.order_payment_kind,
 
             // Gateway
             payment_gateway_names: paymentGatewayNames,
@@ -985,7 +986,7 @@ module.exports = class OrderService extends Service {
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
       })
       .then(event => {
-        return Order.findByIdDefault(resOrder.id)
+        return resOrder //Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1061,7 +1062,7 @@ module.exports = class OrderService extends Service {
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
       })
       .then(event => {
-        return Order.findByIdDefault(resOrder.id)
+        return resOrder // Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1137,7 +1138,7 @@ module.exports = class OrderService extends Service {
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
       })
       .then(event => {
-        return Order.findByIdDefault(resOrder.id)
+        return resOrder // Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1192,6 +1193,9 @@ module.exports = class OrderService extends Service {
         }
         return resOrder.recalculate()
       })
+      // .then(() => {
+      //   return Order.findByIdDefault(resOrder.id)
+      // })
   }
 
   /**
@@ -1234,6 +1238,9 @@ module.exports = class OrderService extends Service {
         }
         return resOrder.recalculate()
       })
+      // .then(() => {
+      //   return Order.findByIdDefault(resOrder.id)
+      // })
   }
 
   retryThisHour() {
@@ -1279,11 +1286,11 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemAfterCreate(item, options){
-    // return item.reconcileFulfillment()
-    //   .then(item => {
-    //     return item.save()
-    //   })
-    return Promise.resolve(item)
+    return item.reconcileFulfillment()
+      .then(item => {
+        return item
+      })
+    // return Promise.resolve(item)
   }
 
   /**

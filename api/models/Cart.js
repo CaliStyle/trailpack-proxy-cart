@@ -62,6 +62,7 @@ module.exports = class Cart extends Model {
              *
              * @param data
              */
+            // TODO handle discounts
             line: function(data){
               const line = {
                 product_id: data.product_id,
@@ -88,6 +89,7 @@ module.exports = class Cart extends Model {
                 tax_lines: [],
                 shipping_lines: [],
                 discounted_lines: [],
+                total_discounts: 0,
                 requires_subscription: data.requires_subscription,
                 subscription_interval: data.subscription_interval,
                 subscription_unit: data.subscription_unit,
@@ -98,17 +100,15 @@ module.exports = class Cart extends Model {
                 fulfillable_quantity: data.fulfillable_quantity,
                 max_quantity: data.max_quantity,
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
-                // TODO handle discounts
-                total_discounts: 0,
                 vendors: data.Product.vendors,
                 live_mode: data.live_mode
               }
               return line
             },
-            // TODO reformat price on quantity
             addLine: function(item, qty, properties) {
               // The quantity available of this variant
               let lineQtyAvailable = -1
+              let line
               // Check if Product is Available
               return item.checkAvailability(qty)
                 .then(availability => {
@@ -130,6 +130,7 @@ module.exports = class Cart extends Model {
                     qty = 1
                   }
                   const itemIndex = _.findIndex(lineItems, {variant_id: item.id})
+                  // If already in cart
                   if (itemIndex > -1) {
                     app.log.silly('Cart.addLine NEW QTY', lineItems[itemIndex])
                     const maxQuantity = lineItems[itemIndex].max_quantity || -1
@@ -147,6 +148,7 @@ module.exports = class Cart extends Model {
                     lineItems[itemIndex].fulfillable_quantity = calculatedQty
                     this.line_items = lineItems
                   }
+                  // If new item
                   else {
                     const maxQuantity = item.max_quantity || -1
                     let calculatedQty = qty
@@ -158,14 +160,20 @@ module.exports = class Cart extends Model {
                     if (lineQtyAvailable > -1 && calculatedQty > lineQtyAvailable) {
                       calculatedQty = Math.max(0, lineQtyAvailable - calculatedQty)
                     }
-
+                    // Item Quantity in cart
                     item.quantity = calculatedQty
+                    // The max that will be fulfilled
                     item.fulfillable_quantity = calculatedQty
+                    // The max allowed to be purchased
                     item.max_quantity = maxQuantity
+                    // The properties of the item
                     item.properties = properties
-                    const line = this.line(item)
+                    // Set line
+                    line = this.line(item)
                     app.log.silly('Cart.addLine NEW LINE', line)
+                    // Add line to line items
                     lineItems.push(line)
+                    // Assign line items
                     this.line_items = lineItems
                   }
                   return this

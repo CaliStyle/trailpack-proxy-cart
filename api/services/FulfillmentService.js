@@ -3,7 +3,7 @@
 
 const Service = require('trails/service')
 const _ = require('lodash')
-// const Errors = require('proxy-engine-errors')
+const Errors = require('proxy-engine-errors')
 const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 // const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
@@ -52,7 +52,7 @@ module.exports = class FulfillmentService extends Service {
             order_id: resOrder.id,
             service: group.service,
             status: FULFILLMENT_STATUS.NONE,
-            total_not_fulfilled: group.items.length,
+            total_pending_fulfillments: group.items.length,
             order_items: group.items
           }, {
             include: [
@@ -212,6 +212,60 @@ module.exports = class FulfillmentService extends Service {
     return Promise.resolve(fulfillment)
   }
 
+  reconcileCreate(order, options) {
+    options = options || {}
+    const Order = this.app.orm['Order']
+    let resOrder//, totalNew = 0, availablePending = []
+    return Order.resolve(order, {fulfillment: options.fulfillment || null})
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Errors.FoundError(Error('Order Not Found'))
+        }
+        resOrder = foundOrder
+        if (!resOrder.fulfillments) {
+          return resOrder.getFulfillments()
+        }
+        else {
+          return resOrder.fulfillments
+        }
+      })
+      .then(fulfillments => {
+        fulfillments = fulfillments || []
+        resOrder.set('fulfillments', fulfillments)
+        return
+      })
+      .then(() => {
+        return resOrder
+      })
+  }
+
+  reconcileUpdate(order, options) {
+    options = options || {}
+    const Order = this.app.orm['Order']
+    let resOrder//, totalNew = 0, availablePending = []
+    return Order.resolve(order, {fulfillment: options.fulfillment || null})
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Errors.FoundError(Error('Order Not Found'))
+        }
+        resOrder = foundOrder
+        if (!resOrder.fulfillments) {
+          return resOrder.getFulfillments()
+        }
+        else {
+          return resOrder.fulfillments
+        }
+      })
+      .then(fulfillments => {
+        fulfillments = fulfillments || []
+        resOrder.set('fulfillments', fulfillments)
+        return
+      })
+      .then(() => {
+        return resOrder
+      })
+  }
+
 
   beforeCreate(fulfillment, options){
     return Promise.resolve(fulfillment)
@@ -255,7 +309,7 @@ module.exports = class FulfillmentService extends Service {
             'total_partial_fulfillments',
             'total_sent_fulfillments',
             'total_cancelled_fulfillments',
-            'total_not_fulfilled'
+            'total_pending_fulfillments'
           ],
           transaction: options.transaction || null
         })
@@ -313,7 +367,7 @@ module.exports = class FulfillmentService extends Service {
             'total_partial_fulfillments',
             'total_sent_fulfillments',
             'total_cancelled_fulfillments',
-            'total_not_fulfilled'
+            'total_pending_fulfillments'
           ],
           transaction: options.transaction || null
         })

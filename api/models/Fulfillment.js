@@ -245,7 +245,7 @@ module.exports = class Fulfillment extends Model {
               this.status = fulfillmentStatus
               this.total_fulfilled = totalFulfillments
               this.total_sent_to_fulfillment = totalSentFulfillments
-              this.total_not_fulfilled = totalNonFulfillments
+              this.total_pending_fulfillments = totalNonFulfillments
               this.total_cancelled = totalCancelledFulfillments
               return this
             }
@@ -294,7 +294,7 @@ module.exports = class Fulfillment extends Model {
           defaultValue: 0
         },
         // Total Order Items not Fulfilled
-        total_not_fulfilled: {
+        total_pending_fulfillments: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

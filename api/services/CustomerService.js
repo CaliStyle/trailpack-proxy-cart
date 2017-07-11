@@ -214,7 +214,7 @@ module.exports = class CustomerService extends Service {
             customer: resCustomer.id
           }],
           type: 'customer.created',
-          message: 'Customer created',
+          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id} created`,
           data: resCustomer
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -318,7 +318,7 @@ module.exports = class CustomerService extends Service {
             customer: resCustomer.id
           }],
           type: 'customer.updated',
-          message: 'Customer updated',
+          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } updated`,
           data: resCustomer
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
@@ -363,7 +363,7 @@ module.exports = class CustomerService extends Service {
             customer: resCustomer.id
           }],
           type: 'customer.account_balance.updated',
-          message: `Customer account balance was updated to ${ resCustomer.account_balance }`,
+          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } account balance was updated to ${ resCustomer.account_balance }`,
           data: resCustomer
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})

@@ -277,8 +277,8 @@ module.exports = class Order extends Model {
                 .then(transactions => {
                   transactions = transactions || []
                   this.set('transactions', transactions)
-
                   this.setFinancialStatus()
+
                   if (this.changed('financial_status')) {
                     currentStatus = this.financial_status
                     previousStatus = this.previous('financial_status')
@@ -310,7 +310,7 @@ module.exports = class Order extends Model {
                     return this.attemptImmediate()
                   }
                   else {
-                    return
+                    return this
                   }
                 })
                 .then(() => {
@@ -512,7 +512,7 @@ module.exports = class Order extends Model {
                 financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
               }
 
-              app.log.debug(`FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}`)
+              app.log.debug(`FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}, Pending: ${totalPending}`)
               // pending: The finances are pending. (This is the default value.)
               // authorized: The finances have been authorized.
               // partially_paid: The finances have been partially paid.
@@ -527,7 +527,7 @@ module.exports = class Order extends Model {
               this.total_voided = totalVoided
               this.total_cancelled = totalCancelled
               this.total_pending = totalPending
-              this.total_due = Math.max(0, this.total_price - totalSale)
+              this.total_due = this.total_price - totalSale
               return this
             },
             setFulfillmentStatus: function(){
@@ -595,7 +595,7 @@ module.exports = class Order extends Model {
               this.total_partial_fulfillments = totalPartialFulfillments
               this.total_sent_fulfillments  = totalSentFulfillments
               this.total_cancelled_fulfillments  = totalCancelledFulfillments
-              this.total_not_fulfilled = totalNonFulfillments
+              this.total_pending_fulfillments = totalNonFulfillments
               this.fulfillment_status = fulfillmentStatus
               return this
             },
@@ -791,7 +791,7 @@ module.exports = class Order extends Model {
                     return prevOrderItem.save()
                   }
                 })
-                .then(orderItem => {
+                .then(() => {
                   return this.reload()
                 })
             },
@@ -823,7 +823,7 @@ module.exports = class Order extends Model {
 
                   return prevOrderItem.save()
                 })
-                .then(updatedOrderItem => {
+                .then(() => {
                   return this.reload()
                 })
             },
@@ -856,9 +856,43 @@ module.exports = class Order extends Model {
                     return prevOrderItem.save()
                   }
                 })
-                .then(updatedOrderItem => {
+                .then(() => {
                   return this.reload()
                 })
+            },
+            reconcileTransactions: function() {
+              if (this.changed('total_due')) {
+                // partially cancel/void/refund
+                if (this.total_due <= this.previous('total_due')) {
+                  const amount = this.previous('total_due') - this.total_due
+                  console.log('VOID/REFUND TRANSACTION', amount)
+                  return app.services.TransactionService.reconcileUpdate(this, amount)
+                }
+                // authorize/capture/sale
+                else {
+                  const amount = this.total_due - this.previous('total_due')
+                  console.log('CREATE NEW TRANSACTION', amount)
+                  return app.services.TransactionService.reconcileCreate(this, amount)
+                }
+              }
+              else {
+                return Promise.resolve(this)
+              }
+            },
+            reconcileFulfillments: function() {
+              if (this.changed('total_items')) {
+                if (this.previous('total_items') < this.total_items) {
+                  console.log('remove item from fulfillment')
+                  return app.services.FulfillmentService.reconcileUpdate(this)
+                }
+                else {
+                  console.log('add item to fulfillment')
+                  return app.services.FulfillmentService.reconcileCreate(this)
+                }
+              }
+              else {
+                return Promise.resolve(this)
+              }
             },
             // TODO set up new transactions/fulfillments?
             recalculate: function() {
@@ -890,7 +924,7 @@ module.exports = class Order extends Model {
 
               this.total_tax = totalTax
               this.total_shipping = totalShipping
-              this.total_discounts = totalShipping
+              this.total_discounts = totalDiscounts
               this.total_coupons = totalCoupons
               this.total_overrides = totalOverrides
 
@@ -911,11 +945,15 @@ module.exports = class Order extends Model {
                     totalLineItemsPrice = totalLineItemsPrice + item.price
                     totalItems = totalItems + item.quantity
                   })
+
                   // Set the Total Items
                   this.total_items = totalItems
 
                   // Set the Total Line Items Price
                   this.total_line_items_price = totalLineItemsPrice
+
+                  this.subtotal_price = Math.max(0, this.total_line_items_price)
+                  this.total_price = Math.max(0, this.total_line_items_price + this.total_tax + this.total_shipping - this.total_discounts - this.total_coupons - this.total_overrides)
 
                   if (!this.transactions) {
                     return this.getTransactions()
@@ -926,12 +964,11 @@ module.exports = class Order extends Model {
                 })
                 .then(foundTransactions => {
                   resTransactions = foundTransactions || []
-
                   this.set('transactions', resTransactions)
-
-                  this.subtotal_price = Math.max(0, this.total_line_items_price)
-
-                  this.total_price = Math.max(0, this.total_line_items_price + this.total_tax + this.total_shipping - this.total_discounts - this.total_coupons - this.total_overrides)
+                  this.setFinancialStatus()
+                  return this.reconcileTransactions()
+                })
+                .then(() => {
 
                   if (!this.fulfillments) {
                     return this.getFulfillments()
@@ -943,7 +980,10 @@ module.exports = class Order extends Model {
                 .then(foundFulfillments => {
                   resFulfillments = foundFulfillments || []
                   this.set('fulfillments', resFulfillments)
-
+                  this.setFulfillmentStatus()
+                  return this.reconcileFulfillments()
+                })
+                .then(() => {
                   // Save the new Financial Status
                   return this.saveFinancialStatus()
                 })
@@ -1092,6 +1132,11 @@ module.exports = class Order extends Model {
           type: Sequelize.ENUM,
           values: _.values(ORDER_FINANCIAL),
           defaultValue: ORDER_FINANCIAL.PENDING
+        },
+        payment_kind: {
+          type: Sequelize.ENUM,
+          values: _.values(TRANSACTION_KIND),
+          defaultValue: app.config.proxyCart.order_payment_kind || TRANSACTION_KIND.MANUAL
         },
         // fulfilled: the order has been completely fulfilled
         // none: the order has no fulfillments
@@ -1293,7 +1338,7 @@ module.exports = class Order extends Model {
           defaultValue: 0
         },
         // The total amount of Fulfillments not yet fulfilled
-        total_not_fulfilled: {
+        total_pending_fulfillments: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

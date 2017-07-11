@@ -95,15 +95,24 @@ describe('OrderController', () => {
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
-        // console.log('ORDER ITEMS', res.body.order_items)
+        // Transactions
+        assert.equal(res.body.transactions.length, 1)
+        assert.equal(res.body.transactions[0].order_id, orderID)
+
+        // Fulfillments
         // Defaults to not immediately fulfilled: fulfillment_status: none
         assert.ok(res.body.order_items[0].fulfillment_id)
         assert.equal(res.body.order_items[0].fulfillment_status, 'none')
-
-        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'none')
         assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.total_pending_fulfillments, 1)
+
+        assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 100000)
         assert.equal(res.body.total_price, 100000)
+        assert.equal(res.body.total_authorized, 100000)
         assert.equal(res.body.total_due, 100000)
         assert.equal(res.body.total_items, 1)
 
@@ -135,12 +144,17 @@ describe('OrderController', () => {
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
-
-        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.transactions.length, 1)
+        assert.equal(res.body.transactions[0].order_id, orderID)
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'none')
         assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 100000)
         assert.equal(res.body.total_price, 100000)
         assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_authorized, 100000)
         assert.equal(res.body.total_items, 1)
 
         done(err)
@@ -156,14 +170,29 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('ADD ITEM',res.body)
+        // console.log('ADD ITEM',res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
-        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.fulfillment_status, 'none')
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 2)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'none')
+
         assert.equal(res.body.subtotal_price, 200000)
         assert.equal(res.body.total_price, 200000)
         assert.equal(res.body.total_due, 200000)
+        assert.equal(res.body.total_authorized, 200000)
         assert.equal(res.body.total_items, 2)
         done(err)
       })
@@ -178,13 +207,28 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
+        // console.log('UPDATE ITEM', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
-        // assert.equal(res.body.financial_status, 'pending')
+        assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.fulfillment_status, 'none')
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 3)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'none')
         assert.equal(res.body.subtotal_price, 300000)
         assert.equal(res.body.total_price, 300000)
         assert.equal(res.body.total_due, 300000)
+        assert.equal(res.body.total_authorized, 300000)
         assert.equal(res.body.total_items, 3)
         done(err)
       })
@@ -198,14 +242,29 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
+        // console.log('REMOVE ITEM', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
+        // Transactions
+        assert.equal(res.body.transactions.length, 3)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
 
-        // assert.equal(res.body.financial_status, 'pending')
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'none')
+
         assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 200000)
         assert.equal(res.body.total_price, 200000)
         assert.equal(res.body.total_due, 200000)
+        assert.equal(res.body.total_authorized, 200000)
+        assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 2)
         done(err)
       })
@@ -222,11 +281,26 @@ describe('OrderController', () => {
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 1)
 
-        // assert.equal(res.body.financial_status, 'pending')
+        // Transactions
+        assert.equal(res.body.transactions.length, 3)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'none')
+
+        assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.fulfillment_status, 'none')
         assert.equal(res.body.subtotal_price, 100000)
         assert.equal(res.body.total_price, 100000)
         assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_authorized, 100000)
+        assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
         done(err)
       })
@@ -240,7 +314,27 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('Add Shipping', res.body )
+        // Transactions
+        assert.equal(res.body.transactions.length, 4)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'none')
+
+        assert.equal(res.body.financial_status, 'authorized')
+        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 100100)
+        assert.equal(res.body.total_due, 100100)
+        assert.equal(res.body.total_authorized, 100100)
+        assert.equal(res.body.total_voided, 0)
+        assert.equal(res.body.total_items, 1)
         assert.equal(res.body.total_shipping, 100)
         done(err)
       })
@@ -254,7 +348,27 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('Remove Shipping', res.body )
+        // Transactions
+        assert.equal(res.body.transactions.length, 4)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'none')
+
+        assert.equal(res.body.financial_status, 'authorized')
+        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 100000)
+        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_authorized, 100000)
+        assert.equal(res.body.total_voided, 0)
+        assert.equal(res.body.total_items, 1)
         assert.equal(res.body.total_shipping, 0)
         done(err)
       })
@@ -272,13 +386,22 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS ORDER', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'paid')
 
-        transactionID = res.body.transactions[0].id
-        assert.equal(res.body.transactions[0].kind, 'capture')
-        assert.equal(res.body.transactions[0].status, 'success')
+        const transaction = res.body.transactions.find(transaction => transaction.amount > 0)
+        transactionID = transaction.id
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 4)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'capture')
+          assert.equal(transaction.status, 'success')
+        })
+
+        assert.equal(res.body.total_captured, 100000)
+        assert.equal(res.body.total_due, 0)
 
         done(err)
       })
@@ -293,6 +416,20 @@ describe('OrderController', () => {
       .expect(200)
       .end((err, res) => {
         assert.equal(res.body.id, orderID)
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 5)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Refunds
+        assert.equal(res.body.refunds.length, 1)
+        res.body.refunds.forEach(refund => {
+          assert.equal(refund.order_id, orderID)
+        })
+
         assert.equal(res.body.financial_status, 'partially_refunded')
         assert.equal(res.body.total_refunds, 100)
         assert.equal(res.body.total_due, 100)
@@ -305,14 +442,26 @@ describe('OrderController', () => {
       .send([])
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS ORDER', res.body)
+        console.log('THIS ORDER', res.body)
+
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'refunded')
         assert.equal(res.body.total_refunds, 100000)
         assert.equal(res.body.total_due, 100000)
-        // assert.equal(res.body.transactions[0].kind, 'refund')
-        assert.equal(res.body.transactions[0].status, 'success')
-        assert.equal(res.body.transactions[1].status, 'success')
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 5)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'refund')
+          assert.equal(transaction.status, 'success')
+        })
+
+        assert.equal(res.body.refunds.length, 5)
+        res.body.refunds.forEach(refund => {
+          assert.equal(refund.order_id, orderID)
+        })
+
         done(err)
       })
   })

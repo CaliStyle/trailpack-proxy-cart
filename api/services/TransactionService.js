@@ -5,6 +5,7 @@ const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
+const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 const moment = require('moment')
 
 /**
@@ -86,11 +87,43 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, options)
-      .then(transaction => {
-        if (!transaction) {
+      .then(foundTransaction => {
+        if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        return this.app.services.PaymentService.void(transaction, options)
+        if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+          throw new Error('Transaction must have successful to be refunded')
+        }
+        return this.app.services.PaymentService.void(foundTransaction, options)
+      })
+  }
+
+  /**
+   *
+   * @param transaction
+   * @param amount
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  partiallyVoid(transaction, amount, options) {
+    options = options || {}
+    const Transaction = this.app.orm['Transaction']
+    let resTransaction
+    return Transaction.resolve(transaction, options)
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+          throw new Error('Transaction must have successful to be voided')
+        }
+        if (foundTransaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+          throw new Error(`Transaction must be ${TRANSACTION_KIND.AUTHORIZE} to be partially voided`)
+        }
+        resTransaction = foundTransaction
+        // transaction.amount = amount
+        resTransaction.amount = Math.max(0, resTransaction.amount - amount)
+        return resTransaction.save(options)
       })
   }
 
@@ -98,7 +131,7 @@ module.exports = class TransactionService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<transaction>}
+   * @returns {Promise.<T>}
    */
   refund(transaction, options) {
     options = options || {}
@@ -108,6 +141,12 @@ module.exports = class TransactionService extends Service {
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+          throw new Error('Transaction must have been successful to be refunded')
+        }
+        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(foundTransaction.kind) === -1) {
+          throw new Error(`Only Transactions that are ${TRANSACTION_KIND.CAPTURE} or ${TRANSACTION_KIND.SALE} can be refunded`)
         }
         resTransaction = foundTransaction
         return this.app.services.PaymentService.refund(resTransaction, options)
@@ -119,8 +158,9 @@ module.exports = class TransactionService extends Service {
    * @param transaction
    * @param amount
    * @param options
-   * @returns {Promise.<transaction>}
+   * @returns {Promise.<T>}
    */
+  // TODO, double check if partial or full refund
   partiallyRefund(transaction, amount, options) {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
@@ -129,6 +169,12 @@ module.exports = class TransactionService extends Service {
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
+        }
+        if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+          throw new Error('Transaction must have been successful to be refunded')
+        }
+        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(foundTransaction.kind) === -1) {
+          throw new Error(`Only Transactions that are ${TRANSACTION_KIND.CAPTURE} or ${TRANSACTION_KIND.SALE} can be refunded`)
         }
         resTransaction = foundTransaction
         // transaction.amount = amount
@@ -149,7 +195,7 @@ module.exports = class TransactionService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<TResult>|*}
+   * @returns {Promise.<T>}
    */
   cancel(transaction, options) {
     const Transaction = this.app.orm['Transaction']
@@ -171,7 +217,7 @@ module.exports = class TransactionService extends Service {
    *
    * @param transaction
    * @param options
-   * @returns {Promise.<transaction>}
+   * @returns {Promise.<T>}
    */
   retry(transaction, options) {
     const Transaction = this.app.orm['Transaction']
@@ -186,6 +232,174 @@ module.exports = class TransactionService extends Service {
         }
         resTransaction = foundTransaction
         return this.app.services.PaymentService.retry(resTransaction, options)
+      })
+  }
+
+  reconcileCreate(order, amount, options) {
+    options = options || {}
+    const Order = this.app.orm['Order']
+    let resOrder, totalNew = 0, availablePending = []
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Errors.FoundError(Error('Order Not Found'))
+        }
+        resOrder = foundOrder
+        if (!resOrder.transactions) {
+          return resOrder.getTransactions()
+        }
+        else {
+          return resOrder.transactions
+        }
+      })
+      .then(transactions => {
+        transactions = transactions || []
+        resOrder.set('transactions', transactions)
+        return
+      })
+      .then(() => {
+        totalNew = amount
+        availablePending = resOrder.transactions.filter(transaction =>
+        transaction.status === TRANSACTION_STATUS.PENDING
+        && [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.AUTHORIZE].indexOf(transaction.kind) > -1)
+
+        // If some pending transactions just add the new amount total to one of the transactions
+        if (availablePending.length > 0) {
+          availablePending[0].amount = availablePending[0].amount + totalNew
+          return availablePending[0].save({hooks: false})
+        }
+        else {
+          const transaction = {
+            // Set the customer id (in case we can save this source)
+            customer_id: resOrder.customer_id,
+            // Set the order id
+            order_id: resOrder.id,
+            // Set the source if it is given
+            // source_id: detail.source ? detail.source.id : null,
+            // Set the order currency
+            currency: resOrder.currency,
+            // Set the amount for this transaction and handle if it is a split transaction
+            amount: totalNew,
+            // Copy the entire payment details to this transaction
+            // payment_details: obj.payment_details[index],
+            // Specify the gateway to use
+            gateway: resOrder.payment_gateway_names[0],
+            // Set the device (that input the credit card) or null
+            // device_id: obj.device_id || null,
+            // The kind of this new transaction
+            kind: resOrder.payment_kind,
+            // Set the Description
+            description: `Order ${resOrder.name} original transaction ${resOrder.payment_kind}`
+          }
+          return this.app.services.PaymentService[resOrder.payment_kind](transaction, {hooks: false})
+            .then(transaction => {
+              // resOrder.addTransaction(transaction) has an updatedAt bug
+              const transactions = resOrder.transactions.concat(transaction)
+              resOrder.set('transactions', transactions)
+              return // resOrder.addTransaction(transaction.id)
+            })
+        }
+      })
+      .then(() => {
+        return resOrder
+      })
+  }
+
+  reconcileUpdate(order, amount, options) {
+    options = options || {}
+    const Order = this.app.orm['Order']
+    let resOrder,
+      totalNew = 0,
+      availablePending = [],
+      availableAuthorized = [],
+      availableRefund = [],
+      toUpdate = []
+
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Errors.FoundError(Error('Order Not Found'))
+        }
+        resOrder = foundOrder
+        if (!resOrder.transactions) {
+          return resOrder.getTransactions()
+        }
+        else {
+          return resOrder.transactions
+        }
+      })
+      .then(transactions => {
+        transactions = transactions || []
+        resOrder.set('transactions', transactions)
+
+        totalNew = amount
+
+        availablePending = resOrder.transactions.filter(transaction =>
+        transaction.status === TRANSACTION_STATUS.PENDING
+        && [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.AUTHORIZE].indexOf(transaction.kind) > -1)
+
+        availableAuthorized = resOrder.transactions.filter(transaction =>
+        transaction.status === TRANSACTION_STATUS.SUCCESS
+        && [TRANSACTION_KIND.AUTHORIZE].indexOf(transaction.kind) > -1)
+
+        availableRefund = resOrder.transactions.filter(transaction =>
+        transaction.status === TRANSACTION_STATUS.SUCCESS
+        && [TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(transaction.kind) > -1)
+
+        availablePending.forEach(transaction => {
+          if (totalNew > 0) {
+            const oldAmount = transaction.amount
+            const newAmount = Math.max(0, transaction.amount - totalNew)
+            totalNew = totalNew - oldAmount
+            transaction.amount = newAmount
+            toUpdate.push(transaction.save({hooks: false}))
+          }
+        })
+        availableAuthorized.forEach(transaction => {
+          if (totalNew > 0) {
+            const oldAmount = transaction.amount
+            const newAmount = Math.max(0, transaction.amount - totalNew)
+            totalNew = totalNew - oldAmount
+            toUpdate.push(this.partiallyVoid(transaction, oldAmount - newAmount, { hooks: false }))
+          }
+        })
+        availableRefund.forEach(transaction => {
+          if (totalNew > 0) {
+            const oldAmount = transaction.amount
+            const newAmount = Math.max(0, transaction.amount - totalNew)
+            totalNew = totalNew - oldAmount
+            toUpdate.push(this.partiallyRefund(transaction, oldAmount - newAmount, { hooks: false }))
+          }
+        })
+        return Promise.all(toUpdate.map(update => { return update}))
+        // do {
+        //   toUpdate.push()
+        // } while (totalNew < 0)
+
+        // // If some pending transactions just deduct the new difference
+        // if (availablePending.length > 0) {
+        //   return Promise.all(availablePending.map(transaction => {
+        //     if (totalNew <= 0) {
+        //       return
+        //     }
+        //     else {
+        //       const dif = Math.max(0, transaction.amount + totalNew)
+        //       transaction.amount = dif
+        //       totalNew = totalNew - (transaction.amount + transaction.previous('amount'))
+        //       return transaction.save({hooks: false})
+        //     }
+        //   }))
+        // }
+        // else if () {
+        //
+        // }
+        // else {
+        //   // TODO
+        //   return
+        // }
+      })
+      .then(() => {
+        return resOrder
       })
   }
 
