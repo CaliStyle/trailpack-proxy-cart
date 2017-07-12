@@ -1,8 +1,8 @@
 'use strict'
 
 const Controller = require('trails/controller')
+const Errors = require('proxy-engine-errors')
 const lib = require('../../lib')
-// const Errors = require('proxy-engine-errors')
 
 /**
  * @module TransactionController
@@ -48,6 +48,30 @@ module.exports = class TransactionController extends Controller {
       .then(transactions => {
         this.app.services.ProxyEngineService.paginate(res, transactions.count, limit, offset, sort)
         return res.json(transactions.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findById(req, res){
+    const orm = this.app.orm
+    const Transaction = orm['Transaction']
+    let id = req.params.id
+    if (!id && req.transaction) {
+      id = req.transaction.id
+    }
+    Transaction.findById(id, {})
+      .then(transaction => {
+        if (!transaction) {
+          throw new Errors.FoundError(Error(`Transaction id ${id} not found`))
+        }
+        return res.json(transaction)
       })
       .catch(err => {
         return res.serverError(err)

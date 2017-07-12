@@ -212,10 +212,16 @@ module.exports = class FulfillmentService extends Service {
     return Promise.resolve(fulfillment)
   }
 
+  /**
+   *
+   * @param order
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
   reconcileCreate(order, options) {
     options = options || {}
     const Order = this.app.orm['Order']
-    let resOrder//, totalNew = 0, availablePending = []
+    let resOrder, noFulfillment = [], toDo = [], availablePending = [], availableUpdate = []
     return Order.resolve(order, {fulfillment: options.fulfillment || null})
       .then(foundOrder => {
         if (!foundOrder) {
@@ -232,7 +238,46 @@ module.exports = class FulfillmentService extends Service {
       .then(fulfillments => {
         fulfillments = fulfillments || []
         resOrder.set('fulfillments', fulfillments)
-        return
+
+        if (!resOrder.order_items) {
+          return resOrder.getOrder_items()
+        }
+        else {
+          return resOrder.order_items
+        }
+      })
+      .then(orderItems => {
+        orderItems = orderItems || []
+        resOrder.set('order_items', orderItems)
+
+        availablePending = resOrder.fulfillments.filter(fulfillment => fulfillment.status == FULFILLMENT_STATUS.NONE)
+
+        availableUpdate = resOrder.fulfillments.filter(fulfillment => fulfillment.status == FULFILLMENT_STATUS.SENT)
+
+        noFulfillment = resOrder.order_items.filter(item => !item.fulfillment_id)
+
+        noFulfillment.forEach((item, index) => {
+          const allowed = availablePending.find(fulfillment => fulfillment.service === item.fulfillment_service)
+          if (allowed) {
+            item.fulfillment_id = allowed.id
+            toDo.push(item.save())
+            noFulfillment.splice(index, 1)
+          }
+        })
+
+        // TODO Should Send fulfillment update
+        noFulfillment.forEach((item, index) => {
+          const allowed = availableUpdate.find(fulfillment => fulfillment.service === item.fulfillment_service)
+          if (allowed) {
+            item.fulfillment_id = allowed.id
+            toDo.push(item.save())
+            noFulfillment.splice(index, 1)
+          }
+        })
+
+        // TODO create new fulfillment
+
+        return Promise.all(toDo.map(item => { return item }))
       })
       .then(() => {
         return resOrder

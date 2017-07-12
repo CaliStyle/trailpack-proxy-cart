@@ -74,8 +74,9 @@ module.exports = class Image extends Model {
                 constraints: false
               })
             },
+            // TODO
             resolve: function(image, options) {
-              //
+              return Promise.resolve(image)
             },
             transformImages: (images, options) => {
               const Image = app.orm['Image']

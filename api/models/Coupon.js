@@ -88,7 +88,9 @@ module.exports = class Coupon extends Model {
               }
               return recursiveQuery(options)
             },
+            // TODO
             resolve: function(coupon, options){
+              return Promise.resolve(coupon)
               //
             }
           }

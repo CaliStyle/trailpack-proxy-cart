@@ -301,7 +301,7 @@ module.exports = class TransactionService extends Service {
         }
       })
       .then(() => {
-        return resOrder
+        return resOrder// .reload()
       })
   }
 

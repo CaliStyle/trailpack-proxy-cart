@@ -55,8 +55,9 @@ module.exports = class Tag extends Model {
                 constraints: false
               })
             },
+            // TODO
             resolve: function(tag, options){
-              //
+              return Promise.resolve(tag)
             },
             /**
              *

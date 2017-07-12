@@ -101,6 +101,7 @@ module.exports = class Cart extends Model {
                 max_quantity: data.max_quantity,
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
                 vendors: data.Product.vendors,
+                average_shipping: data.Product.average_shipping,
                 live_mode: data.live_mode
               }
               return line

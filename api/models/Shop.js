@@ -61,8 +61,9 @@ module.exports = class Shop extends Model {
                 foreignKey: 'shop_id'
               })
             },
+            // TODO
             resolve: function(shop, options){
-              //
+              return Promise.resolve(shop)
             },
             transformShops: (shops, options) => {
               options = options || {}

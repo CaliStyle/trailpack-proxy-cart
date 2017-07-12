@@ -123,7 +123,7 @@ module.exports = class OrderItem extends Model {
               else {
                 // TODO throw proper error
                 const err = new Error('Unable to resolve Order Item')
-                Promise.reject(err)
+                return Promise.reject(err)
               }
             }
           },
@@ -159,6 +159,8 @@ module.exports = class OrderItem extends Model {
               return Promise.resolve(this)
             },
             reconcileFulfillment: function() {
+              // const isNew = this.isNewRecord()
+              // console.log('IS NEW', isNew)
               return Promise.resolve(this)
             }
           }

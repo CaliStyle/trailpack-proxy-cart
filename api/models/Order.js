@@ -222,7 +222,7 @@ module.exports = class Order extends Model {
               else {
                 // TODO create proper error
                 const err = new Error('Unable to resolve Order')
-                Promise.reject(err)
+                return Promise.reject(err)
               }
             }
           },
@@ -865,13 +865,13 @@ module.exports = class Order extends Model {
                 // partially cancel/void/refund
                 if (this.total_due <= this.previous('total_due')) {
                   const amount = this.previous('total_due') - this.total_due
-                  console.log('VOID/REFUND TRANSACTION', amount)
+                  // console.log('VOID/REFUND TRANSACTION', amount)
                   return app.services.TransactionService.reconcileUpdate(this, amount)
                 }
                 // authorize/capture/sale
                 else {
                   const amount = this.total_due - this.previous('total_due')
-                  console.log('CREATE NEW TRANSACTION', amount)
+                  // console.log('CREATE NEW TRANSACTION', amount)
                   return app.services.TransactionService.reconcileCreate(this, amount)
                 }
               }
@@ -955,6 +955,9 @@ module.exports = class Order extends Model {
                   this.subtotal_price = Math.max(0, this.total_line_items_price)
                   this.total_price = Math.max(0, this.total_line_items_price + this.total_tax + this.total_shipping - this.total_discounts - this.total_coupons - this.total_overrides)
 
+                //   return this.save({hooks: false})
+                // })
+                // .then(() => {
                   if (!this.transactions) {
                     return this.getTransactions()
                   }

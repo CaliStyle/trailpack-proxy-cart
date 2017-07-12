@@ -129,7 +129,7 @@ module.exports = class Transaction extends Model {
               }
               else {
                 const err = new Error('Unable to resolve Transaction')
-                Promise.reject(err)
+                return Promise.reject(err)
               }
             }
           },

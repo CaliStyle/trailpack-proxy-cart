@@ -136,7 +136,9 @@ module.exports = class Discount extends Model {
               }
               return recursiveQuery(options)
             },
+            // TODO
             resolve: function(discount, options){
+              return Promise.resolve(discount)
               //
             }
           }

@@ -58,7 +58,9 @@ module.exports = class Refund extends Model {
                 constraints: false
               })
             },
+            // TODO
             resolve: function(refund, options){
+              return Promise.resolve(refund)
               // options = options || {}
             }
 
