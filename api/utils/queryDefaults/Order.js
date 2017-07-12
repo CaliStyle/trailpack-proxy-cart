@@ -16,13 +16,14 @@ module.exports = {
         },
         {
           model: app.orm['Fulfillment'],
-          as: 'fulfillments'
-          // include: [
-          //   {
-          //     model: app.orm['OrderItem'],
-          //     as: 'order_items'
-          //   }
-          // ]
+          as: 'fulfillments',
+          include: [
+            {
+              model: app.orm['OrderItem'],
+              as: 'order_items',
+              attributes: ['id','quantity','fulfillment_status']
+            }
+          ]
         },
         {
           model: app.orm['Refund'],
@@ -44,6 +45,13 @@ module.exports = {
             as: 'order_items'
           },
           'calculated_price'
+        ],
+        [
+          {
+            model: app.orm['Transaction'],
+            as: 'transactions'
+          },
+          'amount', 'DESC'
         ],
         [
           {

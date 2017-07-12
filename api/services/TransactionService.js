@@ -179,7 +179,7 @@ module.exports = class TransactionService extends Service {
         resTransaction = foundTransaction
         // transaction.amount = amount
         resTransaction.amount = Math.max(0, resTransaction.amount - amount)
-        return resTransaction.save()
+        return resTransaction.save(options)
       })
       .then(() => {
         const newTransaction = _.omit(resTransaction.get({plain: true}), ['id'])
@@ -337,14 +337,23 @@ module.exports = class TransactionService extends Service {
         availablePending = resOrder.transactions.filter(transaction =>
         transaction.status === TRANSACTION_STATUS.PENDING
         && [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.AUTHORIZE].indexOf(transaction.kind) > -1)
+          .sort((a, b) => {
+            return b.amount - a.amount
+          })
 
         availableAuthorized = resOrder.transactions.filter(transaction =>
         transaction.status === TRANSACTION_STATUS.SUCCESS
         && [TRANSACTION_KIND.AUTHORIZE].indexOf(transaction.kind) > -1)
+          .sort((a, b) => {
+            return b.amount - a.amount
+          })
 
         availableRefund = resOrder.transactions.filter(transaction =>
         transaction.status === TRANSACTION_STATUS.SUCCESS
         && [TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(transaction.kind) > -1)
+          .sort((a, b) => {
+            return b.amount - a.amount
+          })
 
         availablePending.forEach(transaction => {
           if (totalNew > 0) {
@@ -371,32 +380,7 @@ module.exports = class TransactionService extends Service {
             toUpdate.push(this.partiallyRefund(transaction, oldAmount - newAmount, { hooks: false }))
           }
         })
-        return Promise.all(toUpdate.map(update => { return update}))
-        // do {
-        //   toUpdate.push()
-        // } while (totalNew < 0)
-
-        // // If some pending transactions just deduct the new difference
-        // if (availablePending.length > 0) {
-        //   return Promise.all(availablePending.map(transaction => {
-        //     if (totalNew <= 0) {
-        //       return
-        //     }
-        //     else {
-        //       const dif = Math.max(0, transaction.amount + totalNew)
-        //       transaction.amount = dif
-        //       totalNew = totalNew - (transaction.amount + transaction.previous('amount'))
-        //       return transaction.save({hooks: false})
-        //     }
-        //   }))
-        // }
-        // else if () {
-        //
-        // }
-        // else {
-        //   // TODO
-        //   return
-        // }
+        return Promise.all(toUpdate.map(update => { return update }))
       })
       .then(() => {
         return resOrder

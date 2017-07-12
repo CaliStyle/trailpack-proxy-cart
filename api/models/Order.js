@@ -613,14 +613,17 @@ module.exports = class Order extends Model {
               }
               return Promise.resolve()
                 .then(() => {
-                  if (this.transactions && this.transactions.length > 0) {
-                    return Promise.resolve(this.transactions)
+                  if (!this.transactions) {
+                    return this.getTransactions()
                   }
                   else {
-                    return this.getTransactions()
+                    return this.transactions
                   }
                 })
                 .then(transactions => {
+                  transactions = transactions || []
+                  this.set('transactions', transactions)
+
                   let total = 0
                   const successes = transactions.filter(transaction => transaction.status == TRANSACTION_STATUS.SUCCESS)
                   successes.forEach(success => {
@@ -651,14 +654,17 @@ module.exports = class Order extends Model {
               }
               return Promise.resolve()
                 .then(() => {
-                  // if (this.transactions && this.transactions.length > 0) {
-                  //   return Promise.resolve(this.transactions)
-                  // }
-                  // else {
-                  return this.getTransactions()
-                  // }
+                  if (!this.transactions) {
+                    return this.getTransactions()
+                  }
+                  else {
+                    return this.transactions
+                  }
                 })
                 .then(transactions => {
+                  transactions = transactions || []
+                  this.set('transactions', transactions)
+
                   let total = 0
                   const successes = transactions.filter(transaction => transaction.status == TRANSACTION_STATUS.SUCCESS)
 
@@ -775,7 +781,10 @@ module.exports = class Order extends Model {
                     item.product_id === orderItem.product_id && item.variant_id === orderItem.variant_id)
 
                   if (!prevOrderItem) {
-                    return orderItem.save()
+                    return orderItem.reconcileFulfillment()
+                      .then(() =>{
+                        return orderItem.save()
+                      })
                   }
                   else {
                     prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
@@ -788,7 +797,10 @@ module.exports = class Order extends Model {
                     if (orderItem.properties) {
                       prevOrderItem.properties = orderItem.properties
                     }
-                    return prevOrderItem.save()
+                    return prevOrderItem.reconcileFulfillment()
+                      .then(() =>{
+                        return prevOrderItem.save()
+                      })
                   }
                 })
                 .then(() => {
@@ -821,7 +833,10 @@ module.exports = class Order extends Model {
                     prevOrderItem.properties = orderItem.properties
                   }
 
-                  return prevOrderItem.save()
+                  return prevOrderItem.reconcileFulfillment()
+                    .then(() =>{
+                      return prevOrderItem.save()
+                    })
                 })
                 .then(() => {
                   return this.reload()
@@ -850,10 +865,16 @@ module.exports = class Order extends Model {
                   prevOrderItem.total_weight = prevOrderItem.total_weight - orderItem.total_weight
 
                   if (prevOrderItem.quantity <= 0) {
-                    return prevOrderItem.destroy()
+                    return prevOrderItem.reconcileFulfillment()
+                      .then(() =>{
+                        return prevOrderItem.destroy()
+                      })
                   }
                   else {
-                    return prevOrderItem.save()
+                    return prevOrderItem.reconcileFulfillment()
+                      .then(() =>{
+                        return prevOrderItem.save()
+                      })
                   }
                 })
                 .then(() => {
@@ -880,19 +901,19 @@ module.exports = class Order extends Model {
               }
             },
             reconcileFulfillments: function() {
-              if (this.changed('total_items')) {
-                if (this.previous('total_items') < this.total_items) {
-                  console.log('remove item from fulfillment')
-                  return app.services.FulfillmentService.reconcileUpdate(this)
-                }
-                else {
-                  console.log('add item to fulfillment')
-                  return app.services.FulfillmentService.reconcileCreate(this)
-                }
-              }
-              else {
-                return Promise.resolve(this)
-              }
+              // if (this.changed('total_items')) {
+              //   if (this.previous('total_items') < this.total_items) {
+              //     console.log('remove item from fulfillment')
+              //     return app.services.FulfillmentService.reconcileUpdate(this)
+              //   }
+              //   else {
+              //     console.log('add item to fulfillment')
+              //     return app.services.FulfillmentService.reconcileCreate(this)
+              //   }
+              // }
+              // else {
+              return Promise.resolve(this)
+              // }
             },
             // TODO set up new transactions/fulfillments?
             recalculate: function() {

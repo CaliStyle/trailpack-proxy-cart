@@ -150,7 +150,7 @@ module.exports = class FulfillmentService extends Service {
           resFulfillment.service === FULFILLMENT_SERVICE.MANUAL
           && resFulfillment.order_items.filter(item => item.requires_shipping).length == 0
         ){
-          resFulfillment.status = FULFILLMENT_STATUS.FULFILLED
+          resFulfillment.fulfilled()
           return Promise.all(resFulfillment.order_items.map(item => {
             item.fulfillment_status = resFulfillment.status
             return item.save({hooks: false})
@@ -158,7 +158,7 @@ module.exports = class FulfillmentService extends Service {
         }
         // If a manually supplied item mark as sent to manual
         else if (resFulfillment.service === FULFILLMENT_SERVICE.MANUAL){
-          resFulfillment.status = FULFILLMENT_STATUS.SENT
+          resFulfillment.sent()
           return Promise.all(resFulfillment.order_items.map(item => {
             item.fulfillment_status = resFulfillment.status
             return item.save({hooks: false})
@@ -167,7 +167,7 @@ module.exports = class FulfillmentService extends Service {
         else {
           return this.app.services.FulfillmentGenericService.createOrder(resFulfillment, resFulfillment.service)
             .then(result => {
-              resFulfillment.status = result.status
+              resFulfillment[result.status]()
               return Promise.all(resFulfillment.order_items.map(item => {
                 item.fulfillment_status = resFulfillment.status
                 return item.save({hooks: false})
@@ -176,8 +176,8 @@ module.exports = class FulfillmentService extends Service {
         }
       })
       .then(() => {
-        resFulfillment.setFulfillmentStatus()
-        return resFulfillment.save()
+        return resFulfillment.setFulfillmentStatus().save()
+        // return resFulfillment.save()
       })
       .then(() => {
         const event = {
@@ -202,14 +202,234 @@ module.exports = class FulfillmentService extends Service {
       })
   }
 
-  // TODO
-  updateFulfillment(order, fulfillment, options) {
-
+  /**
+   *
+   * @param fulfillment
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  updateFulfillment(fulfillment, options) {
+    options = options || {}
+    const Fulfillment = this.app.orm['Fulfillment']
+    let resFulfillment
+    return Fulfillment.resolve(fulfillment, { transaction: options.transaction || null, })
+      .then(foundFulfillment => {
+        if (!foundFulfillment) {
+          throw new Error('Fulfillment not found')
+        }
+        if ([FULFILLMENT_STATUS.FULFILLED, FULFILLMENT_STATUS.CANCELLED].indexOf(foundFulfillment.status) > -1) {
+          throw new Error(`Fulfillment status must be ${ FULFILLMENT_STATUS.PENDING }, ${ FULFILLMENT_STATUS.NONE }, ${FULFILLMENT_STATUS.PARTIAL}, ${FULFILLMENT_STATUS.SENT} to update`)
+        }
+        resFulfillment = foundFulfillment
+        if ([FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.PENDING].indexOf(resFulfillment.status) > -1) {
+          return
+        }
+        else if ([FULFILLMENT_STATUS.SENT, FULFILLMENT_STATUS.PARTIAL].indexOf(resFulfillment.status) > -1) {
+          return this.app.services.FulfillmentGenericService.updateOrder(resFulfillment, resFulfillment.service)
+        }
+        else {
+          // Unhandled
+          return
+        }
+      })
+      .then(() => {
+        return resFulfillment.setFulfillmentStatus().save()
+      })
   }
-  // TODO
+
+  /**
+   *
+   * @param fulfillment
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
   cancelFulfillment(fulfillment, options) {
     options = options || {}
-    return Promise.resolve(fulfillment)
+    const Fulfillment = this.app.orm['Fulfillment']
+    const OrderItem = this.app.orm['OrderItem']
+    let resFulfillment
+    return Fulfillment.resolve(fulfillment, { transaction: options.transaction || null, })
+      .then(foundFulfillment => {
+        if (!foundFulfillment) {
+          throw new Error('Fulfillment not found')
+        }
+        if ([FULFILLMENT_STATUS.FULFILLED, FULFILLMENT_STATUS.CANCELLED].indexOf(foundFulfillment.status) > -1) {
+          throw new Error(`Fulfillment status must be ${ FULFILLMENT_STATUS.PENDING }, ${ FULFILLMENT_STATUS.NONE }, ${FULFILLMENT_STATUS.PARTIAL}, ${FULFILLMENT_STATUS.SENT} to be cancelled`)
+        }
+
+        resFulfillment = foundFulfillment
+
+        if ([FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.PENDING].indexOf(resFulfillment.status) > -1) {
+          return
+        }
+        else {
+          return this.app.services.FulfillmentGenericService.destroyOrder(resFulfillment, resFulfillment.service)
+        }
+      })
+      .then(() => {
+        return OrderItem.update({fulfillment_status: FULFILLMENT_STATUS.CANCELLED}, {
+          where: {
+            fulfillment_id: resFulfillment.id
+          },
+          hooks: false,
+          individualHooks: false,
+          returning: false
+        })
+      })
+      .then(() => {
+        return resFulfillment.cancelled().save()
+      })
+  }
+
+  /**
+   *
+   * @param item
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  addOrCreateFulfillmentItem(item, options) {
+    options = options || {}
+    const OrderItem = this.app.orm['OrderItem']
+    const Fulfillment = this.app.orm['Fulfillment']
+    let resOrderItem
+    return OrderItem.resolve(item, options)
+      .then(foundItem => {
+        if (!foundItem) {
+          throw new Error('Order Item not Found')
+        }
+        resOrderItem = foundItem
+        return Fulfillment.find({
+          where: {
+            order_id: resOrderItem.order_id,
+            service: resOrderItem.fulfillment_service
+          },
+          include: [
+            {
+              model: OrderItem,
+              as: 'order_items'
+            }
+          ],
+          transaction: options.transaction || null
+        })
+      })
+      .then(fulfillment => {
+        if (fulfillment) {
+          return fulfillment.addOrder_item(resOrderItem, {
+            hooks: false,
+            individualHooks: false,
+            returning: false
+          })
+            .then(() => {
+              // TODO this is messy
+              resOrderItem.fulfillment_id = fulfillment.id
+              const orderItems = fulfillment.order_items.concat(resOrderItem)
+              fulfillment.order_items = orderItems
+              fulfillment.set('order_items', orderItems)
+              return this.updateFulfillment(fulfillment, options)
+            })
+        }
+        else {
+          // TODO process to send
+          return Fulfillment.create({
+            order_id: resOrderItem.order_id,
+            service: resOrderItem.fulfillment_service,
+            order_items: [resOrderItem]
+          }, {
+            include: [
+              {
+                model: OrderItem,
+                as: 'order_items'
+              }
+            ]})
+        }
+      })
+      .then(() => {
+        return resOrderItem
+      })
+  }
+
+  /**
+   *
+   * @param item
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  updateFulfillmentItem(item, options) {
+    options = options || {}
+    const OrderItem = this.app.orm['OrderItem']
+    const Fulfillment = this.app.orm['Fulfillment']
+    let resOrderItem
+    return OrderItem.resolve(item, options)
+      .then(foundItem => {
+        if (!foundItem) {
+          throw new Error('Order Item not Found')
+        }
+        resOrderItem = foundItem
+        return Fulfillment.find({
+          where: {
+            order_id: resOrderItem.order_id,
+            service: resOrderItem.fulfillment_service
+          },
+          include: [
+            {
+              model: OrderItem,
+              as: 'order_items'
+            }
+          ],
+          transaction: options.transaction || null
+        })
+      })
+      .then(fulfillment => {
+        // TODO this is sloppy
+        const index = fulfillment.order_items.findIndex(item => item.id == resOrderItem.id)
+        fulfillment.order_items[index] = resOrderItem
+        return this.updateFulfillment(fulfillment, options)
+      })
+      .then(() => {
+        return resOrderItem
+      })
+  }
+
+  /**
+   *
+   * @param item
+   * @param options
+   * @returns {*|Promise.<TResult>}
+   */
+  removeFulfillmentItem(item, options) {
+    options = options || {}
+    const OrderItem = this.app.orm['OrderItem']
+    const Fulfillment = this.app.orm['Fulfillment']
+    let resOrderItem
+    return OrderItem.resolve(item, options)
+      .then(foundItem => {
+        if (!foundItem) {
+          throw new Error('Order Item not Found')
+        }
+        resOrderItem = foundItem
+        return Fulfillment.find({
+          where: {
+            order_id: resOrderItem.order_id,
+            service: resOrderItem.fulfillment_service
+          },
+          include: [
+            {
+              model: OrderItem,
+              as: 'order_items'
+            }
+          ],
+          transaction: options.transaction || null
+        })
+      })
+      .then(fulfillment => {
+        // TODO, this is sloppy
+        const index = fulfillment.order_items.findIndex(item => item.id == resOrderItem.id)
+        fulfillment.order_items[index] = resOrderItem
+        return this.updateFulfillment(fulfillment, options)
+      })
+      .then(() => {
+        return resOrderItem
+      })
   }
 
   /**
@@ -218,11 +438,12 @@ module.exports = class FulfillmentService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
+  // TODO
   reconcileCreate(order, options) {
     options = options || {}
     const Order = this.app.orm['Order']
     let resOrder, noFulfillment = [], toDo = [], availablePending = [], availableUpdate = []
-    return Order.resolve(order, {fulfillment: options.fulfillment || null})
+    return Order.resolve(order, {transaction: options.transaction || null})
       .then(foundOrder => {
         if (!foundOrder) {
           throw new Errors.FoundError(Error('Order Not Found'))
@@ -284,11 +505,18 @@ module.exports = class FulfillmentService extends Service {
       })
   }
 
+  /**
+   *
+   * @param order
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  // TODO
   reconcileUpdate(order, options) {
     options = options || {}
     const Order = this.app.orm['Order']
     let resOrder//, totalNew = 0, availablePending = []
-    return Order.resolve(order, {fulfillment: options.fulfillment || null})
+    return Order.resolve(order, {transaction: options.transaction || null})
       .then(foundOrder => {
         if (!foundOrder) {
           throw new Errors.FoundError(Error('Order Not Found'))

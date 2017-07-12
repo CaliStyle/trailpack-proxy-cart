@@ -158,10 +158,43 @@ module.exports = class OrderItem extends Model {
 
               return Promise.resolve(this)
             },
+            /**
+             *
+             * @returns {Promise.<config>}
+             */
             reconcileFulfillment: function() {
-              // const isNew = this.isNewRecord()
-              // console.log('IS NEW', isNew)
-              return Promise.resolve(this)
+              if (this.isNewRecord && !this.fulfillment_id) {
+                console.log('RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
+                return app.services.FulfillmentService.addOrCreateFulfillmentItem(this)
+                  .then(() => {
+                    return this
+                  })
+              }
+              else if (!this.isNewRecord && this.quantity === 0) {
+                console.log('RECONCILE WILL REMOVE', this)
+                return app.services.FulfillmentService.removeFulfillmentItem(this)
+                  .then(() => {
+                    return this
+                  })
+              }
+              else if (!this.isNewRecord && this.changed('quantity') && (this.quantity > this.previous('quantity'))) {
+                console.log('RECONCILE WILL UPDATE UP QUANTITY', this)
+                return app.services.FulfillmentService.updateFulfillmentItem(this)
+                  .then(() => {
+                    return this
+                  })
+              }
+              else if (!this.isNewRecord && this.changed('quantity') && (this.quantity < this.previous('quantity'))) {
+                console.log('RECONCILE WILL UPDATE DOWN QUANTITY', this)
+                return app.services.FulfillmentService.removeFulfillmentItem(this)
+                  .then(() => {
+                    return this
+                  })
+              }
+              else {
+                // Unhandled Case
+                return Promise.resolve(this)
+              }
             }
           }
         }

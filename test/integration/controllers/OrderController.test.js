@@ -144,11 +144,17 @@ describe('OrderController', () => {
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
+
+        // Transactions
         assert.equal(res.body.transactions.length, 1)
         assert.equal(res.body.transactions[0].order_id, orderID)
+
+        // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
         assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 1)
+
         assert.equal(res.body.fulfillment_status, 'none')
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 100000)
@@ -188,6 +194,7 @@ describe('OrderController', () => {
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
         assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 2)
 
         assert.equal(res.body.subtotal_price, 200000)
         assert.equal(res.body.total_price, 200000)
@@ -207,7 +214,7 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('UPDATE ITEM', res.body)
+        console.log('UPDATE ITEM', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
 
@@ -223,6 +230,7 @@ describe('OrderController', () => {
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
         assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 3)
 
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.fulfillment_status, 'none')
@@ -244,7 +252,7 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('REMOVE ITEM', res.body)
+        console.log('REMOVE ITEM', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
         // Transactions
@@ -259,6 +267,7 @@ describe('OrderController', () => {
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
         assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 2)
 
         assert.equal(res.body.fulfillment_status, 'none')
         assert.equal(res.body.total_pending_fulfillments, 1)
@@ -296,6 +305,7 @@ describe('OrderController', () => {
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
         assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 1)
 
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.fulfillment_status, 'none')

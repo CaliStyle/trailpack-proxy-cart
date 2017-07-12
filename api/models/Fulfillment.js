@@ -146,6 +146,30 @@ module.exports = class Fulfillment extends Model {
             }
           },
           instanceMethods: {
+            pending: function() {
+              return this
+            },
+            none: function() {
+              return this
+            },
+            partial: function() {
+              return this
+            },
+            sent: function() {
+              this.sent_at = new Date(Date.now())
+              this.status = FULFILLMENT_STATUS.SENT
+              return this
+            },
+            fulfilled: function() {
+              this.fulfilled_at = new Date(Date.now())
+              this.status = FULFILLMENT_STATUS.FULFILLED
+              return this
+            },
+            cancelled: function() {
+              this.cancelled_at = new Date(Date.now())
+              this.status = FULFILLMENT_STATUS.CANCELLED
+              return this
+            },
             resolveFulfillmentStatus: function() {
               // let currentStatus, previousStatus
               if (!this.id){
@@ -162,6 +186,7 @@ module.exports = class Fulfillment extends Model {
                 })
                 .then(orderItems => {
                   orderItems = orderItems || []
+                  this.order_items = orderItems
                   this.set('order_items', orderItems)
                   this.setFulfillmentStatus()
 
@@ -207,38 +232,41 @@ module.exports = class Fulfillment extends Model {
               let totalSentFulfillments = 0
               let totalNonFulfillments = 0
               let totalCancelledFulfillments = 0
+              let totalQty = 0
 
               this.order_items.forEach(item => {
+                totalQty = totalQty + item.quantity
+
                 if (item.fulfillment_status == FULFILLMENT_STATUS.FULFILLED) {
-                  totalFulfillments++
+                  totalFulfillments = totalFulfillments + item.quantity
                 }
                 else if (item.fulfillment_status == FULFILLMENT_STATUS.PARTIAL) {
-                  totalPartialFulfillments++
+                  totalPartialFulfillments = totalPartialFulfillments + item.quantity
                 }
                 else if (item.fulfillment_status == FULFILLMENT_STATUS.SENT) {
-                  totalSentFulfillments++
+                  totalSentFulfillments = totalSentFulfillments + item.quantity
                 }
                 else if (item.fulfillment_status == FULFILLMENT_STATUS.NONE) {
-                  totalNonFulfillments++
+                  totalNonFulfillments = totalNonFulfillments + item.quantity
                 }
                 else if (item.fulfillment_status == FULFILLMENT_STATUS.CANCELLED) {
-                  totalCancelledFulfillments++
+                  totalCancelledFulfillments = totalCancelledFulfillments + item.quantity
                 }
               })
 
-              if (totalFulfillments == this.order_items.length) {
+              if (totalFulfillments == totalQty) {
                 fulfillmentStatus = FULFILLMENT_STATUS.FULFILLED
               }
-              else if (totalSentFulfillments == this.order_items.length) {
+              else if (totalSentFulfillments == totalQty ) {
                 fulfillmentStatus = FULFILLMENT_STATUS.SENT
               }
               else if (totalPartialFulfillments > 0) {
                 fulfillmentStatus = FULFILLMENT_STATUS.PARTIAL
               }
-              else if (totalNonFulfillments == this.order_items.length) {
+              else if (totalNonFulfillments == totalQty) {
                 fulfillmentStatus = FULFILLMENT_STATUS.NONE // back to default
               }
-              else if (totalCancelledFulfillments == this.order_items.length) {
+              else if (totalCancelledFulfillments == totalQty) {
                 fulfillmentStatus = FULFILLMENT_STATUS.CANCELLED // back to default
               }
 
@@ -318,6 +346,15 @@ module.exports = class Fulfillment extends Model {
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode
+        },
+        sent_at: {
+          type: Sequelize.DATE
+        },
+        fulfilled_at: {
+          type: Sequelize.DATE
+        },
+        cancelled_at: {
+          type: Sequelize.DATE
         }
       }
     }

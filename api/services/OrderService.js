@@ -813,9 +813,9 @@ module.exports = class OrderService extends Service {
         resOrder.set('fulfillments', fulfillments)
         // Start Cancel fulfillments
         canCancelFulfillment = fulfillments.filter(fulfillment =>
-          [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.SENT].indexOf(fulfillment.status) > -1)
+          [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.SENT].indexOf(fulfillment.status) > -1)
         return Promise.all(canCancelFulfillment.map(fulfillment => {
-          return this.app.services.FulfillmentService.cancel(fulfillment, {transaction: options.transaction || null})
+          return this.app.services.FulfillmentService.cancelFulfillment(fulfillment, {transaction: options.transaction || null})
         }))
       })
       .then(()=> {
@@ -1286,11 +1286,11 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemAfterCreate(item, options){
-    return item.reconcileFulfillment()
-      .then(item => {
-        return item
-      })
-    // return Promise.resolve(item)
+    // return item.reconcileFulfillment()
+    //   .then(item => {
+    //     return item
+    //   })
+    return Promise.resolve(item)
   }
 
   /**
@@ -1300,19 +1300,19 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemAfterUpdate(item, options){
-    return item.reconcileFulfillment()
-      .then(item => {
-        return item
-      })
-    // return Promise.resolve(item)
+    // return item.reconcileFulfillment()
+    //   .then(item => {
+    //     return item
+    //   })
+    return Promise.resolve(item)
   }
 
   itemAfterDestroy(item, options){
-    return item.reconcileFulfillment()
-      .then(item => {
-        return item
-      })
-    // return Promise.resolve(item)
+    // return item.reconcileFulfillment()
+    //   .then(item => {
+    //     return item
+    //   })
+    return Promise.resolve(item)
   }
 
   /**
