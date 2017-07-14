@@ -8,7 +8,8 @@ const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_M
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 const ORDER_STATUS = require('../utils/enums').ORDER_STATUS
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
-// const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
+const PAYMENT_KIND = require('../utils/enums').PAYMENT_KIND
+// const orders.fulfillment_kind = require('../utils/enums').orders.fulfillment_kind
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
 const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
@@ -27,21 +28,13 @@ module.exports = class OrderService extends Service {
   // TODO handle inventory policy and coupon policy
   // TODO Select Vendor
   create(obj) {
-    const Address = this.app.orm.Address
-    const Customer = this.app.orm.Customer
-    const Order = this.app.orm.Order
-    const OrderItem = this.app.orm.OrderItem
+    const Address = this.app.orm['Address']
+    const Customer = this.app.orm['Customer']
+    const Order = this.app.orm['Order']
+    const OrderItem = this.app.orm['OrderItem']
+    const Transaction = this.app.orm['Transaction']
+    // const Fulfillment = this.app.orm['Fulfillment']
     const PaymentService = this.app.services.PaymentService
-
-    // Validate obj cart and customer
-    if (!obj.cart_token && !obj.subscription_token) {
-      const err = new Errors.FoundError(Error('Missing a Cart token or a Subscription token'))
-      return Promise.reject(err)
-    }
-    if (!obj.payment_details) {
-      const err = new Errors.FoundError(Error('Missing Payment Details'))
-      return Promise.reject(err)
-    }
 
     // Set the initial total amount due for this order
     let totalDue = obj.total_due
@@ -53,8 +46,27 @@ module.exports = class OrderService extends Service {
     let resBillingAddress = {}
     let resShippingAddress = {}
 
+    // Validate obj cart
+    if (!obj.cart_token && !obj.subscription_token) {
+      const err = new Errors.FoundError(Error('Missing a Cart token or a Subscription token'))
+      return Promise.reject(err)
+    }
+    // Validate payment details
+    if (!obj.payment_details) {
+      const err = new Errors.FoundError(Error('Missing Payment Details'))
+      return Promise.reject(err)
+    }
+
+    // Reconcile some shipping if one of the values is missing
+    if (obj.shipping_address && !obj.billing_address) {
+      obj.billing_address = obj.shipping_address
+    }
+    if (!obj.shipping_address && obj.billing_address) {
+      obj.shipping_address = obj.billing_address
+    }
+
     return Order.sequelize.transaction(t => {
-      return Customer.findById(obj.customer_id, {
+      return Customer.resolve(obj.customer_id || obj.customer, {
         include: [
           {
             model: Address,
@@ -63,10 +75,22 @@ module.exports = class OrderService extends Service {
           {
             model: Address,
             as: 'billing_address'
+          },
+          {
+            model: Address,
+            as: 'default_address'
           }
         ]
       })
         .then(customer => {
+          // The customer exists, has a default address, but no shipping address
+          if (customer && customer.default_address && !customer.shipping_address) {
+            customer.shipping_address = customer.default_address
+          }
+          // The customer exists, has a default address, but no billing address
+          if (customer && customer.default_address && !customer.billing_address) {
+            customer.billing_address = customer.default_address
+          }
           // The customer exist, the order requires shipping, but no shipping information
           if (customer && !customer.shipping_address && !obj.shipping_address && obj.has_shipping) {
             throw new Errors.FoundError(Error(`Could not find customer shipping address for id '${obj.customer_id}'`))
@@ -96,11 +120,6 @@ module.exports = class OrderService extends Service {
 
           if (!resShippingAddress && obj.has_shipping) {
             throw new Error('Order does not have a valid shipping address')
-          }
-
-          // If not Billing Address, add Shipping Address
-          if (!resBillingAddress) {
-            resBillingAddress = resShippingAddress
           }
 
           // If not payment_details, make blank array
@@ -161,6 +180,23 @@ module.exports = class OrderService extends Service {
             }
           }
 
+          // obj.line_items = obj.line_items.map(item => {
+          //   return OrderItem.build(item)
+          // })
+
+          // Create the blank fulfillments
+          let fulfillments = _.groupBy(obj.line_items, 'fulfillment_service')
+          // Map into array
+          fulfillments = _.map(fulfillments, (items, service) => {
+            // return Fulfillment.build({
+            return {
+              service: service,
+              total_items: items.length,
+              total_pending_fulfillments: items.length
+            }
+            // })
+          })
+
           const order = Order.build({
             // Order Info
             processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
@@ -190,8 +226,9 @@ module.exports = class OrderService extends Service {
             user_id: obj.user_id || null,
             has_shipping: obj.has_shipping,
             has_subscription: obj.has_subscription,
-            fulfillment_kind: obj.fulfillment_kind || this.app.config.proxyCart.order_fulfillment_kind,
-            payment_kind: obj.payment_kind || this.app.config.proxyCart.order_payment_kind,
+            fulfillment_kind: obj.fulfillment_kind || this.app.config.proxyCart.orders.fulfillment_kind,
+            payment_kind: obj.payment_kind || this.app.config.proxyCart.orders.payment_kind,
+            transaction_kind: obj.transaction_kind || this.app.config.proxyCart.orders.transaction_kind,
 
             // Gateway
             payment_gateway_names: paymentGatewayNames,
@@ -210,7 +247,11 @@ module.exports = class OrderService extends Service {
             // Overrides
             pricing_override_id: obj.pricing_override_id || null,
             pricing_overrides: obj.pricing_overrides || [],
-            total_overrides: obj.total_overrides || 0
+            total_overrides: obj.total_overrides || 0,
+
+            // Fulfillments
+            fulfillments: fulfillments,
+            total_pending_fulfillments: fulfillments.length
           }, {
             include: [
               {
@@ -233,7 +274,6 @@ module.exports = class OrderService extends Service {
               }
             ]
           })
-
           return order.save()
         })
         .then(order => {
@@ -241,76 +281,79 @@ module.exports = class OrderService extends Service {
             throw new Error('Unexpected Error while creating order')
           }
           resOrder = order
-          if (resCustomer.id) {
-            // Update the customer with the order
-            return Customer.resolve(resCustomer)
-              .then(customer => {
-                // Get the total deducted
-                // console.log('BROKE', deduction)
-                if (deduction > 0) {
-                  customer.setAccountBalance(Math.max(0, customer.account_balance - deduction))
-                  const event = {
-                    object_id: customer.id,
-                    object: 'customer',
-                    objects: [{
-                      customer: customer.id
-                    }],
-                    type: 'customer.account_balance.deducted',
-                    message: `Customer ${ customer.email || 'ID ' + customer.id } account balance was deducted by ${ deduction }`,
-                    data: customer
-                  }
-                  this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-                }
 
-                return customer.setTotalSpent(totalPrice).setLastOrder(resOrder).save()
+          if (resCustomer instanceof Customer.Instance && deduction > 0) {
+            // Get the total deducted
+            resCustomer.setAccountBalance(Math.max(0, resCustomer.account_balance - deduction))
+            const event = {
+              object_id: resCustomer.id,
+              object: 'customer',
+              objects: [{
+                customer: resCustomer.id
+              }],
+              type: 'customer.account_balance.deducted',
+              message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } account balance was deducted by ${ deduction }`,
+              data: resCustomer
+            }
+            return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+              .then(event => {
+                return resCustomer
+                  .setTotalSpent(totalPrice)
+                  .setLastOrder(resOrder)
+                  .save()
               })
           }
           else {
-            return null
+            return
           }
         })
-        .then(customer => {
-          if (customer) {
-            return customer.addOrder(resOrder.id)
+        .then(() => {
+          // TODO REMOVE THIS PART WHEN WE CREATE THE EVENT ELSEWHERE
+          if (resCustomer instanceof Customer.Instance) {
+            return resCustomer.addOrder(resOrder.id)
               .then(() => {
                 const event = {
-                  object_id: customer.id,
+                  object_id: resCustomer.id,
                   object: 'customer',
                   objects: [{
-                    customer: customer.id
+                    customer: resCustomer.id
                   }, {
                     order: resOrder.id
                   }],
                   type: 'customer.order.created',
-                  message: `Customer ${ customer.email || 'ID ' + customer.id } Order ${ resOrder.name } was created`,
+                  message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } Order ${ resOrder.name } was created`,
                   data: resOrder
                 }
                 return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
               })
-              .then(event => {
-                return customer
-              })
           }
-          return customer
+          else {
+            return
+          }
         })
         .then(() => {
+          // console.log('broke 1', resOrder.fulfillments)
           // Group fulfillment by service
           return this.app.services.FulfillmentService.groupFulfillments(resOrder)
+            .then(fulfillments => {
+              fulfillments = fulfillments || []
+              resOrder.setDataValue('fulfillments', fulfillments)
+              resOrder.set('fulfillments', fulfillments)
+              return
+            })
         })
-        .then(fulfillments => {
-          fulfillments = fulfillments || []
-          resOrder.set('fulfillments', fulfillments)
-
+        .then(() => {
+          // console.log('broke 2', resOrder.fulfillments)
           // Set proxy cart default payment kind if not set by order.create
-          let orderPayment = obj.payment_kind || this.app.config.proxyCart.order_payment_kind
+          let orderPayment = obj.transaction_kind || this.app.config.proxyCart.orders.transaction_kind
           // Set transaction type to 'manual' if none is specified
           if (!orderPayment) {
-            this.app.log.debug(`Order does not have a payment function, defaulting to ${TRANSACTION_KIND.MANUAL}`)
-            orderPayment = TRANSACTION_KIND.MANUAL
+            this.app.log.debug(`Order does not have a payment function, defaulting to ${TRANSACTION_KIND.AUTHORIZE}`)
+            orderPayment = TRANSACTION_KIND.AUTHORIZE
           }
 
           return Promise.all(obj.payment_details.map((detail, index) => {
-            const transaction = {
+            const transaction = Transaction.build({
               // Set the customer id (in case we can save this source)
               customer_id: resCustomer.id,
               // Set the order id
@@ -328,14 +371,20 @@ module.exports = class OrderService extends Service {
               // Set the device (that input the credit card) or null
               device_id: obj.device_id || null,
               // Set the Description
-              description: `Order ${resOrder.name} original transaction ${orderPayment}`
-            }
+              description: `Order ${resOrder.name} original transaction ${resOrder.transaction_kind}`
+            })
             // Return the Payment Service
-            return PaymentService[orderPayment](transaction)
+            if (resOrder.payment_kind === PAYMENT_KIND.MANUAL) {
+              return PaymentService.manual(transaction)
+            }
+            else {
+              return PaymentService[resOrder.transaction_kind](transaction)
+            }
           }))
         })
         .then(transactions => {
           transactions = transactions || []
+          resOrder.setDataValue('transactions', transactions)
           resOrder.set('transactions', transactions)
 
           return Order.findByIdDefault(resOrder.id)
@@ -350,11 +399,16 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   update(order, options) {
+    options = options || {}
     const Order = this.app.orm.Order
-
-    return Order.resolve(order)
-      .then(resOrder => {
-        if (resOrder.fulfillment_status !== (FULFILLMENT_STATUS.NONE || FULFILLMENT_STATUS.SENT) || resOrder.cancelled_at) {
+    let resOrder
+    return Order.resolve(order, options)
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Error('Order not found')
+        }
+        resOrder = foundOrder
+        if ([FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.SENT].indexOf(resOrder.fulfillment_status) === -1 || resOrder.cancelled_at) {
           throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
         }
         if (order.billing_address) {
@@ -402,18 +456,10 @@ module.exports = class OrderService extends Service {
       })
       .then(order => {
         resOrder = order
-        if (!order.transactions || order.transactions.length == 0) {
-          return order.getTransactions()
-        }
-        else {
-          return order.transactions
-        }
+        return resOrder.resolveTransactions()
       })
-      .then(transactions => {
-        transactions = transactions || []
-        resOrder.set('transactions', transactions)
-
-        const authorized = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
+      .then(() => {
+        const authorized = resOrder.transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
         return Promise.all(authorized.map(transaction => {
           return this.app.services.TransactionService.capture(transaction)
         }))
@@ -469,18 +515,11 @@ module.exports = class OrderService extends Service {
 
         resOrder = order
 
-        if (!resOrder.transactions || resOrder.transactions.length == 0) {
-          return resOrder.getTransactions()
-        }
-        else {
-          return resOrder.transactions
-        }
+        return resOrder.resolveTransactions()
       })
-      .then(transactions => {
-        transactions = transactions || []
-        resOrder.set('transactions', transactions)
+      .then(() => {
 
-        const canRefund = transactions.filter(transaction => {
+        const canRefund = resOrder.transactions.filter(transaction => {
           return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
         })
         // TODO, refund multiple transactions is necessary
@@ -648,21 +687,13 @@ module.exports = class OrderService extends Service {
       })
       .then(order => {
         resOrder = order
-        if (!resOrder.transactions || resOrder.transactions.length == 0) {
-          return resOrder.getTransactions()
-        }
-        else {
-          return resOrder.transactions
-        }
+        return resOrder.resolveTransactions()
       })
-      .then(transactions => {
-        transactions = transactions || []
-        resOrder.set('transactions', transactions)
-
+      .then(() => {
         // Partially Capture
         if (captures.length > 0) {
           return Promise.all(captures.map(capture => {
-            const captureTransaction = transactions.find(transaction => transaction.id == capture.transaction)
+            const captureTransaction = resOrder.transactions.find(transaction => transaction.id == capture.transaction)
             if (captureTransaction.kind == TRANSACTION_KIND.AUTHORIZE) {
               return this.app.services.TransactionService.capture(captureTransaction)
             }
@@ -670,7 +701,7 @@ module.exports = class OrderService extends Service {
         }
         // Completely Capture the order
         else {
-          const canCapture = transactions.filter(transaction => {
+          const canCapture = resOrder.transactions.filter(transaction => {
             if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
               return transaction
             }
@@ -708,20 +739,13 @@ module.exports = class OrderService extends Service {
       })
       .then(order => {
         resOrder = order
-        if (!resOrder.transactions || resOrder.transactions.length == 0) {
-          return resOrder.getTransactions()
-        }
-        else {
-          return resOrder.transactions
-        }
+        return resOrder.resolveTransactions()
       })
-      .then(transactions => {
-        transactions = transactions || []
-        resOrder.set('transactions', transactions)
+      .then(() => {
         // Partially Void
         if (voids.length > 0) {
           return Promise.all(voids.map(tVoid => {
-            const voidTransaction = transactions.find(transaction => transaction.id == tVoid.transaction)
+            const voidTransaction = resOrder.transactions.find(transaction => transaction.id == tVoid.transaction)
             if (voidTransaction.kind == TRANSACTION_KIND.AUTHORIZE) {
               return this.app.services.TransactionService.void(voidTransaction)
             }
@@ -729,7 +753,7 @@ module.exports = class OrderService extends Service {
         }
         // Completely Void the order
         else {
-          const canVoid = transactions.filter(transaction => {
+          const canVoid = resOrder.transactions.filter(transaction => {
             if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
               return transaction
             }
@@ -764,24 +788,16 @@ module.exports = class OrderService extends Service {
           throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}' or '${ORDER_FULFILLMENT.PENDING}'`)
         }
 
-        if (!resOrder.transactions || resOrder.transactions.length == 0) {
-          return resOrder.getTransactions()
-        }
-        else {
-          return resOrder.transactions
-        }
+        return resOrder.resolveTransactions()
       })
-      .then(transactions => {
-        transactions = transactions || []
-        resOrder.set('transactions', transactions)
-
+      .then(() => {
         // Transactions that can be refunded
-        canRefund = transactions.filter(transaction =>
+        canRefund = resOrder.transactions.filter(transaction =>
           [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1)
         // Transactions that can be voided
-        canVoid = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
+        canVoid = resOrder.transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
         // Transactions that can be cancelled
-        canCancel = transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.PENDING)
+        canCancel = resOrder.transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.PENDING)
 
         // Start Refunds
         return Promise.all(canRefund.map(transaction => {
@@ -801,18 +817,11 @@ module.exports = class OrderService extends Service {
         }))
       })
       .then(() => {
-        if (!resOrder.fulfillments || resOrder.fulfillments.length == 0) {
-          return resOrder.getFulfillments({transaction: options.transaction || null})
-        }
-        else {
-          return resOrder.fulfillments
-        }
+        return resOrder.resolveFulfillments()
       })
-      .then(fulfillments => {
-        fulfillments = fulfillments || []
-        resOrder.set('fulfillments', fulfillments)
+      .then(() => {
         // Start Cancel fulfillments
-        canCancelFulfillment = fulfillments.filter(fulfillment =>
+        canCancelFulfillment = resOrder.fulfillments.filter(fulfillment =>
           [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.SENT].indexOf(fulfillment.status) > -1)
         return Promise.all(canCancelFulfillment.map(fulfillment => {
           return this.app.services.FulfillmentService.cancelFulfillment(fulfillment, {transaction: options.transaction || null})
@@ -935,21 +944,13 @@ module.exports = class OrderService extends Service {
           throw new Errors.FoundError(Error('Order not found'))
         }
         if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status}`)
+          throw new Error(`Order is already ${order.status} and can not be modified`)
         }
         // bind the dao
         resOrder = order
-        // Populate order items if not already populated
-        if (!resOrder.order_items) {
-          return resOrder.getOrder_items()
-        }
-        else {
-          return resOrder.order_items
-        }
-      }).
-      then(foundOrderItems => {
-        // Overrides with fresh order items if they were not provided
-        resOrder.set('order_items', foundOrderItems)
+        return resOrder.resolveOrderItems()
+      })
+      .then(() => {
         // Resolve the item of the new order item
         return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null })
       })
@@ -1014,17 +1015,9 @@ module.exports = class OrderService extends Service {
         }
         // bind the dao
         resOrder = order
-        // Populate order items if not already populated
-        if (!resOrder.order_items) {
-          return resOrder.getOrder_items()
-        }
-        else {
-          return resOrder.order_items
-        }
-      }).
-      then(foundOrderItems => {
-        // Overrides with fresh order items if they were not provided
-        resOrder.set('order_items', foundOrderItems)
+        return resOrder.resolveOrderItems()
+      })
+      .then(() => {
         // Resolve the item
         return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null})
       })
@@ -1090,17 +1083,9 @@ module.exports = class OrderService extends Service {
         }
         // bind the dao
         resOrder = order
-        // populate the order items
-        if (!resOrder.order_items) {
-          return resOrder.getOrder_items()
-        }
-        else {
-          return resOrder.order_items
-        }
+        return resOrder.resolveOrderItems()
       }).
-      then(foundOrderItems => {
-        // Overrides with fresh order items if they were not provided
-        resOrder.set('order_items', foundOrderItems)
+      then(() => {
         // Resolve the item
         return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null})
       })

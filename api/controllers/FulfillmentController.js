@@ -2,6 +2,7 @@
 
 const Controller = require('trails/controller')
 const Errors = require('proxy-engine-errors')
+const lib = require('../../lib')
 
 /**
  * @module FulfillmentController
@@ -90,7 +91,18 @@ module.exports = class FulfillmentController extends Controller {
    * @param res
    */
   create(req, res) {
-    // TODO
+    const FulfillmentService = this.app.services.FulfillmentService
+    lib.Validator.validateFulfillment.create(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return FulfillmentService.create(req.body)
+      })
+      .then(fulfillment => {
+        return res.json(fulfillment)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 
   /**
@@ -99,7 +111,18 @@ module.exports = class FulfillmentController extends Controller {
    * @param res
    */
   update(req, res) {
-    // TODO
+    const FulfillmentService = this.app.services.FulfillmentService
+    lib.Validator.validateFulfillment.cancel(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return FulfillmentService.cancel(req.body)
+      })
+      .then(fulfillment => {
+        return res.json(fulfillment)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 
   /**
@@ -108,7 +131,18 @@ module.exports = class FulfillmentController extends Controller {
    * @param res
    */
   destroy(req, res) {
-    // TODO
+    const FulfillmentService = this.app.services.FulfillmentService
+    lib.Validator.validateFulfillment.destroy(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return FulfillmentService.destroy(req.body)
+      })
+      .then(fulfillment => {
+        return res.json(fulfillment)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 }
 

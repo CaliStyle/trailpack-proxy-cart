@@ -3,12 +3,13 @@
 const assert = require('assert')
 
 describe('Order Model', () => {
-  let Order, OrderItem, Transaction
+  let Order, OrderItem, Transaction, OrderService
   it('should exist', () => {
     assert(global.app.api.models['Order'])
     Order = global.app.orm['Order']
     OrderItem = global.app.orm['OrderItem']
     Transaction = global.app.orm['Transaction']
+    OrderService = global.app.services['OrderService']
   })
   it('should resolve an order instance', (done) => {
     Order.resolve(Order.build({}))
@@ -257,7 +258,8 @@ describe('Order Model', () => {
         as: 'transactions'
       },{
         model: OrderItem,
-        as: 'order_items'
+        as: 'order_items',
+        include: [ global.app.orm['Fulfillment'] ]
       },{
         model: global.app.orm['Fulfillment'],
         as: 'fulfillments',
@@ -289,26 +291,33 @@ describe('Order Model', () => {
         service: 'manual'
       }
     ])
-    resOrder.set('order_items', [
-      {
-        product_id: 1,
-        product_handle: 'makerbot-replicator',
-        variant_id: 1,
-        price: 10,
-        sku: 'printer-w-123',
-        type: '3D Printer',
-        fulfillable_quantity: 1,
-        fulfillment_service: 'manual',
-        quantity: 1,
-        max_quantity: -1,
-        requires_subscription: true,
-        requires_shipping: false
-      }
-    ])
     return resOrder.save()
       .then(order => {
         assert.equal(resOrder.financial_status, 'pending')
-        assert.equal(resOrder.fulfillment_status, 'none')
+        assert.equal(resOrder.fulfillment_status, 'pending')
+        // Add Order Item
+        return resOrder.createOrder_item(
+          {
+            product_id: 1,
+            product_handle: 'makerbot-replicator',
+            variant_id: 1,
+            price: 10,
+            sku: 'printer-w-123',
+            type: '3D Printer',
+            fulfillable_quantity: 1,
+            fulfillment_service: 'manual',
+            quantity: 1,
+            max_quantity: -1,
+            requires_subscription: true,
+            requires_shipping: false,
+            fulfillment_id: resOrder.fulfillments[0].id
+          }
+        )
+          .then(() => {
+            return resOrder.reload()
+          })
+      })
+      .then(() => {
         const retry = resOrder.transactions.filter(transaction => transaction.status == 'failure')[0]
         return global.app.services.TransactionService.retry(retry)
       })
@@ -316,8 +325,128 @@ describe('Order Model', () => {
         return resOrder.reload()
       })
       .then(() => {
+        console.log('THIS ORDER', resOrder.toJSON())
         assert.equal(resOrder.financial_status, 'paid')
         assert.equal(resOrder.fulfillment_status, 'fulfilled')
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
+
+  it('should allow to add items to pending authorize/sale transaction', (done) => {
+    const resOrder = Order.build({
+      shop_id: 1,
+      customer_id: 1,
+      fulfillment_kind: 'manual',
+      transaction_kind: 'authorize',
+      payment_kind: 'manual',
+      fulfillments: [
+        {
+          service: 'manual'
+        }
+      ]
+    }, {
+      include: [{
+        model: Transaction,
+        as: 'transactions'
+      },{
+        model: OrderItem,
+        as: 'order_items'
+      },{
+        model: global.app.orm['Fulfillment'],
+        as: 'fulfillments',
+        include: [
+          {
+            model: OrderItem,
+            as: 'order_items'
+          }
+        ]
+      },{
+        model: global.app.orm['Event'],
+        as: 'events'
+      }]
+    })
+    resOrder.set('transactions', [
+      {
+        kind: 'authorize',
+        status: 'pending',
+        amount: 0
+      },
+    ])
+
+    return resOrder.save()
+      .then(order => {
+        assert.equal(resOrder.financial_status, 'pending')
+        assert.equal(resOrder.fulfillment_status, 'pending')
+        return OrderService.addItem(resOrder, {product_id: 2, quantity: 1})
+          .then(() => {
+            return resOrder.reload()
+          })
+      })
+      .then(order => {
+        // console.log('THIS ORDER', resOrder.toJSON())
+        assert.equal(resOrder.financial_status, 'pending')
+        assert.equal(resOrder.fulfillment_status, 'pending')
+        assert.equal(resOrder.total_pending_fulfillments, 1)
+        assert.equal(resOrder.total_pending, 100000)
+        assert.equal(resOrder.total_price, 100000)
+        assert.equal(resOrder.total_due, 100000)
+        assert.equal(resOrder.transactions.length, 1)
+        assert.equal(resOrder.transactions[0].status, 'pending')
+        assert.equal(resOrder.transactions[0].kind, 'authorize')
+        assert.equal(resOrder.transactions[0].amount, 100000)
+
+        return OrderService.addItem(resOrder, {product_id: 2, quantity: 1})
+          .then(() => {
+            return resOrder.reload()
+          })
+      })
+      .then((order) => {
+        // console.log('THIS ORDER', resOrder.toJSON())
+        assert.equal(resOrder.financial_status, 'pending')
+        assert.equal(resOrder.fulfillment_status, 'pending')
+        assert.equal(resOrder.total_pending_fulfillments, 1)
+        assert.equal(resOrder.total_pending, 200000)
+        assert.equal(resOrder.total_price, 200000)
+        assert.equal(resOrder.total_due, 200000)
+        assert.equal(resOrder.transactions.length, 1)
+        assert.equal(resOrder.transactions[0].status, 'pending')
+        assert.equal(resOrder.transactions[0].kind, 'authorize')
+        assert.equal(resOrder.transactions[0].amount, 200000)
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
+  it('should resolve transactions', (done) => {
+    const resOrder = Order.build({
+      shop_id: 1,
+      customer_id: 1,
+      fulfillment_kind: 'manual',
+      transaction_kind: 'authorize',
+      payment_kind: 'manual'
+    }, {
+      include: [{
+        model: Transaction,
+        as: 'transactions'
+      }]
+    })
+    resOrder.set('transactions', [
+      {
+        kind: 'authorize',
+        status: 'pending',
+        amount: 0
+      },
+    ])
+    resOrder.save()
+      .then(() => {
+        return resOrder.resolveTransactions()
+      })
+      .then(() => {
+        assert.equal(resOrder.transactions.length, 1)
         done()
       })
       .catch(err => {

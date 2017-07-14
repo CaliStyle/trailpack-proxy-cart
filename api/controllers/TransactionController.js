@@ -196,9 +196,25 @@ module.exports = class TransactionController extends Controller {
         return res.serverError(err)
       })
   }
-  // TODO
-  cancel(req, res) {
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  cancel(req, res) {
+    const TransactionService = this.app.services.TransactionService
+    lib.Validator.validateTransaction.cancel(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return TransactionService.cancel(req.body)
+      })
+      .then(transaction => {
+        return res.json(transaction)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
   // TODO
   create(req, res) {

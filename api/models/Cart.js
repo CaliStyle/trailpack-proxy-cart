@@ -64,6 +64,9 @@ module.exports = class Cart extends Model {
              */
             // TODO handle discounts
             line: function(data){
+              // handle empty product
+              data.Product = data.Product || {}
+
               const line = {
                 product_id: data.product_id,
                 product_handle: data.Product.handle,
@@ -253,8 +256,9 @@ module.exports = class Cart extends Model {
                 client_details: options.client_details || this.client_details,
                 ip: options.ip || null,
                 payment_details: options.payment_details,
-                payment_kind: options.payment_kind || app.config.proxyCart.order_payment_kind,
-                fulfillment_kind: options.fulfillment_kind || app.config.proxyCart.order_fulfillment_kind,
+                payment_kind: options.payment_kind || app.config.proxyCart.orders.payment_kind,
+                transaction_kind: options.transaction_kind || app.config.proxyCart.orders.transaction_kind,
+                fulfillment_kind: options.fulfillment_kind || app.config.proxyCart.orders.fulfillment_kind,
                 processing_method: options.processing_method || PAYMENT_PROCESSING_METHOD.CHECKOUT,
                 shipping_address: options.shipping_address || this.shipping_address,
                 billing_address: options.billing_address || this.billing_address,

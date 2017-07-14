@@ -164,36 +164,48 @@ module.exports = class OrderItem extends Model {
              */
             reconcileFulfillment: function() {
               if (this.isNewRecord && !this.fulfillment_id) {
-                console.log('RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
-                return app.services.FulfillmentService.addOrCreateFulfillmentItem(this)
+                // console.log('RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
+                return this.save()
+                  .then(() => {
+                    return app.services.FulfillmentService.addOrCreateFulfillmentItem(this)
+                  })
                   .then(() => {
                     return this
                   })
               }
               else if (!this.isNewRecord && this.quantity === 0) {
-                console.log('RECONCILE WILL REMOVE', this)
-                return app.services.FulfillmentService.removeFulfillmentItem(this)
+                // console.log('RECONCILE WILL REMOVE', this)
+                return this.save()
+                  .then(() => {
+                    return app.services.FulfillmentService.removeFulfillmentItem(this)
+                  })
                   .then(() => {
                     return this
                   })
               }
               else if (!this.isNewRecord && this.changed('quantity') && (this.quantity > this.previous('quantity'))) {
-                console.log('RECONCILE WILL UPDATE UP QUANTITY', this)
-                return app.services.FulfillmentService.updateFulfillmentItem(this)
+                // console.log('RECONCILE WILL UPDATE UP QUANTITY', this)
+                return this.save()
+                  .then(() => {
+                    return app.services.FulfillmentService.updateFulfillmentItem(this)
+                  })
                   .then(() => {
                     return this
                   })
               }
               else if (!this.isNewRecord && this.changed('quantity') && (this.quantity < this.previous('quantity'))) {
-                console.log('RECONCILE WILL UPDATE DOWN QUANTITY', this)
-                return app.services.FulfillmentService.removeFulfillmentItem(this)
+                // console.log('RECONCILE WILL UPDATE DOWN QUANTITY', this)
+                return this.save()
+                  .then(() => {
+                    return app.services.FulfillmentService.removeFulfillmentItem(this)
+                  })
                   .then(() => {
                     return this
                   })
               }
               else {
                 // Unhandled Case
-                return Promise.resolve(this)
+                return this.save()
               }
             }
           }
@@ -280,12 +292,14 @@ module.exports = class OrderItem extends Model {
         fulfillment_service: {
           type: Sequelize.STRING,
           defaultValue: FULFILLMENT_SERVICE.MANUAL
+          // allowNull: false
         },
-        // How far along an order is in terms line items fulfilled. Valid values are: fulfilled, null or partial.
+        // How far along an order is in terms line items fulfilled. Valid values are: pending, none, sent, fulfilled, or partial.
         fulfillment_status: {
           type: Sequelize.ENUM,
           values: _.values(FULFILLMENT_STATUS),
-          defaultValue: FULFILLMENT_STATUS.NONE
+          defaultValue: FULFILLMENT_STATUS.PENDING
+          // allowNull: false
         },
         // The weight of the item in grams.
         grams: {

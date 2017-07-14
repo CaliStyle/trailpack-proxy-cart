@@ -331,7 +331,8 @@ describe('CartController', () => {
     request
       .post(`/cart/${cartID}/checkout`)
       .send({
-        payment_kind: 'sale',
+        payment_kind: 'immediate',
+        transaction_kind: 'sale',
         payment_details: [
           {
             gateway: 'payment_processor',

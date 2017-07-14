@@ -30,6 +30,11 @@ module.exports = class Fulfillment extends Model {
                 status: FULFILLMENT_STATUS.NONE
               }
             },
+            pending: {
+              where: {
+                status: FULFILLMENT_STATUS.PENDING
+              }
+            },
             sent: {
               where: {
                 status: FULFILLMENT_STATUS.SENT
@@ -170,26 +175,32 @@ module.exports = class Fulfillment extends Model {
               this.status = FULFILLMENT_STATUS.CANCELLED
               return this
             },
-            resolveFulfillmentStatus: function() {
+            resolveOrderItems: function(options) {
+              options = options || {}
+              if (this.order_items) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getOrder_items({transaction: options.transaction || null})
+                  .then(orderItems => {
+
+                    orderItems = orderItems || []
+                    this.order_items = orderItems
+                    this.setDataValue('order_items', orderItems)
+                    this.set('order_items', orderItems)
+                    return this
+                  })
+              }
+            },
+            resolveFulfillmentStatus: function(options) {
+              options = options || {}
               // let currentStatus, previousStatus
               if (!this.id){
                 return Promise.resolve(this)
               }
-              return Promise.resolve()
+              return this.resolveOrderItems({transaction: options.transaction || null})
                 .then(() => {
-                  if (!this.order_items) {
-                    return this.getOrder_items()
-                  }
-                  else {
-                    return this.order_items
-                  }
-                })
-                .then(orderItems => {
-                  orderItems = orderItems || []
-                  this.order_items = orderItems
-                  this.set('order_items', orderItems)
                   this.setFulfillmentStatus()
-
                   // if (this.changed('status')) {
                   //   currentStatus = this.status
                   //   previousStatus = this.previous('status')
@@ -201,11 +212,9 @@ module.exports = class Fulfillment extends Model {
                 //   if (currentStatus && previousStatus) {
                 //     const event = {
                 //       object_id: this.id,
-                //       object: 'order',
+                //       object: 'fulfillment',
                 //       objects: [{
-                //         customer: this.customer_id
-                //       },{
-                //         order: this.id
+                //         order: this.order_id
                 //       }],
                 //       type: `order.financial_status.${currentStatus}`,
                 //       message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
@@ -221,16 +230,25 @@ module.exports = class Fulfillment extends Model {
                 //   return this
                 // })
             },
+            saveFulfillmentStatus: function (options) {
+              options = options || {}
+              return this.resolveOrderItems(options)
+                .then(() => {
+                  this.setFulfillmentStatus()
+                  return this.save({transaction: options.transaction || null})
+                })
+            },
             setFulfillmentStatus: function(){
               if (!this.order_items) {
                 throw new Error('Fulfillment.setFulfillmentStatus requires order_items to be populated')
               }
 
-              let fulfillmentStatus = FULFILLMENT_STATUS.NONE
+              let fulfillmentStatus = FULFILLMENT_STATUS.PENDING
               let totalFulfillments = 0
               let totalPartialFulfillments = 0
               let totalSentFulfillments = 0
               let totalNonFulfillments = 0
+              let totalPendingFulfillments = 0
               let totalCancelledFulfillments = 0
               let totalQty = 0
 
@@ -246,6 +264,9 @@ module.exports = class Fulfillment extends Model {
                 else if (item.fulfillment_status == FULFILLMENT_STATUS.SENT) {
                   totalSentFulfillments = totalSentFulfillments + item.quantity
                 }
+                else if (item.fulfillment_status == FULFILLMENT_STATUS.PENDING) {
+                  totalPendingFulfillments = totalPendingFulfillments + item.quantity
+                }
                 else if (item.fulfillment_status == FULFILLMENT_STATUS.NONE) {
                   totalNonFulfillments = totalNonFulfillments + item.quantity
                 }
@@ -254,26 +275,30 @@ module.exports = class Fulfillment extends Model {
                 }
               })
 
-              if (totalFulfillments == totalQty) {
+              if (totalFulfillments == totalQty && totalQty > 0) {
                 fulfillmentStatus = FULFILLMENT_STATUS.FULFILLED
               }
-              else if (totalSentFulfillments == totalQty ) {
+              else if (totalSentFulfillments == totalQty && totalQty > 0) {
                 fulfillmentStatus = FULFILLMENT_STATUS.SENT
               }
-              else if (totalPartialFulfillments > 0) {
+              else if (totalPartialFulfillments > 0 && totalQty > 0) {
                 fulfillmentStatus = FULFILLMENT_STATUS.PARTIAL
               }
-              else if (totalNonFulfillments == totalQty) {
+              else if (totalPendingFulfillments == totalQty && totalQty > 0) {
+                fulfillmentStatus = FULFILLMENT_STATUS.PENDING // back to default
+              }
+              else if (totalNonFulfillments == totalQty && totalQty > 0) {
                 fulfillmentStatus = FULFILLMENT_STATUS.NONE // back to default
               }
-              else if (totalCancelledFulfillments == totalQty) {
-                fulfillmentStatus = FULFILLMENT_STATUS.CANCELLED // back to default
+              else if (totalCancelledFulfillments == totalQty && totalQty > 0) {
+                fulfillmentStatus = FULFILLMENT_STATUS.CANCELLED
               }
 
               this.status = fulfillmentStatus
+              this.total_items = totalQty
               this.total_fulfilled = totalFulfillments
               this.total_sent_to_fulfillment = totalSentFulfillments
-              this.total_pending_fulfillments = totalNonFulfillments
+              this.total_pending_fulfillments = totalPendingFulfillments
               this.total_cancelled = totalCancelledFulfillments
               return this
             }
@@ -304,7 +329,12 @@ module.exports = class Fulfillment extends Model {
         status: {
           type: Sequelize.ENUM,
           values: _.values(FULFILLMENT_STATUS),
-          defaultValue: FULFILLMENT_STATUS.NONE
+          defaultValue: FULFILLMENT_STATUS.PENDING
+        },
+        // The total items in this instance
+        total_items: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
         },
         // Total Order Items Fulfilled
         total_fulfilled: {

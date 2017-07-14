@@ -276,6 +276,7 @@ module.exports = class CartService extends Service {
           ip: req.body.ip,
           payment_details: paymentDetails,
           payment_kind: req.body.payment_kind,
+          transaction_kind: req.body.transaction_kind,
           fulfillment_kind: req.body.fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.CHECKOUT,
           shipping_address: req.body.shipping_address,

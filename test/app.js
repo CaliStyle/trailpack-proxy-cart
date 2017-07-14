@@ -288,12 +288,6 @@ const App = {
           postal_code: '95014'
         }
       },
-      // The default function for an automatic order payment: manual, authorize, sale
-      order_payment_kind: 'authorize',
-      // The default function for an automatic order fulfillment: manual, immediate
-      order_fulfillment_kind: 'manual',
-      // Restock default for refunded order items
-      refund_restock: false,
       // Allow certain events
       allow: {
         // Allows a product to be destroyed Recommended false
@@ -310,6 +304,14 @@ const App = {
       },
       // Orders
       orders: {
+        // Restock default for refunded order items
+        refund_restock: false,
+        // The default function for an automatic order payment: manual, immediate
+        payment_kind: 'immediate',
+        // the default function for transaction kind: authorize, sale
+        transaction_kind: 'authorize',
+        // The default function for an automatic order fulfillment: manual, immediate
+        fulfillment_kind: 'manual',
         // The amount of times a Order will retry failed transactions
         retry_attempts: 5,
         // The amount of days before a Order will cancel from failed transactions

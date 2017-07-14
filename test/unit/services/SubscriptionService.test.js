@@ -123,7 +123,7 @@ describe('SubscriptionService', () => {
         }))
       })
       .then(orders => {
-        // console.log('RENEW THESE',subscriptions)
+        // console.log('RENEW THESE',order)
         return SubscriptionService.cancelThisHour()
           .then(renewals => {
             assert.equal(renewals.subscriptions, 21)

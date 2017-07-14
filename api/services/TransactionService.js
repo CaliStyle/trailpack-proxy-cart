@@ -36,8 +36,11 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, options)
-      .then(transaction => {
-        return this.app.services.PaymentService.authorize(transaction, options)
+      .then(foundTransaction => {
+        if (!foundTransaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        return this.app.services.PaymentService.authorize(foundTransaction, options)
       })
   }
 
@@ -51,11 +54,14 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, options)
-      .then(transaction => {
-        if (!transaction) {
+      .then(foundTransaction => {
+        if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        return this.app.services.PaymentService.capture(transaction, options)
+        if (foundTransaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+          throw new Errors.FoundError(Error(`Transaction must be first be ${TRANSACTION_KIND.AUTHORIZE} to ${TRANSACTION_KIND.CAPTURE}`))
+        }
+        return this.app.services.PaymentService.capture(foundTransaction, options)
       })
   }
 
@@ -121,7 +127,6 @@ module.exports = class TransactionService extends Service {
           throw new Error(`Transaction must be ${TRANSACTION_KIND.AUTHORIZE} to be partially voided`)
         }
         resTransaction = foundTransaction
-        // transaction.amount = amount
         resTransaction.amount = Math.max(0, resTransaction.amount - amount)
         return resTransaction.save(options)
       })
@@ -177,7 +182,6 @@ module.exports = class TransactionService extends Service {
           throw new Error(`Only Transactions that are ${TRANSACTION_KIND.CAPTURE} or ${TRANSACTION_KIND.SALE} can be refunded`)
         }
         resTransaction = foundTransaction
-        // transaction.amount = amount
         resTransaction.amount = Math.max(0, resTransaction.amount - amount)
         return resTransaction.save(options)
       })
@@ -214,7 +218,7 @@ module.exports = class TransactionService extends Service {
   }
 
   /**
-   *
+   * Try a transaction or retry a transaction
    * @param transaction
    * @param options
    * @returns {Promise.<T>}
@@ -227,8 +231,8 @@ module.exports = class TransactionService extends Service {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        if (foundTransaction.status !== TRANSACTION_STATUS.FAILURE) {
-          throw new Error('Transaction can not retried if it has not yet failed')
+        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(foundTransaction.status) === -1) {
+          throw new Error('Transaction can not be tried if it is not pending or has not failed')
         }
         resTransaction = foundTransaction
         return this.app.services.PaymentService.retry(resTransaction, options)
@@ -238,6 +242,7 @@ module.exports = class TransactionService extends Service {
   reconcileCreate(order, amount, options) {
     options = options || {}
     const Order = this.app.orm['Order']
+    const Transaction = this.app.orm['Transaction']
     let resOrder, totalNew = 0, availablePending = []
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(foundOrder => {
@@ -245,31 +250,22 @@ module.exports = class TransactionService extends Service {
           throw new Errors.FoundError(Error('Order Not Found'))
         }
         resOrder = foundOrder
-        if (!resOrder.transactions) {
-          return resOrder.getTransactions()
-        }
-        else {
-          return resOrder.transactions
-        }
-      })
-      .then(transactions => {
-        transactions = transactions || []
-        resOrder.set('transactions', transactions)
-        return
+        return resOrder.resolveTransactions()
       })
       .then(() => {
         totalNew = amount
         availablePending = resOrder.transactions.filter(transaction =>
         transaction.status === TRANSACTION_STATUS.PENDING
-        && [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.AUTHORIZE].indexOf(transaction.kind) > -1)
+        && [TRANSACTION_KIND.AUTHORIZE, TRANSACTION_KIND.SALE].indexOf(transaction.kind) > -1)
 
-        // If some pending transactions just add the new amount total to one of the transactions
+        // If a pending authorize or sale transaction just add the new amount total to one of the transactions
         if (availablePending.length > 0) {
           availablePending[0].amount = availablePending[0].amount + totalNew
           return availablePending[0].save({hooks: false})
         }
         else {
-          const transaction = {
+          // TODO get Source info
+          const transaction = Transaction.build({
             // Set the customer id (in case we can save this source)
             customer_id: resOrder.customer_id,
             // Set the order id
@@ -290,13 +286,13 @@ module.exports = class TransactionService extends Service {
             kind: resOrder.payment_kind,
             // Set the Description
             description: `Order ${resOrder.name} original transaction ${resOrder.payment_kind}`
-          }
-          return this.app.services.PaymentService[resOrder.payment_kind](transaction, {hooks: false})
+          })
+          return this.app.services.PaymentService[resOrder.transaction_kind](transaction, { hooks: false })
             .then(transaction => {
               // resOrder.addTransaction(transaction) has an updatedAt bug
               const transactions = resOrder.transactions.concat(transaction)
               resOrder.set('transactions', transactions)
-              return // resOrder.addTransaction(transaction.id)
+              return transaction
             })
         }
       })
@@ -321,17 +317,9 @@ module.exports = class TransactionService extends Service {
           throw new Errors.FoundError(Error('Order Not Found'))
         }
         resOrder = foundOrder
-        if (!resOrder.transactions) {
-          return resOrder.getTransactions()
-        }
-        else {
-          return resOrder.transactions
-        }
+        return resOrder.resolveTransactions()
       })
-      .then(transactions => {
-        transactions = transactions || []
-        resOrder.set('transactions', transactions)
-
+      .then(() => {
         totalNew = amount
 
         availablePending = resOrder.transactions.filter(transaction =>

@@ -232,7 +232,8 @@ describe('CartPolicy', () => {
     agent
       .post('/cart/checkout')
       .send({
-        payment_kind: 'sale',
+        payment_kind: 'immediate',
+        transaction_kind: 'sale',
         payment_details: [
           {
             gateway: 'payment_processor',
@@ -701,7 +702,8 @@ describe('CartPolicy', () => {
     agent
       .post('/cart/checkout')
       .send({
-        payment_kind: 'sale',
+        payment_kind: 'immediate',
+        transaction_kind: 'sale',
         payment_details: [],
         fulfillment_kind: 'immediate'
       })
@@ -718,6 +720,8 @@ describe('CartPolicy', () => {
         assert.equal(res.body.order.total_price, 99700)
         assert.equal(res.body.order.total_due, 0)
         assert.equal(res.body.order.fulfillment_kind, 'immediate')
+        assert.equal(res.body.order.transaction_kind, 'sale')
+        assert.equal(res.body.order.payment_kind, 'immediate')
         assert.equal(res.body.order.financial_status, 'paid')
         assert.equal(res.body.order.fulfillment_status, 'fulfilled')
         assert.equal(res.body.order.transactions.length, 1)
@@ -729,11 +733,9 @@ describe('CartPolicy', () => {
         assert.equal(res.body.order.fulfillments[0].status, 'fulfilled')
         assert.equal(res.body.order.fulfillments[0].order_id, res.body.order.id)
         assert.equal(res.body.order.events.length, 4)
-        assert.equal(res.body.order.events[0].object_id, res.body.order.id)
-        assert.equal(res.body.order.events[1].object_id, res.body.order.id)
-        assert.equal(res.body.order.events[2].object_id, res.body.order.id)
-        assert.equal(res.body.order.events[3].object_id, res.body.order.id)
-
+        res.body.order.events.forEach(event => {
+          assert.equal(event.object_id, res.body.order.id)
+        })
 
         done(err)
       })

@@ -263,6 +263,10 @@ module.exports = {
     // The order is closed
     CLOSED: 'closed'
   },
+  PAYMENT_KIND: {
+    IMMEDIATE: 'immediate',
+    MANUAL: 'manual'
+  },
   ORDER_FINANCIAL: {
     // pending: The finances are pending.
     PENDING: 'pending',
@@ -280,6 +284,8 @@ module.exports = {
     VOIDED: 'voided'
   },
   ORDER_FULFILLMENT: {
+    // Nothing has happened yet
+    PENDING: 'pending',
     // Fulfillment is complete, Every line item in the order has been fulfilled.
     FULFILLED: 'fulfilled',
     // Fulfillment has been sent to provider
@@ -302,6 +308,8 @@ module.exports = {
     MANUAL: 'manual'
   },
   FULFILLMENT_STATUS: {
+    // Nothing has happened yet
+    PENDING: 'pending',
     // Fulfillment is complete
     FULFILLED: 'fulfilled',
     // Fulfillment has been sent to provider
@@ -384,7 +392,7 @@ module.exports = {
     CAPTURE: 'capture',
     // The combination of authorization and capture, performed in one single step.
     SALE: 'sale',
-    // The cancellation of a pending authorization or capture.
+    // The cancellation of an authorized amount.
     VOID: 'void',
     // The partial or full return of the captured money to the customer.
     REFUND: 'refund'

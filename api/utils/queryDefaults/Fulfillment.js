@@ -4,7 +4,8 @@ module.exports = {
       include: [
         {
           model: app.orm['OrderItem'],
-          as: 'order_items'
+          as: 'order_items',
+          attributes: ['id','quantity','fulfillment_status']
         }
       ]
     }

@@ -18,6 +18,7 @@ describe('OrderController', () => {
     request
       .post('/cart')
       .send({
+        customer_id: 1,
         line_items: [
           {
             product_id: shopProducts[1].id
@@ -70,6 +71,7 @@ describe('OrderController', () => {
         },
         cart_token: cartToken,
         email: 'example@example.com',
+        payment_kind: 'immediate',
         payment_details: [
           {
             gateway: 'payment_processor',
@@ -79,7 +81,6 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS ORDER', res.body)
         orderID = res.body.id
         assert.ok(res.body.id)
         assert.equal(res.body.cart_token, cartToken)
@@ -102,11 +103,11 @@ describe('OrderController', () => {
         // Fulfillments
         // Defaults to not immediately fulfilled: fulfillment_status: none
         assert.ok(res.body.order_items[0].fulfillment_id)
-        assert.equal(res.body.order_items[0].fulfillment_status, 'none')
+        assert.equal(res.body.order_items[0].fulfillment_status, 'pending')
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
-        assert.equal(res.body.fulfillments[0].status, 'none')
-        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.fulfillments[0].status, 'pending')
+        assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
 
         assert.equal(res.body.financial_status, 'authorized')
@@ -152,10 +153,10 @@ describe('OrderController', () => {
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
-        assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].status, 'pending')
         assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 1)
 
-        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 100000)
         assert.equal(res.body.total_price, 100000)
@@ -176,11 +177,11 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('ADD ITEM',res.body)
+        console.log('ADD ITEM',res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
         assert.equal(res.body.financial_status, 'authorized')
-        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.fulfillment_status, 'pending')
 
         // Transactions
         assert.equal(res.body.transactions.length, 2)
@@ -193,7 +194,7 @@ describe('OrderController', () => {
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
-        assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].status, 'pending')
         assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 2)
 
         assert.equal(res.body.subtotal_price, 200000)
@@ -229,11 +230,11 @@ describe('OrderController', () => {
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
-        assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].status, 'pending')
         assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 3)
 
         assert.equal(res.body.financial_status, 'authorized')
-        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 300000)
         assert.equal(res.body.total_price, 300000)
@@ -266,10 +267,10 @@ describe('OrderController', () => {
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
-        assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].status, 'pending')
         assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 2)
 
-        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 200000)
@@ -304,11 +305,11 @@ describe('OrderController', () => {
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
-        assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].status, 'pending')
         assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 1)
 
         assert.equal(res.body.financial_status, 'authorized')
-        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 100000)
         assert.equal(res.body.total_price, 100000)
@@ -339,10 +340,10 @@ describe('OrderController', () => {
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
-        assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].status, 'pending')
 
         assert.equal(res.body.financial_status, 'authorized')
-        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 100000)
         assert.equal(res.body.total_price, 100100)
@@ -374,10 +375,10 @@ describe('OrderController', () => {
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
-        assert.equal(res.body.fulfillments[0].status, 'none')
+        assert.equal(res.body.fulfillments[0].status, 'pending')
 
         assert.equal(res.body.financial_status, 'authorized')
-        assert.equal(res.body.fulfillment_status, 'none')
+        assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 100000)
         assert.equal(res.body.total_price, 100000)
@@ -458,7 +459,7 @@ describe('OrderController', () => {
       .send([])
       .expect(200)
       .end((err, res) => {
-        console.log('THIS ORDER', res.body)
+        //console.log('THIS ORDER', res.body)
 
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'refunded')
