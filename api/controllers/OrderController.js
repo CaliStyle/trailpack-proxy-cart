@@ -265,7 +265,24 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
-
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  retry(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.retry(req.body)
+      .then(values => {
+        return OrderService.retry(req.params.id, req.body)
+      })
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    *
    * @param req

@@ -12,7 +12,12 @@ const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
  * @description Fulfillment Model
  */
 module.exports = class Fulfillment extends Model {
-
+  /**
+   *
+   * @param app
+   * @param Sequelize
+   * @returns {{}}
+   */
   static config (app, Sequelize) {
     let config = {}
     if (app.config.database.orm === 'sequelize') {
@@ -102,10 +107,10 @@ module.exports = class Fulfillment extends Model {
              * @param models
              */
             associate: (models) => {
-              // models.Fulfillment.belongsTo(models.Order, {
-              //   // as: 'order_id',
-              //   // allowNull: false
-              // })
+              models.Fulfillment.belongsTo(models.Order, {
+                // as: 'order_id',
+                // allowNull: false
+              })
               models.Fulfillment.hasMany(models.OrderItem, {
                 foreignKey: 'fulfillment_id',
                 as: 'order_items'
@@ -151,30 +156,104 @@ module.exports = class Fulfillment extends Model {
             }
           },
           instanceMethods: {
+            /**
+             *
+             * @returns {*}
+             */
             pending: function() {
               return this
             },
+            /**
+             *
+             * @returns {*}
+             */
             none: function() {
               return this
             },
+            /**
+             *
+             * @returns {*}
+             */
             partial: function() {
               return this
             },
+            /**
+             *
+             * @returns {*}
+             */
             sent: function() {
               this.sent_at = new Date(Date.now())
               this.status = FULFILLMENT_STATUS.SENT
               return this
             },
+            /**
+             *
+             * @returns {*}
+             */
             fulfilled: function() {
               this.fulfilled_at = new Date(Date.now())
               this.status = FULFILLMENT_STATUS.FULFILLED
               return this
             },
+            /**
+             *
+             * @returns {*}
+             */
             cancelled: function() {
               this.cancelled_at = new Date(Date.now())
               this.status = FULFILLMENT_STATUS.CANCELLED
               return this
             },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
+            reconcileFulfillmentStatus: function (options) {
+              options = options || {}
+              return this.resolveFulfillmentStatus({transaction: options.transaction || null})
+                .then(() => {
+                  if (this.changed('status')) {
+                    return this.getOrder({transaction: options.transaction || null})
+                  }
+                  else {
+                    return null
+                  }
+                })
+                .then(order => {
+                  if (order) {
+                    return order.saveFulfillmentStatus({transaction: options.transaction || null})
+                  }
+                  else {
+                    return null
+                  }
+                })
+                .then(() => {
+                  return this
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
+            resolveFulfillmentStatus: function(options) {
+              options = options || {}
+              // let currentStatus, previousStatus
+              if (!this.id){
+                return Promise.resolve(this)
+              }
+              return this.resolveOrderItems({transaction: options.transaction || null})
+                .then(() => {
+                  this.setFulfillmentStatus()
+                  return this
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveOrderItems: function(options) {
               options = options || {}
               if (this.order_items) {
@@ -192,52 +271,22 @@ module.exports = class Fulfillment extends Model {
                   })
               }
             },
-            resolveFulfillmentStatus: function(options) {
-              options = options || {}
-              // let currentStatus, previousStatus
-              if (!this.id){
-                return Promise.resolve(this)
-              }
-              return this.resolveOrderItems({transaction: options.transaction || null})
-                .then(() => {
-                  this.setFulfillmentStatus()
-                  // if (this.changed('status')) {
-                  //   currentStatus = this.status
-                  //   previousStatus = this.previous('status')
-                  // }
-                  // console.log('BROKE resolve', previousStatus, currentStatus)
-                  return this
-                })
-                // .then(() => {
-                //   if (currentStatus && previousStatus) {
-                //     const event = {
-                //       object_id: this.id,
-                //       object: 'fulfillment',
-                //       objects: [{
-                //         order: this.order_id
-                //       }],
-                //       type: `order.financial_status.${currentStatus}`,
-                //       message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
-                //       data: this
-                //     }
-                //     return app.services.ProxyEngineService.publish(event.type, event, {save: true})
-                //   }
-                //   else {
-                //     return
-                //   }
-                // })
-                // .then(() => {
-                //   return this
-                // })
-            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
             saveFulfillmentStatus: function (options) {
               options = options || {}
-              return this.resolveOrderItems(options)
+              return this.resolveFulfillmentStatus({transaction: options.transaction || null})
                 .then(() => {
-                  this.setFulfillmentStatus()
                   return this.save({transaction: options.transaction || null})
                 })
             },
+            /**
+             *
+             * @returns {*}
+             */
             setFulfillmentStatus: function(){
               if (!this.order_items) {
                 throw new Error('Fulfillment.setFulfillmentStatus requires order_items to be populated')
@@ -309,6 +358,12 @@ module.exports = class Fulfillment extends Model {
     return config
   }
 
+  /**
+   *
+   * @param app
+   * @param Sequelize
+   * @returns {{}}
+   */
   static schema (app, Sequelize) {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
@@ -372,17 +427,20 @@ module.exports = class Fulfillment extends Model {
         tracking_number: {
           type: Sequelize.STRING
         },
-
+        // Live mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode
         },
+        // Date time sent at
         sent_at: {
           type: Sequelize.DATE
         },
+        // Date time fulfilled at
         fulfilled_at: {
           type: Sequelize.DATE
         },
+        // Date time cancelled at
         cancelled_at: {
           type: Sequelize.DATE
         }

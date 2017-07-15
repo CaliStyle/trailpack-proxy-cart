@@ -335,7 +335,6 @@ module.exports = class Order extends Model {
                   return this.resolveFulfillments()
                 })
                 .then(() => {
-
                   this.setFulfillmentStatus()
 
                   if (this.changed('fulfillment_status')) {
@@ -840,6 +839,9 @@ module.exports = class Order extends Model {
              * @returns {*}
              */
             reconcileTransactions: function() {
+              // Get fresh financial status
+              this.setFinancialStatus()
+              // Test if the total due has changed
               if (this.changed('total_due')) {
                 // partially cancel/void/refund
                 if (this.total_due <= this.previous('total_due')) {
@@ -857,21 +859,6 @@ module.exports = class Order extends Model {
               else {
                 return Promise.resolve(this)
               }
-            },
-            reconcileFulfillments: function() {
-              // if (this.changed('total_items')) {
-              //   if (this.previous('total_items') < this.total_items) {
-              //     console.log('remove item from fulfillment')
-              //     return app.services.FulfillmentService.reconcileUpdate(this)
-              //   }
-              //   else {
-              //     console.log('add item to fulfillment')
-              //     return app.services.FulfillmentService.reconcileCreate(this)
-              //   }
-              // }
-              // else {
-              return Promise.resolve(this)
-              // }
             },
             resolveOrderItems: function(options) {
               options = options || {}
@@ -986,32 +973,22 @@ module.exports = class Order extends Model {
 
                   this.subtotal_price = Math.max(0, this.total_line_items_price)
                   this.total_price = Math.max(0, this.total_line_items_price + this.total_tax + this.total_shipping - this.total_discounts - this.total_coupons - this.total_overrides)
-
-                //   return this.save({hooks: false})
-                // })
-                // .then(() => {
+                  // resolve current transactions
                   return this.resolveTransactions()
                 })
                 .then(() => {
-                  this.setFinancialStatus()
+                  // reconcile the transactions
                   return this.reconcileTransactions()
                 })
                 .then(() => {
+                  // resolve the current fulfillments
                   return this.resolveFulfillments()
                 })
                 .then(() => {
-
-                //   // return this.reconcileFulfillments()
-                // })
-                // .then(() => {
                   // Save the new Financial Status
-                  return this.saveFinancialStatus()
-                })
-                .then(() => {
-                  // Save the new Fulfillment Status
-                  return this.saveFulfillmentStatus()
-                })
-                .then(() => {
+                  this.setFinancialStatus()
+                  // the new Fulfillment Status
+                  this.setFulfillmentStatus()
                   return this.save()
                 })
             }

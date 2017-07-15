@@ -230,7 +230,8 @@ module.exports = class Transaction extends Model {
         // The kind of transaction:
         kind: {
           type: Sequelize.ENUM,
-          values: _.values(TRANSACTION_KIND)
+          values: _.values(TRANSACTION_KIND),
+          allowNull: false
         },
         // A transaction reciept attached to the transaction by the gateway. The value of this field will vary depending on which gateway the shop is using.
         receipt: helpers.JSONB('Transaction', app, Sequelize, 'receipt', {

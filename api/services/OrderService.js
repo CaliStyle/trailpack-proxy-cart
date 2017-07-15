@@ -343,13 +343,12 @@ module.exports = class OrderService extends Service {
             })
         })
         .then(() => {
-          // console.log('broke 2', resOrder.fulfillments)
           // Set proxy cart default payment kind if not set by order.create
-          let orderPayment = obj.transaction_kind || this.app.config.proxyCart.orders.transaction_kind
+          let transactionKind = obj.transaction_kind || this.app.config.proxyCart.orders.transaction_kind
           // Set transaction type to 'manual' if none is specified
-          if (!orderPayment) {
+          if (!transactionKind) {
             this.app.log.debug(`Order does not have a payment function, defaulting to ${TRANSACTION_KIND.AUTHORIZE}`)
-            orderPayment = TRANSACTION_KIND.AUTHORIZE
+            transactionKind = TRANSACTION_KIND.AUTHORIZE
           }
 
           return Promise.all(obj.payment_details.map((detail, index) => {
@@ -368,6 +367,8 @@ module.exports = class OrderService extends Service {
               payment_details: obj.payment_details[index],
               // Specify the gateway to use
               gateway: detail.gateway,
+              // Set the specific type of transactions this is
+              kind: transactionKind,
               // Set the device (that input the credit card) or null
               device_id: obj.device_id || null,
               // Set the Description
@@ -764,6 +765,58 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(voids => {
+        return resOrder.saveFinancialStatus()
+      })
+      .then(order => {
+        return Order.findByIdDefault(resOrder.id)
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param retries
+   * @returns {Promise.<T>}
+   */
+  retry(order, retries, options) {
+    retries = retries || []
+    options = options || {}
+    const Order = this.app.orm['Order']
+    let resOrder
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        return order
+      })
+      .then(order => {
+        resOrder = order
+        return resOrder.resolveTransactions()
+      })
+      .then(() => {
+        // Partially retry
+        if (retries.length > 0) {
+          return Promise.all(retries.map(tRetry => {
+            const retryTransaction = resOrder.transactions.find(transaction => transaction.id == tRetry.transaction)
+            if ([TRANSACTION_KIND.FAILURE, TRANSACTION_KIND.PENDING].indexOf(retryTransaction.status) !== -1) {
+              return this.app.services.TransactionService.retry(retryTransaction)
+            }
+          }))
+        }
+        // Completely retry the order
+        else {
+          const canRetry = resOrder.transactions.filter(transaction => {
+            if ([TRANSACTION_KIND.FAILURE, TRANSACTION_KIND.PENDING].indexOf(transaction.status) !== -1) {
+              return transaction
+            }
+          })
+          return Promise.all(canRetry.map(transaction => {
+            return this.app.services.TransactionService.retry(transaction)
+          }))
+        }
+      })
+      .then(retries => {
         return resOrder.saveFinancialStatus()
       })
       .then(order => {

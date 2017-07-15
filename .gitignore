@@ -3,3 +3,5 @@ coverage
 .idea
 .tmp
 test/uploads
+test/test.sqlite
+test/test.uploads.sqlite
