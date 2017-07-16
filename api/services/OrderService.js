@@ -573,7 +573,7 @@ module.exports = class OrderService extends Service {
   // TODO restock
   refund(order, refunds, options) {
     refunds = refunds || []
-
+    options = options || {}
     const Order = this.app.orm['Order']
     let resOrder
     return Order.resolve(order, options)
@@ -592,33 +592,20 @@ module.exports = class OrderService extends Service {
       })
       .then(order => {
         resOrder = order
-        if (!resOrder.transactions || resOrder.transactions.length == 0) {
-          return resOrder.getTransactions()
-        }
-        else {
-          return resOrder.transactions
-        }
+        return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
-      .then(transactions => {
-        transactions = transactions || []
-        resOrder.set('transactions', transactions)
-
-        if (!resOrder.refunds) {
-          return resOrder.getRefunds()
-        }
-        else {
-          return resOrder.refunds
-        }
+      .then(() => {
+        return resOrder.resolveRefunds({transaction: options.transaction || null})
       })
-      .then(foundRefunds => {
-        foundRefunds = foundRefunds || []
-        resOrder.set('refunds', foundRefunds)
-
+      .then(() => {
         // Partially Refund because refunds was sent to method
         if (refunds.length > 0) {
           return Promise.all(refunds.map(refund => {
             const refundTransaction = resOrder.transactions.find(transaction => transaction.id == refund.transaction)
-            if ([TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(refundTransaction.kind) > -1) {
+            if (
+              [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(refundTransaction.kind) > -1
+              && refundTransaction.status == TRANSACTION_STATUS.SUCCESS
+            ) {
               // If this is a full Transaction refund
               if (refund.amount == refundTransaction.amount) {
                 return this.app.services.TransactionService.refund(refundTransaction)
@@ -633,8 +620,12 @@ module.exports = class OrderService extends Service {
         // Completely Refund the order
         else {
           const canRefund = resOrder.transactions.filter(transaction => {
-            return [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
-
+            if (
+              [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
+              && transaction.status == TRANSACTION_STATUS.SUCCESS
+            ) {
+              return transaction
+            }
           })
           return Promise.all(canRefund.map(transaction => {
             return this.app.services.TransactionService.refund(transaction)
@@ -671,6 +662,63 @@ module.exports = class OrderService extends Service {
   /**
    *
    * @param order
+   * @param authorizes
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  authorize(order, authorizes, options) {
+    authorizes = authorizes || []
+    const Order = this.app.orm['Order']
+    let resOrder
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        return order
+      })
+      .then(order => {
+        resOrder = order
+        return resOrder.resolveTransactions()
+      })
+      .then(() => {
+        // Partially Authorize
+        if (authorizes.length > 0) {
+          return Promise.all(authorizes.map(authorize => {
+            const authorizeTransaction = resOrder.transactions.find(transaction => transaction.id == authorize.transaction)
+            if (
+              authorizeTransaction.kind == TRANSACTION_KIND.AUTHORIZE
+              && authorizeTransaction.status == TRANSACTION_STATUS.PENDING
+            ) {
+              return this.app.services.TransactionService.authorize(authorizeTransaction)
+            }
+          }))
+        }
+        // Completely Authorize the order
+        else {
+          const canAuthorize = resOrder.transactions.filter(transaction => {
+            if (
+              transaction.kind == TRANSACTION_KIND.AUTHORIZE
+              && transaction.status == TRANSACTION_STATUS.PENDING
+            ) {
+              return transaction
+            }
+          })
+          return Promise.all(canAuthorize.map(transaction => {
+            return this.app.services.TransactionService.authorize(transaction)
+          }))
+        }
+      })
+      .then(authorized => {
+        return resOrder.saveFinancialStatus()
+      })
+      .then(order => {
+        return Order.findByIdDefault(resOrder.id)
+      })
+  }
+  /**
+   *
+   * @param order
    * @param captures
    * @param options
    * @returns {Promise.<TResult>}
@@ -695,7 +743,10 @@ module.exports = class OrderService extends Service {
         if (captures.length > 0) {
           return Promise.all(captures.map(capture => {
             const captureTransaction = resOrder.transactions.find(transaction => transaction.id == capture.transaction)
-            if (captureTransaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+            if (
+              captureTransaction.kind == TRANSACTION_KIND.AUTHORIZE
+              && captureTransaction.status == TRANSACTION_STATUS.SUCCESS
+            ) {
               return this.app.services.TransactionService.capture(captureTransaction)
             }
           }))
@@ -703,7 +754,10 @@ module.exports = class OrderService extends Service {
         // Completely Capture the order
         else {
           const canCapture = resOrder.transactions.filter(transaction => {
-            if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+            if (
+              transaction.kind == TRANSACTION_KIND.AUTHORIZE
+              && transaction.status == TRANSACTION_STATUS.SUCCESS
+            ) {
               return transaction
             }
           })
@@ -718,7 +772,6 @@ module.exports = class OrderService extends Service {
       .then(order => {
         return Order.findByIdDefault(resOrder.id)
       })
-
   }
 
   /**
@@ -747,7 +800,10 @@ module.exports = class OrderService extends Service {
         if (voids.length > 0) {
           return Promise.all(voids.map(tVoid => {
             const voidTransaction = resOrder.transactions.find(transaction => transaction.id == tVoid.transaction)
-            if (voidTransaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+            if (
+              voidTransaction.kind == TRANSACTION_KIND.AUTHORIZE
+              && voidTransaction.status == TRANSACTION_STATUS.SUCCESS
+            ) {
               return this.app.services.TransactionService.void(voidTransaction)
             }
           }))
@@ -755,7 +811,10 @@ module.exports = class OrderService extends Service {
         // Completely Void the order
         else {
           const canVoid = resOrder.transactions.filter(transaction => {
-            if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+            if (
+              transaction.kind == TRANSACTION_KIND.AUTHORIZE
+              && transaction.status == TRANSACTION_STATUS.SUCCESS
+            ) {
               return transaction
             }
           })

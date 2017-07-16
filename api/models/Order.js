@@ -876,6 +876,22 @@ module.exports = class Order extends Model {
                   })
               }
             },
+            resolveRefunds: function(options) {
+              options = options || {}
+              if (this.refunds) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getRefunds({transaction: options.transaction || null})
+                  .then(refunds => {
+                    refunds = refunds || []
+                    this.refunds = refunds
+                    this.setDataValue('refunds', refunds)
+                    this.set('refunds', refunds)
+                    return this
+                  })
+              }
+            },
             resolveTransactions: function(options) {
               options = options || {}
               if (this.transactions) {
