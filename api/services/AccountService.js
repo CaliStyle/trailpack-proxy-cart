@@ -530,7 +530,9 @@ module.exports = class AccountService extends Service {
         }
         resSource = source
         return resSource.getTransactions({
-          status: TRANSACTION_STATUS.FAILURE
+          where: {
+            status: TRANSACTION_STATUS.FAILURE
+          }
         })
       })
       .then(transactions => {

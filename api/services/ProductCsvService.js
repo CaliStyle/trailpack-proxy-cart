@@ -196,7 +196,7 @@ module.exports = class ProductCsvService extends Service {
                 }
                 // TODO place this as the default product
                 // if (data.trim().toLowerCase() !== 'default value') {
-                //   upload.options[index][part] = data.trim()
+                upload.options[index][part] = data.trim()
                 // }
               }
             }
