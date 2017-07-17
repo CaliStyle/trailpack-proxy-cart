@@ -374,7 +374,7 @@ module.exports = class Order extends Model {
                       taxLines.push(taxes)
                     }
                   }
-                  this.taxes_lines = taxLines
+                  this.tax_lines = taxLines
                   return this.save()
                 })
                 .then(() => {
@@ -387,7 +387,7 @@ module.exports = class Order extends Model {
 
               return this.resolveOrderItems({transaction: options.transaction || null})
                 .then(() => {
-                  const taxLines = this.taxes_lines
+                  const taxLines = this.tax_lines
 
                   if (_.isArray(taxes)) {
                     taxes.forEach(tax => {
@@ -407,7 +407,7 @@ module.exports = class Order extends Model {
                       taxLines.splice(i, 1)
                     }
                   }
-                  this.taxes_lines = taxLines
+                  this.tax_lines = taxLines
                   return this.save()
                 })
                 .then(() => {
