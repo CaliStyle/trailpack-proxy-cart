@@ -260,6 +260,83 @@ module.exports = class Order extends Model {
               this.closed_at = new Date(Date.now())
               return this
             },
+            addShipping: function(shipping, options) {
+              shipping = shipping || []
+              options = options || {}
+
+              return this.resolveOrderItems({transaction: options.transaction || null})
+                .then(() => {
+                  const shippingLines = this.shipping_lines
+
+                  if (_.isArray(shipping)) {
+                    shipping.forEach(ship => {
+                      const i = _.findIndex(shippingLines, (s) => {
+                        return s.name === ship.name
+                      })
+                      // Make sure shipping price is a number
+                      ship.price = parseInt(ship.price)
+                      if (i > -1) {
+                        shippingLines[i] = ship
+                      }
+                      else {
+                        shippingLines.push(ship)
+                      }
+                    })
+                  }
+                  else {
+                    const i = _.findIndex(shippingLines, (s) => {
+                      return s.name === shipping.name
+                    })
+                    // Make sure shipping price is a number
+                    shipping.price = parseInt(shipping.price)
+
+                    if (i > -1) {
+                      shippingLines[i] = shipping
+                    }
+                    else {
+                      shippingLines.push(shipping)
+                    }
+                  }
+                  this.shipping_lines = shippingLines
+                  return this.save()
+                })
+                .then(() => {
+                  return this.recalculate()
+                })
+            },
+            removeShipping: function(shipping, options){
+              shipping = shipping || []
+              options = options || {}
+
+              return this.resolveOrderItems({transaction: options.transaction || null})
+                .then(() => {
+                  const shippingLines = this.shipping_lines
+
+                  if (_.isArray(shipping)) {
+                    shipping.forEach(ship => {
+                      const i = _.findIndex(shippingLines, (s) => {
+                        return s.name === ship.name
+                      })
+                      if (i > -1) {
+                        shippingLines.splice(i, 1)
+                      }
+                    })
+                  }
+                  else {
+                    const i = _.findIndex(shippingLines, (s) => {
+                      return s.name === shipping.name
+                    })
+                    if (i > -1) {
+                      shippingLines.splice(i, 1)
+                    }
+                  }
+                  this.shipping_lines = shippingLines
+                  return this.save()
+                })
+                .then(() => {
+                  return this.recalculate()
+                })
+            },
             resolveFinancialStatus: function(options){
               options = options || {}
               if (!this.id) {

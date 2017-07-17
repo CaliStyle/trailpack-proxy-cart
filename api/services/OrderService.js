@@ -1262,37 +1262,8 @@ module.exports = class OrderService extends Service {
           throw new Error(`Order is already ${order.status}`)
         }
         resOrder = order
-
-        if (_.isArray(shipping)) {
-          shipping.forEach(ship => {
-            const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === ship.name })
-            // Make sure shipping price is a number
-            ship.price = parseInt(ship.price)
-            if ( i > -1) {
-              resOrder.shipping_lines[i] = ship
-            }
-            else {
-              resOrder.shipping_lines.push(ship)
-            }
-          })
-        }
-        else {
-          const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === shipping.name })
-          // Make sure shipping price is a number
-          shipping.price = parseInt(shipping.price)
-
-          if ( i > -1) {
-            resOrder.shipping_lines[i] = shipping
-          }
-          else {
-            resOrder.shipping_lines.push(shipping)
-          }
-        }
-        return resOrder.recalculate()
+        return resOrder.addShipping(shipping, {transaction: options.transaction || null})
       })
-      // .then(() => {
-      //   return Order.findByIdDefault(resOrder.id)
-      // })
   }
 
   /**
@@ -1301,6 +1272,36 @@ module.exports = class OrderService extends Service {
    * @param shipping
    * @param options
    * @returns {Promise.<TResult>|*}
+   */
+  updateShipping(order, shipping, options) {
+    options = options || {}
+    if (!shipping) {
+      throw new Errors.FoundError(Error('Shipping is not defined'))
+    }
+    let resOrder
+    const Order = this.app.orm['Order']
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
+        }
+        resOrder = order
+        return resOrder.addShipping(shipping, {transaction: options.transaction || null})
+      })
+    // .then(() => {
+    //   return Order.findByIdDefault(resOrder.id)
+    // })
+  }
+
+  /**
+   *
+   * @param order
+   * @param shipping
+   * @param options
+   * @returns {Promise.<T>}
    */
   removeShipping(order, shipping, options) {
     options = options || {}
@@ -1318,26 +1319,8 @@ module.exports = class OrderService extends Service {
           throw new Error(`Order is already ${order.status}`)
         }
         resOrder = order
-
-        if (_.isArray(shipping)) {
-          shipping.forEach(ship => {
-            const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === ship.name })
-            if ( i > -1) {
-              resOrder.shipping_lines.splice(i, 1)
-            }
-          })
-        }
-        else {
-          const i = _.findIndex(resOrder.shipping_lines, (s) => { return s.name === shipping.name })
-          if ( i > -1) {
-            resOrder.shipping_lines.splice(i, 1)
-          }
-        }
-        return resOrder.recalculate()
+        return resOrder.removeShipping(shipping, {transaction: options.transaction || null})
       })
-      // .then(() => {
-      //   return Order.findByIdDefault(resOrder.id)
-      // })
   }
 
   retryThisHour() {

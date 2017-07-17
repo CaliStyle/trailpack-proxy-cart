@@ -128,6 +128,12 @@ module.exports = class OrderItem extends Model {
             }
           },
           instanceMethods: {
+            addShipping: function(shipping, options) {
+
+            },
+            removeShipping: function(shipping, options){
+
+            },
             recalculate: function() {
               // const price = this.price
               let totalDiscounts = 0 // this.total_discounts

@@ -337,6 +337,11 @@ describe('OrderController', () => {
           assert.equal(transaction.status, 'success')
         })
 
+        // Shipping Lines
+        assert.equal(res.body.shipping_lines.length, 1)
+        assert.equal(res.body.shipping_lines[0].name, 'Test Shipping')
+        assert.equal(res.body.shipping_lines[0].price, 100)
+
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
         assert.equal(res.body.fulfillments[0].order_id, orderID)
@@ -371,6 +376,9 @@ describe('OrderController', () => {
           assert.equal(transaction.kind, 'authorize')
           assert.equal(transaction.status, 'success')
         })
+
+        // Shipping Lines
+        assert.equal(res.body.shipping_lines.length, 0)
 
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
