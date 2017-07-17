@@ -279,6 +279,8 @@ describe('OrderController', () => {
         assert.equal(res.body.total_authorized, 200000)
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 2)
+        assert.equal(res.body.total_shipping, 0)
+        assert.equal(res.body.total_tax, 0)
         done(err)
       })
   })
@@ -317,6 +319,8 @@ describe('OrderController', () => {
         assert.equal(res.body.total_authorized, 100000)
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
+        assert.equal(res.body.total_shipping, 0)
+        assert.equal(res.body.total_tax, 0)
         done(err)
       })
   })
@@ -357,6 +361,7 @@ describe('OrderController', () => {
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
         assert.equal(res.body.total_shipping, 100)
+        assert.equal(res.body.total_tax, 0)
         done(err)
       })
   })
@@ -395,6 +400,88 @@ describe('OrderController', () => {
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
         assert.equal(res.body.total_shipping, 0)
+        assert.equal(res.body.total_tax, 0)
+        done(err)
+      })
+  })
+
+  it('should add taxes to order', (done) => {
+    request
+      .post(`/order/${orderID}/addTaxes`)
+      .send({
+        name: 'Test Taxes',
+        price: 100
+      })
+      .expect(200)
+      .end((err, res) => {
+        // Transactions
+        assert.equal(res.body.transactions.length, 5)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Taxes Lines
+        assert.equal(res.body.tax_lines.length, 1)
+        assert.equal(res.body.tax_lines[0].name, 'Test Taxes')
+        assert.equal(res.body.tax_lines[0].price, 100)
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'pending')
+
+        assert.equal(res.body.financial_status, 'authorized')
+        assert.equal(res.body.fulfillment_status, 'pending')
+        assert.equal(res.body.total_pending_fulfillments, 1)
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 100100)
+        assert.equal(res.body.total_due, 100100)
+        assert.equal(res.body.total_authorized, 100100)
+        assert.equal(res.body.total_voided, 0)
+        assert.equal(res.body.total_items, 1)
+        assert.equal(res.body.total_shipping, 0)
+        assert.equal(res.body.total_tax, 100)
+        done(err)
+      })
+  })
+  it('should remove taxes from order', (done) => {
+    request
+      .post(`/order/${orderID}/removeTaxes`)
+      .send({
+        name: 'Test Taxes',
+        price: 100
+      })
+      .expect(200)
+      .end((err, res) => {
+        // Transactions
+        assert.equal(res.body.transactions.length, 5)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Taxes Lines
+        assert.equal(res.body.tax_lines.length, 0)
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'pending')
+
+        assert.equal(res.body.financial_status, 'authorized')
+        assert.equal(res.body.fulfillment_status, 'pending')
+        assert.equal(res.body.total_pending_fulfillments, 1)
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 100000)
+        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_authorized, 100000)
+        assert.equal(res.body.total_voided, 0)
+        assert.equal(res.body.total_items, 1)
+        assert.equal(res.body.total_tax, 0)
+        assert.equal(res.body.total_shipping, 0)
         done(err)
       })
   })
@@ -415,7 +502,7 @@ describe('OrderController', () => {
         assert.equal(res.body.financial_status, 'paid')
 
         // Transactions
-        assert.equal(res.body.transactions.length, 4)
+        assert.equal(res.body.transactions.length, 5)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'capture')
@@ -443,7 +530,7 @@ describe('OrderController', () => {
         assert.equal(res.body.id, orderID)
 
         // Transactions
-        assert.equal(res.body.transactions.length, 5)
+        assert.equal(res.body.transactions.length, 6)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.status, 'success')
@@ -475,14 +562,14 @@ describe('OrderController', () => {
         assert.equal(res.body.total_due, 100000)
 
         // Transactions
-        assert.equal(res.body.transactions.length, 5)
+        assert.equal(res.body.transactions.length, 6)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'refund')
           assert.equal(transaction.status, 'success')
         })
 
-        assert.equal(res.body.refunds.length, 5)
+        assert.equal(res.body.refunds.length, 6)
         res.body.refunds.forEach(refund => {
           assert.equal(refund.order_id, orderID)
         })

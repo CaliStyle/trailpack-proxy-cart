@@ -538,6 +538,44 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
+  addTaxes(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.addTaxes(req.body)
+      .then(values => {
+        return OrderService.addTaxes(req.params.id, req.body)
+      })
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeTaxes(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.removeTaxes(req.body)
+      .then(values => {
+        return OrderService.removeTaxes(req.params.id, req.body)
+      })
+      .then(data => {
+        return res.json(data)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   pay(req, res) {
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.pay(req.body)

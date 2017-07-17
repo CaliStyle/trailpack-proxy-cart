@@ -1271,36 +1271,6 @@ module.exports = class OrderService extends Service {
    * @param order
    * @param shipping
    * @param options
-   * @returns {Promise.<TResult>|*}
-   */
-  updateShipping(order, shipping, options) {
-    options = options || {}
-    if (!shipping) {
-      throw new Errors.FoundError(Error('Shipping is not defined'))
-    }
-    let resOrder
-    const Order = this.app.orm['Order']
-    return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
-          throw new Errors.FoundError(Error('Order not found'))
-        }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status}`)
-        }
-        resOrder = order
-        return resOrder.addShipping(shipping, {transaction: options.transaction || null})
-      })
-    // .then(() => {
-    //   return Order.findByIdDefault(resOrder.id)
-    // })
-  }
-
-  /**
-   *
-   * @param order
-   * @param shipping
-   * @param options
    * @returns {Promise.<T>}
    */
   removeShipping(order, shipping, options) {
@@ -1320,6 +1290,60 @@ module.exports = class OrderService extends Service {
         }
         resOrder = order
         return resOrder.removeShipping(shipping, {transaction: options.transaction || null})
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param taxes
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  addTaxes(order, taxes, options) {
+    options = options || {}
+    if (!taxes) {
+      throw new Errors.FoundError(Error('Taxes is not defined'))
+    }
+    let resOrder
+    const Order = this.app.orm['Order']
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
+        }
+        resOrder = order
+        return resOrder.addTaxes(taxes, {transaction: options.transaction || null})
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param taxes
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  removeTaxes(order, taxes, options) {
+    options = options || {}
+    if (!taxes) {
+      throw new Errors.FoundError(Error('Taxes is not defined'))
+    }
+    let resOrder
+    const Order = this.app.orm['Order']
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
+        }
+        resOrder = order
+        return resOrder.removeTaxes(taxes, {transaction: options.transaction || null})
       })
   }
 

@@ -337,6 +337,83 @@ module.exports = class Order extends Model {
                   return this.recalculate()
                 })
             },
+            addTaxes: function(taxes, options) {
+              taxes = taxes || []
+              options = options || {}
+
+              return this.resolveOrderItems({transaction: options.transaction || null})
+                .then(() => {
+                  const taxLines = this.tax_lines
+
+                  if (_.isArray(taxes)) {
+                    taxes.forEach(tax => {
+                      const i = _.findIndex(taxLines, (s) => {
+                        return s.name === tax.name
+                      })
+                      // Make sure taxes price is a number
+                      tax.price = parseInt(tax.price)
+                      if (i > -1) {
+                        taxLines[i] = tax
+                      }
+                      else {
+                        taxLines.push(tax)
+                      }
+                    })
+                  }
+                  else {
+                    const i = _.findIndex(taxLines, (s) => {
+                      return s.name === taxes.name
+                    })
+                    // Make sure taxes price is a number
+                    taxes.price = parseInt(taxes.price)
+
+                    if (i > -1) {
+                      taxLines[i] = taxes
+                    }
+                    else {
+                      taxLines.push(taxes)
+                    }
+                  }
+                  this.taxes_lines = taxLines
+                  return this.save()
+                })
+                .then(() => {
+                  return this.recalculate()
+                })
+            },
+            removeTaxes: function(taxes, options){
+              taxes = taxes || []
+              options = options || {}
+
+              return this.resolveOrderItems({transaction: options.transaction || null})
+                .then(() => {
+                  const taxLines = this.taxes_lines
+
+                  if (_.isArray(taxes)) {
+                    taxes.forEach(tax => {
+                      const i = _.findIndex(taxLines, (s) => {
+                        return s.name === tax.name
+                      })
+                      if (i > -1) {
+                        taxLines.splice(i, 1)
+                      }
+                    })
+                  }
+                  else {
+                    const i = _.findIndex(taxLines, (s) => {
+                      return s.name === taxes.name
+                    })
+                    if (i > -1) {
+                      taxLines.splice(i, 1)
+                    }
+                  }
+                  this.taxes_lines = taxLines
+                  return this.save()
+                })
+                .then(() => {
+                  return this.recalculate()
+                })
+            },
             resolveFinancialStatus: function(options){
               options = options || {}
               if (!this.id) {

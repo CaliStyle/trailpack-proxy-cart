@@ -5,10 +5,22 @@ module.exports = class FakeEmailProvider {
     this.options = options
   }
   send(data) {
-    return Promise.resolve({status: 'success'})
+    const results = data.to.map(receiver => {
+      return {
+        status: 'success',
+        email: receiver.email
+      }
+    })
+    return Promise.resolve(results)
   }
 
   sendTemplate(data) {
-    return Promise.resolve({status: 'success'})
+    const results = data.to.map(receiver => {
+      return {
+        status: 'success',
+        email: receiver.email
+      }
+    })
+    return Promise.resolve(results)
   }
 }
