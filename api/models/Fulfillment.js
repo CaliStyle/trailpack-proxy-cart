@@ -217,6 +217,7 @@ module.exports = class Fulfillment extends Model {
                   this.status_url = data.status_url || this.status_url
                   this.tracking_company = data.tracking_company || this.tracking_company
                   this.tracking_number = data.tracking_number || this.tracking_number
+                  this.receipt = data.receipt || this.receipt
 
                   if (this.changed(this.status)) {
                     this.order_items.forEach(orderItem => {

@@ -62,22 +62,22 @@ module.exports = class CustomerController extends Controller {
       $or: [
         {
           first_name: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         },
         {
           last_name: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         },
         {
           email: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         },
         {
           company: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         }
       ]

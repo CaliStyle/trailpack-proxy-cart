@@ -100,17 +100,17 @@ module.exports = class OrderController extends Controller {
       $or: [
         {
           number: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         },
         {
           name: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         },
         {
           email: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         }
       ]

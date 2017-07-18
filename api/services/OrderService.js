@@ -896,8 +896,8 @@ module.exports = class OrderService extends Service {
     return Order.resolve(order, options)
       .then(order => {
         resOrder = order
-        if ([ORDER_FULFILLMENT.NONE, ORDER_FULFILLMENT.PENDING].indexOf(resOrder.fulfillment_status) < 0) {
-          throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}' or '${ORDER_FULFILLMENT.PENDING}'`)
+        if ([ORDER_FULFILLMENT.NONE, ORDER_FULFILLMENT.PENDING, ORDER_FULFILLMENT.SENT].indexOf(resOrder.fulfillment_status) < 0) {
+          throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}', '${ORDER_FULFILLMENT.PENDING}', '${ORDER_FULFILLMENT.SENT}'`)
         }
 
         return resOrder.resolveTransactions()

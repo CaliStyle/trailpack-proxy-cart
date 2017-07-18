@@ -449,7 +449,8 @@ module.exports = class Order extends Model {
                           status: fulfillment.status || resFulfillment.status,
                           status_url: fulfillment.status_url || resFulfillment.status_url,
                           tracking_company: fulfillment.tracking_company || resFulfillment.tracking_company,
-                          tracking_number: fulfillment.tracking_number || resFulfillment.tracking_number
+                          tracking_number: fulfillment.tracking_number || resFulfillment.tracking_number,
+                          receipt: fulfillment.receipt || resFulfillment.receipt
                         }, {transaction: options.transaction || null })
                       }
                     })
@@ -461,7 +462,8 @@ module.exports = class Order extends Model {
                         status: fulfillments.status || resFulfillment.status,
                         status_url: fulfillments.status_url || resFulfillment.status_url,
                         tracking_company: fulfillments.tracking_company || resFulfillment.tracking_company,
-                        tracking_number: fulfillments.tracking_number || resFulfillment.tracking_number
+                        tracking_number: fulfillments.tracking_number || resFulfillment.tracking_number,
+                        receipt: fulfillments.receipt || resFulfillment.receipt
                       }, {transaction: options.transaction || null })
                     }))
                   }

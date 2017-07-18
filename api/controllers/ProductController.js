@@ -72,22 +72,22 @@ module.exports = class ProductController extends Controller {
       $or: [
         {
           title: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         },
         {
           type: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         },
         {
           '$tags.name$': {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         },
         {
           '$collections.title$': {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         }
       ]

@@ -522,10 +522,13 @@ describe('OrderController', () => {
     request
       .post(`/order/${orderID}/fulfill`)
       .send({
-        status: 'fulfilled',
+        status: 'sent',
         status_url: 'https://cali-style.com/status',
         tracking_company: 'UPS',
-        tracking_number: '1111'
+        tracking_number: '1111',
+        // receipt: {
+        //   done: 'today'
+        // }
       })
       .expect(200)
       .end((err, res) => {
