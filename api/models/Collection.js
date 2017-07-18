@@ -214,13 +214,15 @@ module.exports = class Collection extends Model {
                     return Collection.create(collection, {transaction: options.transaction})
                   })
               }
+              else if (collection && _.isNumber(collection)) {
+                return Collection.findById(collection, options)
+              }
               else if (collection && _.isString(collection)) {
                 return Collection.findOne(_.defaultsDeep({
                   where: {
                     $or: {
                       handle: collection,
-                      title: collection,
-                      id: collection
+                      title: collection
                     }
                   }
                 }, options))

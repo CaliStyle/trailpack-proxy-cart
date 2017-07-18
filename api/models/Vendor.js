@@ -95,13 +95,23 @@ module.exports = class Vendor extends Model {
                     return Vendor.create(vendor, { transaction: options.transaction || null})
                   })
               }
+              else if (vendor && _.isNumber(vendor)) {
+                return Vendor.findById(vendor, options)
+                  .then(resVendor => {
+                    if (resVendor) {
+                      return resVendor
+                    }
+                    // TODO make Proper Error
+                    const err = new Error(`Not able to resolve vendor ${vendor}`)
+                    return Promise.reject(err)
+                  })
+              }
               else if (vendor && _.isString(vendor)) {
                 return Vendor.findOne(_.defaultsDeep({
                   where: {
                     $or: {
                       handle: vendor,
-                      name: vendor,
-                      id: vendor
+                      name: vendor
                     }
                   }
                 }, options))

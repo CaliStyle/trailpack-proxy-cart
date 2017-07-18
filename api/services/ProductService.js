@@ -957,6 +957,7 @@ module.exports = class ProductService extends Service {
    */
   addTag(product, tag){
     const Product = this.app.orm['Product']
+    const Tag = this.app.orm['Tag']
     let resProduct, resTag
     return Product.resolve(product)
       .then(product => {
@@ -964,7 +965,7 @@ module.exports = class ProductService extends Service {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = product
-        return this.app.services.TagService.resolve(tag)
+        return Tag.resolve(tag)
       })
       .then(tag => {
         if (!tag) {
@@ -992,6 +993,7 @@ module.exports = class ProductService extends Service {
    */
   removeTag(product, tag){
     const Product = this.app.orm['Product']
+    const Tag = this.app.orm['Tag']
     let resProduct, resTag
     return Product.resolve(product)
       .then(product => {
@@ -999,7 +1001,7 @@ module.exports = class ProductService extends Service {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = product
-        return this.app.services.TagService.resolve(tag)
+        return Tag.resolve(tag)
       })
       .then(tag => {
         if (!tag) {
@@ -1167,7 +1169,8 @@ module.exports = class ProductService extends Service {
    * @param shop
    * @returns {Promise.<TResult>}
    */
-  addShop(product, shop){
+  addShop(product, shop, options){
+    options = options || {}
     const Product = this.app.orm['Product']
     let resProduct, resShop
     return Product.resolve(product)
@@ -1176,7 +1179,7 @@ module.exports = class ProductService extends Service {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = product
-        return this.app.services.ShopService.resolve(shop)
+        return this.app.orm['Shop'].resolve(shop, {transaction: options.transaction || null})
       })
       .then(shop => {
         if (!shop) {
@@ -1202,7 +1205,8 @@ module.exports = class ProductService extends Service {
    * @param shop
    * @returns {Promise.<TResult>}
    */
-  removeShop(product, shop){
+  removeShop(product, shop, options){
+    options = options || {}
     const Product = this.app.orm['Product']
     let resProduct, resShop
     return Product.resolve(product)
@@ -1211,7 +1215,7 @@ module.exports = class ProductService extends Service {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = product
-        return this.app.services.ShopService.resolve(shop)
+        return this.app.orm['Shop'].resolve(shop, {transaction: options.transaction || null})
       })
       .then(shop => {
         if (!shop) {

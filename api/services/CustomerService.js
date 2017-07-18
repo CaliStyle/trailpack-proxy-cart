@@ -473,6 +473,7 @@ module.exports = class CustomerService extends Service {
    */
   addTag(customer, tag){
     const Customer = this.app.orm['Customer']
+    const Tag = this.app.orm['Tag']
     let resCustomer, resTag
     return Customer.resolve(customer)
       .then(customer => {
@@ -480,7 +481,7 @@ module.exports = class CustomerService extends Service {
           throw new Errors.FoundError(Error('Customer not found'))
         }
         resCustomer = customer
-        return this.app.services.TagService.resolve(tag)
+        return Tag.resolve(tag)
       })
       .then(tag => {
         if (!tag) {
@@ -508,6 +509,7 @@ module.exports = class CustomerService extends Service {
    */
   removeTag(customer, tag){
     const Customer = this.app.orm['Customer']
+    const Tag = this.app.orm['Tag']
     let resCustomer, resTag
     return Customer.resolve(customer)
       .then(customer => {
@@ -515,7 +517,7 @@ module.exports = class CustomerService extends Service {
           throw new Errors.FoundError(Error('Customer not found'))
         }
         resCustomer = customer
-        return this.app.services.TagService.resolve(tag)
+        return Tag.resolve(tag)
       })
       .then(tag => {
         if (!tag) {

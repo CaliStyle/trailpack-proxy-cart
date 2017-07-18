@@ -974,6 +974,7 @@ module.exports = class OrderService extends Service {
    */
   addTag(order, tag){
     const Order = this.app.orm['Order']
+    const Tag = this.app.orm['Tag']
     let resOrder, resTag
     return Order.resolve(order)
       .then(order => {
@@ -981,7 +982,7 @@ module.exports = class OrderService extends Service {
           throw new Errors.FoundError(Error('Order not found'))
         }
         resOrder = order
-        return this.app.services.TagService.resolve(tag)
+        return Tag.resolve(tag)
       })
       .then(tag => {
         if (!tag) {
@@ -1010,13 +1011,14 @@ module.exports = class OrderService extends Service {
   removeTag(order, tag){
     let resOrder, resTag
     const Order = this.app.orm['Order']
+    const Tag = this.app.orm['Tag']
     return Order.resolve(order)
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
         resOrder = order
-        return this.app.services.TagService.resolve(tag)
+        return Tag.resolve(tag)
       })
       .then(tag => {
         if (!tag) {
@@ -1344,6 +1346,33 @@ module.exports = class OrderService extends Service {
         }
         resOrder = order
         return resOrder.removeTaxes(taxes, {transaction: options.transaction || null})
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param fulfillments
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  fulfill(order, fulfillments, options) {
+    options = options || {}
+    if (!fulfillments) {
+      throw new Errors.FoundError(Error('Fulfillments is not defined'))
+    }
+    let resOrder
+    const Order = this.app.orm['Order']
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status}`)
+        }
+        resOrder = order
+        return resOrder.fulfill(fulfillments, {transaction: options.transaction || null})
       })
   }
 

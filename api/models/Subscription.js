@@ -213,7 +213,7 @@ module.exports = class Subscription extends Model {
                 return Promise.resolve(subscription)
               }
               else if (subscription && _.isObject(subscription) && subscription.id) {
-                return Subscription.findById(subscription.id, options)
+                return Subscription.findByIdDefault(subscription.id, options)
                   .then(resSubscription => {
                     if (!resSubscription) {
                       throw new Errors.FoundError(Error(`Subscription ${subscription.id} not found`))
@@ -222,11 +222,7 @@ module.exports = class Subscription extends Model {
                   })
               }
               else if (subscription && _.isObject(subscription) && subscription.token) {
-                return Subscription.findOne({
-                  where: {
-                    token: subscription.token
-                  }
-                }, options)
+                return Subscription.findByTokenDefault(subscription.token, options)
                   .then(resSubscription => {
                     if (!resSubscription) {
                       throw new Errors.FoundError(Error(`Subscription ${subscription.token} not found`))
@@ -234,8 +230,17 @@ module.exports = class Subscription extends Model {
                     return resSubscription
                   })
               }
-              else if (subscription && (_.isString(subscription) || _.isNumber(subscription))) {
-                return Subscription.findById(subscription, options)
+              else if (subscription && _.isNumber(subscription)) {
+                return Subscription.findByIdDefault(subscription, options)
+                  .then(resSubscription => {
+                    if (!resSubscription) {
+                      throw new Errors.FoundError(Error(`Subscription ${subscription} not found`))
+                    }
+                    return resSubscription
+                  })
+              }
+              else if (subscription && _.isString(subscription)) {
+                return Subscription.findByTokenDefault(subscription, options)
                   .then(resSubscription => {
                     if (!resSubscription) {
                       throw new Errors.FoundError(Error(`Subscription ${subscription} not found`))

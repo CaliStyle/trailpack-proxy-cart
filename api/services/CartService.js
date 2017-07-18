@@ -513,7 +513,7 @@ module.exports = class CartService extends Service {
       cart.token = `cart_${shortid.generate()}`
     }
 
-    return this.app.services.ShopService.resolve(cart.shop_id)
+    return this.app.orm['Shop'].resolve(cart.shop_id)
       .then(shop => {
         // console.log('CartService.beforeCreate', shop)
         cart.shop_id = shop.id

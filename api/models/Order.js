@@ -186,6 +186,15 @@ module.exports = class Order extends Model {
               options = _.defaultsDeep(options, queryDefaults.Order.default(app))
               return this.findById(id, options)
             },
+            findByTokenDefault: function(token, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Order.default(app), {
+                where: {
+                  token: token
+                }
+              })
+              return this.findOne(options)
+            },
             findAndCountDefault: function(options) {
               options = options || {}
               options = _.defaultsDeep(options, queryDefaults.Order.default(app))
@@ -212,8 +221,17 @@ module.exports = class Order extends Model {
                     return resOrder
                   })
               }
-              else if (order && (_.isString(order) || _.isNumber(order))) {
+              else if (order && (_.isNumber(order))) {
                 return Order.findByIdDefault(order, options)
+                  .then(resOrder => {
+                    if (!resOrder) {
+                      throw new Errors.FoundError(Error(`Order ${order} not found`))
+                    }
+                    return resOrder
+                  })
+              }
+              else if (order && (_.isString(order))) {
+                return Order.findByTokenDefault(order, options)
                   .then(resOrder => {
                     if (!resOrder) {
                       throw new Errors.FoundError(Error(`Order ${order} not found`))
@@ -283,7 +301,7 @@ module.exports = class Order extends Model {
                       }
                     })
                   }
-                  else {
+                  else if (_.isObject(shipping)){
                     const i = _.findIndex(shippingLines, (s) => {
                       return s.name === shipping.name
                     })
@@ -322,7 +340,7 @@ module.exports = class Order extends Model {
                       }
                     })
                   }
-                  else {
+                  else if (_.isObject(shipping)) {
                     const i = _.findIndex(shippingLines, (s) => {
                       return s.name === shipping.name
                     })
@@ -360,7 +378,7 @@ module.exports = class Order extends Model {
                       }
                     })
                   }
-                  else {
+                  else if (_.isObject(taxes)) {
                     const i = _.findIndex(taxLines, (s) => {
                       return s.name === taxes.name
                     })
@@ -399,7 +417,7 @@ module.exports = class Order extends Model {
                       }
                     })
                   }
-                  else {
+                  else if (_.isObject(taxes)) {
                     const i = _.findIndex(taxLines, (s) => {
                       return s.name === taxes.name
                     })
@@ -409,6 +427,47 @@ module.exports = class Order extends Model {
                   }
                   this.tax_lines = taxLines
                   return this.save()
+                })
+                .then(() => {
+                  return this.recalculate()
+                })
+            },
+            fulfill: function(fulfillments, options){
+              fulfillments = fulfillments || []
+              options = options || {}
+
+              return this.resolveOrderItems({transaction: options.transaction || null})
+                .then(() => {
+                  return this.resolveFulfillments({transaction: options.transaction || null})
+                })
+                .then(() => {
+                  if (_.isArray(fulfillments)) {
+                    fulfillments = fulfillments.map(fulfillment => {
+                      const resFulfillment = this.fulfillments.find(f => f.id == fulfillment.fulfillment_id)
+                      if (resFulfillment) {
+                        return resFulfillment.fulfill({
+                          status: fulfillment.status || resFulfillment.status,
+                          status_url: fulfillment.status_url || resFulfillment.status_url,
+                          tracking_company: fulfillment.tracking_company || resFulfillment.tracking_company,
+                          tracking_number: fulfillment.tracking_number || resFulfillment.tracking_number
+                        }, {transaction: options.transaction || null })
+                      }
+                    })
+                    return Promise.all(fulfillments.map(fulfillment => fulfillment))
+                  }
+                  else if (_.isObject(fulfillments)){
+                    return Promise.all(this.fulfillments.map(resFulfillment => {
+                      return resFulfillment.fulfill({
+                        status: fulfillments.status || resFulfillment.status,
+                        status_url: fulfillments.status_url || resFulfillment.status_url,
+                        tracking_company: fulfillments.tracking_company || resFulfillment.tracking_company,
+                        tracking_number: fulfillments.tracking_number || resFulfillment.tracking_number
+                      }, {transaction: options.transaction || null })
+                    }))
+                  }
+                  else {
+                    return
+                  }
                 })
                 .then(() => {
                   return this.recalculate()

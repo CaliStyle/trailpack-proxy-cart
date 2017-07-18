@@ -859,14 +859,10 @@ module.exports = class SubscriptionService extends Service {
    * @returns {Promise.<TResult>}
    */
   beforeCreate(subscription, options) {
-    if (!options) {
-      options = {}
-    }
-    // If not token was already created, create it
-    if (!subscription.token) {
-      subscription.token = `subscription_${shortid.generate()}`
-    }
-    return this.app.services.ShopService.resolve(subscription.shop_id, options)
+    options = options || {}
+    subscription.token = subscription.token || `subscription_${shortid.generate()}`
+
+    return this.app.orm['Shop'].resolve(subscription.shop_id, {transaction: options.transaction || null })
       .then(shop => {
         // console.log('SubscriptionService.beforeCreate', shop)
         subscription.shop_id = shop.id

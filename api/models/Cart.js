@@ -571,9 +571,7 @@ module.exports = class Cart extends Model {
                   })
               }
               else if (cart && _.isObject(cart) && cart.token) {
-                return Cart.findOneDefault({
-                  where: { token: cart.token }
-                }, options)
+                return Cart.findByTokenDefault(cart.token, options)
                   .then(resCart => {
                     if (!resCart) {
                       throw new Errors.FoundError(Error(`Cart ${cart.token} not found`))
@@ -584,8 +582,17 @@ module.exports = class Cart extends Model {
               else if (cart && _.isObject(cart)) {
                 return this.create(cart, options)
               }
-              else if (cart && (_.isString(cart) || _.isNumber(cart))) {
+              else if (cart && (_.isNumber(cart))) {
                 return Cart.findByIdDefault(cart, options)
+                  .then(resCart => {
+                    if (!resCart) {
+                      throw new Errors.FoundError(Error(`Cart ${cart} not found`))
+                    }
+                    return resCart
+                  })
+              }
+              else if (cart && (_.isString(cart))) {
+                return Cart.findByTokenDefault(cart, options)
                   .then(resCart => {
                     if (!resCart) {
                       throw new Errors.FoundError(Error(`Cart ${cart} not found`))

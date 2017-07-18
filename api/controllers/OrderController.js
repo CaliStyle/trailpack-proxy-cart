@@ -595,6 +595,25 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
+  fulfill(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.fulfill(req.body)
+      .then(values => {
+        return OrderService.fulfill(req.params.id, req.body)
+      })
+      .then(order => {
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   event(req, res) {
     const Event = this.app.orm['Event']
     const eventId = req.params.event

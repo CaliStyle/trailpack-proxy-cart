@@ -206,6 +206,38 @@ module.exports = class Fulfillment extends Model {
             },
             /**
              *
+             * @param data
+             */
+            fulfill: function (data, options) {
+              data = data || {}
+              options = options || {}
+              return this.resolveOrderItems({transaction: options.transaction || null })
+                .then(() => {
+                  this.status = data.status || this.status
+                  this.status_url = data.status_url || this.status_url
+                  this.tracking_company = data.tracking_company || this.tracking_company
+                  this.tracking_number = data.tracking_number || this.tracking_number
+
+                  if (this.changed(this.status)) {
+                    this.order_items.forEach(orderItem => {
+                      orderItem.status = this.status
+                    })
+                    return
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
+                  return this.save()
+                    .then(() => {
+                      console.log('THIS FULFILL', this)
+                      return this
+                    })
+                })
+            },
+            /**
+             *
              * @param options
              * @returns {Promise.<TResult>}
              */

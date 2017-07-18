@@ -2,6 +2,7 @@
 
 const Model = require('trails/model')
 const _ = require('lodash')
+const Errors = require('proxy-engine-errors')
 const UNITS = require('../utils/enums').UNITS
 
 /**
@@ -62,8 +63,61 @@ module.exports = class Shop extends Model {
               })
             },
             // TODO
-            resolve: function(shop, options){
-              return Promise.resolve(shop)
+            resolve: function(shop, options) {
+              if (!options) {
+                options = {}
+              }
+              const Shop =  this
+              if (shop instanceof Shop.Instance){
+                return Promise.resolve(shop)
+              }
+              else if (shop && _.isObject(shop) && shop.id) {
+                return Shop.findById(shop.id, options)
+                  .then(resShop => {
+                    if (!resShop) {
+                      throw new Errors.FoundError(`Shop ${shop.id} not found`)
+                    }
+                    return resShop
+                  })
+              }
+              else if (shop && _.isNumber(shop)) {
+                return Shop.findById(shop, {
+                  transaction: options.transaction || null
+                })
+                  .then(resShop => {
+                    if (!resShop) {
+                      throw new Errors.FoundError(`Shop ${shop} not found`)
+                    }
+                    return resShop
+                  })
+              }
+              else if (shop && _.isString(shop)) {
+                return Shop.findOne({
+                  where: {
+                    handle: shop
+                  },
+                  transaction: options.transaction || null
+                })
+                  .then(resShop => {
+                    if (!resShop) {
+                      throw new Errors.FoundError(`Shop ${shop} not found`)
+                    }
+                    return resShop
+                  })
+              }
+              else {
+                return Shop.findOne({
+                  transaction: options.transaction || null
+                })
+                  .then(resShop => {
+                    if (!resShop) {
+                      throw new Errors.FoundError(Error(`Shop ${shop} not found and could not resolve the default`))
+                    }
+                    return resShop
+                  })
+                // const err = new Error('Unable to resolve Shop')
+                // Promise.reject(err)
+              }
             },
             transformShops: (shops, options) => {
               options = options || {}
@@ -72,7 +126,10 @@ module.exports = class Shop extends Model {
               const Sequelize = Shop.sequelize
               // Transform if necessary to objects
               shops = _.map(shops, shop => {
-                if (shop && _.isString(shop)) {
+                if (shop && _.isNumber(shop)) {
+                  return { id: shop }
+                }
+                else if (shop && _.isString(shop)) {
                   shop = { name: shop }
                   return shop
                 }
