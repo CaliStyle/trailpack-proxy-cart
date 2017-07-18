@@ -79,17 +79,17 @@ module.exports = class ProductController extends Controller {
           type: {
             $iLike: `%${term}%`
           }
-        },
-        {
-          '$tags.name$': {
-            $iLike: `%${term}%`
-          }
-        },
-        {
-          '$collections.title$': {
-            $iLike: `%${term}%`
-          }
         }
+        // {
+        //   '$tags.name$': {
+        //     $iLike: `%${term}%`
+        //   }
+        // },
+        // {
+        //   '$collections.title$': {
+        //     $iLike: `%${term}%`
+        //   }
+        // }
       ]
     })
     // console.log('ProductController.search', term)
@@ -97,8 +97,8 @@ module.exports = class ProductController extends Controller {
       where: defaults,
       order: sort,
       offset: offset,
-      req: req
-      // limit: limit // TODO: Sequelize breaks with limit here because of associations
+      req: req,
+      limit: limit // TODO: Sequelize breaks with limit here because of associations
     })
       .then(products => {
         // Paginate

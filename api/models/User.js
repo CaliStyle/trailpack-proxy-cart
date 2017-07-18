@@ -94,7 +94,7 @@ module.exports = class User extends Model {
           findByIdDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findByIdDefault,
           findOneDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findOneDefault
         },
-        instanceMethods: {
+        instanceMethods: _.defaults({}, ModelPermissions.config(app, Sequelize).options.instanceMethods, {
           toJSON: function() {
             const resp = this.get({ plain: true })
             // Transform Tags to array on toJSON
@@ -116,7 +116,7 @@ module.exports = class User extends Model {
             }
             return resp
           }
-        }
+        })
       }
     }
   }
