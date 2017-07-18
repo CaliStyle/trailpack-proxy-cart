@@ -409,8 +409,19 @@ module.exports = class Product extends Model {
                     return resProduct
                   })
               }
-              else if (product && (_.isString(product) || _.isNumber(product))) {
+              else if (product && _.isNumber(product)) {
                 return Product.findById(product, options)
+                  .then(resProduct => {
+                    if (!resProduct) {
+                      throw new Errors.FoundError(Error(`Product ${product} not found`))
+                    }
+                    return resProduct
+                  })
+              }
+              else if (product && _.isString(product)) {
+                return Product.findOne(_.defaultsDeep({
+                  where: { handle: product.handle }
+                }, options))
                   .then(resProduct => {
                     if (!resProduct) {
                       throw new Errors.FoundError(Error(`Product ${product} not found`))
@@ -498,6 +509,140 @@ module.exports = class Product extends Model {
               }
 
               return resp
+            },
+            resolveVariants: function(options) {
+              options = options || {}
+              if (this.variants) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getVariants({transaction: options.transaction || null})
+                  .then(variants => {
+                    variants = variants || []
+                    this.variants = variants
+                    this.setDataValue('variants', variants)
+                    this.set('variants', variants)
+                    return this
+                  })
+              }
+            },
+            resolveAssociations: function(options) {
+              options = options || {}
+              if (this.associations) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getAssociations({transaction: options.transaction || null})
+                  .then(associations => {
+                    associations = associations || []
+                    this.associations = associations
+                    this.setDataValue('associations', associations)
+                    this.set('associations', associations)
+                    return this
+                  })
+              }
+            },
+            resolveImages: function(options) {
+              options = options || {}
+              if (this.images) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getImages({transaction: options.transaction || null})
+                  .then(images => {
+                    images = images || []
+                    this.images = images
+                    this.setDataValue('images', images)
+                    this.set('images', images)
+                    return this
+                  })
+              }
+            },
+            resolveVendors: function(options) {
+              options = options || {}
+              if (this.vendors) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getVendors({transaction: options.transaction || null})
+                  .then(vendors => {
+                    vendors = vendors || []
+                    this.vendors = vendors
+                    this.setDataValue('vendors', vendors)
+                    this.set('vendors', vendors)
+                    return this
+                  })
+              }
+            },
+            resolveShop: function(options) {
+              options = options || {}
+            },
+            resolveMetadata: function(options) {
+              options = options || {}
+            },
+            resolveTags: function(options) {
+              options = options || {}
+              if (this.tags) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getTags({transaction: options.transaction || null})
+                  .then(tags => {
+                    tags = tags || []
+                    this.tags = tags
+                    this.setDataValue('tags', tags)
+                    this.set('tags', tags)
+                    return this
+                  })
+              }
+            },
+            resolveCollections: function(options) {
+              options = options || {}
+              if (this.collections) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getCollections({transaction: options.transaction || null})
+                  .then(collections => {
+                    collections = collections || []
+                    this.collections = collections
+                    this.setDataValue('collections', collections)
+                    this.set('collections', collections)
+                    return this
+                  })
+              }
+            },
+            resolveCoupons: function(options) {
+              options = options || {}
+              if (this.coupons) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getCoupons({transaction: options.transaction || null})
+                  .then(coupons => {
+                    coupons = coupons || []
+                    this.coupons = coupons
+                    this.setDataValue('coupons', coupons)
+                    this.set('coupons', coupons)
+                    return this
+                  })
+              }
+            },
+            resolveDiscounts: function(options) {
+              options = options || {}
+              if (this.discounts) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getDiscounts({transaction: options.transaction || null})
+                  .then(discounts => {
+                    discounts = discounts || []
+                    this.discounts = discounts
+                    this.setDataValue('discounts', discounts)
+                    this.set('discounts', discounts)
+                    return this
+                  })
+              }
             }
           }
         }

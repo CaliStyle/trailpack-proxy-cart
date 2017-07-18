@@ -249,6 +249,9 @@ module.exports = class ProductVariant extends Model {
                 quantity: qty
               }
               return Promise.resolve(res)
+            },
+            resolveImages: function(options) {
+              options = options || {}
             }
           }
         }

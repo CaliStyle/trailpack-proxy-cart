@@ -518,6 +518,37 @@ describe('OrderController', () => {
         done(err)
       })
   })
+  it('should fulfill an order', (done) => {
+    request
+      .post(`/order/${orderID}/fulfill`)
+      .send({
+        status: 'fulfilled',
+        status_url: 'https://cali-style.com/status',
+        tracking_company: 'UPS',
+        tracking_number: '1111'
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('THIS FULFILL', res.body)
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.financial_status, 'paid')
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 5)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'capture')
+          assert.equal(transaction.status, 'success')
+        })
+        assert.equal(res.body.total_captured, 100000)
+        assert.equal(res.body.total_due, 0)
+
+        assert.equal(res.body.fulfillments.length, 1)
+
+        done(err)
+      })
+  })
+
   it('should partially refund an order', (done) => {
     request
       .post(`/order/${orderID}/refund`)
