@@ -135,34 +135,52 @@ module.exports = class OrderItem extends Model {
 
             },
             recalculate: function() {
-              // const price = this.price
-              let totalDiscounts = 0 // this.total_discounts
-              let totalShipping = 0
-              let totalTaxes = 0
-              let totalCoupons = 0
+              if (
+                this.changed('price')
+                || this.changed('discounted_lines')
+                || this.changed('coupon_lines')
+                || this.changed('tax_lines')
+                || this.changed('coupon_lines')
+              ) {
 
-              this.discounted_lines.map(line => {
-                totalDiscounts = totalDiscounts + (line.price || 0)
-              })
-              this.shipping_lines.map(line => {
-                totalShipping = totalShipping + (line.price || 0)
-              })
-              this.tax_lines.map(line => {
-                totalTaxes = totalTaxes + (line.price || 0)
-              })
-              this.coupon_lines.map(line => {
-                totalCoupons = totalCoupons + (line.price || 0)
-              })
+                let totalDiscounts = 0 // this.total_discounts
+                let totalShipping = 0
+                let totalTaxes = 0
+                let totalCoupons = 0
 
-              const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
+                this.discounted_lines = this.discounted_lines || []
+                this.discounted_lines.map(line => {
+                  totalDiscounts = totalDiscounts + (line.price || 0)
+                })
 
-              this.calculated_price  = calculatedPrice
-              this.total_discounts = totalDiscounts
-              this.total_shipping = totalShipping
-              this.total_coupons = totalCoupons
-              this.total_taxes = totalTaxes
+                this.shipping_lines = this.shipping_lines || []
+                this.shipping_lines.map(line => {
+                  totalShipping = totalShipping + (line.price || 0)
+                })
 
-              return Promise.resolve(this)
+                this.tax_lines = this.tax_lines || []
+                this.tax_lines.map(line => {
+                  totalTaxes = totalTaxes + (line.price || 0)
+                })
+
+                this.coupon_lines = this.coupon_lines || []
+                this.coupon_lines.map(line => {
+                  totalCoupons = totalCoupons + (line.price || 0)
+                })
+
+                const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
+
+                this.calculated_price = calculatedPrice
+                this.total_discounts = totalDiscounts
+                this.total_shipping = totalShipping
+                this.total_coupons = totalCoupons
+                this.total_taxes = totalTaxes
+
+                return Promise.resolve(this)
+              }
+              else {
+                return Promise.resolve(this)
+              }
             },
             /**
              *

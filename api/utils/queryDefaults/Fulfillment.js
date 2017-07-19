@@ -5,7 +5,12 @@ module.exports = {
         {
           model: app.orm['OrderItem'],
           as: 'order_items',
-          attributes: ['id','quantity','fulfillment_status']
+          attributes: [
+            'id',
+            'quantity',
+            'fulfillment_status',
+            'fulfillment_service'
+          ]
         }
       ]
     }

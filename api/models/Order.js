@@ -265,15 +265,15 @@ module.exports = class Order extends Model {
               }
               return resp
             },
-            cancel(options) {
-              options = options || {}
+            cancel: function(data) {
+              data = data || {}
               this.cancelled_at = new Date(Date.now())
               this.status = ORDER_STATUS.CLOSED
               this.closed_at = this.cancelled_at
-              this.cancel_reason = options.cancel_reason
+              this.cancel_reason = data.cancel_reason || ORDER_CANCEL.OTHER
               return this
             },
-            close() {
+            close: function() {
               this.status = ORDER_STATUS.CLOSED
               this.closed_at = new Date(Date.now())
               return this
@@ -442,7 +442,7 @@ module.exports = class Order extends Model {
                 })
                 .then(() => {
                   if (_.isArray(fulfillments)) {
-                    fulfillments = fulfillments.map(fulfillment => {
+                    fulfillments = fulfillments.filter(fulfillment => {
                       const resFulfillment = this.fulfillments.find(f => f.id == fulfillment.fulfillment_id)
                       if (resFulfillment) {
                         return resFulfillment.fulfill({
@@ -454,10 +454,10 @@ module.exports = class Order extends Model {
                         }, {transaction: options.transaction || null })
                       }
                     })
-                    return Promise.all(fulfillments.map(fulfillment => fulfillment))
+                    return this.sequelize.Promise.mapSeries(fulfillments, fulfillment => fulfillment)
                   }
                   else if (_.isObject(fulfillments)){
-                    return Promise.all(this.fulfillments.map(resFulfillment => {
+                    return this.sequelize.Promise.mapSeries(this.fulfillments, resFulfillment => {
                       return resFulfillment.fulfill({
                         status: fulfillments.status || resFulfillment.status,
                         status_url: fulfillments.status_url || resFulfillment.status_url,
@@ -465,14 +465,14 @@ module.exports = class Order extends Model {
                         tracking_number: fulfillments.tracking_number || resFulfillment.tracking_number,
                         receipt: fulfillments.receipt || resFulfillment.receipt
                       }, {transaction: options.transaction || null })
-                    }))
+                    })
                   }
                   else {
                     return
                   }
                 })
                 .then(() => {
-                  return this.recalculate()
+                  return this.saveFulfillmentStatus()
                 })
             },
             resolveFinancialStatus: function(options){
@@ -499,13 +499,25 @@ module.exports = class Order extends Model {
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return this.resolveFinancialStatus()
+              return this.resolveFinancialStatus({transaction: options.transaction || null})
                 .then(() => {
                   if (this.changed('financial_status')) {
                     currentStatus = this.financial_status
                     previousStatus = this.previous('financial_status')
                   }
-                  return this.save(options)
+                  return this.save({
+                    fields: [
+                      'financial_status',
+                      'total_authorized',
+                      'total_captured',
+                      'total_refunds',
+                      'total_voided',
+                      'total_cancelled',
+                      'total_pending',
+                      'total_due'
+                    ],
+                    transaction: options.transaction || null
+                  })
                 })
                 .then(() => {
                   if (currentStatus && previousStatus) {
@@ -539,15 +551,16 @@ module.exports = class Order extends Model {
                   return this
                 })
             },
-            saveFulfillmentStatus: function() {
+            saveFulfillmentStatus: function(options) {
+              options = options || {}
               let currentStatus, previousStatus
               // If not a persisted instance return right away
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return this.resolveOrderItems()
+              return this.resolveOrderItems({transaction: options.transaction || null})
                 .then(() => {
-                  return this.resolveFulfillments()
+                  return this.resolveFulfillments({transaction: options.transaction || null})
                 })
                 .then(() => {
                   this.setFulfillmentStatus()
@@ -556,7 +569,17 @@ module.exports = class Order extends Model {
                     currentStatus = this.fulfillment_status
                     previousStatus = this.previous('fulfillment_status')
                   }
-                  return this.save()
+                  return this.save({
+                    fields: [
+                      'total_fulfilled_fulfillments',
+                      'total_sent_fulfillments',
+                      'total_cancelled_fulfillments',
+                      'total_partial_fulillments',
+                      'total_pending_fulfillments',
+                      'fulfillment_status'
+                    ],
+                    transaction: options.transaction || null
+                  })
                 })
                 .then(() => {
                   if (currentStatus && previousStatus) {
@@ -1078,6 +1101,22 @@ module.exports = class Order extends Model {
               }
               else {
                 return Promise.resolve(this)
+              }
+            },
+            resolveCustomer: function(options) {
+              options = options || {}
+              if (this.Customer) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getCustomer({transaction: options.transaction || null})
+                  .then(customer => {
+                    customer = customer || null
+                    this.Customer = customer
+                    this.setDataValue('Customer', customer)
+                    this.set('Customer', customer)
+                    return this
+                  })
               }
             },
             resolveOrderItems: function(options) {

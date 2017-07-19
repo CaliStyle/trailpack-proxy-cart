@@ -445,19 +445,16 @@ module.exports = class OrderService extends Service {
     const Sequelize = Order.sequelize
     let resOrder
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
+      .then(foundOrder => {
+        if (!foundOrder) {
           throw new Errors.FoundError(Error('Order not found'))
         }
 
-        if (order.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
-          throw new Error(`Order status is ${order.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
+        if (foundOrder.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
+          throw new Error(`Order status is ${foundOrder.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
         }
 
-        return order
-      })
-      .then(order => {
-        resOrder = order
+        resOrder = foundOrder
         return resOrder.resolveTransactions()
       })
       .then(() => {
@@ -477,9 +474,10 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<*>}
    */
   payOrders(orders) {
-    return Promise.all(orders.map(order => {
+    const Sequelize = this.app.orm['Order'].sequelize
+    return Sequelize.Promise.mapSeries(orders, order => {
       return this.pay(order)
-    }))
+    })
   }
 
   /**
@@ -637,15 +635,17 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(refundedTransactions => {
-        return Promise.all(refundedTransactions.map(transaction => {
-          if (transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS) {
-            return resOrder.createRefund({
-              order_id: resOrder.id,
-              transaction_id: transaction.id,
-              amount: transaction.amount
-            }, { transaction: options.transaction || null })
-          }
-        }))
+        // Filter the successes
+        const newRefunds = refundedTransactions.filter(transaction =>
+          transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS)
+        // Create the refunds
+        return Sequelize.Promise.mapSeries(newRefunds, transaction => {
+          return resOrder.createRefund({
+            order_id: resOrder.id,
+            transaction_id: transaction.id,
+            amount: transaction.amount
+          }, { transaction: options.transaction || null })
+        })
       })
       .then(newRefunds => {
         return resOrder.reload({ transaction: options.transaction || null })
@@ -690,15 +690,22 @@ module.exports = class OrderService extends Service {
       .then(() => {
         // Partially Authorize
         if (authorizes.length > 0) {
-          return Promise.all(authorizes.map(authorize => {
+          // Filter the authorizations
+          const toAuthorize = authorizes.filter(authorize => {
             const authorizeTransaction = resOrder.transactions.find(transaction => transaction.id == authorize.transaction)
             if (
               authorizeTransaction.kind == TRANSACTION_KIND.AUTHORIZE
               && authorizeTransaction.status == TRANSACTION_STATUS.PENDING
             ) {
-              return this.app.services.TransactionService.authorize(authorizeTransaction)
+              return authorizeTransaction
             }
-          }))
+          })
+          // Authorize the pending transactions
+          return Sequelize.Promise.mapSeries(toAuthorize, authorize => {
+            return this.app.services.TransactionService.authorize(
+              authorize, { transaction: options.transaction || null }
+            )
+          })
         }
         // Completely Authorize the order
         else {
@@ -748,17 +755,22 @@ module.exports = class OrderService extends Service {
       .then(() => {
         // Partially Capture
         if (captures.length > 0) {
-          return Promise.all(captures.map(capture => {
+          // Filter the captures
+          const toCapture = captures.filter(capture => {
             const captureTransaction = resOrder.transactions.find(transaction => transaction.id == capture.transaction)
             if (
               captureTransaction.kind == TRANSACTION_KIND.AUTHORIZE
               && captureTransaction.status == TRANSACTION_STATUS.SUCCESS
             ) {
-              return this.app.services.TransactionService.capture(
-                captureTransaction, { transaction: options.transaction || null }
-              )
+              return captureTransaction
             }
-          }))
+          })
+          // Capture the authorized transactions
+          return Sequelize.Promise.mapSeries(toCapture, capture => {
+            return this.app.services.TransactionService.capture(
+              capture, { transaction: options.transaction || null }
+            )
+          })
         }
         // Completely Capture the order
         else {
@@ -810,17 +822,22 @@ module.exports = class OrderService extends Service {
       .then(() => {
         // Partially Void
         if (voids.length > 0) {
-          return Promise.all(voids.map(tVoid => {
+          // Filter the voids
+          const toVoid = voids.filter(tVoid => {
             const voidTransaction = resOrder.transactions.find(transaction => transaction.id == tVoid.transaction)
             if (
               voidTransaction.kind == TRANSACTION_KIND.AUTHORIZE
               && voidTransaction.status == TRANSACTION_STATUS.SUCCESS
             ) {
-              return this.app.services.TransactionService.void(
-                voidTransaction, { transaction: options.transaction || null }
-              )
+              return voidTransaction
             }
-          }))
+          })
+          // Void the authorized transactions
+          return Sequelize.Promise.mapSeries(toVoid, tVoid => {
+            return this.app.services.TransactionService.void(
+              tVoid, { transaction: options.transaction || null }
+            )
+          })
         }
         // Completely Void the order
         else {
@@ -873,14 +890,20 @@ module.exports = class OrderService extends Service {
       .then(() => {
         // Partially retry
         if (retries.length > 0) {
-          return Promise.all(retries.map(tRetry => {
+          const toRetry = retries.filter(tRetry => {
             const retryTransaction = resOrder.transactions.find(transaction => transaction.id == tRetry.transaction)
-            if ([TRANSACTION_STATUS.FAILURE, TRANSACTION_STATUS.PENDING].indexOf(retryTransaction.status) !== -1) {
-              return this.app.services.TransactionService.retry(
-                retryTransaction, { transaction: options.transaction || null }
-              )
+            if (
+              [TRANSACTION_STATUS.FAILURE, TRANSACTION_STATUS.PENDING].indexOf(retryTransaction.status) !== -1
+            ) {
+              return retryTransaction
             }
-          }))
+          })
+          // Retry the authorized transactions
+          return Sequelize.Promise.mapSeries(toRetry, tRetry => {
+            return this.app.services.TransactionService.retry(
+              tRetry, { transaction: options.transaction || null }
+            )
+          })
         }
         // Completely retry the order
         else {
@@ -968,8 +991,27 @@ module.exports = class OrderService extends Service {
           )
         })
       })
-      .then(()=> {
+      .then(() => {
         return resOrder.cancel({cancel_reason: reason}).save({ transaction: options.transaction || null })
+      })
+      .then(() => {
+        // Track Event
+        const event = {
+          object_id: resOrder.id,
+          object: 'order',
+          objects: [{
+            order: resOrder.id
+          }, {
+            customer: resOrder.customer_id
+          }],
+          type: 'order.cancelled',
+          message: `Order ${resOrder.name} was cancelled`,
+          data: resOrder
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+      })
+      .then(() => {
+        return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)
       })
   }
 
@@ -1277,7 +1319,7 @@ module.exports = class OrderService extends Service {
    * @param order
    * @param shipping
    * @param options
-   * @returns {Promise.<TResult>|*}
+   * @returns {Promise.<T>}
    */
   addShipping(order, shipping, options) {
     options = options || {}
@@ -1404,6 +1446,9 @@ module.exports = class OrderService extends Service {
         }
         resOrder = order
         return resOrder.fulfill(fulfillments, {transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)
       })
   }
 

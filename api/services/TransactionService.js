@@ -253,6 +253,9 @@ module.exports = class TransactionService extends Service {
         return resOrder.resolveTransactions()
       })
       .then(() => {
+        return resOrder.resolveCustomer()
+      })
+      .then(() => {
         totalNew = amount
         availablePending = resOrder.transactions.filter(transaction =>
         transaction.status === TRANSACTION_STATUS.PENDING

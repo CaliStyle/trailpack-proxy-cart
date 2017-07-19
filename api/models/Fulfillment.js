@@ -218,23 +218,16 @@ module.exports = class Fulfillment extends Model {
                   this.tracking_company = data.tracking_company || this.tracking_company
                   this.tracking_number = data.tracking_number || this.tracking_number
                   this.receipt = data.receipt || this.receipt
-
-                  if (this.changed(this.status)) {
-                    this.order_items.forEach(orderItem => {
-                      orderItem.status = this.status
-                    })
-                    return
-                  }
-                  else {
-                    return
-                  }
+                //   return this.save()
+                // })
+                // .then(() => {
+                  return this.sequelize.Promise.mapSeries(this.order_items, item => {
+                    item.fulfillment_status = this.status
+                    return item.save({fields: ['fulfillment_status'], transaction: options.transaction || null })
+                  })
                 })
                 .then(() => {
-                  return this.save()
-                    .then(() => {
-                      console.log('THIS FULFILL', this)
-                      return this
-                    })
+                  return this.saveFulfillmentStatus({transaction: options.transaction || null})
                 })
             },
             /**

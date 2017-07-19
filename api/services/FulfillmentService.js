@@ -222,7 +222,6 @@ module.exports = class FulfillmentService extends Service {
   cancelFulfillment(fulfillment, options) {
     options = options || {}
     const Fulfillment = this.app.orm['Fulfillment']
-    const OrderItem = this.app.orm['OrderItem']
     let resFulfillment
     return Fulfillment.resolve(fulfillment, { transaction: options.transaction || null, })
       .then(foundFulfillment => {
@@ -249,21 +248,11 @@ module.exports = class FulfillmentService extends Service {
         }
       })
       .then(() => {
-        // resFulfillment.order_items.map(item => {
-        //   item.fulfillment_status = FULFILLMENT_STATUS.CANCELLED
-        //   return item
-        // })
-        return OrderItem.update({fulfillment_status: FULFILLMENT_STATUS.CANCELLED}, {
-          where: {
-            fulfillment_id: resFulfillment.id
-          },
-          hooks: false,
-          individualHooks: false,
-          returning: false
-        })
+        resFulfillment.cancelled()
+        return resFulfillment.fulfill({status: FULFILLMENT_STATUS.CANCELLED })
       })
       .then(() => {
-        return resFulfillment.cancelled().save()
+        return resFulfillment.save()
       })
   }
 

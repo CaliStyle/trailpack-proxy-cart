@@ -535,6 +535,18 @@ describe('OrderController', () => {
         console.log('THIS FULFILL', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'paid')
+        assert.equal(res.body.fulfillment_status, 'sent')
+
+        // Fulfillments
+        res.body.fulfillments.forEach(item => {
+          assert.equal(item.status, 'sent')
+          assert.equal(item.total_sent_to_fulfillment, 1)
+        })
+        // Order Items
+        // TODO make this work
+        res.body.order_items.forEach(item => {
+          assert.equal(item.fulfillment_status, 'sent')
+        })
 
         // Transactions
         assert.equal(res.body.transactions.length, 5)
@@ -643,14 +655,18 @@ describe('OrderController', () => {
         assert.ok(res.body.cancelled_at)
         assert.ok(res.body.closed_at)
         assert.equal(res.body.cancel_reason, 'customer')
+        assert.equal(res.body.total_cancelled_fulfillments, 1)
 
+        // Fulfillments
+        res.body.fulfillments.forEach(item => {
+          assert.equal(item.status, 'cancelled')
+          assert.equal(item.total_cancelled, 1)
+        })
+        // Order Items
         // TODO make this work
-        // res.body.fulfillments.forEach(item => {
-        //   assert.equal(item.status, 'cancelled')
-        // })
-        // res.body.order_items.forEach(item => {
-        //   assert.equal(item.fulfillment_status, 'cancelled')
-        // })
+        res.body.order_items.forEach(item => {
+          assert.equal(item.fulfillment_status, 'cancelled')
+        })
 
         done(err)
       })

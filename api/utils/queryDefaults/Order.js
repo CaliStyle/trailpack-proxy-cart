@@ -21,7 +21,7 @@ module.exports = {
             {
               model: app.orm['OrderItem'],
               as: 'order_items',
-              attributes: ['id','quantity','fulfillment_status']
+              attributes: ['id','quantity','fulfillment_status','fulfillment_service']
             }
           ]
         },
@@ -58,7 +58,7 @@ module.exports = {
             model: app.orm['Event'],
             as: 'events'
           },
-          'created_at', 'DESC'
+          'created_at', 'ASC'
         ]
       ]
     }
