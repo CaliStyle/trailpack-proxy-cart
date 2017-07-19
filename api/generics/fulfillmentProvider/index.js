@@ -59,6 +59,11 @@ module.exports = class ManualFulfillmentProvider {
    * @returns {Promise.<T>}
    */
   destroyOrder(fulfillment){
+    fulfillment.status = 'cancelled'
+    fulfillment.order_items.map(i => {
+      i.fulfillment_staus = 'cancelled'
+      return i
+    })
     return Promise.resolve(fulfillment)
   }
 
@@ -68,6 +73,13 @@ module.exports = class ManualFulfillmentProvider {
    * @returns {Promise.<T>}
    */
   destroyOrders(fulfillments){
+    fulfillments = _.map(fulfillments, fulfillment => {
+      fulfillment.status = 'cancelled'
+      fulfillment.order_items.map(i => {
+        i.fulfillment_staus = 'cancelled'
+        return i
+      })
+    })
     return Promise.resolve(fulfillments)
   }
 

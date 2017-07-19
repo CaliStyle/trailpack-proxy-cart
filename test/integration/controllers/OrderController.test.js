@@ -643,6 +643,15 @@ describe('OrderController', () => {
         assert.ok(res.body.cancelled_at)
         assert.ok(res.body.closed_at)
         assert.equal(res.body.cancel_reason, 'customer')
+
+        // TODO make this work
+        // res.body.fulfillments.forEach(item => {
+        //   assert.equal(item.status, 'cancelled')
+        // })
+        // res.body.order_items.forEach(item => {
+        //   assert.equal(item.fulfillment_status, 'cancelled')
+        // })
+
         done(err)
       })
   })

@@ -947,9 +947,9 @@ module.exports = class Order extends Model {
                     item.product_id === orderItem.product_id && item.variant_id === orderItem.variant_id)
 
                   if (!prevOrderItem) {
-                    return orderItem.reconcileFulfillment()
+                    return orderItem.reconcileFulfillment({ transaction: options.transaction || null })
                       .then(() =>{
-                        return orderItem.save()
+                        return orderItem.save({ transaction: options.transaction || null })
                       })
                   }
                   else {
@@ -963,7 +963,7 @@ module.exports = class Order extends Model {
                     if (orderItem.properties) {
                       prevOrderItem.properties = orderItem.properties
                     }
-                    return prevOrderItem.reconcileFulfillment()
+                    return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                       .then(() =>{
                         return prevOrderItem.save()
                       })
@@ -1000,7 +1000,7 @@ module.exports = class Order extends Model {
                     prevOrderItem.properties = orderItem.properties
                   }
 
-                  return prevOrderItem.reconcileFulfillment()
+                  return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                     .then(() =>{
                       return prevOrderItem.save()
                     })
@@ -1033,13 +1033,13 @@ module.exports = class Order extends Model {
                   prevOrderItem.total_weight = prevOrderItem.total_weight - orderItem.total_weight
 
                   if (prevOrderItem.quantity <= 0) {
-                    return prevOrderItem.reconcileFulfillment()
+                    return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                       .then(() =>{
                         return prevOrderItem.destroy()
                       })
                   }
                   else {
-                    return prevOrderItem.reconcileFulfillment()
+                    return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                       .then(() =>{
                         return prevOrderItem.save()
                       })
@@ -1053,7 +1053,8 @@ module.exports = class Order extends Model {
              *
              * @returns {*}
              */
-            reconcileTransactions: function() {
+            reconcileTransactions: function(options) {
+              options = options || {}
               // Get fresh financial status
               this.setFinancialStatus()
               // Test if the total due has changed
@@ -1062,13 +1063,17 @@ module.exports = class Order extends Model {
                 if (this.total_due <= this.previous('total_due')) {
                   const amount = this.previous('total_due') - this.total_due
                   // console.log('VOID/REFUND TRANSACTION', amount)
-                  return app.services.TransactionService.reconcileUpdate(this, amount)
+                  return app.services.TransactionService.reconcileUpdate(
+                    this, amount, { transaction: options.transaction || null }
+                  )
                 }
                 // authorize/capture/sale
                 else {
                   const amount = this.total_due - this.previous('total_due')
                   // console.log('CREATE NEW TRANSACTION', amount)
-                  return app.services.TransactionService.reconcileCreate(this, amount)
+                  return app.services.TransactionService.reconcileCreate(
+                    this, amount, { transaction: options.transaction || null }
+                  )
                 }
               }
               else {
@@ -1158,7 +1163,9 @@ module.exports = class Order extends Model {
              *
              * @returns {Promise.<T>}
              */
-            recalculate: function() {
+            recalculate: function(options) {
+              options = options || {}
+
               let totalLineItemsPrice = 0
               let totalShipping = 0
               let totalTax = 0
@@ -1189,7 +1196,7 @@ module.exports = class Order extends Model {
               this.total_coupons = totalCoupons
               this.total_overrides = totalOverrides
 
-              return this.resolveOrderItems()
+              return this.resolveOrderItems({ transaction: options.transaction || null })
                 .then(() => {
                   this.order_items.forEach(item => {
                     totalLineItemsPrice = totalLineItemsPrice + item.price
@@ -1205,15 +1212,15 @@ module.exports = class Order extends Model {
                   this.subtotal_price = Math.max(0, this.total_line_items_price)
                   this.total_price = Math.max(0, this.total_line_items_price + this.total_tax + this.total_shipping - this.total_discounts - this.total_coupons - this.total_overrides)
                   // resolve current transactions
-                  return this.resolveTransactions()
+                  return this.resolveTransactions({ transaction: options.transaction || null })
                 })
                 .then(() => {
                   // reconcile the transactions
-                  return this.reconcileTransactions()
+                  return this.reconcileTransactions({ transaction: options.transaction || null })
                 })
                 .then(() => {
                   // resolve the current fulfillments
-                  return this.resolveFulfillments()
+                  return this.resolveFulfillments({ transaction: options.transaction || null })
                 })
                 .then(() => {
                   // Save the new Financial Status
@@ -1354,7 +1361,7 @@ module.exports = class Order extends Model {
         payment_kind: {
           type: Sequelize.ENUM,
           values: _.values(PAYMENT_KIND),
-          defaultValue: app.config.proxyCart.orders.payment_kind || PAYMENT_KIND.AUTHORIZE
+          defaultValue: app.config.proxyCart.orders.payment_kind || PAYMENT_KIND.IMMEDIATE
         },
         // pending: The finances are pending.
         // authorized: The finances have been authorized.

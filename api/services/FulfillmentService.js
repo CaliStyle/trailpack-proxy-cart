@@ -235,7 +235,13 @@ module.exports = class FulfillmentService extends Service {
 
         resFulfillment = foundFulfillment
 
+        return resFulfillment.resolveOrderItems({transaction: options.transaction || null,})
+      })
+      .then(() => {
         if ([FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.PENDING].indexOf(resFulfillment.status) > -1) {
+          return
+        }
+        else if (resFulfillment.service == FULFILLMENT_SERVICE.MANUAL) {
           return
         }
         else {
@@ -243,6 +249,10 @@ module.exports = class FulfillmentService extends Service {
         }
       })
       .then(() => {
+        // resFulfillment.order_items.map(item => {
+        //   item.fulfillment_status = FULFILLMENT_STATUS.CANCELLED
+        //   return item
+        // })
         return OrderItem.update({fulfillment_status: FULFILLMENT_STATUS.CANCELLED}, {
           where: {
             fulfillment_id: resFulfillment.id

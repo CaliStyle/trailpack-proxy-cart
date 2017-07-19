@@ -168,12 +168,15 @@ module.exports = class OrderItem extends Model {
              *
              * @returns {Promise.<config>}
              */
-            reconcileFulfillment: function() {
+            reconcileFulfillment: function(options) {
+              options = options || {}
               if (this.isNewRecord && !this.fulfillment_id) {
                 // console.log('RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
                 return this.save()
                   .then(() => {
-                    return app.services.FulfillmentService.addOrCreateFulfillmentItem(this)
+                    return app.services.FulfillmentService.addOrCreateFulfillmentItem(
+                      this, { transaction: options.transaction || null }
+                    )
                   })
                   .then(() => {
                     return this
@@ -183,7 +186,9 @@ module.exports = class OrderItem extends Model {
                 // console.log('RECONCILE WILL REMOVE', this)
                 return this.save()
                   .then(() => {
-                    return app.services.FulfillmentService.removeFulfillmentItem(this)
+                    return app.services.FulfillmentService.removeFulfillmentItem(
+                      this, { transaction: options.transaction || null }
+                    )
                   })
                   .then(() => {
                     return this
@@ -193,7 +198,9 @@ module.exports = class OrderItem extends Model {
                 // console.log('RECONCILE WILL UPDATE UP QUANTITY', this)
                 return this.save()
                   .then(() => {
-                    return app.services.FulfillmentService.updateFulfillmentItem(this)
+                    return app.services.FulfillmentService.updateFulfillmentItem(
+                      this, { transaction: options.transaction || null }
+                    )
                   })
                   .then(() => {
                     return this
@@ -203,7 +210,9 @@ module.exports = class OrderItem extends Model {
                 // console.log('RECONCILE WILL UPDATE DOWN QUANTITY', this)
                 return this.save()
                   .then(() => {
-                    return app.services.FulfillmentService.removeFulfillmentItem(this)
+                    return app.services.FulfillmentService.removeFulfillmentItem(
+                      this, { transaction: options.transaction || null }
+                    )
                   })
                   .then(() => {
                     return this
