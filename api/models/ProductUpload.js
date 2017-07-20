@@ -245,6 +245,11 @@ module.exports = class ProductUpload extends Model {
         defaultValue: 0
       },
 
+      // Payment types that can not be used to purchase this product
+      exclude_payment_types: helpers.JSONB('ProductUpload', app, Sequelize, 'exclude_payment_types', {
+        defaultValue: []
+      }),
+
       // 'Google Shopping / Google Product Category'
       g_product_category: {
         type: Sequelize.STRING

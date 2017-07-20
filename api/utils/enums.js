@@ -114,6 +114,7 @@ module.exports = {
     shops: 'Shops',
     shops_quantity: 'Shops Quantity',
     average_shipping: 'Average Shipping',
+    exclude_payment_types: 'Exclude Payment Types',
     g_product_category: 'Google Shopping / Google Product Category',
     g_gender: 'Google Shopping / Gender',
     g_age_group: 'Google Shopping / Age Group',

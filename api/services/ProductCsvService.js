@@ -147,6 +147,11 @@ module.exports = class ProductCsvService extends Service {
                   return collection.trim()
                 })
               }
+              else if (k == 'exclude_payment_types') {
+                upload[k] = data.split(',').map(type => {
+                  return type.trim()
+                })
+              }
               else if (k == 'vendors') {
                 upload[k] = data.split(',').map(vendor => {
                   return vendor.trim()
@@ -385,11 +390,13 @@ module.exports = class ProductCsvService extends Service {
         defaultProduct.variants = products.filter( product => {
           if (!product) {
             errorsCount++
+            errors.push(`${handle}: Missing`)
             // return
           }
           // Sku is required for a variant
           else if (!product.sku) {
             errorsCount++
+            errors.push(`${handle}: Missing SKU`)
             // return
           }
           else {
