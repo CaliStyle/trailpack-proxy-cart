@@ -343,7 +343,7 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('Current Work', res.body.order)
+        // console.log('Current Work', res.body.order)
         orderID = res.body.order.id
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)

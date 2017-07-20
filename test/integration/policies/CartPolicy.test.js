@@ -676,7 +676,7 @@ describe('CartPolicy', () => {
         done()
       })
   })
-  it('should have pricing overrides', done => {
+  it('should have pricing overrides but ignore account balance', done => {
     agent
       .post('/cart/addItems')
       .send({
@@ -688,17 +688,17 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
+        // console.log('Current Work', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.total_discounts, 100)
-        assert.equal(res.body.pricing_overrides.length, 2)
+        assert.equal(res.body.pricing_overrides.length, 1)
         assert.equal(res.body.pricing_overrides[0].price, 100)
-        assert.equal(res.body.pricing_overrides[1].price, 100)
-        assert.equal(res.body.total_overrides, 200)
-        assert.equal(res.body.total_due, 99700)
+        assert.equal(res.body.total_overrides, 100)
+        assert.equal(res.body.total_due, 99800)
         done(err)
       })
   })
-  it('should checkout with overrides and balance', done => {
+  it('should checkout with overrides and balance but ignore account balance', done => {
     agent
       .post('/cart/checkout')
       .send({
@@ -715,23 +715,31 @@ describe('CartPolicy', () => {
         assert.ok(res.body.order.id)
         assert.equal(res.body.order.total_discounts, 100)
         assert.equal(res.body.order.pricing_overrides[0].price, 100)
-        assert.equal(res.body.order.pricing_overrides[1].price, 100)
         // There's a prior discount on one item of 100
-        assert.equal(res.body.order.total_price, 99700)
+        assert.equal(res.body.order.total_price, 99800)
         assert.equal(res.body.order.total_due, 0)
         assert.equal(res.body.order.fulfillment_kind, 'immediate')
         assert.equal(res.body.order.transaction_kind, 'sale')
         assert.equal(res.body.order.payment_kind, 'immediate')
         assert.equal(res.body.order.financial_status, 'paid')
         assert.equal(res.body.order.fulfillment_status, 'fulfilled')
+        // Transactions
         assert.equal(res.body.order.transactions.length, 1)
-        assert.equal(res.body.order.transactions[0].amount, 99700)
+        assert.equal(res.body.order.transactions[0].amount, 99800)
         assert.equal(res.body.order.transactions[0].kind, 'sale')
         assert.equal(res.body.order.transactions[0].status, 'success')
         assert.equal(res.body.order.transactions[0].order_id, res.body.order.id)
+        // Fulfillments
         assert.equal(res.body.order.fulfillments.length, 1)
         assert.equal(res.body.order.fulfillments[0].status, 'fulfilled')
         assert.equal(res.body.order.fulfillments[0].order_id, res.body.order.id)
+        // Order Items
+        res.body.order.order_items.forEach(item => {
+          assert.equal(item.order_id, res.body.order.id)
+          assert.equal(item.fulfillment_id, res.body.order.fulfillments[0].id)
+          assert.equal(item.fulfillment_status, 'fulfilled')
+        })
+        // Events
         assert.equal(res.body.order.events.length, 4)
         res.body.order.events.forEach(event => {
           assert.equal(event.object_id, res.body.order.id)
@@ -740,28 +748,28 @@ describe('CartPolicy', () => {
         done(err)
       })
   })
-  it('It should get customer and Account Balance should now be 0', (done) => {
+  it('It should get customer and Account Balance should still be 100', (done) => {
     agent
       .get(`/customer/${ customerID }`)
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.account_balance, 0)
-        done()
-      })
-  })
-  it('It should Update Account Balance back to 100', (done) => {
-    agent
-      .post(`/customer/${ customerID }/accountBalance`)
-      .send({
-        account_balance: 100
-      })
-      .expect(200)
-      .end((err, res) => {
-        // console.log('Customer Account Balance', res.body)
         assert.equal(res.body.account_balance, 100)
         done()
       })
   })
+  // it('It should Update Account Balance back to 100', (done) => {
+  //   agent
+  //     .post(`/customer/${ customerID }/accountBalance`)
+  //     .send({
+  //       account_balance: 100
+  //     })
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       // console.log('Customer Account Balance', res.body)
+  //       assert.equal(res.body.account_balance, 100)
+  //       done()
+  //     })
+  // })
   it('should renew customer subscription by id and use account balance', done => {
     agent
       .post(`/subscription/${ subscriptionID }/renew`)

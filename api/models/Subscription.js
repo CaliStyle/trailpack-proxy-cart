@@ -258,6 +258,7 @@ module.exports = class Subscription extends Model {
           },
           instanceMethods: {
             line: function(data){
+              data.Product = data.Product || {}
               const line = {
                 subscription_id: this.id,
                 product_id: data.product_id,
@@ -293,6 +294,8 @@ module.exports = class Subscription extends Model {
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
                 // TODO handle discounts
                 total_discounts: 0,
+                average_shipping: data.Product.average_shipping,
+                exclude_payment_types: data.Product.exclude_payment_types,
                 vendor: data.Product.vendor ? data.Product.vendor.name || data.Product.vendor : data.Product.vendor,
                 live_mode: data.live_mode
               }

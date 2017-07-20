@@ -927,7 +927,8 @@ module.exports = class CustomerService extends Service {
    * @param cart
    * @returns {*}
    */
-  calculate(cart) {
+  calculateCart(cart, options) {
+    options = options || {}
     const Customer = this.app.orm['Customer']
 
     if (!cart.customer_id) {
@@ -935,18 +936,27 @@ module.exports = class CustomerService extends Service {
     }
     let deduction = 0
     // let overrides = cart.pricing_overrides
+    let resCustomer
+    return Customer.resolve(cart.customer_id, {transaction: options.transaction || null})
+      .then(foundCustomer => {
+        if (!foundCustomer) {
+          throw new Error('Customer did not resolve')
+        }
+        resCustomer = foundCustomer
 
-    return Customer.resolve(cart.customer_id)
-      .then(customer => {
         const pricingOverrides = []
+        const exclusions = cart.line_items.filter(item => item.exclude_payment_types.indexOf('Account Balance') !== -1)
+
         cart.pricing_overrides.forEach(override => {
           pricingOverrides.push(override)
         })
 
         const accountBalanceIndex = _.findIndex(pricingOverrides, {name: 'Account Balance'})
-        if (customer.account_balance > 0) {
+        if (resCustomer.account_balance > 0) {
           // Apply Customer Account balance
-          deduction = Math.min(cart.total_due, (cart.total_due - (cart.total_due - customer.account_balance)))
+          const removeTotal = _.sumBy(exclusions, (e) => e.calculated_price)
+          const deductibleTotal = Math.max(0, cart.total_due - removeTotal)
+          deduction = Math.min(deductibleTotal, (deductibleTotal - (deductibleTotal - resCustomer.account_balance)))
           if (deduction > 0) {
 
             // If account balance has not been applied

@@ -105,6 +105,7 @@ module.exports = class Cart extends Model {
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
                 vendors: data.Product.vendors,
                 average_shipping: data.Product.average_shipping,
+                exclude_payment_types: data.Product.exclude_payment_types,
                 live_mode: data.live_mode
               }
               return line
@@ -299,7 +300,8 @@ module.exports = class Cart extends Model {
               }
               return buildOrder
             },
-            recalculate: function() {
+            recalculate: function(options) {
+              options = options || {}
               // Default Values
               let collections = []
               let subtotalPrice = 0
@@ -398,7 +400,7 @@ module.exports = class Cart extends Model {
                   this.total_coupons = totalCoupons
                   this.total_due = this.total_due - totalCoupons
                   // Calculate Customer Balance
-                  return app.services.CustomerService.calculate(this)
+                  return app.services.CustomerService.calculateCart(this, {transaction: options.transaction || null})
                 })
                 .then(accountBalance => {
                   // console.log('BROKE',accountBalance)

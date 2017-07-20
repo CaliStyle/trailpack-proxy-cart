@@ -953,6 +953,8 @@ module.exports = class Order extends Model {
                 max_quantity: item.max_quantity,
                 grams: app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * qty,
                 total_discounts: 0,
+                average_shipping: item.Product.average_shipping,
+                exclude_payment_types: item.Product.exclude_payment_types,
                 vendor_id: item.Product.vendors ? item.Product.vendors[0].id : null,
                 live_mode: item.live_mode
               })

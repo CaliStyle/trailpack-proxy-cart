@@ -171,6 +171,7 @@ module.exports = class ProductService extends Service {
       weight: product.weight,
       weight_unit: product.weight_unit,
       average_shipping: product.average_shipping,
+      exclude_payment_types: product.exclude_payment_types,
       metadata: Metadata.transform(product.metadata || {}),
       options: []
     }

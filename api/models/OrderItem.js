@@ -457,6 +457,15 @@ module.exports = class OrderItem extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The Average Shipping Cost
+        average_shipping: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // Payment types that can not be used to purchase this product
+        exclude_payment_types: helpers.JSONB('Order', app, Sequelize, 'exclude_payment_types', {
+          defaultValue: []
+        }),
 
         live_mode: {
           type: Sequelize.BOOLEAN,

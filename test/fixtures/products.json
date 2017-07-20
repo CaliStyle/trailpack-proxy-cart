@@ -98,6 +98,7 @@
     "subscription_interval": 1,
     "subscription_unit": "m",
     "inventory_quantity": 10000,
+    "exclude_payment_types": ["Account Balance"],
     "tags": [
       "subscription"
     ],
