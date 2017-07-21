@@ -12,6 +12,7 @@ const packs = [
   require('trailpack-proxy-passport'),
   require('trailpack-proxy-engine'),
   require('trailpack-proxy-permissions'),
+  require('trailpack-proxy-notifications'),
   require('trailpack-proxy-generics'),
   require('trailpack-proxy-cart-countries'),
   require('../') // trailpack-proxy-cart
@@ -87,7 +88,7 @@ if ( SERVER == 'express' ) {
 }
 
 const App = {
-  api: _.defaultsDeep(require('../api'), {
+  api: _.defaults(require('../api'), {
     services: {
       FailTransaction: class FailTransaction extends Service {
         // TODO create some failed transactions
@@ -325,6 +326,18 @@ const App = {
         grace_period_days: 5
       }
     },
+    proxyNotifications: {
+      to: {
+        // The default name to use if the user has no specified name
+        default_name: 'Valued Customer'
+      },
+      from: {
+        // The email to send this notification from
+        email: 'test.com',
+        // The name of the email sending this notification
+        name: 'Test'
+      }
+    },
     // Proxy Generics
     proxyGenerics: {
       payment_processor: {
@@ -333,7 +346,10 @@ const App = {
       },
       email_provider: {
         adapter: require('./fixtures/FakeEmail'),
-        options: {}
+        options: {
+          protocol: 'https',
+          host: 'test.com'
+        }
       },
       data_store_provider: {
         adapter: require('./fixtures/FakeDataStore'),

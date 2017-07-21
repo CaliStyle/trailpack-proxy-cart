@@ -11,6 +11,41 @@ module.exports = class Order extends Email {
    * @param options
    * @returns {Promise.<{type: string, subject: string, text: string, html:string}>}
    */
+  created(order, data, options) {
+    options = options || {}
+    data = data || {}
+    const Order = this.app.orm['Order']
+    let resOrder
+    return Order.resolve(order, {transaction: options.transaction || null })
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Error('Order did not resolve')
+        }
+        resOrder = foundOrder
+
+        return resOrder.resolveOrderItems({transaction: options.transaction || null})
+      })
+      .then(() => {
+
+        const text = data.text || `Order ${ resOrder.name } Created`
+        const html = data.html || this.app.templates.Order.created(resOrder)
+        const subject = data.subject || `Order ${ resOrder.name } Created`
+
+        return {
+          type: 'order.created',
+          subject: subject,
+          text: text,
+          html: html
+        }
+      })
+  }
+  /**
+   *
+   * @param order
+   * @param data
+   * @param options
+   * @returns {Promise.<{type: string, subject: string, text: string, html:string}>}
+   */
   updated(order, data, options) {
     options = options || {}
     data = data || {}
@@ -27,9 +62,9 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `${ resOrder.name }`
+        const text = data.text || `Order ${ resOrder.name } Updated`
         const html = data.html || `${ resOrder.name }`
-        const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
+        const subject = data.subject || `Order ${ resOrder.name } Updated`
 
         return {
           type: 'order.updated',
@@ -62,9 +97,9 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `${ resOrder.name }`
+        const text = data.text || `Order ${ resOrder.name } Cancelled`
         const html = data.html || `${ resOrder.name }`
-        const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
+        const subject = data.subject || `Order ${ resOrder.name } Cancelled`
 
         return {
           type: 'order.fulfilled',
@@ -97,9 +132,9 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `${ resOrder.name }`
+        const text = data.text || `Order ${ resOrder.name } Failed`
         const html = data.html || `${ resOrder.name }`
-        const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
+        const subject = data.subject || `Order ${ resOrder.name } Failed`
 
         return {
           type: 'order.failed',
@@ -132,8 +167,8 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `${ resOrder.name }`
-        const html = data.html || `${ resOrder.name }`
+        const text = data.text || `Order ${ resOrder.name } Fulfilled`
+        const html = data.html || this.app.templates.Order.fulfilled(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
 
         return {
@@ -166,10 +201,9 @@ module.exports = class Order extends Email {
         return resOrder.resolveOrderItems({transaction: options.transaction || null})
       })
       .then(() => {
-
-        const text = data.text || `${ resOrder.name }`
-        const html = data.html || `${ resOrder.name }`
-        const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
+        const text = data.text || `Order ${ resOrder.name } Receipt`
+        const html = data.html || `Order ${ resOrder.name } Receipt`
+        const subject = data.subject || `Order ${ resOrder.name } Receipt`
 
         return {
           type: 'order.receipt',
@@ -204,7 +238,7 @@ module.exports = class Order extends Email {
 
         const text = data.text || `${ resOrder.name }`
         const html = data.html || `${ resOrder.name }`
-        const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
+        const subject = data.subject || `Order ${ resOrder.name } Refunded`
 
         return {
           type: 'order.refunded',

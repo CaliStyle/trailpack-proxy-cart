@@ -4,6 +4,7 @@
 const Model = require('trails/model')
 const ModelPassport = require('trailpack-proxy-passport/api/models/User')
 const ModelPermissions = require('trailpack-proxy-permissions/api/models/User')
+const ModelNotifications = require('trailpack-proxy-notifications/api/models/User')
 const _ = require('lodash')
 // const shortid = require('shortid')
 
@@ -47,6 +48,8 @@ module.exports = class User extends Model {
             ModelPassport.config(app, Sequelize).options.classMethods.associate(models)
             // Apply permission specific stuff
             ModelPermissions.config(app, Sequelize).options.classMethods.associate(models)
+            // Apply notifications specific stuff
+            ModelNotifications.config(app, Sequelize).options.classMethods.associate(models)
             // Apply your specific stuff
             models.User.belongsToMany(models.Customer, {
               as: 'customers',
@@ -94,29 +97,34 @@ module.exports = class User extends Model {
           findByIdDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findByIdDefault,
           findOneDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findOneDefault
         },
-        instanceMethods: _.defaults({}, ModelPermissions.config(app, Sequelize).options.instanceMethods, {
-          toJSON: function() {
-            const resp = this.get({ plain: true })
-            // Transform Tags to array on toJSON
-            if (resp.tags) {
-              resp.tags = resp.tags.map(tag => {
-                if (tag && _.isString(tag)) {
-                  return tag
-                }
-                else if (tag && tag.name) {
-                  return tag.name
-                }
-              })
-            }
-            // Transform Metadata to plain on toJSON
-            if (resp.metadata) {
-              if (typeof resp.metadata.data !== 'undefined') {
-                resp.metadata = resp.metadata.data
+        instanceMethods: _.defaults({},
+          ModelPassport.config(app, Sequelize).options.instanceMethods,
+          ModelPermissions.config(app, Sequelize).options.instanceMethods,
+          ModelNotifications.config(app, Sequelize).options.instanceMethods,
+          {
+            toJSON: function() {
+              const resp = this.get({ plain: true })
+              // Transform Tags to array on toJSON
+              if (resp.tags) {
+                resp.tags = resp.tags.map(tag => {
+                  if (tag && _.isString(tag)) {
+                    return tag
+                  }
+                  else if (tag && tag.name) {
+                    return tag.name
+                  }
+                })
               }
+              // Transform Metadata to plain on toJSON
+              if (resp.metadata) {
+                if (typeof resp.metadata.data !== 'undefined') {
+                  resp.metadata = resp.metadata.data
+                }
+              }
+              return resp
             }
-            return resp
           }
-        })
+        )
       }
     }
   }

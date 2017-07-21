@@ -12,31 +12,35 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
   validate () {
     // Packs
     if (!_.includes(_.keys(this.app.packs), 'express')) {
-      return Promise.reject(new Error('This Trailpack only works for express!'))
+      return Promise.reject(new Error('Trailpack-proxy-cart only works for express!'))
     }
 
     if (!_.includes(_.keys(this.app.packs), 'sequelize')) {
-      return Promise.reject(new Error('This Trailpack only works for Sequelize!'))
+      return Promise.reject(new Error('Trailpack-proxy-cart only works for Sequelize!'))
     }
 
     if (!_.includes(_.keys(this.app.packs), 'proxy-engine')) {
-      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-engine!'))
+      return Promise.reject(new Error('Trailpack-proxy-cart requires trailpack-proxy-engine!'))
     }
 
     if (!_.includes(_.keys(this.app.packs), 'proxy-permissions')) {
-      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-permissions!'))
+      return Promise.reject(new Error('Trailpack-proxy-cart requires trailpack-proxy-permissions!'))
     }
 
     if (!_.includes(_.keys(this.app.packs), 'proxy-passport')) {
-      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-passport!'))
+      return Promise.reject(new Error('Trailpack-proxy-cart requires trailpack-proxy-passport!'))
+    }
+
+    if (!_.includes(_.keys(this.app.packs), 'proxy-notifications')) {
+      return Promise.reject(new Error('Trailpack-proxy-cart requires trailpack-proxy-notifications!'))
     }
 
     if (!_.includes(_.keys(this.app.packs), 'proxy-cart-countries')) {
-      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-cart-countries!'))
+      return Promise.reject(new Error('Trailpack-proxy-cart requires trailpack-proxy-cart-countries!'))
     }
 
     if (!_.includes(_.keys(this.app.packs), 'proxy-generics')) {
-      return Promise.reject(new Error('This Trailpack requires trailpack-proxy-generics!'))
+      return Promise.reject(new Error('Trailpack-proxy-cart requires trailpack-proxy-generics!'))
     }
     // Configs
     if (!this.app.config.proxyEngine) {
@@ -44,6 +48,10 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
     }
 
     if (!this.app.config.proxyCart) {
+      return Promise.reject(new Error('No configuration found at config.proxyCart!'))
+    }
+
+    if (!this.app.config.proxyNotifications) {
       return Promise.reject(new Error('No configuration found at config.proxyCart!'))
     }
 

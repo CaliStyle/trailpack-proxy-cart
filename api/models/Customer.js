@@ -418,6 +418,45 @@ module.exports = class Customer extends Model {
             },
             /**
              *
+             * @param preNotification
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            notifyUsers(preNotification, options) {
+              options = options || {}
+              return this.resolveUsers({transaction: options.transaction || null})
+                .then(() => {
+                  if (this.users || this.users.length > 0) {
+                    return app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})
+                  }
+                  else {
+                    return
+                  }
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            resolveUsers(options) {
+              options = options || {}
+              if (this.users) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getUsers({transaction: options.transaction || null})
+                  .then(users => {
+                    users = users || []
+                    this.users = users
+                    this.setDataValue('users', users)
+                    this.set('users', users)
+                    return this
+                  })
+              }
+            },
+            /**
+             *
              */
             toJSON: function() {
               const resp = this.get({ plain: true })

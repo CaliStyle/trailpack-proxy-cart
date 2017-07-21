@@ -35,7 +35,7 @@ module.exports = class PaymentService extends Service {
     let resTransaction
     return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
       .then(transaction => {
-        return transaction.save(options)
+        return transaction.save({transaction: options.transaction || null})
       })
       .then(transaction => {
         resTransaction = transaction
@@ -90,7 +90,7 @@ module.exports = class PaymentService extends Service {
         return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
       })
       .then(transaction => {
-        return transaction.save(options)
+        return transaction.save({transaction: options.transaction || null})
       })
       .then(transaction => {
         resTransaction = transaction
@@ -138,7 +138,7 @@ module.exports = class PaymentService extends Service {
     let resTransaction
     return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
       .then(transaction => {
-        return transaction.save(options)
+        return transaction.save({transaction: options.transaction || null})
       })
       .then(transaction => {
         resTransaction = transaction
@@ -177,7 +177,7 @@ module.exports = class PaymentService extends Service {
 
     transaction.status = TRANSACTION_STATUS.PENDING
 
-    return transaction.save(options)
+    return transaction.save({transaction: options.transaction || null})
       .then(() => {
         const event = {
           object_id: transaction.order_id,
@@ -229,7 +229,7 @@ module.exports = class PaymentService extends Service {
         return this.app.services.PaymentGenericService.void(resTransaction, paymentProcessor)
       })
       .then(() => {
-        return resTransaction.save(options)
+        return resTransaction.save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -284,7 +284,7 @@ module.exports = class PaymentService extends Service {
         return this.app.services.PaymentGenericService.refund(resTransaction, paymentProcessor)
       })
       .then(() => {
-        return resTransaction.save(options)
+        return resTransaction.save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -333,7 +333,7 @@ module.exports = class PaymentService extends Service {
         return this.app.services.PaymentGenericService[resTransaction.kind](resTransaction, paymentProcessor)
       })
       .then(() => {
-        return resTransaction.retry().save(options)
+        return resTransaction.retry().save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -374,7 +374,7 @@ module.exports = class PaymentService extends Service {
           throw new Error('Transaction can not be cancelled if it is not pending or failed')
         }
         resTransaction = foundTransaction
-        return resTransaction.cancel().save(options)
+        return resTransaction.cancel().save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {

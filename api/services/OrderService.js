@@ -27,7 +27,8 @@ module.exports = class OrderService extends Service {
    */
   // TODO handle inventory policy and coupon policy
   // TODO Select Vendor
-  create(obj) {
+  create(obj, options) {
+    options = options || {}
     const Address = this.app.orm['Address']
     const Customer = this.app.orm['Customer']
     const Order = this.app.orm['Order']
@@ -65,23 +66,23 @@ module.exports = class OrderService extends Service {
       obj.shipping_address = obj.billing_address
     }
 
-    return Order.sequelize.transaction(t => {
-      return Customer.resolve(obj.customer_id || obj.customer, {
-        include: [
-          {
-            model: Address,
-            as: 'shipping_address'
-          },
-          {
-            model: Address,
-            as: 'billing_address'
-          },
-          {
-            model: Address,
-            as: 'default_address'
-          }
-        ]
-      })
+    // return Order.sequelize.transaction(t => {
+    return Customer.resolve(obj.customer_id || obj.customer, {
+      include: [
+        {
+          model: Address,
+          as: 'shipping_address'
+        },
+        {
+          model: Address,
+          as: 'billing_address'
+        },
+        {
+          model: Address,
+          as: 'default_address'
+        }
+      ]
+    })
         .then(customer => {
           // The customer exists, has a default address, but no shipping address
           if (customer && customer.default_address && !customer.shipping_address) {
@@ -277,7 +278,7 @@ module.exports = class OrderService extends Service {
               }
             ]
           })
-          return order.save()
+          return order.save({transaction: options.transaction || null})
         })
         .then(order => {
           if (!order) {
@@ -303,7 +304,7 @@ module.exports = class OrderService extends Service {
                 return resCustomer
                   .setTotalSpent(totalPrice)
                   .setLastOrder(resOrder)
-                  .save()
+                  .save({transaction: options.transaction || null})
               })
           }
           else {
@@ -313,7 +314,7 @@ module.exports = class OrderService extends Service {
         .then(() => {
           // TODO REMOVE THIS PART WHEN WE CREATE THE EVENT ELSEWHERE
           if (resCustomer instanceof Customer.Instance) {
-            return resCustomer.addOrder(resOrder.id)
+            return resCustomer.addOrder(resOrder.id, { transaction: options.transaction || null})
               .then(() => {
                 const event = {
                   object_id: resCustomer.id,
@@ -329,6 +330,12 @@ module.exports = class OrderService extends Service {
                 }
                 return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
               })
+              .then(() => {
+                return this.app.emails.Order.created(resOrder, null, {transaction: options.transaction || null})
+                  .then(email => {
+                    return resCustomer.notifyUsers(email, {transaction: options.transaction || null})
+                  })
+              })
           }
           else {
             return
@@ -337,7 +344,7 @@ module.exports = class OrderService extends Service {
         .then(() => {
           // console.log('broke 1', resOrder.fulfillments)
           // Group fulfillment by service
-          return this.app.services.FulfillmentService.groupFulfillments(resOrder)
+          return this.app.services.FulfillmentService.groupFulfillments(resOrder, {transaction: options.transaction || null})
             .then(fulfillments => {
               fulfillments = fulfillments || []
               resOrder.setDataValue('fulfillments', fulfillments)
@@ -379,10 +386,10 @@ module.exports = class OrderService extends Service {
             })
             // Return the Payment Service
             if (resOrder.payment_kind === PAYMENT_KIND.MANUAL) {
-              return PaymentService.manual(transaction)
+              return PaymentService.manual(transaction, {transaction: options.transaction || null})
             }
             else {
-              return PaymentService[resOrder.transaction_kind](transaction)
+              return PaymentService[resOrder.transaction_kind](transaction, {transaction: options.transaction || null})
             }
           }))
         })
@@ -391,9 +398,9 @@ module.exports = class OrderService extends Service {
           resOrder.setDataValue('transactions', transactions)
           resOrder.set('transactions', transactions)
 
-          return Order.findByIdDefault(resOrder.id)
+          return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
         })
-    })
+    // })
   }
 
   /**
