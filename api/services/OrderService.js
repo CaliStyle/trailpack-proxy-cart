@@ -146,7 +146,10 @@ module.exports = class OrderService extends Service {
           }
           // Add the account balance to the overrides
           if (resCustomer.account_balance > 0) {
-            const exclusions = obj.line_items.filter(item => item.exclude_payment_types.indexOf('Account Balance') !== -1)
+            const exclusions = obj.line_items.filter(item => {
+              item.exclude_payment_types = item.exclude_payment_types || []
+              return item.exclude_payment_types.indexOf('Account Balance') !== -1
+            })
             const removeTotal = _.sumBy(exclusions, (e) => e.calculated_price)
             const deductibleTotal = Math.max(0, totalDue - removeTotal)
             // Apply Customer Account balance

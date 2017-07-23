@@ -943,9 +943,15 @@ module.exports = class CustomerService extends Service {
           throw new Error('Customer did not resolve')
         }
         resCustomer = foundCustomer
+        cart.line_items = cart.line_items || []
+        cart.pricing_overrides = cart.pricing_overrides || []
 
         const pricingOverrides = []
-        const exclusions = cart.line_items.filter(item => item.exclude_payment_types.indexOf('Account Balance') !== -1)
+
+        const exclusions = cart.line_items.filter(item => {
+          item.exclude_payment_types = item.exclude_payment_types || []
+          return item.exclude_payment_types.indexOf('Account Balance') !== -1
+        })
 
         cart.pricing_overrides.forEach(override => {
           pricingOverrides.push(override)
