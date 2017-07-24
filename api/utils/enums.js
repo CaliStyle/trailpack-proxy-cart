@@ -262,7 +262,9 @@ module.exports = {
     // The order is open
     OPEN: 'open',
     // The order is closed
-    CLOSED: 'closed'
+    CLOSED: 'closed',
+    // The order is closed
+    CANCELLED: 'cancelled'
   },
   PAYMENT_KIND: {
     IMMEDIATE: 'immediate',

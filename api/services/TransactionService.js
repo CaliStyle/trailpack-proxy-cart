@@ -186,7 +186,7 @@ module.exports = class TransactionService extends Service {
         return resTransaction.save(options)
       })
       .then(() => {
-        const newTransaction = _.omit(resTransaction.get({plain: true}), ['id'])
+        const newTransaction = _.omit(resTransaction.get({plain: true}), ['id','token'])
         newTransaction.amount = amount
         return this.create(newTransaction, options)
       })
@@ -499,44 +499,9 @@ module.exports = class TransactionService extends Service {
    */
   afterCreate(transaction, options) {
     options = options || {}
-    const Order = this.app.orm['Order']
-    return Order.findById(transaction.order_id, {
-      include: [
-        {
-          model: this.app.orm['Transaction'],
-          as: 'transactions'
-        },
-        {
-          model: this.app.orm['OrderItem'],
-          as: 'order_items'
-        },
-        {
-          model: this.app.orm['Fulfillment'],
-          as: 'fulfillments'
-        }
-      ],
-      // attributes: [
-      //   'id',
-      //   'financial_status',
-      //   'fulfillment_status',
-      //   'total_due',
-      //   'total_price'
-      // ],
-      transaction: options.transaction || null
-    })
-      .then(order => {
-        if (order) {
-          return order.saveFinancialStatus({transaction: options.transaction || null})
-            .catch(err => {
-              this.app.log.error(err)
-              return transaction
-            })
-        }
-        else {
-          return
-        }
-      })
-      .then(() => {
+    return transaction.reconcileOrderFinancialStatus(options)
+      .catch(err => {
+        this.app.log.error(err)
         return transaction
       })
   }
@@ -548,44 +513,9 @@ module.exports = class TransactionService extends Service {
    */
   afterUpdate(transaction, options) {
     options = options || {}
-    const Order = this.app.orm['Order']
-    return Order.findById(transaction.order_id, {
-      include: [
-        {
-          model: this.app.orm['Transaction'],
-          as: 'transactions'
-        },
-        {
-          model: this.app.orm['OrderItem'],
-          as: 'order_items'
-        },
-        {
-          model: this.app.orm['Fulfillment'],
-          as: 'fulfillments'
-        }
-      ],
-      // attributes: [
-      //   'id',
-      //   'financial_status',
-      //   'fulfillment_status',
-      //   'total_due',
-      //   'total_price'
-      // ],
-      transaction: options.transaction || null
-    })
-      .then(order => {
-        if (order) {
-          return order.saveFinancialStatus({transaction: options.transaction || null})
-            .catch(err => {
-              this.app.log.error(err)
-              return transaction
-            })
-        }
-        else {
-          return
-        }
-      })
-      .then(() => {
+    return transaction.reconcileOrderFinancialStatus(options)
+      .catch(err => {
+        this.app.log.error(err)
         return transaction
       })
   }

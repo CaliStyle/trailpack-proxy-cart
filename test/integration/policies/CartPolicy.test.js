@@ -66,6 +66,7 @@ describe('CartPolicy', () => {
     assert(global.app.api.policies['CartPolicy'])
     assert(global.app.policies['CartPolicy'])
   })
+
   it('should add customer to collection', (done) => {
     global.app.orm['Collection']
       .findByHandleDefault('customer-discount-test')
@@ -211,7 +212,7 @@ describe('CartPolicy', () => {
       .get('/cart/session')
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY CART', res.body)
+        // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 2)
@@ -244,14 +245,14 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('ORDER ITEMS', res.body.order.order_items)
+        console.log('THIS ORDER', res.body.order)
 
         const orderID = res.body.order.id
         cartIDSwitch = res.body.cart.id
         assert.ok(res.body.cart.id)
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
-
+        assert.equal(res.body.order.status, 'closed')
         assert.equal(res.body.order.financial_status, 'paid')
         assert.equal(res.body.order.currency, 'USD')
         assert.equal(res.body.order.source_name, 'api')

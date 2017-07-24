@@ -246,9 +246,9 @@ module.exports = class Fulfillment extends Model {
                     return null
                   }
                 })
-                .then(order => {
-                  if (order) {
-                    return order.saveFulfillmentStatus({transaction: options.transaction || null})
+                .then(resOrder => {
+                  if (resOrder) {
+                    return resOrder.saveFulfillmentStatus({transaction: options.transaction || null})
                   }
                   else {
                     return null

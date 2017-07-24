@@ -62,7 +62,7 @@ module.exports = {
             model: app.orm['Event'],
             as: 'events'
           },
-          'created_at', 'ASC'
+          'created_at', 'DESC'
         ]
       ]
     }

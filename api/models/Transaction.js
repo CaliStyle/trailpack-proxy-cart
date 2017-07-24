@@ -5,6 +5,7 @@
 const Model = require('trails/model')
 const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
+const shortId = require('shortid')
 const TRANSACTION_ERRORS = require('../utils/enums').TRANSACTION_ERRORS
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
@@ -28,6 +29,12 @@ module.exports = class Transaction extends Model {
           //   }
           // },
           hooks: {
+            beforeCreate: (values, options, fn) => {
+              if (!values.token) {
+                values.token = `transaction_${shortId.generate()}`
+              }
+              fn()
+            },
             afterCreate: (values, options, fn) => {
               app.services.TransactionService.afterCreate(values, options)
                 .then(values => {
@@ -118,8 +125,22 @@ module.exports = class Transaction extends Model {
                     return resTransaction
                   })
               }
-              else if (transaction && (_.isString(transaction) || _.isNumber(transaction))) {
+              else if (transaction && _.isNumber(transaction)) {
                 return Transaction.findById(transaction, options)
+                  .then(resTransaction => {
+                    if (!resTransaction) {
+                      throw new Errors.FoundError(Error(`Transaction ${transaction} not found`))
+                    }
+                    return resTransaction
+                  })
+              }
+              else if (transaction && _.isString(transaction)) {
+                return Transaction.findOne({
+                  where: {
+                    token: transaction
+                  },
+                  transaction: options.transaction || null
+                })
                   .then(resTransaction => {
                     if (!resTransaction) {
                       throw new Errors.FoundError(Error(`Transaction ${transaction} not found`))
@@ -134,15 +155,66 @@ module.exports = class Transaction extends Model {
             }
           },
           instanceMethods: {
+            /**
+             *
+             * @returns {*}
+             */
             retry: function() {
               this.retry_at = new Date(Date.now())
               this.total_retry_attempts++
               return this
             },
+            /**
+             *
+             * @returns {*}
+             */
             cancel: function() {
               this.cancelled_at = new Date(Date.now())
               this.status = TRANSACTION_STATUS.CANCELLED
               return this
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            reconcileOrderFinancialStatus: function(options) {
+              options = options || {}
+              const Order = app.orm['Order']
+              // if (this.isNewRecord || this.changed('status')) {
+              return Order.findById(this.order_id, {
+                // include: [
+                //   {
+                //     model: app.orm['Transaction'],
+                //     as: 'transactions'
+                //   }
+                // ],
+                // attributes: [
+                //   'id',
+                //   'financial_status',
+                //   'total_authorized',
+                //   'total_captured',
+                //   'total_refunds',
+                //   'total_voided',
+                //   'total_cancelled',
+                //   'total_pending',
+                //   'total_due'
+                // ],
+                transaction: options.transaction || null
+              })
+                .then(resOrder => {
+                  if (!resOrder) {
+                    throw new Error('Order could not be resolved for transaction')
+                  }
+                  return resOrder.saveFinancialStatus({transaction: options.transaction || null})
+                })
+                .then(() => {
+                  return this
+                })
+              // }
+              // else {
+              //   return Promise.resolve(this)
+              // }
             }
           }
         }
@@ -155,6 +227,11 @@ module.exports = class Transaction extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // Unique identifier for a particular order.
+        token: {
+          type: Sequelize.STRING,
+          unique: true
+        },
         customer_id: {
           type: Sequelize.INTEGER,
           // references: {

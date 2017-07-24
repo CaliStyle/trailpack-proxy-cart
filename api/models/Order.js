@@ -6,7 +6,7 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
-const shortid = require('shortid')
+const shortId = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
 const ORDER_STATUS = require('../utils/enums').ORDER_STATUS
 const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
@@ -51,25 +51,45 @@ module.exports = class Order extends Model {
             }
           },
           hooks: {
+            /**
+             *
+             * @param values
+             * @param options
+             * @param fn
+             */
             beforeCreate: (values, options, fn) => {
               if (values.ip) {
                 values.create_ip = values.ip
               }
               if (!values.token) {
-                values.token = `order_${shortid.generate()}`
+                values.token = `order_${shortId.generate()}`
               }
               fn()
             },
+            /**
+             *
+             * @param values
+             * @param options
+             * @param fn
+             */
             beforeUpdate: (values, options, fn) => {
               if (values.ip) {
                 values.update_ip = values.ip
               }
+              // if (values.changed('fulfillment_status') || values.changed('financial_status')) {
+              //   values.setStatus()
+              // }
               if (values.changed('status') && values.status == ORDER_STATUS.CLOSED) {
                 values.close()
               }
               fn()
             },
-
+            /**
+             *
+             * @param values
+             * @param options
+             * @param fn
+             */
             // Will not save updates from hooks!
             afterUpdate: (values, options, fn) => {
               app.services.OrderService.afterUpdate(values, options)
@@ -80,6 +100,12 @@ module.exports = class Order extends Model {
                   return fn(err)
                 })
             },
+            /**
+             *
+             * @param values
+             * @param options
+             * @param fn
+             */
             afterCreate: (values, options, fn) => {
               app.services.OrderService.afterCreate(values, options)
                 .then(values => {
@@ -265,19 +291,32 @@ module.exports = class Order extends Model {
               }
               return resp
             },
+            /**
+             *
+             * @param data
+             */
             cancel: function(data) {
               data = data || {}
               this.cancelled_at = new Date(Date.now())
-              this.status = ORDER_STATUS.CLOSED
+              this.status = ORDER_STATUS.CANCELLED
               this.closed_at = this.cancelled_at
               this.cancel_reason = data.cancel_reason || ORDER_CANCEL.OTHER
               return this
             },
+            /**
+             *
+             */
             close: function() {
               this.status = ORDER_STATUS.CLOSED
               this.closed_at = new Date(Date.now())
               return this
             },
+            /**
+             *
+             * @param shipping
+             * @param options
+             * @returns {Promise.<T>}
+             */
             addShipping: function(shipping, options) {
               shipping = shipping || []
               options = options || {}
@@ -322,6 +361,12 @@ module.exports = class Order extends Model {
                   return this.recalculate()
                 })
             },
+            /**
+             *
+             * @param shipping
+             * @param options
+             * @returns {Promise.<T>}
+             */
             removeShipping: function(shipping, options){
               shipping = shipping || []
               options = options || {}
@@ -355,6 +400,12 @@ module.exports = class Order extends Model {
                   return this.recalculate()
                 })
             },
+            /**
+             *
+             * @param taxes
+             * @param options
+             * @returns {Promise.<T>}
+             */
             addTaxes: function(taxes, options) {
               taxes = taxes || []
               options = options || {}
@@ -399,6 +450,12 @@ module.exports = class Order extends Model {
                   return this.recalculate()
                 })
             },
+            /**
+             *
+             * @param taxes
+             * @param options
+             * @returns {Promise.<T>}
+             */
             removeTaxes: function(taxes, options){
               taxes = taxes || []
               options = options || {}
@@ -432,6 +489,12 @@ module.exports = class Order extends Model {
                   return this.recalculate()
                 })
             },
+            /**
+             *
+             * @param fulfillments
+             * @param options
+             * @returns {Promise.<T>}
+             */
             fulfill: function(fulfillments, options){
               fulfillments = fulfillments || []
               options = options || {}
@@ -475,6 +538,10 @@ module.exports = class Order extends Model {
                   return this.saveFulfillmentStatus()
                 })
             },
+            /**
+             *
+             * @param options
+             */
             resolveFinancialStatus: function(options){
               options = options || {}
               if (!this.id) {
@@ -485,6 +552,89 @@ module.exports = class Order extends Model {
                   // Set the new financial status
                   this.setFinancialStatus()
                   return this
+                })
+            },
+            /**
+             *
+             * @param options
+             */
+            resolveFulfillmentStatus: function (options) {
+              options = options || {}
+              if (!this.id) {
+                return Promise.resolve(this)
+              }
+              return this.resolveFulfillments({transaction: options.transaction || null})
+                .then(() => {
+                  // Set the new fulfillment status
+                  this.setFulfillmentStatus()
+                  return this
+                })
+            },
+            /**
+             *
+             * @returns {config}
+             */
+            setStatus: function () {
+              if (
+                this.financial_status === ORDER_FINANCIAL.PAID
+                && this.fulfillment_status === ORDER_FULFILLMENT.FULFILLED
+                && this.status === ORDER_STATUS.OPEN
+              ) {
+                this.close()
+              }
+              // else if (
+              //   this.financial_status === ORDER_FINANCIAL.PAID
+              //   && this.fulfillment_status === ORDER_FULFILLMENT.CANCELLED
+              //   && this.status === ORDER_STATUS.OPEN
+              // ) {
+              //   this.cancel()
+              // }
+              return this
+            },
+            resolveStatus: function(options) {
+              options = options || {}
+              return this.resolveFinancialStatus({transaction: options.transaction || null})
+                .then(() => {
+                  return this.resolveFulfillmentStatus({transaction: options.transaction || null})
+                })
+                .then(() => {
+                  return this.setStatus()
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
+            saveStatus: function (options) {
+              options = options || {}
+              if (!this.id) {
+                return Promise.resolve(this)
+              }
+              return this.resolveStatus({transaction: options.transaction || null})
+                .then(() => {
+                  return this.save({
+                    fields: [
+                      'status',
+                      'closed_at',
+                      'cancelled_at',
+                      'total_fulfilled_fulfillments',
+                      'total_sent_fulfillments',
+                      'total_cancelled_fulfillments',
+                      'total_partial_fulillments',
+                      'total_pending_fulfillments',
+                      'fulfillment_status',
+                      'financial_status',
+                      'total_authorized',
+                      'total_captured',
+                      'total_refunds',
+                      'total_voided',
+                      'total_cancelled',
+                      'total_pending',
+                      'total_due'
+                    ],
+                    transaction: options.transaction || null
+                  })
                 })
             },
             /**
@@ -1137,6 +1287,10 @@ module.exports = class Order extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             */
             resolveRefunds: function(options) {
               options = options || {}
               if (this.refunds) {
@@ -1153,6 +1307,10 @@ module.exports = class Order extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             */
             resolveTransactions: function(options) {
               options = options || {}
               if (this.transactions) {
@@ -1169,6 +1327,11 @@ module.exports = class Order extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveFulfillments: function(options) {
               options = options || {}
               if (this.fulfillments) {
@@ -1264,10 +1427,13 @@ module.exports = class Order extends Model {
                   return this.resolveFulfillments({ transaction: options.transaction || null })
                 })
                 .then(() => {
-                  // Save the new Financial Status
+                  // Set the new Financial Status
                   this.setFinancialStatus()
-                  // the new Fulfillment Status
+                  // Set the new Fulfillment Status
                   this.setFulfillmentStatus()
+                  // Set the new Overall Status
+                  this.setStatus()
+                  // Save the changes
                   return this.save()
                 })
             }

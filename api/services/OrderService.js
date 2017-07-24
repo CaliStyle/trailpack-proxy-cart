@@ -350,6 +350,7 @@ module.exports = class OrderService extends Service {
           return this.app.services.FulfillmentService.groupFulfillments(resOrder, {transaction: options.transaction || null})
             .then(fulfillments => {
               fulfillments = fulfillments || []
+              resOrder.fulfillments = fulfillments
               resOrder.setDataValue('fulfillments', fulfillments)
               resOrder.set('fulfillments', fulfillments)
               return
@@ -398,9 +399,16 @@ module.exports = class OrderService extends Service {
         })
         .then(transactions => {
           transactions = transactions || []
+          resOrder.transactions = transactions
           resOrder.setDataValue('transactions', transactions)
           resOrder.set('transactions', transactions)
-
+          return resOrder.reload({transaction: options.transaction || null})
+        })
+        .then(() => {
+          return resOrder.saveStatus({transaction: options.transaction || null})
+        })
+        .then(() => {
+          // Load default
           return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
         })
     // })
@@ -1549,7 +1557,8 @@ module.exports = class OrderService extends Service {
       order.name = `#${order.number}`
     }
     // this.app.services.ProxyEngineService.publish('order.created', order)
-    return Promise.resolve(order)
+    return order.save({transaction: options.transaction || null})
+    // return Promise.resolve(order)
   }
 
   afterUpdate(order, options) {
