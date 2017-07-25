@@ -48,6 +48,11 @@ module.exports = class Order extends Model {
               where: {
                 status: ORDER_STATUS.CLOSED
               }
+            },
+            cancelled: {
+              where: {
+                status: ORDER_STATUS.CANCELLED
+              }
             }
           },
           hooks: {
@@ -1098,7 +1103,7 @@ module.exports = class Order extends Model {
                 subscription_unit: item.subscription_unit,
                 weight: item.weight * qty,
                 weight_unit: item.weight_unit,
-                images: item.images.length > 0 ? item.images : item.Product.images,
+                images: item.images.length > 0 ? item.images : item.Product.images || [],
                 fulfillable_quantity: item.fulfillable_quantity || qty,
                 max_quantity: item.max_quantity,
                 grams: app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * qty,

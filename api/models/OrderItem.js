@@ -463,7 +463,12 @@ module.exports = class OrderItem extends Model {
           defaultValue: 0
         },
         // Payment types that can not be used to purchase this product
-        exclude_payment_types: helpers.JSONB('Order', app, Sequelize, 'exclude_payment_types', {
+        exclude_payment_types: helpers.JSONB('OrderItem', app, Sequelize, 'exclude_payment_types', {
+          defaultValue: []
+        }),
+
+        // Product Images
+        images: helpers.JSONB('OrderItem', app, Sequelize, 'images', {
           defaultValue: []
         }),
 

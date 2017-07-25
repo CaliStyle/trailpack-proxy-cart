@@ -39,6 +39,10 @@ module.exports = {
         },
         // {
         //   model: app.orm['Product'],
+        //   as: 'associations'
+        // },
+        // {
+        //   model: app.orm['Product'],
         //   through: app.orm['ProductAssociation'],
         //   as: 'associations'
         // },
@@ -69,7 +73,6 @@ module.exports = {
             'discount_percentage'
           ]
         }
-        // app.orm['ProductVariant'].associations.variants
       ],
       order: [
         [

@@ -36,6 +36,36 @@ module.exports = class ShopController extends Controller {
    * @param req
    * @param res
    */
+  findAll(req, res){
+    const orm = this.app.orm
+    const Shop = orm['Shop']
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+
+    Shop.findAndCount({
+      where: where,
+      order: sort,
+      offset: offset,
+      limit: limit,
+      req: req
+    })
+      .then(shops => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, shops.count, limit, offset, sort)
+        return res.json(shops.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   create(req, res){
     const ShopService = this.app.services.ShopService
     lib.Validator.validateShop.create(req.body)

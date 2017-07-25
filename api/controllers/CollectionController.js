@@ -98,8 +98,8 @@ module.exports = class CollectionController extends Controller {
   findAll(req, res){
     const orm = this.app.orm
     const Collection = orm['Collection']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     Collection.findAndCountDefault({
@@ -126,8 +126,8 @@ module.exports = class CollectionController extends Controller {
   search(req, res){
     const orm = this.app.orm
     const Collection = orm['Collection']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const term = req.query.term
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
@@ -135,7 +135,7 @@ module.exports = class CollectionController extends Controller {
       $or: [
         {
           title: {
-            $like: `%${term}%`
+            $iLike: `%${term}%`
           }
         }
       ]

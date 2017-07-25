@@ -38,6 +38,36 @@ module.exports = class VendorController extends Controller {
    * @param req
    * @param res
    */
+  findAll(req, res){
+    const orm = this.app.orm
+    const Vendor = orm['Vendor']
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+
+    Vendor.findAndCount({
+      where: where,
+      order: sort,
+      offset: offset,
+      limit: limit,
+      req: req
+    })
+      .then(vendors => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, vendors.count, limit, offset, sort)
+        return res.json(vendors.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   processUpload(req, res) {
     const VendorCsvService = this.app.services.VendorCsvService
     VendorCsvService.processVendorUpload(req.params.id)

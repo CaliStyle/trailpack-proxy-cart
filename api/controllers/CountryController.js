@@ -64,8 +64,8 @@ module.exports = class CountryController extends Controller {
    */
   countries(req, res) {
     const Country  = this.app.orm['Country']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
@@ -99,8 +99,8 @@ module.exports = class CountryController extends Controller {
    */
   cities(req, res) {
     const City  = this.app.orm['City']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
@@ -260,8 +260,8 @@ module.exports = class CountryController extends Controller {
    */
   counties(req, res) {
     const County  = this.app.orm['County']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
@@ -388,8 +388,8 @@ module.exports = class CountryController extends Controller {
    */
   provinces(req, res) {
     const Province  = this.app.orm['Province']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 

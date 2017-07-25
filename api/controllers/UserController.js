@@ -54,8 +54,8 @@ module.exports = class UserController extends ModelPermissions {
     }
     // console.log('IS BROKE', userId)
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     // this.app.orm['User'].findById(userId)
     //   .then(user => {

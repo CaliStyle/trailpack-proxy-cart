@@ -92,8 +92,8 @@ module.exports = class TagController extends Controller {
   findAll(req, res){
     const orm = this.app.orm
     const Tag = orm['Tag']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     Tag.findAndCount({
@@ -120,8 +120,8 @@ module.exports = class TagController extends Controller {
   search(req, res){
     const orm = this.app.orm
     const Tag = orm['Tag']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const term = req.query.term
     Tag.findAndCount({

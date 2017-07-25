@@ -53,8 +53,8 @@ module.exports = class CustomerController extends Controller {
   search(req, res) {
     const orm = this.app.orm
     const Customer = orm['Customer']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'last_name DESC'
     const term = req.query.term
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
@@ -132,8 +132,8 @@ module.exports = class CustomerController extends Controller {
   findAll(req, res){
     const orm = this.app.orm
     const Customer = orm['Customer']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
@@ -160,8 +160,8 @@ module.exports = class CustomerController extends Controller {
   findByTag(req, res) {
     const orm = this.app.orm
     const Customer = orm['Customer']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     Customer.findAndCountDefault({
       where: {
@@ -196,8 +196,8 @@ module.exports = class CustomerController extends Controller {
   findByCollection(req, res) {
     const orm = this.app.orm
     const Customer = orm['Customer']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     Customer.findAndCountDefault({
       where: {
@@ -491,8 +491,8 @@ module.exports = class CustomerController extends Controller {
       return res.send(401, err)
     }
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
 
     Account.findAndCount({
@@ -554,8 +554,8 @@ module.exports = class CustomerController extends Controller {
       return res.send(401, err)
     }
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
 
     Order.findAndCount({
@@ -619,8 +619,8 @@ module.exports = class CustomerController extends Controller {
       return res.send(401,err)
     }
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
 
     Subscription.findAndCount({
@@ -703,8 +703,8 @@ module.exports = class CustomerController extends Controller {
       return res.send(401, err)
     }
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
 
     Address.findAndCount({
@@ -925,8 +925,8 @@ module.exports = class CustomerController extends Controller {
       return res.send(401, err)
     }
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
 
     Source.findAndCount({
@@ -1105,8 +1105,8 @@ module.exports = class CustomerController extends Controller {
       return res.send(401, err)
     }
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     // this.app.orm['Customer'].findById(customerId)
     //   .then(customer => {
@@ -1243,8 +1243,8 @@ module.exports = class CustomerController extends Controller {
       return res.send(401, err)
     }
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
 
     Event.findAndCount({
@@ -1304,8 +1304,8 @@ module.exports = class CustomerController extends Controller {
       return res.send(401, err)
     }
 
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
 
     Review.findAndCount({

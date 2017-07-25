@@ -63,8 +63,8 @@ module.exports = class ProductController extends Controller {
     const Product = orm['Product']
     // const Collection = orm['Collection']
     // const Tag = orm['Tag']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'title DESC'
     const term = req.query.term
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
@@ -98,7 +98,7 @@ module.exports = class ProductController extends Controller {
       order: sort,
       offset: offset,
       req: req,
-      limit: limit // TODO: Sequelize breaks with limit here because of associations
+      limit: limit
     })
       .then(products => {
         // Paginate
@@ -142,8 +142,8 @@ module.exports = class ProductController extends Controller {
   findAll(req, res){
     const orm = this.app.orm
     const Product = orm['Product']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
@@ -173,8 +173,8 @@ module.exports = class ProductController extends Controller {
   findByTag(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     Product.findAndCountDefault({
       where: {
@@ -211,8 +211,8 @@ module.exports = class ProductController extends Controller {
   findByCollection(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
 
     Product.findAndCountDefault({
@@ -770,15 +770,14 @@ module.exports = class ProductController extends Controller {
   reviews(req, res) {
     const Review = this.app.orm['ProductReview']
     const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
 
     if (!productId) {
       const err = new Error('A product id is required')
       return res.send(401, err)
     }
-
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
-    const sort = req.query.sort || 'created_at DESC'
 
     Review.findAndCount({
       order: sort,
@@ -807,15 +806,14 @@ module.exports = class ProductController extends Controller {
   associations(req, res) {
     const Association = this.app.orm['Product']
     const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
 
     if (!productId) {
       const err = new Error('A product id is required')
       return res.send(401, err)
     }
-
-    const limit = req.query.limit || 10
-    const offset = req.query.offset || 0
-    const sort = req.query.sort || 'created_at DESC'
 
     Association.findAndCount({
       order: sort,
@@ -834,7 +832,5 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
-
-
 }
 
