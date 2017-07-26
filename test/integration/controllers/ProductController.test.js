@@ -111,7 +111,6 @@ describe('ProductController', () => {
         assert.equal(res.body[0].collections.length, 1)
         assert.equal(res.body[0].collections[0].handle, 'fire-sale')
         // Tags
-        // TODO FIX SO THAT ONLY PRODUCT TAGS ARE RETURNED
         // assert.equal(res.body[0].tags.length, 3)
         assert.notEqual(res.body[0].tags.indexOf('snow'), -1)
         assert.notEqual(res.body[0].tags.indexOf('equipment'), -1)
@@ -339,27 +338,29 @@ describe('ProductController', () => {
         done(err)
       })
   })
-  // TODO complete test
   it('should add tag to product', (done) => {
     request
-      .post(`/product/${createdProductID}/addTag/1`)
+      .post(`/product/${createdProductID}/addTag/test`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.tags.length, 4)
+        assert.notEqual(res.body.tags.indexOf('test'), -1 )
         done(err)
       })
   })
-  // TODO complete test
+
   it('should remove tag to product', (done) => {
     request
-      .post(`/product/${createdProductID}/removeTag/1`)
+      .post(`/product/${createdProductID}/removeTag/test`)
       .send({})
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.tags.length, 3)
+        assert.equal(res.body.tags.indexOf('test'), -1 )
         done(err)
       })
   })
