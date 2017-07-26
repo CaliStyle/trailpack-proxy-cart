@@ -7,10 +7,11 @@ module.exports = class Source extends Email {
   /**
    *
    * @param source
+   * @param data
    * @param options
    * @returns {Promise.<{text: string, html:string}>}
    */
-  willExpire(source, options) {
+  willExpire(source, data, options) {
     const Source = this.app.orm['Source']
     let resSource
     return Source.resolve(source, options)
@@ -33,10 +34,11 @@ module.exports = class Source extends Email {
   /**
    *
    * @param source
+   * @param data
    * @param options
    * @returns {Promise.<{text: string, html:string}>}
    */
-  expired(source, options) {
+  expired(source, data, options) {
     const Source = this.app.orm['Source']
     let resSource
     return Source.resolve(source, options)

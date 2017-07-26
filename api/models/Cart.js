@@ -62,7 +62,7 @@ module.exports = class Cart extends Model {
              *
              * @param data
              */
-            // TODO handle discounts
+            // TODO handle discounts, Select Vendor
             line: function(data){
               // handle empty product
               data.Product = data.Product || {}
@@ -104,6 +104,7 @@ module.exports = class Cart extends Model {
                 max_quantity: data.max_quantity,
                 grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
                 vendors: data.Product.vendors,
+                vendor_id: data.vendor_id || null,
                 average_shipping: data.Product.average_shipping,
                 exclude_payment_types: data.Product.exclude_payment_types,
                 live_mode: data.live_mode

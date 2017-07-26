@@ -257,6 +257,51 @@ module.exports = class Subscription extends Model {
 
           },
           instanceMethods: {
+            resolveCustomer: function(options) {
+              options = options || {}
+              if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
+                return Promise.resolve(this)
+              }
+              // Some orders may not have a customer Id
+              else if (!this.customer_id) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getCustomer({transaction: options.transaction || null})
+                  .then(customer => {
+                    customer = customer || null
+                    this.Customer = customer
+                    this.setDataValue('Customer', customer)
+                    this.set('Customer', customer)
+                    return this
+                  })
+              }
+            },
+            /**
+             *
+             * @param preNotification
+             * @param options
+             */
+            notifyCustomer: function(preNotification, options) {
+              options = options || {}
+              if (this.customer_id) {
+                return this.resolveCustomer({transaction: options.transaction || null })
+                  .then(() => {
+                    if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
+                      return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
+                    }
+                    else {
+                      return
+                    }
+                  })
+                  .then(() => {
+                    return this
+                  })
+              }
+              else {
+                return Promise.resolve(this)
+              }
+            },
             line: function(data){
               data.Product = data.Product || {}
               const line = {

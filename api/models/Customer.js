@@ -422,7 +422,7 @@ module.exports = class Customer extends Model {
              * @param options
              * @returns {Promise.<T>}
              */
-            notifyUsers(preNotification, options) {
+            notifyUsers: function(preNotification, options) {
               options = options || {}
               return this.resolveUsers({transaction: options.transaction || null})
                 .then(() => {

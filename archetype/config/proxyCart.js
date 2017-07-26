@@ -56,5 +56,21 @@ module.exports = {
     retry_attempts: 5,
     // The amount of days before a Transaction will cancel from failed
     grace_period_days: 5
+  },
+  emails: {
+    orderCreated: false,
+    orderUpdated: false,
+    orderPaid: false,
+    orderFulfilled: false,
+    orderRefunded: false,
+    orderCancelled: false,
+    sourceWillExpire: false,
+    subscriptionCreated: false,
+    subscriptionUpdated: false,
+    subscriptionDeactivated: false,
+    subscriptionCancelled: false,
+    subscriptionWillRenew: false,
+    subscriptionRenewed: false,
+    transactionFailed: false
   }
 }

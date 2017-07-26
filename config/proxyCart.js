@@ -28,12 +28,22 @@ module.exports = {
   },
   // The countries to load by default
   default_countries: ['USA'],
-  // Subscriptions
-  subscriptions: {
-    // The amount of times a Subscription will retry failed transactions
-    retry_attempts: 5,
-    // The amount of days before a Subscription will cancel from failed transactions
-    grace_period_days: 5
+  // Emails to send
+  emails: {
+    orderCreated: false,
+    orderUpdated: false,
+    orderPaid: false,
+    orderFulfilled: false,
+    orderRefunded: false,
+    orderCancelled: false,
+    sourceWillExpire: false,
+    subscriptionCreated: false,
+    subscriptionUpdated: false,
+    subscriptionDeactivated: false,
+    subscriptionCancelled: false,
+    subscriptionWillRenew: false,
+    subscriptionRenewed: false,
+    transactionFailed: false
   },
   // Orders
   orders: {
@@ -48,6 +58,13 @@ module.exports = {
     // The amount of times a Order will retry failed transactions
     retry_attempts: 5,
     // The amount of days before a Order will cancel from failed transactions
+    grace_period_days: 5
+  },
+  // Subscriptions
+  subscriptions: {
+    // The amount of times a Subscription will retry failed transactions
+    retry_attempts: 5,
+    // The amount of days before a Subscription will cancel from failed transactions
     grace_period_days: 5
   },
   // Transactions

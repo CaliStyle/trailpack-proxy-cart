@@ -318,6 +318,31 @@ module.exports = class Order extends Model {
             },
             /**
              *
+             * @param preNotification
+             * @param options
+             */
+            notifyCustomer: function(preNotification, options) {
+              options = options || {}
+              if (this.customer_id) {
+                return this.resolveCustomer({transaction: options.transaction || null })
+                  .then(() => {
+                    if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
+                      return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
+                    }
+                    else {
+                      return
+                    }
+                  })
+                  .then(() => {
+                    return this
+                  })
+              }
+              else {
+                return Promise.resolve(this)
+              }
+            },
+            /**
+             *
              * @param shipping
              * @param options
              * @returns {Promise.<T>}
@@ -781,8 +806,6 @@ module.exports = class Order extends Model {
               ].indexOf(transaction.status ) > -1)
 
               let financialStatus = ORDER_FINANCIAL.PENDING
-              // TRANSACTION STATUS pending, failure, success or error
-              // TRANSACTION KIND authorize, capture, sale, refund, void
 
               let totalAuthorized = 0
               let totalVoided  = 0
@@ -829,7 +852,7 @@ module.exports = class Order extends Model {
                 }
               })
 
-              // Calculate the totals of pending transactions
+              // Calculate the totals of cancelled pending transactions
               _.each(cancelled, transaction => {
                 if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
                   totalCancelled = totalCancelled + transaction.amount
@@ -886,9 +909,13 @@ module.exports = class Order extends Model {
                 // console.log('SHOULD BE: partially_refunded')
                 financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
               }
+              else if (this.total_price == totalCancelled) {
+                financialStatus = ORDER_FINANCIAL.CANCELLED
+              }
 
-              app.log.debug(`FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}, Pending: ${totalPending}`)
+              app.log.debug(`FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}, Pending: ${totalPending}, Cancelled: ${totalCancelled}`)
               // pending: The finances are pending. (This is the default value.)
+              // cancelled: The finances pending have been cancelled.
               // authorized: The finances have been authorized.
               // partially_paid: The finances have been partially paid.
               // paid: The finances have been paid.
@@ -1044,7 +1071,7 @@ module.exports = class Order extends Model {
                   return this.resolveSubscribeImmediately({ transaction: options.transaction || null })
                 })
                 .then(immediate => {
-                  console.log('WILL SUBSCRIBE', immediate, this)
+                  // console.log('WILL SUBSCRIBE', immediate, this)
                   if (immediate) {
                     return app.services.SubscriptionService.setupSubscriptions(this, immediate, { transaction: options.transaction || null })
                   }
@@ -1262,7 +1289,11 @@ module.exports = class Order extends Model {
             },
             resolveCustomer: function(options) {
               options = options || {}
-              if (this.Customer) {
+              if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
+                return Promise.resolve(this)
+              }
+              // Some orders may not have a customer Id
+              else if (!this.customer_id) {
                 return Promise.resolve(this)
               }
               else {

@@ -271,6 +271,8 @@ module.exports = {
     MANUAL: 'manual'
   },
   ORDER_FINANCIAL: {
+    // cancelled: The finances have been cancelled
+    CANCELLED: 'cancelled',
     // pending: The finances are pending.
     PENDING: 'pending',
     // authorized: The finances have been authorized.

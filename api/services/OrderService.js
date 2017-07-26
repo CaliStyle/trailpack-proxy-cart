@@ -261,6 +261,9 @@ module.exports = class OrderService extends Service {
             total_pending_fulfillments: fulfillments.length
           }, {
             include: [
+              // {
+              //   model: this.app.orm['Customer']
+              // },
               {
                 model: OrderItem,
                 as: 'order_items'
@@ -333,12 +336,6 @@ module.exports = class OrderService extends Service {
                 }
                 return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
               })
-              .then(() => {
-                return this.app.emails.Order.created(resOrder, null, {transaction: options.transaction || null})
-                  .then(email => {
-                    return resCustomer.notifyUsers(email, {transaction: options.transaction || null})
-                  })
-              })
           }
           else {
             return
@@ -402,10 +399,27 @@ module.exports = class OrderService extends Service {
           resOrder.transactions = transactions
           resOrder.setDataValue('transactions', transactions)
           resOrder.set('transactions', transactions)
+          // Reload to the freshest copy after all the events
           return resOrder.reload({transaction: options.transaction || null})
         })
         .then(() => {
+          // Save the status changes
           return resOrder.saveStatus({transaction: options.transaction || null})
+        })
+        .then(() => {
+          if (resOrder.customer_id) {
+            return this.app.emails.Order.created(resOrder, {
+              send_email: this.app.config.proxyCart.emails.orderCreated
+            }, {
+              transaction: options.transaction || null
+            })
+              .then(email => {
+                return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
+              })
+          }
+          else {
+            return
+          }
         })
         .then(() => {
           // Load default
