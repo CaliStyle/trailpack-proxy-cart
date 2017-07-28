@@ -79,10 +79,10 @@ module.exports = class Product extends Model {
              * @param models
              */
             associate: (models) => {
-              models.Product.belongsToMany(models.Shop, {
-                as: 'shops',
-                through: 'ShopProduct'
-              })
+              // models.Product.belongsToMany(models.Shop, {
+              //   as: 'shops',
+              //   through: 'ShopProduct'
+              // })
               models.Product.hasMany(models.ProductImage, {
                 as: 'images',
                 foreignKey: 'product_id',
@@ -104,13 +104,14 @@ module.exports = class Product extends Model {
               models.Product.hasMany(models.ProductVariant, {
                 as: 'variants',
                 foreignKey: 'product_id',
-                through: null,
+                // through: null,
                 onDelete: 'CASCADE'
               })
-              // models.Product.hasMany(models.ProductReview, {
-              //   as: 'reviews',
-              //   onDelete: 'CASCADE'
-              // })
+              models.Product.hasMany(models.ProductReview, {
+                as: 'reviews',
+                foreignKey: 'product_id',
+                onDelete: 'CASCADE'
+              })
               // models.Product.hasOne(models.Metadata, {
               //   as: 'metadata',
               //   onDelete: 'CASCADE'
@@ -145,23 +146,21 @@ module.exports = class Product extends Model {
               })
               models.Product.hasOne(models.Metadata, {
                 as: 'metadata',
-                // through: {
-                //   model: models.ItemMetadata,
-                //   unique: false,
-                //   scope: {
-                //     model: 'product'
-                //   }
-                // },
-                // foreignKey: 'model_id',
-                // scope: {
-                //   model: 'product'
-                // },
                 constraints: false
               })
               models.Product.belongsToMany(models.Vendor, {
                 as: 'vendors',
                 through: {
                   model: models.VendorProduct,
+                  unique: false,
+                },
+                foreignKey: 'product_id',
+                // constraints: false
+              })
+              models.Product.belongsToMany(models.Shop, {
+                as: 'shops',
+                through: {
+                  model: models.ShopProduct,
                   unique: false,
                 },
                 foreignKey: 'product_id',
@@ -216,29 +215,6 @@ module.exports = class Product extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
-              // models.Product.belongsTo(models.Vendor, {
-              //   as: 'vendor',
-              //   // foreignKey: 'id',
-              //   // onDelete: 'CASCADE'
-              //   // foreignKey: {
-              //   //   allowNull: false
-              //   // }
-              // })
-              // models.Product.belongsToMany(models.OrderItem, {
-              //   as: 'order_items',
-              //   through: 'OrderItemProduct'
-              // })
-              // models.Product.belongsToMany(models.Cart, {
-              //   through: {
-              //     model: CartProduct,
-              //     unique: false,
-              //     scope: {
-              //       taggable: 'post'
-              //     }
-              //   },
-              //   foreignKey: 'taggable_id',
-              //   constraints: false
-              // })
             },
             findByIdDefault: function(criteria, options) {
               options = options || {}
@@ -373,7 +349,7 @@ module.exports = class Product extends Model {
              */
             findAndCountDefault: function(options) {
               options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Product.default(app), {distinct: true})
+              options = _.defaultsDeep(options, queryDefaults.Product.findAndCountDefault(app), {distinct: true})
               return this.findAndCount(options)
             },
             /**
@@ -574,11 +550,24 @@ module.exports = class Product extends Model {
                   })
               }
             },
-            resolveShop: function(options) {
-              options = options || {}
-            },
             resolveMetadata: function(options) {
               options = options || {}
+            },
+            resolveShops: function(options) {
+              options = options || {}
+              if (this.shops) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getShops({transaction: options.transaction || null})
+                  .then(shops => {
+                    shops = shops || []
+                    this.shops = shops
+                    this.setDataValue('shops', shops)
+                    this.set('shops', shops)
+                    return this
+                  })
+              }
             },
             resolveTags: function(options) {
               options = options || {}

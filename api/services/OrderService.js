@@ -416,6 +416,10 @@ module.exports = class OrderService extends Service {
               .then(email => {
                 return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
               })
+              .catch(err => {
+                this.app.log.error(err)
+                return
+              })
           }
           else {
             return

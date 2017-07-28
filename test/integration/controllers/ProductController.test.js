@@ -289,7 +289,7 @@ describe('ProductController', () => {
         // Metadata
         assert.equal(res.body[0].metadata.test, 'new value')
         // Collections
-        console.log('SET COLLECTIONS', res.body[0].collections)
+        // console.log('SET COLLECTIONS', res.body[0].collections)
         assert.equal(res.body[0].collections.length, 1)
         assert.equal(res.body[0].collections[0].title, 'free-shipping')
         assert.equal(res.body[0].collections[0].handle, 'free-shipping')
@@ -331,7 +331,7 @@ describe('ProductController', () => {
         assert.equal(res.body.images[3].position, 4)
 
         // Collections
-        console.log('SET COLLECTIONS', res.body.collections)
+        // console.log('SET COLLECTIONS', res.body.collections)
         assert.equal(res.body.collections.length, 1)
         assert.equal(res.body.collections[0].title, 'free-shipping')
         assert.equal(res.body.collections[0].handle, 'free-shipping')
@@ -364,27 +364,27 @@ describe('ProductController', () => {
         done(err)
       })
   })
-  // TODO complete test
   it('should add collection to product', (done) => {
     request
-      .post(`/product/${createdProductID}/addCollection/1`)
+      .post(`/product/${createdProductID}/addCollection/test`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
+        const collections = _.map(res.body.collections,'handle')
+        assert.notEqual(collections.indexOf('test'), -1 )
         done(err)
       })
   })
-  // TODO complete test
   it('should remove collection from product', (done) => {
     request
-      .post(`/product/${createdProductID}/removeCollection/1`)
+      .post(`/product/${createdProductID}/removeCollection/test`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
+        const collections = _.map(res.body.collections,'handle')
+        assert.equal(collections.indexOf('test'), -1 )
         done(err)
       })
   })
@@ -396,7 +396,7 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        // assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.id, createdProductID)
         done(err)
       })
   })
@@ -406,7 +406,7 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}/associations`)
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        // console.log('Show Associations',res.body)
         // assert.equal(res.body.length, 1)
         done(err)
       })
@@ -430,8 +430,18 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        console.log('Add Shop', res.body)
         assert.equal(res.body.id, createdProductID)
+        done(err)
+      })
+  })
+  it('should show shops of a product', (done) => {
+    request
+      .get(`/product/${createdProductID}/shops`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log(res.body)
+        assert.equal(res.body.length, 1)
         done(err)
       })
   })
@@ -447,27 +457,38 @@ describe('ProductController', () => {
         done(err)
       })
   })
-  // TODO complete test
+
   it('should add a vendor to product', (done) => {
     request
       .post(`/product/${createdProductID}/addVendor/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        // console.log('ADD VENDOR', res.body)
         assert.equal(res.body.id, createdProductID)
+        assert.notEqual(res.body.vendors.indexOf('Makerbot'), -1)
         done(err)
       })
   })
   // TODO complete test
+  it('should show vendors of product', (done) => {
+    request
+      .get(`/product/${createdProductID}/vendors`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.length, 2)
+        done(err)
+      })
+  })
   it('should remove a vendor from product', (done) => {
     request
       .post(`/product/${createdProductID}/removeVendor/1`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        // console.log('Remove Vendor', res.body)
         assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.vendors.indexOf('Makerbot'), -1 )
         done(err)
       })
   })
@@ -478,16 +499,22 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
-        // assert.equal(res.body.length, 1)
+        assert.equal(res.body.length, 0)
         done(err)
       })
   })
+  // TODO complete test
   it('should make removeImage post request', (done) => {
     request
       .post(`/product/${createdProductID}/image/${firstImageID}/remove`)
       .send({})
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.images.length, 3)
+        const images = _.map(res.body.images,'id')
+        assert.equal(images.indexOf(firstImageID), -1)
+
         done(err)
       })
   })

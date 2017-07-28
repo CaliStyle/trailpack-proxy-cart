@@ -905,22 +905,25 @@ module.exports = class ProductService extends Service {
    * @param id
    */
   removeImage(id, options){
-    const Image = this.app.orm.ProductImage
-    let destroy
+    options = options || {}
+    const Image = this.app.orm['ProductImage']
+    const Product = this.app.orm['Product']
+    let resDestroy
     let updates
-
-    if (!options) {
-      options = {}
-    }
 
     return Image.findById(id,{
       transaction: options.transaction || null
     })
       .then(foundImage => {
-        destroy = foundImage
+        if (!foundImage) {
+          // TODO proper error
+          throw new Error('Image not found')
+        }
+        resDestroy = foundImage
+
         return Image.findAll({
           where: {
-            product_id: destroy.product_id
+            product_id: resDestroy.product_id
           },
           transaction: options.transaction || null
         })
@@ -941,12 +944,12 @@ module.exports = class ProductService extends Service {
         }))
       })
       .then(updatedImages => {
-        return Image.destroy({
-          where: {
-            id: id
-          },
+        return resDestroy.destroy({
           transaction: options.transaction || null
         })
+      })
+      .then(() => {
+        return Product.findByIdDefault(resDestroy.product_id ,{transaction: options.transaction || null})
       })
   }
 
@@ -1015,9 +1018,9 @@ module.exports = class ProductService extends Service {
         if (hasTag) {
           return resProduct.removeTag(resTag.id)
         }
-        return resProduct
+        return false
       })
-      .then(tag => {
+      .then(newTag => {
         return Product.findByIdDefault(resProduct.id)
       })
   }
@@ -1028,32 +1031,33 @@ module.exports = class ProductService extends Service {
    * @param association
    * @returns {Promise.<TResult>}
    */
-  addAssociation(product, association){
+  addAssociation(product, association, options){
+    options = options || {}
     const Product = this.app.orm['Product']
     let resProduct, resAssociation
-    return Product.resolve(product)
+    return Product.resolve(product, {transaction: options.transaction || null})
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = product
-        return Product.resolve(association)
+        return Product.resolve(association, {transaction: options.transaction || null})
       })
       .then(association => {
         if (!association) {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resAssociation = association
-        return resProduct.hasAssociation(resAssociation.id)
+        return resProduct.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
       })
       .then(hasAssociation => {
         if (!hasAssociation) {
-          return resProduct.addAssociation(resAssociation.id)
+          return resProduct.addAssociation(resAssociation.id, {transaction: options.transaction || null})
         }
-        return resProduct
+        return false
       })
-      .then(association => {
-        return Product.findByIdDefault(resProduct.id)
+      .then(newAssociation => {
+        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
 
@@ -1063,32 +1067,33 @@ module.exports = class ProductService extends Service {
    * @param association
    * @returns {Promise.<TResult>}
    */
-  removeAssociation(product, association){
+  removeAssociation(product, association, options){
+    options = options || {}
     const Product = this.app.orm['Product']
     let resProduct, resAssociation
-    return Product.resolve(product)
+    return Product.resolve(product, {transaction: options.transaction || null})
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = product
-        return Product.resolve(association)
+        return Product.resolve(association, {transaction: options.transaction || null})
       })
       .then(association => {
         if (!association) {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resAssociation = association
-        return resProduct.hasAssociation(resAssociation.id)
+        return resProduct.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
       })
       .then(hasAssociation => {
         if (hasAssociation) {
-          return resProduct.removeAssociation(resAssociation.id)
+          return resProduct.removeAssociation(resAssociation.id, {transaction: options.transaction || null})
         }
-        return resProduct
+        return false
       })
-      .then(association => {
-        return Product.findByIdDefault(resProduct.id)
+      .then(removedAssociation => {
+        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
 

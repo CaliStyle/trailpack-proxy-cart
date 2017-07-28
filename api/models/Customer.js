@@ -313,8 +313,12 @@ module.exports = class Customer extends Model {
                 constraints: false
               })
               // models.Customer.hasOne(models.Order, {
-              //   as: 'last_order_id'
-              //   // foreignKey: 'id'
+              //   targetKey: 'last_order_id',
+              //   foreignKey: 'id'
+              // })
+              // models.Customer.hasMany(models.Order, {
+              //   as: 'orders',
+              //   foreignKey: 'customer_id'
               // })
             },
             /**

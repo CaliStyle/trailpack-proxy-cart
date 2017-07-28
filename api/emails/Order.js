@@ -31,6 +31,7 @@ module.exports = class Order extends Email {
         const html = data.html || this.app.templates.Order.created(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Created`
         const sendEmail = data.send_email || true
+        this.app.log.debug(`SEND EMAIL ${ resOrder.name }`, sendEmail)
 
         return {
           type: 'order.created',

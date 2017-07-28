@@ -248,6 +248,48 @@ module.exports = class CollectionController extends Controller {
    * @param req
    * @param res
    */
+  collections(req, res) {
+    const Collection = this.app.orm['Collection']
+    const collectionId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!collectionId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    Collection.findAndCount({
+      order: sort,
+      where: {
+        '$collections.id$': collectionId
+      },
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections',
+          duplicating: false
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(collections => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
+        return res.json(collections.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   addProduct(req, res) {
     const CollectionService = this.app.services.CollectionService
 
@@ -284,6 +326,47 @@ module.exports = class CollectionController extends Controller {
    * @param req
    * @param res
    */
+  products(req, res) {
+    const Product = this.app.orm['Product']
+    const collectionId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!collectionId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    Product.findAndCount({
+      order: sort,
+      where: {
+        '$collections.id$': collectionId
+      },
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections'
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(products => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
+        return res.json(products.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   addCustomer(req, res) {
     const CollectionService = this.app.services.CollectionService
 
@@ -311,6 +394,47 @@ module.exports = class CollectionController extends Controller {
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  customers(req, res) {
+    const Customer = this.app.orm['Customer']
+    const collectionId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!collectionId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    Customer.findAndCount({
+      order: sort,
+      where: {
+        '$collections.id$': collectionId
+      },
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections'
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(customers => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
+        return res.json(customers.rows)
+      })
+      .catch(err => {
         return res.serverError(err)
       })
   }

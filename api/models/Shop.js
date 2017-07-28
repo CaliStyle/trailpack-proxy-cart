@@ -61,6 +61,14 @@ module.exports = class Shop extends Model {
                 as: 'orders',
                 foreignKey: 'shop_id'
               })
+              models.Shop.belongsToMany(models.Product, {
+                as: 'products',
+                through: {
+                  model: models.ShopProduct,
+                  foreignKey: 'shop_id'
+                },
+                //constraints: false
+              })
             },
             // TODO
             resolve: function(shop, options) {

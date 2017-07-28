@@ -180,17 +180,10 @@ module.exports = class ProductController extends Controller {
       where: {
         '$tags.name$': req.params.tag
       },
-      // include: [{
-      //   model: this.app.orm['Tag'],
-      //   as: 'tags',
-      //   where: {
-      //     name: req.params.tag
-      //   }
-      // }],
       order: sort,
       offset: offset,
       req: req,
-      // limit: limit // TODO Sequelize breaks if a limit is here.
+      limit: limit
     })
       .then(products => {
         // Paginate
@@ -221,8 +214,8 @@ module.exports = class ProductController extends Controller {
       },
       order: sort,
       offset: offset,
-      req: req
-      // limit: limit // TODO Sequelize breaks if a limit is here.
+      req: req,
+      limit: limit
     })
       .then(products => {
         // Paginate
@@ -302,7 +295,6 @@ module.exports = class ProductController extends Controller {
       })
       .then(products => {
         this.app.log.silly('ProductController.addProducts created:', products)
-        // TODO FIX SO THAT ONLY PRODUCT TAGS COME BACK
         return res.json(products)
       })
       .catch(err => {
@@ -484,7 +476,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.removeVariant', err)
         return res.serverError(err)
       })
   }
@@ -501,7 +492,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.removeVariant', err)
         return res.serverError(err)
       })
   }
@@ -517,7 +507,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.addTag', err)
         return res.serverError(err)
       })
   }
@@ -533,7 +522,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.removeTag', err)
         return res.serverError(err)
       })
   }
@@ -549,7 +537,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.addCollection', err)
         return res.serverError(err)
       })
   }
@@ -565,7 +552,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.removeCollection', err)
         return res.serverError(err)
       })
   }
@@ -582,7 +568,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.addAssociation', err)
         return res.serverError(err)
       })
   }
@@ -598,7 +583,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.removeVariant', err)
         return res.serverError(err)
       })
   }
@@ -615,7 +599,6 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.addShop', err)
         return res.serverError(err)
       })
   }
@@ -631,7 +614,90 @@ module.exports = class ProductController extends Controller {
         return res.json(data)
       })
       .catch(err => {
-        // console.log('ProductController.removeVariant', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  shops(req, res) {
+    const Shop = this.app.orm['Shop']
+    const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    Shop.findAndCount({
+      order: sort,
+      where: {
+        '$products.id$': productId
+      },
+      offset: offset,
+      limit: limit,
+      include: [
+        {
+          model: this.app.orm['Product'],
+          as: 'products',
+          attributes: ['id'],
+          duplicating: false
+        }
+      ]
+    })
+      .then(shops => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, shops.count, limit, offset, sort)
+        return res.json(shops.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  associations(req, res) {
+    const Product = this.app.orm['Product']
+    const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    Product.findAndCount({
+      order: sort,
+      where: {
+        '$associations.id$': productId
+      },
+      include: [
+        {
+          model: this.app.orm['Product'],
+          as: 'associations',
+          duplicating: false
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(associations => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, associations.count, limit, offset, sort)
+        return res.json(associations.rows)
+      })
+      .catch(err => {
         return res.serverError(err)
       })
   }
@@ -669,6 +735,48 @@ module.exports = class ProductController extends Controller {
       })
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  vendors(req, res) {
+    const Vendor = this.app.orm['Vendor']
+    const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    Vendor.findAndCount({
+      order: sort,
+      where: {
+        '$products.id$': productId
+      },
+      offset: offset,
+      limit: limit,
+      include: [
+        {
+          model: this.app.orm['Product'],
+          as: 'products',
+          attributes: ['id'],
+          duplicating: false
+        }
+      ]
+    })
+      .then(vendors => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, vendors.count, limit, offset, sort)
+        return res.json(vendors.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 
   /**
    * upload CSV
@@ -791,42 +899,6 @@ module.exports = class ProductController extends Controller {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, reviews.count, limit, offset, sort)
         return res.json(reviews.rows)
-      })
-      .catch(err => {
-        return res.serverError(err)
-      })
-  }
-
-  /**
-   *
-   * @param req
-   * @param res
-   */
-  // TODO get actual product associations
-  associations(req, res) {
-    const Association = this.app.orm['Product']
-    const productId = req.params.id
-    const limit = Math.max(0,req.query.limit || 10)
-    const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
-
-    if (!productId) {
-      const err = new Error('A product id is required')
-      return res.send(401, err)
-    }
-
-    Association.findAndCount({
-      order: sort,
-      where: {
-        id: productId
-      },
-      offset: offset,
-      limit: limit
-    })
-      .then(associations => {
-        // Paginate
-        this.app.services.ProxyEngineService.paginate(res, associations.count, limit, offset, sort)
-        return res.json(associations.rows)
       })
       .catch(err => {
         return res.serverError(err)

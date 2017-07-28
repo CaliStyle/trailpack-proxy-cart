@@ -208,9 +208,13 @@ module.exports = class Order extends Model {
               models.Order.hasOne(models.Cart, {
                 foreignKey: 'order_id'
               })
-              models.Order.hasOne(models.Customer, {
-                foreignKey: 'last_order_id'
+              models.Order.belongsTo(models.Customer, {
+                foreignKey: 'customer_id'
               })
+              // models.Order.belongsTo(models.Customer, {
+              //   targetKey:
+              //   foreignKey: 'last_order_id'
+              // })
             },
             findByIdDefault: function(id, options) {
               options = options || {}
@@ -323,23 +327,18 @@ module.exports = class Order extends Model {
              */
             notifyCustomer: function(preNotification, options) {
               options = options || {}
-              if (this.customer_id) {
-                return this.resolveCustomer({transaction: options.transaction || null })
-                  .then(() => {
-                    if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
-                      return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
-                    }
-                    else {
-                      return
-                    }
-                  })
-                  .then(() => {
-                    return this
-                  })
-              }
-              else {
-                return Promise.resolve(this)
-              }
+              return this.resolveCustomer({transaction: options.transaction || null })
+                .then(() => {
+                  if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
+                    return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
+                  return this
+                })
             },
             /**
              *
@@ -1287,6 +1286,10 @@ module.exports = class Order extends Model {
                 return Promise.resolve(this)
               }
             },
+            /**
+             *
+             * @param options
+             */
             resolveCustomer: function(options) {
               options = options || {}
               if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {

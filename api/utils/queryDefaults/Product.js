@@ -39,12 +39,8 @@ module.exports = {
         },
         // {
         //   model: app.orm['Product'],
-        //   as: 'associations'
-        // },
-        // {
-        //   model: app.orm['Product'],
-        //   through: app.orm['ProductAssociation'],
-        //   as: 'associations'
+        //   as: 'associations',
+        //   duplicating: false
         // },
         {
           model: app.orm['Metadata'],
@@ -82,6 +78,60 @@ module.exports = {
           },
           'position'
         ],
+        [
+          {
+            model: app.orm['ProductImage'],
+            as: 'images'
+          },
+          'position'
+        ]
+      ]
+    }
+  },
+  findAndCountDefault: (app) => {
+    return {
+      include: [
+        {
+          model: app.orm['ProductImage'],
+          as: 'images',
+          duplicating: false,
+          // attributes: {
+          //   exclude: ['src', 'updated_at', 'created_at']
+          // },
+          order: ['position', 'ASC']
+        },
+        {
+          model: app.orm['Tag'],
+          as: 'tags',
+          duplicating: false,
+          attributes: ['name', 'id'],
+          order: ['name', 'ASC']
+        },
+        // {
+        //   model: app.orm['Product'],
+        //   as: 'associations',
+        //   duplicating: false
+        // },
+        {
+          model: app.orm['Collection'],
+          as: 'collections',
+          duplicating: false,
+          attributes: [
+            'id',
+            'title',
+            'handle',
+            'tax_type',
+            'tax_rate',
+            'tax_name',
+            'tax_type',
+            'discount_scope',
+            'discount_type',
+            'discount_rate',
+            'discount_percentage'
+          ]
+        }
+      ],
+      order: [
         [
           {
             model: app.orm['ProductImage'],

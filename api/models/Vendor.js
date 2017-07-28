@@ -98,12 +98,12 @@ module.exports = class Vendor extends Model {
               else if (vendor && _.isNumber(vendor)) {
                 return Vendor.findById(vendor, options)
                   .then(resVendor => {
-                    if (resVendor) {
+                    if (!resVendor) {
+                      throw new Errors.FoundError(Error(`Vendor ${vendor} not found`))
+                    }
+                    else {
                       return resVendor
                     }
-                    // TODO make Proper Error
-                    const err = new Error(`Not able to resolve vendor ${vendor}`)
-                    return Promise.reject(err)
                   })
               }
               else if (vendor && _.isString(vendor)) {
@@ -116,12 +116,12 @@ module.exports = class Vendor extends Model {
                   }
                 }, options))
                   .then(resVendor => {
-                    if (resVendor) {
+                    if (!resVendor) {
+                      throw new Errors.FoundError(Error(`Vendor ${vendor} not found`))
+                    }
+                    else {
                       return resVendor
                     }
-                    // TODO make Proper Error
-                    const err = new Error(`Not able to resolve vendor ${vendor}`)
-                    return Promise.reject(err)
                   })
               }
               else {
