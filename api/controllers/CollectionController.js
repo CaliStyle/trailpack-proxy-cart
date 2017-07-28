@@ -346,7 +346,8 @@ module.exports = class CollectionController extends Controller {
       include: [
         {
           model: this.app.orm['Collection'],
-          as: 'collections'
+          as: 'collections',
+          duplicating: false
         }
       ],
       offset: offset,
@@ -423,7 +424,8 @@ module.exports = class CollectionController extends Controller {
       include: [
         {
           model: this.app.orm['Collection'],
-          as: 'collections'
+          as: 'collections',
+          duplicating: false
         }
       ],
       offset: offset,

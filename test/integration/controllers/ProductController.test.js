@@ -406,6 +406,10 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}/associations`)
       .expect(200)
       .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
         // console.log('Show Associations',res.body)
         // assert.equal(res.body.length, 1)
         done(err)
@@ -441,6 +445,10 @@ describe('ProductController', () => {
       .expect(200)
       .end((err, res) => {
         // console.log(res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
         assert.equal(res.body.length, 1)
         done(err)
       })
@@ -476,6 +484,10 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}/vendors`)
       .expect(200)
       .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
         assert.equal(res.body.length, 2)
         done(err)
       })

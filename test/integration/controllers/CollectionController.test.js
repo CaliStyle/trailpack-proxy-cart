@@ -103,13 +103,83 @@ describe('CollectionController', () => {
   })
   it.skip('should remove tag from collection', (done) => {
   })
-  it.skip('should add product to collection', (done) => {
+  // TODO complete test
+  it('should add product to collection', (done) => {
+    request
+      .post(`/collection/${collectionID}/addProduct/1`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body.id, collectionID)
+        done(err)
+      })
   })
-  it.skip('should remove product from collection', (done) => {
+  // TODO complete test
+  it('should list collection products', (done) => {
+    request
+      .get(`/collection/${collectionID}/products`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        // console.log('THIS COLLECTION',res.body)
+        assert.ok(res.body)
+        done(err)
+      })
   })
-  it.skip('should add customer to collection', (done) => {
+  // TODO complete test
+  it('should remove product from collection', (done) => {
+    request
+      .post(`/collection/${collectionID}/removeProduct/1`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body.id, collectionID)
+        done(err)
+      })
   })
-  it.skip('should remove customer from collection', (done) => {
+  // TODO complete test
+  it('should add customer to collection', (done) => {
+    request
+      .post(`/collection/${collectionID}/addCustomer/1`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body.id, collectionID)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should list collection customers', (done) => {
+    request
+      .get(`/collection/${collectionID}/customers`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        // console.log('THIS COLLECTION',res.body)
+        assert.ok(res.body)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should remove customer from collection', (done) => {
+    request
+      .post(`/collection/${collectionID}/addCustomer/1`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body.id, collectionID)
+        done(err)
+      })
   })
   it('should add collection to collection', (done) => {
     request
@@ -119,6 +189,17 @@ describe('CollectionController', () => {
       .end((err, res) => {
         // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.collections.length, 2)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should list collection collections', (done) => {
+    request
+      .get(`/collection/${collectionID}/collections`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        // assert.equal(res.body.length, 2)
         done(err)
       })
   })
