@@ -37,6 +37,7 @@ module.exports = {
     orderRefunded: false,
     orderCancelled: false,
     sourceWillExpire: false,
+    sourceUpdated: false,
     subscriptionCreated: false,
     subscriptionUpdated: false,
     subscriptionDeactivated: false,

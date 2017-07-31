@@ -111,19 +111,23 @@ module.exports = class Cart extends Model {
               }
               return line
             },
-            addLine: function(item, qty, properties) {
+            addLine: function(item, qty, properties, options) {
+              options = options || {}
               // The quantity available of this variant
               let lineQtyAvailable = -1
               let line
               // Check if Product is Available
-              return item.checkAvailability(qty)
+              return item.checkAvailability(qty, {transaction: options.transaction || null})
                 .then(availability => {
                   if (!availability.allowed) {
                     throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
                   }
                   lineQtyAvailable = availability.quantity
                   // Check if Product is Restricted
-                  return item.checkRestrictions(this.Customer || this.customer_id)
+                  return item.checkRestrictions(
+                    this.Customer || this.customer_id,
+                    {transaction: options.transaction || null}
+                  )
                 })
                 .then(restricted => {
                   if (restricted) {
@@ -191,7 +195,8 @@ module.exports = class Cart extends Model {
              * @param qty
              * @returns {Promise.<this>}
              */
-            removeLine: function(item, qty) {
+            removeLine: function(item, qty, options) {
+              options = options || {}
               const lineItems = this.line_items
               if (!qty || !_.isNumber(qty)) {
                 qty = 1
@@ -232,6 +237,10 @@ module.exports = class Cart extends Model {
                 return this.save(save)
               }
               return this //Promise.resolve(this)
+            },
+            clear: function () {
+              this.line_items = []
+              return this
             },
             /**
              *
@@ -444,12 +453,12 @@ module.exports = class Cart extends Model {
              * @param models
              */
             associate: (models) => {
-              // models.Cart.belongsTo(models.Customer, {
-              //   as: 'customer_id',
-              // })
-              // models.Cart.belongsTo(models.Shop, {
-              //   as: 'shop_id',
-              // })
+              models.Cart.belongsTo(models.Customer, {
+                // as: 'customer_id',
+              })
+              models.Cart.belongsTo(models.Shop, {
+                // as: 'shop_id',
+              })
 
               models.Cart.belongsToMany(models.User, {
                 as: 'owners',
@@ -462,10 +471,6 @@ module.exports = class Cart extends Model {
                 foreign_id: 'item_id',
                 constraints: false
               })
-              // models.Cart.belongsTo(models.Customer, {
-              //   // as: 'customer'
-              //   // as: 'customer_id'
-              // })
               models.Cart.belongsTo(models.Address, {
                 as: 'shipping_address',
               })
@@ -507,10 +512,6 @@ module.exports = class Cart extends Model {
               // })
               // models.Cart.hasMany(models.ProductVariant, {
               //   as: 'variants'
-              //   // constraints: false
-              // })
-              // models.Cart.hasMany(models.Discount, {
-              //   as: 'discounts'
               //   // constraints: false
               // })
               // models.Cart.hasMany(models.Coupon, {

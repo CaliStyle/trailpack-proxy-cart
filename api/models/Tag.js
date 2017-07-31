@@ -22,6 +22,7 @@ module.exports = class Tag extends Model {
              */
             associate: (models) => {
               models.Tag.belongsToMany(models.Product, {
+                as: 'products',
                 through: {
                   model: models.ItemTag,
                   unique: false,
@@ -33,6 +34,7 @@ module.exports = class Tag extends Model {
                 constraints: false
               })
               models.Tag.belongsToMany(models.Customer, {
+                as: 'customers',
                 through: {
                   model: models.ItemTag,
                   unique: false,
@@ -44,6 +46,7 @@ module.exports = class Tag extends Model {
                 constraints: false
               })
               models.Tag.belongsToMany(models.Collection, {
+                as: 'collections',
                 through: {
                   model: models.ItemTag,
                   unique: false,

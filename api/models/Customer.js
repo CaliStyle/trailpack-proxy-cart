@@ -459,6 +459,12 @@ module.exports = class Customer extends Model {
                   })
               }
             },
+            getDefaultSource: function (options) {
+              options = options || {}
+            },
+            resolvePaymentDetailsToSources: function(options) {
+              options = options || {}
+            },
             /**
              *
              */

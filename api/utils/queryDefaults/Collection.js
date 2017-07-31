@@ -7,7 +7,16 @@ module.exports = {
           as: 'collections',
           attributes: {
             exclude: ['created_at','updated_at']
-          }
+          },
+          include: [
+            {
+              model: app.orm['Image'],
+              as: 'images',
+              attributes: {
+                exclude: ['src','created_at','updated_at']
+              }
+            }
+          ]
         },
         {
           model: app.orm['Image'],

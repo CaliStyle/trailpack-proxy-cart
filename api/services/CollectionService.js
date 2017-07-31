@@ -661,6 +661,78 @@ module.exports = class CollectionService extends Service {
   /**
    *
    * @param collection
+   * @param tag
+   * @returns {Promise.<TResult>}
+   */
+  addTag(collection, tag){
+    const Collection = this.app.orm['Collection']
+    const Tag = this.app.orm['Tag']
+    let resCollection, resTag
+    return Collection.resolve(collection)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
+        }
+        resCollection = collection
+        return Tag.resolve(tag)
+      })
+      .then(tag => {
+        if (!tag) {
+          throw new Errors.FoundError(Error('Tag not found'))
+        }
+        resTag = tag
+        return resCollection.hasTag(resTag.id)
+      })
+      .then(hasCollection => {
+        if (!hasCollection) {
+          return resCollection.addTag(resTag.id)
+        }
+        return resCollection
+      })
+      .then(collection => {
+        return Collection.findByIdDefault(resCollection.id)
+      })
+  }
+
+  /**
+   *
+   * @param collection
+   * @param tag
+   * @returns {Promise.<TResult>}
+   */
+  removeTag(collection, tag){
+    const Collection = this.app.orm['Collection']
+    const Tag = this.app.orm['Tag']
+    let resCollection, resTag
+    return Collection.resolve(collection)
+      .then(collection => {
+        if (!collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
+        }
+        resCollection = collection
+        return Tag.resolve(tag)
+      })
+      .then(tag => {
+        if (!tag) {
+          throw new Errors.FoundError(Error('Tag not found'))
+        }
+        resTag = tag
+        return resCollection.hasTag(resTag.id)
+      })
+      .then(hasCollection => {
+        if (hasCollection) {
+          return resCollection.removeTag(resTag.id)
+        }
+        return resCollection
+      })
+      .then(collection => {
+        return Collection.findByIdDefault(resCollection.id)
+      })
+  }
+
+  /**
+   *
+   * @param collection
    * @param customer
    * @returns {Promise.<TResult>}
    */

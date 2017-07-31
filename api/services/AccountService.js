@@ -18,7 +18,8 @@ module.exports = class AccountService extends Service {
    * @param paymentDetails
    * @returns {Promise.<*>}
    */
-  resolvePaymentDetailsToSources(customer, paymentDetails) {
+  resolvePaymentDetailsToSources(customer, paymentDetails, options) {
+    options = options || {}
     return Promise.all(paymentDetails.map(detail => {
       if (detail.token) {
         return this.addSource({
@@ -43,6 +44,7 @@ module.exports = class AccountService extends Service {
   /**
    *
    * @param customer
+   * @param options
    * @returns {*}
    */
   getDefaultSource(customer, options) {
@@ -97,7 +99,7 @@ module.exports = class AccountService extends Service {
    * @param account
    * @param updates
    * @param options
-   * @returns {*|Promise.<TResult>}
+   * @returns {*|Promise.<T>}
    */
   update(account, updates, options) {
     options = options || {}

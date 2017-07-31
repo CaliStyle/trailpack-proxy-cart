@@ -99,9 +99,40 @@ describe('CollectionController', () => {
         done(err)
       })
   })
-  it.skip('should add tag to collection', (done) => {
+  // TODO complete test
+  it('should add tag to collection', (done) => {
+    request
+      .post(`/collection/${collectionID}/addTag/test`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body.id, collectionID)
+        done(err)
+      })
   })
-  it.skip('should remove tag from collection', (done) => {
+  // TODO complete test
+  it('should list tags of a collection', (done) => {
+    request
+      .get(`/collection/${collectionID}/tags`)
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION TAGS',res.body)
+        assert.ok(res.body)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should remove tag from collection', (done) => {
+    request
+      .post(`/collection/${collectionID}/removeTag/test`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS COLLECTION',res.body)
+        assert.equal(res.body.id, collectionID)
+        done(err)
+      })
   })
   // TODO complete test
   it('should add product to collection', (done) => {
@@ -183,7 +214,7 @@ describe('CollectionController', () => {
   })
   it('should add collection to collection', (done) => {
     request
-      .post(`/collection/${collectionID}/add/${collection2ID}`)
+      .post(`/collection/${collectionID}/collection/${collection2ID}`)
       .send()
       .expect(200)
       .end((err, res) => {
@@ -205,7 +236,7 @@ describe('CollectionController', () => {
   })
   it('should should remove collection from collection', (done) => {
     request
-      .post(`/collection/${collectionID}/remove/${collection2ID}`)
+      .del(`/collection/${collectionID}/collection/${collection2ID}`)
       .send()
       .expect(200)
       .end((err, res) => {

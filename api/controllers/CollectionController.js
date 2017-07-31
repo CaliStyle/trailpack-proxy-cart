@@ -368,6 +368,84 @@ module.exports = class CollectionController extends Controller {
    * @param req
    * @param res
    */
+  addTag(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addTag(req.params.id, req.params.tag)
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeTag(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.removeTag(req.params.id, req.params.tag)
+      .then(collection => {
+        return res.json(collection)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  tags(req, res) {
+    const Tag = this.app.orm['Tag']
+    const collectionId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!collectionId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    Tag.findAndCount({
+      order: sort,
+      where: {
+        '$collections.id$': collectionId
+      },
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections',
+          duplicating: false
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(tags => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, tags.count, limit, offset, sort)
+        return res.json(tags.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   addCustomer(req, res) {
     const CollectionService = this.app.services.CollectionService
 
