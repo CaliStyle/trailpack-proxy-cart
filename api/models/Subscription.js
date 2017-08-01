@@ -66,8 +66,11 @@ module.exports = class Subscription extends Model {
                   return fn(err)
                 })
             },
-            afterUpdate: (values, options, fn) => {
+            afterCreate: (values, options, fn) => {
               app.services.SubscriptionService.afterCreate(values, options)
+                .then(values => {
+                  return values.save({transaction: options.transaction || null})
+                })
                 .then(values => {
                   return fn(null, values)
                 })
@@ -75,11 +78,8 @@ module.exports = class Subscription extends Model {
                   return fn(err)
                 })
             },
-            afterCreate: (values, options, fn) => {
+            afterUpdate: (values, options, fn) => {
               app.services.SubscriptionService.afterCreate(values, options)
-                .then(values => {
-                  return values.save()
-                })
                 .then(values => {
                   return fn(null, values)
                 })
@@ -346,18 +346,22 @@ module.exports = class Subscription extends Model {
               }
               return line
             },
-            addLine: function(item, qty, properties) {
+            addLine: function(item, qty, properties, options) {
+              options = options || {}
               // The quantity available of this variant
               let lineQtyAvailable = -1
               // Check if Product is Available
-              return item.checkAvailability(qty)
+              return item.checkAvailability(qty, {transaction: options.transaction || null})
                 .then(availability => {
                   if (!availability.allowed) {
                     throw new Error(`${availability.title} is not available in this quantity, please try a lower quantity`)
                   }
                   lineQtyAvailable = availability.quantity
                   // Check if Product is Restricted
-                  return item.checkRestrictions(this.Customer || this.customer_id)
+                  return item.checkRestrictions(
+                    this.Customer || this.customer_id,
+                    {transaction: options.transaction || null}
+                  )
                 })
                 .then(restricted => {
                   if (restricted) {
@@ -404,7 +408,7 @@ module.exports = class Subscription extends Model {
                     item.max_quantity = maxQuantity
                     item.properties = properties
                     const line = this.line(item)
-                    app.log.silly('Cart.addLine NEW LINE', line)
+                    app.log.silly('Subscription.addLine NEW LINE', line)
                     lineItems.push(line)
                     this.line_items = lineItems
                   }
@@ -506,7 +510,8 @@ module.exports = class Subscription extends Model {
              *
              * @returns {Promise.<T>}
              */
-            recalculate: function() {
+            recalculate: function(options) {
+              options = options || {}
               // Default Values
               let collections = []
               let subtotalPrice = 0

@@ -114,7 +114,7 @@ module.exports = class Order extends Model {
             afterCreate: (values, options, fn) => {
               app.services.OrderService.afterCreate(values, options)
                 .then(values => {
-                  return values.save()
+                  return values.save({transaction: options.transaction || null})
                 })
                 .then(values => {
                   return fn(null, values)
@@ -384,10 +384,10 @@ module.exports = class Order extends Model {
                     }
                   }
                   this.shipping_lines = shippingLines
-                  return this.save()
+                  return this.save({transaction: options.transaction || null})
                 })
                 .then(() => {
-                  return this.recalculate()
+                  return this.recalculate({transaction: options.transaction || null})
                 })
             },
             /**
@@ -423,10 +423,10 @@ module.exports = class Order extends Model {
                     }
                   }
                   this.shipping_lines = shippingLines
-                  return this.save()
+                  return this.save({transaction: options.transaction || null})
                 })
                 .then(() => {
-                  return this.recalculate()
+                  return this.recalculate({transaction: options.transaction || null})
                 })
             },
             /**
@@ -473,10 +473,10 @@ module.exports = class Order extends Model {
                     }
                   }
                   this.tax_lines = taxLines
-                  return this.save()
+                  return this.save({transaction: options.transaction || null})
                 })
                 .then(() => {
-                  return this.recalculate()
+                  return this.recalculate({transaction: options.transaction || null})
                 })
             },
             /**
@@ -512,10 +512,10 @@ module.exports = class Order extends Model {
                     }
                   }
                   this.tax_lines = taxLines
-                  return this.save()
+                  return this.save({transaction: options.transaction || null})
                 })
                 .then(() => {
-                  return this.recalculate()
+                  return this.recalculate({transaction: options.transaction || null})
                 })
             },
             /**
@@ -564,7 +564,7 @@ module.exports = class Order extends Model {
                   }
                 })
                 .then(() => {
-                  return this.saveFulfillmentStatus()
+                  return this.saveFulfillmentStatus({transaction: options.transaction || null})
                 })
             },
             /**
@@ -1054,7 +1054,10 @@ module.exports = class Order extends Model {
               return this.resolveSendImmediately({ transaction: options.transaction || null })
                 .then(immediate => {
                   if (immediate) {
-                    return app.services.FulfillmentService.sendOrderToFulfillment(this, { transaction: options.transaction || null })
+                    return app.services.FulfillmentService.sendOrderToFulfillment(
+                      this,
+                      { transaction: options.transaction || null }
+                    )
                   }
                   else {
                     return this.fulfillments
@@ -1063,6 +1066,7 @@ module.exports = class Order extends Model {
                 .then(fulfillments => {
                   fulfillments = fulfillments || []
                   // Set the fulfillments to the resOrder
+                  this.fulfillments = fulfillments
                   this.setDataValue('fulfillments', fulfillments)
                   this.set('fulfillments', fulfillments)
 
@@ -1072,7 +1076,11 @@ module.exports = class Order extends Model {
                 .then(immediate => {
                   // console.log('WILL SUBSCRIBE', immediate, this)
                   if (immediate) {
-                    return app.services.SubscriptionService.setupSubscriptions(this, immediate, { transaction: options.transaction || null })
+                    return app.services.SubscriptionService.setupSubscriptions(
+                      this,
+                      immediate,
+                      { transaction: options.transaction || null }
+                    )
                   }
                   else {
                     return this.subscriptions
@@ -1080,7 +1088,9 @@ module.exports = class Order extends Model {
                 })
                 .then((subscriptions) => {
                   subscriptions = subscriptions || []
-                  this.set('subscriptions', subscriptions, {reset: true})
+                  this.subscriptions = subscriptions
+                  this.set('subscriptions', subscriptions)
+                  this.setDataValue('subscriptions', subscriptions)
                   return this
                 })
             },
@@ -1171,12 +1181,12 @@ module.exports = class Order extends Model {
                     }
                     return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                       .then(() =>{
-                        return prevOrderItem.save()
+                        return prevOrderItem.save({transaction: options.transaction || null})
                       })
                   }
                 })
                 .then(() => {
-                  return this.reload()
+                  return this.reload({transaction: options.transaction || null})
                 })
             },
             // TODO add new taxlines shippinglines couponlines discountlines to parent order
@@ -1208,11 +1218,11 @@ module.exports = class Order extends Model {
 
                   return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                     .then(() =>{
-                      return prevOrderItem.save()
+                      return prevOrderItem.save({transaction: options.transaction || null})
                     })
                 })
                 .then(() => {
-                  return this.reload()
+                  return this.reload({transaction: options.transaction || null})
                 })
             },
             // TODO remove tax_lines shipping_lines coupon_lines discount_lines to parent order
@@ -1241,18 +1251,18 @@ module.exports = class Order extends Model {
                   if (prevOrderItem.quantity <= 0) {
                     return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                       .then(() =>{
-                        return prevOrderItem.destroy()
+                        return prevOrderItem.destroy({transaction: options.transaction || null})
                       })
                   }
                   else {
                     return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                       .then(() =>{
-                        return prevOrderItem.save()
+                        return prevOrderItem.save({transaction: options.transaction || null})
                       })
                   }
                 })
                 .then(() => {
-                  return this.reload()
+                  return this.reload({transaction: options.transaction || null})
                 })
             },
             /**
@@ -1270,7 +1280,9 @@ module.exports = class Order extends Model {
                   const amount = this.previous('total_due') - this.total_due
                   // console.log('VOID/REFUND TRANSACTION', amount)
                   return app.services.TransactionService.reconcileUpdate(
-                    this, amount, { transaction: options.transaction || null }
+                    this,
+                    amount,
+                    { transaction: options.transaction || null }
                   )
                 }
                 // authorize/capture/sale
@@ -1278,7 +1290,9 @@ module.exports = class Order extends Model {
                   const amount = this.total_due - this.previous('total_due')
                   // console.log('CREATE NEW TRANSACTION', amount)
                   return app.services.TransactionService.reconcileCreate(
-                    this, amount, { transaction: options.transaction || null }
+                    this,
+                    amount,
+                    { transaction: options.transaction || null }
                   )
                 }
               }
@@ -1374,9 +1388,9 @@ module.exports = class Order extends Model {
             resolveFulfillments: function(options) {
               options = options || {}
               if (this.fulfillments) {
-                return Promise.all(this.fulfillments.map(fulfillment => {
+                return this.sequelize.Promise.mapSeries(this.fulfillments, fulfillment => {
                   return fulfillment.resolveOrderItems({transaction: options.transaction || null})
-                }))
+                })
                   .then(fulfillments => {
                     fulfillments = fulfillments || []
                     this.fulfillments = fulfillments
@@ -1473,7 +1487,7 @@ module.exports = class Order extends Model {
                   // Set the new Overall Status
                   this.setStatus()
                   // Save the changes
-                  return this.save()
+                  return this.save({transaction: options.transaction || null})
                 })
             }
           }

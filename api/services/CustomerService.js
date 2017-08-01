@@ -93,7 +93,7 @@ module.exports = class CustomerService extends Service {
       transaction: options.transaction || null
     })
 
-    return create.save()
+    return create.save({transaction: options.transaction || null})
       .then(createdCustomer => {
         resCustomer = createdCustomer
         if (customer.tags && customer.tags.length > 0) {
@@ -128,7 +128,10 @@ module.exports = class CustomerService extends Service {
           return Promise.all(customer.accounts.map(account => {
             account.customer_id = resCustomer.id
             account.email = resCustomer.email
-            return this.app.services.AccountService.findAndCreate(account)
+            return this.app.services.AccountService.findAndCreate(
+              account,
+              {transaction: options.transaction || null}
+            )
           }))
         }
         else {
@@ -144,7 +147,7 @@ module.exports = class CustomerService extends Service {
                 foreign_id: serviceCustomer.foreign_id,
                 foreign_key: serviceCustomer.foreign_key,
                 data: serviceCustomer.data
-              })
+              }, {transaction: options.transaction || null})
                 .then(account => {
                   // Track Event
                   const event = {
@@ -231,15 +234,13 @@ module.exports = class CustomerService extends Service {
    * @returns {Promise}
    */
   update(customer, options) {
+    options = options || {}
     const Customer = this.app.orm.Customer
     const Tag = this.app.orm.Tag
 
     if (!customer.id) {
       const err = new Errors.FoundError(Error('Customer is missing id'))
       return Promise.reject(err)
-    }
-    if (!options) {
-      options = {}
     }
 
     let resCustomer

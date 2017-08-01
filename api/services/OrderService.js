@@ -25,8 +25,8 @@ module.exports = class OrderService extends Service {
    * @param obj
    * @returns {Promise}
    */
-  // TODO handle inventory policy and coupon policy
-  // TODO Select Vendor
+  // TODO Select Vendor if not selected per order_item
+  // TODO handle inventory policy and coupon policy on fulfillments
   create(obj, options) {
     options = options || {}
     const Address = this.app.orm['Address']
@@ -342,7 +342,6 @@ module.exports = class OrderService extends Service {
           }
         })
         .then(() => {
-          // console.log('broke 1', resOrder.fulfillments)
           // Group fulfillment by service
           return this.app.services.FulfillmentService.groupFulfillments(resOrder, {transaction: options.transaction || null})
             .then(fulfillments => {
@@ -463,7 +462,7 @@ module.exports = class OrderService extends Service {
           resOrder.buyer_accepts_marketing = order.buyer_accepts_marketing
         }
 
-        return resOrder.save()
+        return resOrder.save({transaction: options.transaction || null})
       })
       .then(resOrder => {
         return Order.findByIdDefault(resOrder.id)
@@ -494,12 +493,12 @@ module.exports = class OrderService extends Service {
         }
 
         resOrder = foundOrder
-        return resOrder.resolveTransactions()
+        return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
         const authorized = resOrder.transactions.filter(transaction => transaction.kind == TRANSACTION_KIND.AUTHORIZE)
         return Sequelize.Promise.mapSeries(authorized, transaction => {
-          return this.app.services.TransactionService.capture(transaction)
+          return this.app.services.TransactionService.capture(transaction, {transaction: options.transaction || null})
         })
       })
       .then(capturedTransactions => {
@@ -512,10 +511,11 @@ module.exports = class OrderService extends Service {
    * @param orders
    * @returns {Promise.<*>}
    */
-  payOrders(orders) {
+  payOrders(orders, options) {
+    options = options || {}
     const Sequelize = this.app.orm['Order'].sequelize
     return Sequelize.Promise.mapSeries(orders, order => {
-      return this.pay(order)
+      return this.pay(order, {transaction: options.transaction || null})
     })
   }
 
@@ -526,10 +526,11 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<TResult>}
    */
   refundOrderItem(orderItem, options) {
+    options = options || {}
     const OrderItem = this.app.orm['OrderItem']
     const Order = this.app.orm['Order']
     let resOrderItem, resOrder
-    return OrderItem.resolve(orderItem)
+    return OrderItem.resolve(orderItem, {transaction: options.transaction || null})
       .then(orderItem => {
         if (!orderItem) {
           throw new Errors.FoundError(Error('OrderItem not found'))
@@ -538,7 +539,7 @@ module.exports = class OrderService extends Service {
         return resOrderItem
       })
       .then(() => {
-        return resOrderItem.getOrder()
+        return resOrderItem.getOrder({transaction: options.transaction || null})
       })
       .then(order => {
         if (!order) {
@@ -551,10 +552,10 @@ module.exports = class OrderService extends Service {
             '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`
           )
         }
-
+        // Bind
         resOrder = order
 
-        return resOrder.resolveTransactions()
+        return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
 
@@ -567,7 +568,11 @@ module.exports = class OrderService extends Service {
           // TODO CREATE PROPER ERROR
           throw new Error('No transaction available to refund this item\'s calculated price')
         }
-        return this.app.services.TransactionService.partiallyRefund(toRefund, resOrderItem.calculated_price)
+        return this.app.services.TransactionService.partiallyRefund(
+          toRefund,
+          resOrderItem.calculated_price,
+          {transaction: options.transaction || null}
+        )
       })
       .then(transaction => {
         if (transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS) {
@@ -576,6 +581,8 @@ module.exports = class OrderService extends Service {
             transaction_id: transaction.id,
             amount: transaction.amount,
             restock: options.restock || null
+          },{
+            transaction: options.transaction || null
           })
         }
         else {
@@ -583,10 +590,10 @@ module.exports = class OrderService extends Service {
         }
       })
       .then(refund => {
-        return resOrderItem.setRefund(refund.id)
+        return resOrderItem.setRefund(refund.id, {transaction: options.transaction || null})
       })
       .then(newRefund => {
-        return resOrder.getRefunds()
+        return resOrder.getRefunds({transaction: options.transaction || null})
       })
       .then(refunds => {
         // console.log('THIS REFUNDS', refunds)
@@ -595,7 +602,7 @@ module.exports = class OrderService extends Service {
           totalRefunds = totalRefunds + refund.amount
         })
         resOrder.total_refunds = totalRefunds
-        return resOrder.saveFinancialStatus()
+        return resOrder.saveFinancialStatus({transaction: options.transaction || null})
       })
       .then(order => {
         return Order.findByIdDefault(resOrder.id)
@@ -683,7 +690,9 @@ module.exports = class OrderService extends Service {
             order_id: resOrder.id,
             transaction_id: transaction.id,
             amount: transaction.amount
-          }, { transaction: options.transaction || null })
+          }, {
+            transaction: options.transaction || null
+          })
         })
       })
       .then(newRefunds => {
@@ -698,7 +707,7 @@ module.exports = class OrderService extends Service {
         return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
       })
       .then(order => {
-        return Order.findByIdDefault(resOrder.id)
+        return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
       })
   }
 
@@ -742,7 +751,8 @@ module.exports = class OrderService extends Service {
           // Authorize the pending transactions
           return Sequelize.Promise.mapSeries(toAuthorize, authorize => {
             return this.app.services.TransactionService.authorize(
-              authorize, { transaction: options.transaction || null }
+              authorize,
+              {transaction: options.transaction || null}
             )
           })
         }
@@ -757,7 +767,10 @@ module.exports = class OrderService extends Service {
             }
           })
           return Sequelize.Promise.mapSeries(canAuthorize, transaction => {
-            return this.app.services.TransactionService.authorize(transaction, { transaction: options.transaction || null })
+            return this.app.services.TransactionService.authorize(
+              transaction,
+              {transaction: options.transaction || null }
+            )
           })
         }
       })
@@ -765,7 +778,7 @@ module.exports = class OrderService extends Service {
         return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
       })
       .then(order => {
-        return Order.findByIdDefault(resOrder.id)
+        return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
       })
   }
   /**
@@ -777,6 +790,7 @@ module.exports = class OrderService extends Service {
    */
   capture(order, captures, options) {
     captures = captures || []
+    options = options || {}
     const Order = this.app.orm['Order']
     const Sequelize = Order.sequelize
     let resOrder
@@ -789,7 +803,7 @@ module.exports = class OrderService extends Service {
       })
       .then(order => {
         resOrder = order
-        return resOrder.resolveTransactions()
+        return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
         // Partially Capture
@@ -807,7 +821,8 @@ module.exports = class OrderService extends Service {
           // Capture the authorized transactions
           return Sequelize.Promise.mapSeries(toCapture, capture => {
             return this.app.services.TransactionService.capture(
-              capture, { transaction: options.transaction || null }
+              capture,
+              {transaction: options.transaction || null}
             )
           })
         }
@@ -823,7 +838,8 @@ module.exports = class OrderService extends Service {
           })
           return Sequelize.Promise.mapSeries(canCapture, transaction => {
             return this.app.services.TransactionService.capture(
-              transaction, { transaction: options.transaction || null }
+              transaction,
+              {transaction: options.transaction || null}
             )
           })
         }
@@ -874,7 +890,8 @@ module.exports = class OrderService extends Service {
           // Void the authorized transactions
           return Sequelize.Promise.mapSeries(toVoid, tVoid => {
             return this.app.services.TransactionService.void(
-              tVoid, { transaction: options.transaction || null }
+              tVoid,
+              {transaction: options.transaction || null}
             )
           })
         }
@@ -890,7 +907,8 @@ module.exports = class OrderService extends Service {
           })
           return Sequelize.Promise.mapSeries(canVoid, transaction => {
             return this.app.services.TransactionService.void(
-              transaction, { transaction: options.transaction || null }
+              transaction,
+              {transaction: options.transaction || null}
             )
           })
         }
@@ -940,7 +958,8 @@ module.exports = class OrderService extends Service {
           // Retry the authorized transactions
           return Sequelize.Promise.mapSeries(toRetry, tRetry => {
             return this.app.services.TransactionService.retry(
-              tRetry, { transaction: options.transaction || null }
+              tRetry,
+              {transaction: options.transaction || null}
             )
           })
         }
@@ -953,16 +972,17 @@ module.exports = class OrderService extends Service {
           })
           return Sequelize.Promise.mapSeries(canRetry, transaction => {
             return this.app.services.TransactionService.retry(
-              transaction, { transaction: options.transaction || null }
+              transaction,
+              {transaction: options.transaction || null}
             )
           })
         }
       })
       .then(retries => {
-        return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
+        return resOrder.saveFinancialStatus({transaction: options.transaction || null})
       })
       .then(order => {
-        return Order.findByIdDefault(resOrder.id, { transaction: options.transaction || null })
+        return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
       })
   }
 
@@ -1026,7 +1046,8 @@ module.exports = class OrderService extends Service {
           [FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.SENT].indexOf(fulfillment.status) > -1)
         return Sequelize.Promise.mapSeries(canCancelFulfillment, fulfillment => {
           return this.app.services.FulfillmentService.cancelFulfillment(
-            fulfillment, {transaction: options.transaction || null}
+            fulfillment,
+            {transaction: options.transaction || null}
           )
         })
       })
@@ -1241,7 +1262,7 @@ module.exports = class OrderService extends Service {
         }
         // bind the dao
         resOrder = order
-        return resOrder.resolveOrderItems()
+        return resOrder.resolveOrderItems({transaction: options.transaction || null})
       })
       .then(() => {
         // Resolve the item
@@ -1258,7 +1279,7 @@ module.exports = class OrderService extends Service {
       })
       .then((updatedItem) => {
        // recalculate
-        return resOrder.recalculate()
+        return resOrder.recalculate({transaction: options.transaction || null})
       })
       .then(() => {
         // Track Event
@@ -1309,7 +1330,7 @@ module.exports = class OrderService extends Service {
         }
         // bind the dao
         resOrder = order
-        return resOrder.resolveOrderItems()
+        return resOrder.resolveOrderItems({transaction: options.transaction || null})
       }).
       then(() => {
         // Resolve the item
@@ -1326,7 +1347,7 @@ module.exports = class OrderService extends Service {
       })
       .then(() => {
         // recalculate
-        return resOrder.recalculate()
+        return resOrder.recalculate({transaction: options.transaction || null})
       })
       .then(() => {
         // Track Event
@@ -1507,7 +1528,8 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemBeforeCreate(item, options){
-    return item.recalculate()
+    options = options || {}
+    return item.recalculate({transaction: options.transaction || null})
       .then(() => {
         return item
       })
@@ -1521,7 +1543,8 @@ module.exports = class OrderService extends Service {
    * @returns {Promise.<T>}
    */
   itemBeforeUpdate(item, options){
-    return item.recalculate()
+    options = options || {}
+    return item.recalculate({transaction: options.transaction || null})
       .then(() => {
         return item
       })

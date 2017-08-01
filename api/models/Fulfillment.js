@@ -223,7 +223,10 @@ module.exports = class Fulfillment extends Model {
                 // .then(() => {
                   return this.sequelize.Promise.mapSeries(this.order_items, item => {
                     item.fulfillment_status = this.status
-                    return item.save({fields: ['fulfillment_status'], transaction: options.transaction || null })
+                    return item.save({
+                      fields: ['fulfillment_status'],
+                      transaction: options.transaction || null
+                    })
                   })
                 })
                 .then(() => {

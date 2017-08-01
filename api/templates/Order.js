@@ -7,9 +7,9 @@ module.exports = class Order extends Template {
   created(order) {
     const orderItems = order.order_items.map(item => {
       return `<p>
- ${ item.name } x ${item.quantity }- $${ item.calculated_price / 100}
+ ${ item.name } x ${item.quantity } - $${ item.calculated_price / 100}
 </p>`
-    })
+    }).join('')
 
     return `<h1>Order ${ order.name } Created</h1>
 <p>Dear Customer,</p>

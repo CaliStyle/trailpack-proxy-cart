@@ -19,13 +19,10 @@ module.exports = class ProductService extends Service {
    * @returns {*}
    */
   resolveItem(item, options){
+    options = options || {}
     const Product = this.app.orm.Product
     const ProductVariant = this.app.orm.ProductVariant
     const Image = this.app.orm.ProductImage
-
-    if (!options) {
-      options = {}
-    }
 
     if (item.id || item.variant_id || item.product_variant_id) {
       const id = item.id || item.variant_id || item.product_variant_id
@@ -84,9 +81,11 @@ module.exports = class ProductService extends Service {
   /**
    * Add Multiple Products
    * @param products
+   * @param options
    * @returns {Promise.<*>}
    */
-  addProducts(products) {
+  addProducts(products, options) {
+    options = options || {}
     if (!Array.isArray(products)) {
       products = [products]
     }
@@ -105,6 +104,7 @@ module.exports = class ProductService extends Service {
   /**
    * Add a Product
    * @param product
+   * @param options
    * @returns {Promise}
    */
   addProduct(product, options) {

@@ -129,12 +129,18 @@ module.exports = class OrderItem extends Model {
           },
           instanceMethods: {
             addShipping: function(shipping, options) {
-
+              options = options || {}
             },
             removeShipping: function(shipping, options){
-
+              options = options || {}
             },
-            recalculate: function() {
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            recalculate: function(options) {
+              options = options || {}
               if (
                 this.changed('price')
                 || this.changed('discounted_lines')
@@ -190,10 +196,11 @@ module.exports = class OrderItem extends Model {
               options = options || {}
               if (this.isNewRecord && !this.fulfillment_id) {
                 // console.log('RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
-                return this.save()
+                return this.save({transaction: options.transaction || null})
                   .then(() => {
                     return app.services.FulfillmentService.addOrCreateFulfillmentItem(
-                      this, { transaction: options.transaction || null }
+                      this,
+                      { transaction: options.transaction || null }
                     )
                   })
                   .then(() => {
@@ -202,10 +209,11 @@ module.exports = class OrderItem extends Model {
               }
               else if (!this.isNewRecord && this.quantity === 0) {
                 // console.log('RECONCILE WILL REMOVE', this)
-                return this.save()
+                return this.save({transaction: options.transaction || null})
                   .then(() => {
                     return app.services.FulfillmentService.removeFulfillmentItem(
-                      this, { transaction: options.transaction || null }
+                      this,
+                      { transaction: options.transaction || null }
                     )
                   })
                   .then(() => {
@@ -214,10 +222,11 @@ module.exports = class OrderItem extends Model {
               }
               else if (!this.isNewRecord && this.changed('quantity') && (this.quantity > this.previous('quantity'))) {
                 // console.log('RECONCILE WILL UPDATE UP QUANTITY', this)
-                return this.save()
+                return this.save({transaction: options.transaction || null})
                   .then(() => {
                     return app.services.FulfillmentService.updateFulfillmentItem(
-                      this, { transaction: options.transaction || null }
+                      this,
+                      {transaction: options.transaction || null}
                     )
                   })
                   .then(() => {
@@ -226,10 +235,11 @@ module.exports = class OrderItem extends Model {
               }
               else if (!this.isNewRecord && this.changed('quantity') && (this.quantity < this.previous('quantity'))) {
                 // console.log('RECONCILE WILL UPDATE DOWN QUANTITY', this)
-                return this.save()
+                return this.save({transaction: options.transaction || null})
                   .then(() => {
                     return app.services.FulfillmentService.removeFulfillmentItem(
-                      this, { transaction: options.transaction || null }
+                      this,
+                      { transaction: options.transaction || null }
                     )
                   })
                   .then(() => {
@@ -238,7 +248,7 @@ module.exports = class OrderItem extends Model {
               }
               else {
                 // Unhandled Case
-                return this.save()
+                return this.save({transaction: options.transaction || null})
               }
             }
           }

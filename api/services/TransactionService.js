@@ -35,12 +35,12 @@ module.exports = class TransactionService extends Service {
   authorize(transaction, options) {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        return this.app.services.PaymentService.authorize(foundTransaction, options)
+        return this.app.services.PaymentService.authorize(foundTransaction, {transaction: options.transaction || null})
       })
   }
 
@@ -53,7 +53,7 @@ module.exports = class TransactionService extends Service {
   capture(transaction, options) {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
@@ -61,7 +61,7 @@ module.exports = class TransactionService extends Service {
         if (foundTransaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
           throw new Errors.FoundError(Error(`Transaction must be first be ${TRANSACTION_KIND.AUTHORIZE} to ${TRANSACTION_KIND.CAPTURE}`))
         }
-        return this.app.services.PaymentService.capture(foundTransaction, options)
+        return this.app.services.PaymentService.capture(foundTransaction, {transaction: options.transaction || null})
       })
   }
 
@@ -74,12 +74,12 @@ module.exports = class TransactionService extends Service {
   sale(transaction, options) {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(transaction => {
         if (!transaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        return this.app.services.PaymentService.sale(transaction, options)
+        return this.app.services.PaymentService.sale(transaction, {transaction: options.transaction || null})
       })
   }
 
@@ -92,7 +92,7 @@ module.exports = class TransactionService extends Service {
   void(transaction, options) {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
@@ -100,7 +100,7 @@ module.exports = class TransactionService extends Service {
         if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error('Transaction must have successful to be refunded')
         }
-        return this.app.services.PaymentService.void(foundTransaction, options)
+        return this.app.services.PaymentService.void(foundTransaction, {transaction: options.transaction || null})
       })
   }
 
@@ -115,7 +115,7 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     let resTransaction
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
@@ -128,7 +128,7 @@ module.exports = class TransactionService extends Service {
         }
         resTransaction = foundTransaction
         resTransaction.amount = Math.max(0, resTransaction.amount - amount)
-        return resTransaction.save(options)
+        return resTransaction.save({transaction: options.transaction || null})
       })
   }
 
@@ -142,7 +142,7 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     let resTransaction
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
@@ -154,7 +154,7 @@ module.exports = class TransactionService extends Service {
           throw new Error(`Only Transactions that are ${TRANSACTION_KIND.CAPTURE} or ${TRANSACTION_KIND.SALE} can be refunded`)
         }
         resTransaction = foundTransaction
-        return this.app.services.PaymentService.refund(resTransaction, options)
+        return this.app.services.PaymentService.refund(resTransaction, {transaction: options.transaction || null})
       })
   }
 
@@ -170,7 +170,7 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     let resTransaction
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
@@ -183,15 +183,15 @@ module.exports = class TransactionService extends Service {
         }
         resTransaction = foundTransaction
         resTransaction.amount = Math.max(0, resTransaction.amount - amount)
-        return resTransaction.save(options)
+        return resTransaction.save({transaction: options.transaction || null})
       })
       .then(() => {
         const newTransaction = _.omit(resTransaction.get({plain: true}), ['id','token'])
         newTransaction.amount = amount
-        return this.create(newTransaction, options)
+        return this.create(newTransaction, {transaction: options.transaction || null})
       })
       .then(newTransaction => {
-        return this.app.services.PaymentService.refund(newTransaction, options)
+        return this.app.services.PaymentService.refund(newTransaction, {transaction: options.transaction || null})
       })
   }
 
@@ -202,9 +202,10 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   cancel(transaction, options) {
+    options = options || {}
     const Transaction = this.app.orm['Transaction']
     let resTransaction
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
@@ -213,7 +214,7 @@ module.exports = class TransactionService extends Service {
           throw new Error('Transaction can not be cancelled if it is not pending or failed')
         }
         resTransaction = foundTransaction
-        return this.app.services.PaymentService.cancel(resTransaction, options)
+        return this.app.services.PaymentService.cancel(resTransaction, {transaction: options.transaction || null})
       })
   }
 
@@ -224,9 +225,10 @@ module.exports = class TransactionService extends Service {
    * @returns {Promise.<T>}
    */
   retry(transaction, options) {
+    options = options || {}
     const Transaction = this.app.orm['Transaction']
     let resTransaction
-    return Transaction.resolve(transaction, options)
+    return Transaction.resolve(transaction, {transaction: options.transaction || null})
       .then(foundTransaction => {
         if (!foundTransaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
@@ -235,7 +237,7 @@ module.exports = class TransactionService extends Service {
           throw new Error('Transaction can not be tried if it is not pending or has not failed')
         }
         resTransaction = foundTransaction
-        return this.app.services.PaymentService.retry(resTransaction, options)
+        return this.app.services.PaymentService.retry(resTransaction, {transaction: options.transaction || null})
       })
   }
 
@@ -250,10 +252,10 @@ module.exports = class TransactionService extends Service {
           throw new Errors.FoundError(Error('Order Not Found'))
         }
         resOrder = foundOrder
-        return resOrder.resolveTransactions()
+        return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
-        return resOrder.resolveCustomer()
+        return resOrder.resolveCustomer({transaction: options.transaction || null})
       })
       .then(() => {
         totalNew = amount
@@ -264,7 +266,10 @@ module.exports = class TransactionService extends Service {
         // If a pending authorize or sale transaction just add the new amount total to one of the transactions
         if (availablePending.length > 0) {
           availablePending[0].amount = availablePending[0].amount + totalNew
-          return availablePending[0].save({hooks: false})
+          return availablePending[0].save({
+            hooks: false,
+            transaction: options.transaction || null
+          })
         }
         else {
           // TODO get Source info
@@ -290,7 +295,11 @@ module.exports = class TransactionService extends Service {
             // Set the Description
             description: `Order ${resOrder.name} original transaction ${resOrder.payment_kind}`
           })
-          return this.app.services.PaymentService[resOrder.transaction_kind](transaction, { hooks: false })
+          // Process the transaction
+          return this.app.services.PaymentService[resOrder.transaction_kind](transaction, {
+            hooks: false,
+            transaction: options.transaction || null
+          })
             .then(transaction => {
               // resOrder.addTransaction(transaction) has an updatedAt bug
               const transactions = resOrder.transactions.concat(transaction)
@@ -320,7 +329,7 @@ module.exports = class TransactionService extends Service {
           throw new Errors.FoundError(Error('Order Not Found'))
         }
         resOrder = foundOrder
-        return resOrder.resolveTransactions()
+        return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
         totalNew = amount
@@ -352,7 +361,10 @@ module.exports = class TransactionService extends Service {
             const newAmount = Math.max(0, transaction.amount - totalNew)
             totalNew = totalNew - oldAmount
             transaction.amount = newAmount
-            toUpdate.push(transaction.save({hooks: false}))
+            toUpdate.push(transaction.save({
+              hooks: false,
+              transaction: options.transaction || null
+            }))
           }
         })
         availableAuthorized.forEach(transaction => {
@@ -360,7 +372,10 @@ module.exports = class TransactionService extends Service {
             const oldAmount = transaction.amount
             const newAmount = Math.max(0, transaction.amount - totalNew)
             totalNew = totalNew - oldAmount
-            toUpdate.push(this.partiallyVoid(transaction, oldAmount - newAmount, { hooks: false }))
+            toUpdate.push(this.partiallyVoid(transaction, oldAmount - newAmount, {
+              hooks: false,
+              transaction: options.transaction || null
+            }))
           }
         })
         availableRefund.forEach(transaction => {
@@ -368,10 +383,13 @@ module.exports = class TransactionService extends Service {
             const oldAmount = transaction.amount
             const newAmount = Math.max(0, transaction.amount - totalNew)
             totalNew = totalNew - oldAmount
-            toUpdate.push(this.partiallyRefund(transaction, oldAmount - newAmount, { hooks: false }))
+            toUpdate.push(this.partiallyRefund(transaction, oldAmount - newAmount, {
+              hooks: false,
+              transaction: options.transaction || null
+            }))
           }
         })
-        return Promise.all(toUpdate.map(update => { return update }))
+        return Order.sequelize.Promise.mapSeries(toUpdate, update => { return update })
       })
       .then(() => {
         return resOrder

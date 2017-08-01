@@ -16,16 +16,23 @@ module.exports = class AccountService extends Service {
    *
    * @param customer
    * @param paymentDetails
-   * @returns {Promise.<*>}
+   * @param options
+   * @returns {Promise.<T>}
    */
   resolvePaymentDetailsToSources(customer, paymentDetails, options) {
     options = options || {}
-    return Promise.all(paymentDetails.map(detail => {
+    const Source = this.app.orm['Source']
+    return Source.sequelize.Promise.mapSeries(paymentDetails, detail => {
       if (detail.token) {
-        return this.addSource({
+        const account = {
           customer_id: customer.id,
           gateway: detail.gateway
-        }, detail.token)
+        }
+        return this.addSource(
+          account,
+          detail.token,
+          { transaction: options.transaction || null }
+        )
          .then(source => {
            delete detail.token
            detail.source = source.get({ plain: true })
@@ -38,7 +45,7 @@ module.exports = class AccountService extends Service {
       else {
         return detail
       }
-    }))
+    })
   }
 
   /**
@@ -53,7 +60,6 @@ module.exports = class AccountService extends Service {
       const err = new Errors.FoundError(Error('Customer Not Provided'))
       return Promise.reject(err)
     }
-    const Source = this.app.orm['Source']
     const Customer = this.app.orm['Customer']
     let resCustomer
     return Customer.resolve(customer, {transaction: options.transaction || null })
@@ -63,30 +69,7 @@ module.exports = class AccountService extends Service {
         }
         resCustomer = customer
 
-        return Source.findOne({
-          where: {
-            customer_id: resCustomer.id,
-            is_default: true
-          },
-          transaction: options.transaction || null
-        })
-      })
-      .then(source => {
-        // If there is no default, find one for the customer
-        if (!source) {
-          return Source.findOne({
-            where: {
-              customer_id: resCustomer.id
-            },
-            transaction: options.transaction || null
-          })
-        }
-        else {
-          return source
-        }
-      })
-      .then(source => {
-        return source
+        return resCustomer.getDefaultSource({transaction: options.transaction || null})
       })
   }
   // TODO
@@ -99,7 +82,7 @@ module.exports = class AccountService extends Service {
    * @param account
    * @param updates
    * @param options
-   * @returns {*|Promise.<T>}
+   * @returns {Promise.<T>}
    */
   update(account, updates, options) {
     options = options || {}
@@ -118,7 +101,7 @@ module.exports = class AccountService extends Service {
         return this.app.services.PaymentGenericService.updateCustomer(update)
           .then(updatedAccount => {
             resAccount  = _.extend(resAccount, updatedAccount)
-            return resAccount.save()
+            return resAccount.save({transaction: options.transaction || null})
           })
       })
       .then(() => {
@@ -171,7 +154,7 @@ module.exports = class AccountService extends Service {
             return this.app.services.PaymentGenericService.getCustomerSources(resAccount)
           })
           .then(accountWithSources => {
-            return Promise.all(accountWithSources.sources.map((source, index) => {
+            return Source.sequelize.Promise.all(accountWithSources.sources, (source, index) => {
               source.customer_id = resAccount.customer_id
               source.is_default = index == 0 ? true : false
 
@@ -201,7 +184,7 @@ module.exports = class AccountService extends Service {
                 .then(event => {
                   return resSource
                 })
-            }))
+            })
           })
           .then(sources => {
             const event = {
@@ -325,7 +308,7 @@ module.exports = class AccountService extends Service {
       .then(serviceCustomerSource => {
         resSource = _.extend(resSource, serviceCustomerSource)
         resSource.is_default = true
-        return resSource.save()
+        return resSource.save({transaction: options.transaction || null})
       })
       .then(() => {
         return Source.update({
@@ -353,7 +336,8 @@ module.exports = class AccountService extends Service {
    * @param account
    * @param source
    * @param updates
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
   updateSource(account, source, updates, options) {
     options = options || {}
@@ -361,10 +345,10 @@ module.exports = class AccountService extends Service {
     const Source = this.app.orm['Source']
 
     let resAccount, resSource
-    return Account.resolve(account)
+    return Account.resolve(account, {transaction: options.transaction || null})
       .then(account => {
         resAccount = account
-        return Source.resolve(source)
+        return Source.resolve(source, {transaction: options.transaction || null})
       })
       .then(source => {
         resSource = source
@@ -377,7 +361,7 @@ module.exports = class AccountService extends Service {
       })
       .then(serviceCustomerSource => {
         resSource = _.extend(resSource, serviceCustomerSource)
-        return resSource.save()
+        return resSource.save({transaction: options.transaction || null})
       })
       .then(() => {
         return Source.update({
@@ -433,12 +417,13 @@ module.exports = class AccountService extends Service {
         return this.app.services.PaymentGenericService.removeCustomerSource(source)
       })
       .then(customerSource => {
-        return this.app.orm['Source'].destroy({
-          where: {
-            id: resSource.id
-          },
-          transaction: options.transaction || null
-        })
+        return resSource.destroy({transaction: options.transaction || null})
+        // return this.app.orm['Source'].destroy({
+        //   where: {
+        //     id: resSource.id
+        //   },
+        //   transaction: options.transaction || null
+        // })
       })
       .then(() => {
         // Set a new default source
@@ -451,9 +436,11 @@ module.exports = class AccountService extends Service {
           .then(altSource => {
             if (altSource) {
               altSource.is_default = true
-              return altSource.save()
+              return altSource.save({transaction: options.transaction || null})
             }
-            return
+            else {
+              return
+            }
           })
       })
       .then(() => {
@@ -490,28 +477,28 @@ module.exports = class AccountService extends Service {
     const Source = this.app.orm['Source']
     let resAccount
 
-    return Account.resolve(account, options)
+    return Account.resolve(account, {transaction: options.transaction || null})
       .then(account => {
         resAccount = account
         return this.app.services.PaymentGenericService.findCustomerSources(account)
       })
       .then(serviceCustomerSources => {
-        return Promise.all(serviceCustomerSources.map((source, index) => {
+        return Source.sequelize.Promise.mapSeries(serviceCustomerSources, (source, index) => {
           source.gateway = resAccount.gateway
           source.account_id = resAccount.id
           source.customer_id = resAccount.customer_id
           source.is_default = index == 0 ? true : false
 
           return Source.findOrCreate({
+            defaults: source,
             where: {
               customer_id: source.customer_id,
               account_id: source.account_id,
               foreign_id: source.foreign_id
             },
-            defaults: source,
             transaction: options.transaction || null
           })
-        }))
+        })
       })
   }
 
@@ -534,14 +521,15 @@ module.exports = class AccountService extends Service {
         return resSource.getTransactions({
           where: {
             status: TRANSACTION_STATUS.FAILURE
-          }
+          },
+          transaction: options.transaction || null
         })
       })
       .then(transactions => {
-        return Promise.all(transactions.map(transaction => {
+        return Source.sequelize.Promise.mapSeries(transactions, transaction => {
           transaction.payment_detials.source = resSource
           return this.app.services.TransactionService.retry(transaction, {transaction: options.transaction || null})
-        }))
+        })
       })
   }
 
@@ -552,6 +540,8 @@ module.exports = class AccountService extends Service {
       source: source.gateway,
       account_id: source.account_id,
       customer_id: source.customer_id
+    }, {
+      transaction: options.transaction || null
     })
       .then(customerSource => {
         return source
@@ -562,7 +552,8 @@ module.exports = class AccountService extends Service {
     return this.app.orm['CustomerSource'].destroy({
       where: {
         source_id: source.id
-      }
+      },
+      transaction: options.transaction || null
     })
       .then(customerSource => {
         return source

@@ -29,10 +29,10 @@ module.exports = class FulfillmentService extends Service {
           throw new Error('Order Not Found')
         }
         resOrder = foundOrder
-        return resOrder.resolveOrderItems(options)
+        return resOrder.resolveOrderItems({ transaction: options.transaction || null })
       })
       .then(() => {
-        return resOrder.resolveFulfillments()
+        return resOrder.resolveFulfillments({ transaction: options.transaction || null })
       })
       .then(() => {
 
@@ -43,19 +43,25 @@ module.exports = class FulfillmentService extends Service {
           return { service: service, items: items }
         })
         // Create the non sent fulfillments
-        return Promise.all(groups.map((group) => {
+        return Order.sequelize.Promise.mapSeries(groups, (group) => {
           const resFulfillment = resOrder.fulfillments.find(fulfillment => fulfillment.service == group.service)
-          return resFulfillment.addOrder_items(group.items, {hooks: false, individualHooks: false, returning: false })
+          return resFulfillment.addOrder_items(group.items, {
+            hooks: false,
+            individualHooks: false,
+            returning: false,
+            transaction: options.transaction || null
+          })
             .then(() => {
-              return resFulfillment.reload()
+              return resFulfillment.reload({ transaction: options.transaction || null })
             })
             // .then(() => {
             //   return resFulfillment.saveFulfillmentStatus()
             // })
-        }))
+        })
       })
       .then((fulfillments) => {
         fulfillments = fulfillments || []
+        resOrder.fulfillments = fulfillments
         resOrder.setDataValue('fulfillments', fulfillments)
         resOrder.set('fulfillments', fulfillments)
         return fulfillments
@@ -71,22 +77,23 @@ module.exports = class FulfillmentService extends Service {
     options = options || {}
     const Order = this.app.orm['Order']
     let resOrder
-    return Order.resolve(order, { transaction: options.transaction || null})
+    return Order.resolve(order, {transaction: options.transaction || null})
       .then(foundOrder => {
         if (!foundOrder) {
           throw new Error('Order Not Found')
         }
         resOrder = foundOrder
 
-        return resOrder.resolveFulfillments({ transaction: options.transaction || null })
+        return resOrder.resolveFulfillments({transaction: options.transaction || null})
       })
       .then(() => {
-        return Promise.all(resOrder.fulfillments.map(fulfillment => {
-          return this.sendFulfillment(resOrder, fulfillment, { transaction: options.transaction || null })
-        }))
+        return Order.sequelize.Promise.mapSeries(resOrder.fulfillments, fulfillment => {
+          return this.sendFulfillment(resOrder, fulfillment, {transaction: options.transaction || null})
+        })
       })
       .then(fulfillments => {
         fulfillments = fulfillments || []
+        resOrder.fulfillments = fulfillments
         resOrder.setDataValue('fulfillments', fulfillments)
         resOrder.set('fulfillments', fulfillments)
 
@@ -100,7 +107,7 @@ module.exports = class FulfillmentService extends Service {
     const Fulfillment = this.app.orm['Fulfillment']
     let resOrder, resFulfillment
 
-    return Order.resolve(order, { transaction: options.transaction || null, })
+    return Order.resolve(order, {transaction: options.transaction || null})
       .then(foundOrder => {
         if (!foundOrder) {
           throw new Error('Order not found')
@@ -127,32 +134,41 @@ module.exports = class FulfillmentService extends Service {
           && resFulfillment.order_items.filter(item => item.requires_shipping).length == 0
         ){
           resFulfillment.fulfilled()
-          return Promise.all(resFulfillment.order_items.map(item => {
+          return Fulfillment.sequelize.Promise.mapSeries(resFulfillment.order_items, item => {
             item.fulfillment_status = resFulfillment.status
-            return item.save({hooks: false})
-          }))
+            return item.save({
+              hooks: false,
+              transaction: options.transaction || null
+            })
+          })
         }
         // If a manually supplied item mark as sent to manual
         else if (resFulfillment.service === FULFILLMENT_SERVICE.MANUAL){
           resFulfillment.sent()
-          return Promise.all(resFulfillment.order_items.map(item => {
+          return Fulfillment.sequelize.Promise.mapSeries(resFulfillment.order_items, item => {
             item.fulfillment_status = resFulfillment.status
-            return item.save({hooks: false})
-          }))
+            return item.save({
+              hooks: false,
+              transaction: options.transaction || null
+            })
+          })
         }
         else {
           return this.app.services.FulfillmentGenericService.createOrder(resFulfillment, resFulfillment.service)
             .then(result => {
               resFulfillment[result.status]()
-              return Promise.all(resFulfillment.order_items.map(item => {
+              return Fulfillment.sequelize.Promise.mapSeries(resFulfillment.order_items, item => {
                 item.fulfillment_status = resFulfillment.status
-                return item.save({hooks: false})
-              }))
+                return item.save({
+                  hooks: false,
+                  transaction: options.transaction || null
+                })
+              })
             })
         }
       })
       .then(() => {
-        return resFulfillment.saveFulfillmentStatus()
+        return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
       })
       .then(() => {
         // TODO, put this in life cycle
@@ -182,13 +198,13 @@ module.exports = class FulfillmentService extends Service {
    *
    * @param fulfillment
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
   updateFulfillment(fulfillment, options) {
     options = options || {}
     const Fulfillment = this.app.orm['Fulfillment']
     let resFulfillment
-    return Fulfillment.resolve(fulfillment, { transaction: options.transaction || null, })
+    return Fulfillment.resolve(fulfillment, {transaction: options.transaction || null})
       .then(foundFulfillment => {
         if (!foundFulfillment) {
           throw new Error('Fulfillment not found')
@@ -209,7 +225,7 @@ module.exports = class FulfillmentService extends Service {
         }
       })
       .then(() => {
-        return resFulfillment.saveFulfillmentStatus()
+        return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
       })
   }
 
@@ -223,7 +239,7 @@ module.exports = class FulfillmentService extends Service {
     options = options || {}
     const Fulfillment = this.app.orm['Fulfillment']
     let resFulfillment
-    return Fulfillment.resolve(fulfillment, { transaction: options.transaction || null, })
+    return Fulfillment.resolve(fulfillment, { transaction: options.transaction || null })
       .then(foundFulfillment => {
         if (!foundFulfillment) {
           throw new Error('Fulfillment not found')
@@ -249,10 +265,13 @@ module.exports = class FulfillmentService extends Service {
       })
       .then(() => {
         resFulfillment.cancelled()
-        return resFulfillment.fulfill({status: FULFILLMENT_STATUS.CANCELLED })
+        return resFulfillment.fulfill(
+          {status: FULFILLMENT_STATUS.CANCELLED },
+          {transaction: options.transaction || null}
+        )
       })
       .then(() => {
-        return resFulfillment.save()
+        return resFulfillment.save({transaction: options.transaction || null})
       })
   }
 
@@ -267,7 +286,7 @@ module.exports = class FulfillmentService extends Service {
     const OrderItem = this.app.orm['OrderItem']
     const Fulfillment = this.app.orm['Fulfillment']
     let resOrderItem, resFulfillment
-    return OrderItem.resolve(item, options)
+    return OrderItem.resolve(item, {transaction: options.transaction || null})
       .then(foundItem => {
         if (!foundItem) {
           throw new Errors.FoundError('Order Item not Found')
@@ -293,12 +312,13 @@ module.exports = class FulfillmentService extends Service {
           return resFulfillment.addOrder_item(resOrderItem, {
             hooks: false,
             individualHooks: false,
-            returning: false
+            returning: false,
+            transaction: options.transaction || null
           })
             .then(() => {
-              return resFulfillment.reload()
+              return resFulfillment.reload({transaction: options.transaction || null})
                 .then(() => {
-                  return resFulfillment.saveFulfillmentStatus()
+                  return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
                 })
             })
             .then(() => {
@@ -318,17 +338,17 @@ module.exports = class FulfillmentService extends Service {
                 as: 'order_items'
               }
             ]})
-          return resFulfillment.save()
+          return resFulfillment.save({transaction: options.transaction || null})
             .then(() => {
-              return resFulfillment.reload()
+              return resFulfillment.reload({transaction: options.transaction || null})
             })
             .then(() => {
-              return resFulfillment.saveFulfillmentStatus()
+              return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
             })
         }
       })
       .then(() => {
-        return resOrderItem.reload()
+        return resOrderItem.reload({transaction: options.transaction || null})
       })
   }
 
@@ -433,14 +453,15 @@ module.exports = class FulfillmentService extends Service {
           throw new Errors.FoundError('Fulfillment not found')
         }
         resFulfillment = fulfillment
-        return resFulfillment.hasOrder_item(resOrderItem)
+        return resFulfillment.hasOrder_item(resOrderItem, {transaction: options.transaction || null})
       })
       .then(hasOrderItem => {
         if (hasOrderItem && resOrderItem.quantity === 0) {
           return resFulfillment.removeOrder_item(resOrderItem, {
             hooks: false,
             individualHooks: false,
-            returning: false
+            returning: false,
+            transaction: options.transaction || null
           })
         }
         else {
@@ -448,7 +469,7 @@ module.exports = class FulfillmentService extends Service {
         }
       })
       .then(() => {
-        return resFulfillment.reload()
+        return resFulfillment.reload({transaction: options.transaction || null})
       })
       .then(() => {
         return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
@@ -475,7 +496,7 @@ module.exports = class FulfillmentService extends Service {
    * @returns {Promise.<TResult>}
    */
   afterCreate(fulfillment, options) {
-    return fulfillment.reconcileFulfillmentStatus()
+    return fulfillment.reconcileFulfillmentStatus({transaction: options.transaction || null})
   }
 
   /**
@@ -485,7 +506,7 @@ module.exports = class FulfillmentService extends Service {
    * @returns {Promise.<TResult>}
    */
   afterUpdate(fulfillment, options) {
-    return fulfillment.reconcileFulfillmentStatus()
+    return fulfillment.reconcileFulfillmentStatus({transaction: options.transaction || null})
   }
 
   beforeEventCreate(fulfillment, options){

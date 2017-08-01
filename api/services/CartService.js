@@ -155,9 +155,10 @@ module.exports = class CartService extends Service {
     }
 
     let resOrder
-    // return Cart.sequelize.transaction(t => {
-    //   options.transaction = t
-    return this.prepareForOrder(req, {transaction: options.transaction || null})
+    return this.app.orm.Cart.sequelize.transaction(t => {
+      options.transaction = t
+
+      return this.prepareForOrder(req, {transaction: options.transaction || null})
         .then(newOrder => {
           return this.app.services.OrderService.create(newOrder, {transaction: options.transaction || null})
         })
@@ -165,30 +166,32 @@ module.exports = class CartService extends Service {
           if (!order) {
             throw new Error('Unexpected error during checkout')
           }
-
-          if (order.customer_id) {
-            // Track Event
-            const event = {
-              object_id: order.customer_id,
-              object: 'customer',
-              objects: [{
-                customer: order.customer_id
-              }, {
-                order: order.id
-              }],
-              type: 'customer.cart.checkout',
-              message: `Customer Cart ${ order.cart_token } checked out and created Order ${order.name}`,
-              data: order
-            }
-            this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-          }
-
           resOrder = order
-
           // Close the Cart
           return this.afterOrder(req, resOrder, {transaction: options.transaction || null})
         })
-        .then(cart => {
+        .then(() => {
+          if (resOrder.customer_id) {
+            // Track Event
+            const event = {
+              object_id: resOrder.customer_id,
+              object: 'customer',
+              objects: [{
+                customer: resOrder.customer_id
+              }, {
+                order: resOrder.id
+              }],
+              type: 'customer.cart.checkout',
+              message: `Customer Cart ${ resOrder.cart_token } checked out and created Order ${resOrder.name}`,
+              data: resOrder
+            }
+            return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+          }
+          else {
+            return
+          }
+        })
+        .then(event => {
           // Switch to a new cart
           return this.createAndSwitch(req, {transaction: options.transaction || null})
         })
@@ -198,20 +201,13 @@ module.exports = class CartService extends Service {
             order: resOrder
           }
         })
-    // })
-    //   .then((stuff) => {
-    //     console.log('STUFF',stuff)
-    //     return stuff
-    //   })
-    //   .catch(err => {
-    //     console.log(err)
-    //     return err
-    //   })
+    })
   }
 
   /**
    *
    * @param req
+   * @param options
    * @returns {Promise.<T>}
    */
   prepareForOrder(req, options) {
@@ -226,17 +222,17 @@ module.exports = class CartService extends Service {
     }
 
     return Cart.resolve(req.body.cart, { transaction: options.transaction || null })
-      .then(cart => {
-        if (!cart) {
+      .then(foundCart => {
+        if (!foundCart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
 
-        if (cart.status !== CART_STATUS.OPEN) {
+        if (foundCart.status !== CART_STATUS.OPEN) {
           // TODO CREATE PROPER ERROR
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
 
-        resCart = cart
+        resCart = foundCart
         resCart.close(CART_STATUS.CLOSED)
         return resCart.recalculate({transaction: options.transaction || null})
         // return resCart.save()
@@ -258,7 +254,9 @@ module.exports = class CartService extends Service {
             transaction: options.transaction || null
           })
         }
-        return
+        else {
+          return
+        }
       })
       .then(customer => {
         resCustomer = customer
@@ -273,7 +271,7 @@ module.exports = class CartService extends Service {
             })
         }
         else if (resCustomer && (req.body.payment_details && req.body.payment_details.length == 0)) {
-          return AccountService.getDefaultSource(resCustomer, { transaction: options.transaction || null})
+          return resCustomer.getDefaultSource({ transaction: options.transaction || null})
             .then(source => {
               if (!source) {
                 return []

@@ -111,24 +111,17 @@ module.exports = class SubscriptionService extends Service {
     const Sequelize = Order.sequelize
 
     let resOrder
-    return Order.resolve(order, { transaction: options.transaction || null})
+    return Order.resolve(order, {transaction: options.transaction || null})
       .then(foundOrder => {
         if (!foundOrder) {
           throw new Error('Order nto found')
         }
         resOrder = foundOrder
-        if (!resOrder.order_items) {
-          return resOrder.getOrder_items()
-        }
-        else {
-          return resOrder.order_items
-        }
+        return resOrder.resolveOrderItems({transaction: options.transaction || null})
       })
-      .then(orderItems => {
-        orderItems = orderItems || []
-        resOrder.set('order_items', orderItems)
+      .then(() => {
 
-        orderItems = _.filter(orderItems, 'requires_subscription')
+        const orderItems = _.filter(resOrder.order_items, 'requires_subscription')
 
         const groups = []
         const units = _.groupBy(orderItems, 'subscription_unit')
@@ -144,7 +137,14 @@ module.exports = class SubscriptionService extends Service {
           })
         })
         return Sequelize.Promise.mapSeries(groups, group => {
-          return this.create(resOrder, group.items, group.unit, group.interval, active, { transaction: options.transaction || null})
+          return this.create(
+            resOrder,
+            group.items,
+            group.unit,
+            group.interval,
+            active,
+            { transaction: options.transaction || null}
+          )
         })
       })
   }
@@ -156,7 +156,8 @@ module.exports = class SubscriptionService extends Service {
    * @param unit
    * @param interval
    * @param active
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
   create(order, items, unit, interval, active, options) {
     options = options || {}
@@ -180,18 +181,16 @@ module.exports = class SubscriptionService extends Service {
       unit: unit,
       interval: interval,
       active: active
-    }, {
-      transaction: options.transaction || null
     })
 
-    return resSubscription.save()
+    return resSubscription.save({transaction: options.transaction || null})
       .then(() => {
-        return Promise.all(items.map(item => {
+        return Subscription.sequelize.Promise.mapSeries(items, item => {
           item.subscription_id = resSubscription.id
-          return item.save()
-        }))
+          return item.save({transaction: options.transaction || null})
+        })
       })
-      .then(orderItems => {
+      .then(() => {
         const event = {
           object_id: resSubscription.customer_id,
           object: 'customer',
@@ -218,6 +217,7 @@ module.exports = class SubscriptionService extends Service {
    * @returns {*}
    */
   update(subscription, options){
+    options = options || {}
     const Subscription =  this.app.orm.Subscription
     const update = _.omit(subscription,['id','created_at','updated_at'])
     let resSubscription
@@ -227,7 +227,7 @@ module.exports = class SubscriptionService extends Service {
           throw new Error('Subscription not found')
         }
         resSubscription = foundSubscription
-        return resSubscription.update(update)
+        return resSubscription.update(update, {transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -270,7 +270,7 @@ module.exports = class SubscriptionService extends Service {
         resSubscription.cancelled_at = new Date()
         resSubscription.cancelled = true
         resSubscription.active = false
-        return resSubscription.save()
+        return resSubscription.save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -297,9 +297,12 @@ module.exports = class SubscriptionService extends Service {
             transaction: options.transaction || null
           })
             .then(orders => {
-              return Promise.all(orders.map(order => {
-                return this.app.services.OrderService.cancel(order, {transaction: options.transaction || null})
-              }))
+              return Order.sequelize.Promise.mapSeries(orders, order => {
+                return this.app.services.OrderService.cancel(
+                  order,
+                  {transaction: options.transaction || null}
+                )
+              })
             })
         }
         else {
@@ -315,9 +318,11 @@ module.exports = class SubscriptionService extends Service {
    *
    * @param body
    * @param subscription
+   * @param options
    * @returns {*|Promise.<TResult>}
    */
   activate(body, subscription, options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
     let resSubscription
     return Subscription.resolve(subscription, options)
@@ -330,7 +335,7 @@ module.exports = class SubscriptionService extends Service {
         resSubscription.cancelled_at = null
         resSubscription.cancelled = false
         resSubscription.active = true
-        return resSubscription.save()
+        return resSubscription.save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -356,12 +361,14 @@ module.exports = class SubscriptionService extends Service {
    *
    * @param body
    * @param subscription
+   * @param options
    * @returns {*|Promise.<TResult>}
    */
   deactivate(body, subscription, options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
     let resSubscription
-    return Subscription.resolve(subscription)
+    return Subscription.resolve(subscription, {transaction: options.transaction || null})
       .then(foundSubscription => {
         if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
@@ -371,7 +378,7 @@ module.exports = class SubscriptionService extends Service {
         resSubscription.cancelled_at = null
         resSubscription.cancelled = false
         resSubscription.active = false
-        return resSubscription.save()
+        return resSubscription.save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -413,17 +420,22 @@ module.exports = class SubscriptionService extends Service {
 
         resSubscription = foundSubscription
         // const minimize = _.unionBy(items, 'product_id')
-        return Promise.all(items.map(item => {
-          return this.app.services.ProductService.resolveItem(item)
-        }))
+        return Subscription.sequelize.Promise.mapSeries(items, item => {
+          return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
+        })
       })
       .then(resolvedItems => {
-        return Promise.all(resolvedItems.map((item, index) => {
-          return resSubscription.addLine(item, items[index].quantity, items[index].properties)
-        }))
+        return Subscription.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
+          return resSubscription.addLine(
+            item,
+            items[index].quantity,
+            items[index].properties,
+            {transaction: options.transaction || null}
+          )
+        })
       })
       .then(resolvedItems => {
-        return resSubscription.save()
+        return resSubscription.save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -449,9 +461,11 @@ module.exports = class SubscriptionService extends Service {
    *
    * @param items
    * @param subscription
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
   removeItems(items, subscription, options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
     if (items.line_items) {
       items = items.line_items
@@ -463,17 +477,17 @@ module.exports = class SubscriptionService extends Service {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
         resSubscription = foundSubscription
-        return Promise.all(items.map(item => {
-          return this.app.services.ProductService.resolveItem(item)
-        }))
+        return Subscription.sequelize.Promise.mapSeries(items, item => {
+          return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
+        })
       })
       .then(resolvedItems => {
-        return Promise.all(resolvedItems.map((item, index) => {
+        return Subscription.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
           resSubscription.removeLine(item, items[index].quantity)
-        }))
+        })
       })
-      .then(resolvedItems => {
-        return resSubscription.save()
+      .then(() => {
+        return resSubscription.save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {
@@ -498,66 +512,74 @@ module.exports = class SubscriptionService extends Service {
   /**
    *
    * @param subscription
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
   renew(subscription, options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
     let resSubscription, resOrder, renewal
-    return Subscription.resolve(subscription, options)
-      .then(foundSubscription => {
-        if (!foundSubscription) {
-          throw new Errors.FoundError(Error('Subscription Not Found'))
-        }
-        resSubscription = foundSubscription
-        return this.prepareForOrder(resSubscription)
-      })
-      .then(newOrder => {
-        return this.app.services.OrderService.create(newOrder)
-      })
-      .then(order => {
-        if (!order) {
-          throw new Error(`Unexpected error during subscription ${resSubscription.id} renewal`)
-        }
-        resOrder = order
-        // Renew the Subscription
-        if (resOrder.financial_status !== ORDER_FINANCIAL.PENDING) {
-          renewal = 'success'
-          return resSubscription.renew().save()
-        }
-        else {
-          renewal = 'failure'
-          return resSubscription.retry().save()
-        }
-      })
-      .then(newSubscription => {
-        // Tack Event
-        const event = {
-          object_id: resSubscription.customer_id,
-          object: 'customer',
-          objects: [{
-            customer: resSubscription.customer_id
-          }, {
-            subscription: resSubscription.id
-          }],
-          type: `customer.subscription.renewed.${renewal}`,
-          message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
-          data: resSubscription
-        }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-      })
-      .then(event => {
-        return {
-          subscription: resSubscription,
-          order: resOrder
-        }
-      })
+
+    return this.app.orm.Cart.sequelize.transaction(t => {
+      options.transaction = t
+      return Subscription.resolve(subscription, {transaction: options.transaction || null})
+        .then(foundSubscription => {
+          if (!foundSubscription) {
+            throw new Errors.FoundError(Error('Subscription Not Found'))
+          }
+          resSubscription = foundSubscription
+          return this.prepareForOrder(resSubscription, {transaction: options.transaction || null})
+        })
+        .then(newOrder => {
+          return this.app.services.OrderService.create(newOrder, {transaction: options.transaction || null})
+        })
+        .then(order => {
+          if (!order) {
+            throw new Error(`Unexpected error during subscription ${resSubscription.id} renewal`)
+          }
+          resOrder = order
+          // Renew the Subscription
+          if (resOrder.financial_status !== ORDER_FINANCIAL.PENDING) {
+            renewal = 'success'
+            return resSubscription.renew()
+              .save({transaction: options.transaction || null})
+          }
+          else {
+            renewal = 'failure'
+            return resSubscription.retry()
+              .save({transaction: options.transaction || null})
+          }
+        })
+        .then(newSubscription => {
+          // Tack Event
+          const event = {
+            object_id: resSubscription.customer_id,
+            object: 'customer',
+            objects: [{
+              customer: resSubscription.customer_id
+            }, {
+              subscription: resSubscription.id
+            }],
+            type: `customer.subscription.renewed.${renewal}`,
+            message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
+            data: resSubscription
+          }
+          return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        })
+        .then(event => {
+          return {
+            subscription: resSubscription,
+            order: resOrder
+          }
+        })
+    })
   }
 
   /**
    *
    * @param subscription
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
   retry(subscription, options) {
     options = options || {}
@@ -582,11 +604,13 @@ module.exports = class SubscriptionService extends Service {
         resOrders = orders
         if (resOrders.length == 0) {
           renewal = 'success'
-          return resSubscription.renew().save()
+          return resSubscription.renew()
+            .save({transaction: options.transaction || null})
         }
         else {
           renewal = 'failure'
-          return resSubscription.retry().save()
+          return resSubscription.retry()
+            .save({transaction: options.transaction || null})
         }
       })
       .then(() => {
@@ -614,7 +638,8 @@ module.exports = class SubscriptionService extends Service {
   /**
    *
    * @param subscription
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
   prepareForOrder(subscription, options) {
     options = options || {}
@@ -623,14 +648,15 @@ module.exports = class SubscriptionService extends Service {
 
     let resSubscription, resCustomer
 
-    return Subscription.resolve(subscription, options)
+    return Subscription.resolve(subscription, {transaction: options.transaction || null})
       .then(foundSubscription => {
         if (!foundSubscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
         resSubscription = foundSubscription
         return Customer.findById(resSubscription.customer_id, {
-          attributes: ['id', 'email']
+          attributes: ['id', 'email'],
+          transaction: options.transaction || null
         })
       })
       .then(customer => {
@@ -638,7 +664,7 @@ module.exports = class SubscriptionService extends Service {
           throw new Errors.FoundError(Error('Subscription Customer Not Found'))
         }
         resCustomer = customer
-        return this.app.services.AccountService.getDefaultSource(resCustomer)
+        return resCustomer.getDefaultSource({transaction: options.transaction || null})
           .then(source => {
             if (!source) {
               return {
@@ -648,16 +674,18 @@ module.exports = class SubscriptionService extends Service {
                 fulfillment_kind: 'immediate' || this.app.config.proxyCart.orders.fulfillment_kind
               }
             }
-            return {
-              transaction_kind: 'sale' || this.app.config.proxyCart.orders.transaction_kind,
-              payment_kind: 'immediate' || this.app.config.proxyCart.orders.payment_kind,
-              payment_details: [
-                {
-                  gateway: source.gateway,
-                  source: source,
-                }
-              ],
-              fulfillment_kind: 'immediate' || this.app.config.proxyCart.orders.fulfillment_kind
+            else {
+              return {
+                transaction_kind: 'sale' || this.app.config.proxyCart.orders.transaction_kind,
+                payment_kind: 'immediate' || this.app.config.proxyCart.orders.payment_kind,
+                payment_details: [
+                  {
+                    gateway: source.gateway,
+                    source: source,
+                  }
+                ],
+                fulfillment_kind: 'immediate' || this.app.config.proxyCart.orders.fulfillment_kind
+              }
             }
           })
       })
@@ -856,7 +884,7 @@ module.exports = class SubscriptionService extends Service {
    *
    * @param subscription
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
   beforeCreate(subscription, options) {
     options = options || {}
@@ -866,11 +894,11 @@ module.exports = class SubscriptionService extends Service {
       .then(shop => {
         // console.log('SubscriptionService.beforeCreate', shop)
         subscription.shop_id = shop.id
-        return subscription.recalculate()
+        return subscription.recalculate({transaction: options.transaction || null})
       })
       .catch(err => {
         // console.log('SubscriptionService.beforeCreate', err)
-        return subscription.recalculate()
+        return subscription.recalculate({transaction: options.transaction || null})
       })
   }
 
@@ -881,10 +909,8 @@ module.exports = class SubscriptionService extends Service {
    * @returns {*}
    */
   beforeUpdate(subscription, options) {
-    if (!options) {
-      options = {}
-    }
-    return subscription.recalculate()
+    options = options || {}
+    return subscription.recalculate({transaction: options.transaction || null})
   }
 
   /**
@@ -894,9 +920,7 @@ module.exports = class SubscriptionService extends Service {
    * @returns {Promise.<T>}
    */
   afterCreate(subscription, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     this.app.services.ProxyEngineService.publish('subscription.created', subscription)
     return Promise.resolve(subscription)
   }
@@ -908,9 +932,7 @@ module.exports = class SubscriptionService extends Service {
    * @returns {Promise.<T>}
    */
   afterUpdate(subscription, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     this.app.services.ProxyEngineService.publish('subscription.updated', subscription)
     return Promise.resolve(subscription)
   }

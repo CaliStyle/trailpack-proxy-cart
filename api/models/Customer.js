@@ -461,6 +461,31 @@ module.exports = class Customer extends Model {
             },
             getDefaultSource: function (options) {
               options = options || {}
+              const Source = app.orm['Source']
+              return Source.findOne({
+                where: {
+                  customer_id: this.id,
+                  is_default: true
+                },
+                transaction: options.transaction || null
+              })
+              .then(source => {
+                // If there is no default, find one for the customer
+                if (!source) {
+                  return Source.findOne({
+                    where: {
+                      customer_id: this.id
+                    },
+                    transaction: options.transaction || null
+                  })
+                }
+                else {
+                  return source
+                }
+              })
+              .then(source => {
+                return source
+              })
             },
             resolvePaymentDetailsToSources: function(options) {
               options = options || {}
