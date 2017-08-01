@@ -185,7 +185,10 @@ module.exports = class CartService extends Service {
               message: `Customer Cart ${ resOrder.cart_token } checked out and created Order ${resOrder.name}`,
               data: resOrder
             }
-            return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+            return this.app.services.ProxyEngineService.publish(event.type, event, {
+              save: true,
+              transaction: options.transaction || null
+            })
           }
           else {
             return

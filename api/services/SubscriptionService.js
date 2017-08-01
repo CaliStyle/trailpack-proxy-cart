@@ -203,7 +203,10 @@ module.exports = class SubscriptionService extends Service {
           message: `Customer subscribed to subscription ${resSubscription.token}`,
           data: resSubscription
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSubscription
@@ -242,7 +245,10 @@ module.exports = class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} updated`,
           data: resSubscription
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSubscription
@@ -285,7 +291,10 @@ module.exports = class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} was cancelled`,
           data: resSubscription
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         if (body.cancel_pending) {
@@ -350,7 +359,10 @@ module.exports = class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} was activated`,
           data: resSubscription
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSubscription
@@ -393,7 +405,10 @@ module.exports = class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} was deactivated`,
           data: resSubscription
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSubscription
@@ -450,7 +465,10 @@ module.exports = class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} had items added`,
           data: resSubscription
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSubscription
@@ -502,7 +520,10 @@ module.exports = class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} had items removed`,
           data: resSubscription
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSubscription
@@ -564,7 +585,10 @@ module.exports = class SubscriptionService extends Service {
             message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
             data: resSubscription
           }
-          return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+          return this.app.services.ProxyEngineService.publish(event.type, event, {
+            save: true,
+            transaction: options.transaction || null
+          })
         })
         .then(event => {
           return {
@@ -627,7 +651,10 @@ module.exports = class SubscriptionService extends Service {
           message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
           data: resSubscription
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSubscription

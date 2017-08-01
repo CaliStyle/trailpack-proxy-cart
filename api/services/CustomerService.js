@@ -162,7 +162,10 @@ module.exports = class CustomerService extends Service {
                     message: `Customer account ${account.foreign_id} created on ${ account.gateway }`,
                     data: account
                   }
-                  this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                  this.app.services.ProxyEngineService.publish(event.type, event, {
+                    save: true,
+                    transaction: options.transaction || null
+                  })
 
                   return [account]
                 })
@@ -220,7 +223,10 @@ module.exports = class CustomerService extends Service {
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id} created`,
           data: resCustomer
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         // return resCustomer.reload()
@@ -322,7 +328,10 @@ module.exports = class CustomerService extends Service {
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } updated`,
           data: resCustomer
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
@@ -367,7 +376,10 @@ module.exports = class CustomerService extends Service {
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } account balance was updated to ${ resCustomer.account_balance }`,
           data: resCustomer
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
@@ -926,6 +938,7 @@ module.exports = class CustomerService extends Service {
   /**
    *
    * @param cart
+   * @param options
    * @returns {*}
    */
   calculateCart(cart, options) {

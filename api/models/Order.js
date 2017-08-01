@@ -712,7 +712,10 @@ module.exports = class Order extends Model {
                       message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
                       data: this
                     }
-                    return app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                    return app.services.ProxyEngineService.publish(event.type, event, {
+                      save: true,
+                      transaction: options.transaction || null
+                    })
                   }
                   else {
                     return
@@ -774,7 +777,10 @@ module.exports = class Order extends Model {
                       message: `Order ${ this.name || 'ID ' + this.id } fulfillment status changed from "${previousStatus}" to "${currentStatus}"`,
                       data: this
                     }
-                    return app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                    return app.services.ProxyEngineService.publish(event.type, event, {
+                      save: true,
+                      transaction: options.transaction || null
+                    })
                   }
                   else {
                     return

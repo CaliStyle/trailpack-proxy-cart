@@ -187,7 +187,10 @@ module.exports = class FulfillmentService extends Service {
           data: resFulfillment
         }
 
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resFulfillment

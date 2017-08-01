@@ -305,7 +305,10 @@ module.exports = class OrderService extends Service {
               message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } account balance was deducted by ${ deduction }`,
               data: resCustomer
             }
-            return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+            return this.app.services.ProxyEngineService.publish(event.type, event, {
+              save: true,
+              transaction: options.transaction || null
+            })
               .then(event => {
                 return resCustomer
                   .setTotalSpent(totalPrice)
@@ -334,7 +337,10 @@ module.exports = class OrderService extends Service {
                   message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } Order ${ resOrder.name } was created`,
                   data: resOrder
                 }
-                return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                return this.app.services.ProxyEngineService.publish(event.type, event, {
+                  save: true,
+                  transaction: options.transaction || null
+                })
               })
           }
           else {
@@ -361,7 +367,7 @@ module.exports = class OrderService extends Service {
             transactionKind = TRANSACTION_KIND.AUTHORIZE
           }
 
-          return Promise.all(obj.payment_details.map((detail, index) => {
+          return Order.sequelize.Promise.mapSeries(obj.payment_details, (detail, index) => {
             const transaction = Transaction.build({
               // Set the customer id (in case we can save this source)
               customer_id: resCustomer.id,
@@ -391,7 +397,7 @@ module.exports = class OrderService extends Service {
             else {
               return PaymentService[resOrder.transaction_kind](transaction, {transaction: options.transaction || null})
             }
-          }))
+          })
         })
         .then(transactions => {
           transactions = transactions || []
@@ -1068,7 +1074,10 @@ module.exports = class OrderService extends Service {
           message: `Order ${resOrder.name} was cancelled`,
           data: resOrder
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(() => {
         return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)
@@ -1231,7 +1240,10 @@ module.exports = class OrderService extends Service {
           message: `Item added to Order ${resOrder.name}`,
           data: resItem
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resOrder //Order.findByIdDefault(resOrder.id)
@@ -1299,7 +1311,10 @@ module.exports = class OrderService extends Service {
           message: `Item updated in Order ${resOrder.name}`,
           data: resItem
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resOrder // Order.findByIdDefault(resOrder.id)
@@ -1367,7 +1382,10 @@ module.exports = class OrderService extends Service {
           message: `Item removed from Order ${resOrder.name}`,
           data: resItem
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resOrder // Order.findByIdDefault(resOrder.id)

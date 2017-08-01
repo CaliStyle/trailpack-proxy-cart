@@ -748,7 +748,7 @@ describe('CartPolicy', () => {
         // assert.equal(res.body.order.events[2].object_id, orderID)
         // assert.equal(res.body.order.events[3].object_id, orderID)
         res.body.order.events.forEach(event => {
-          assert.equal(event.object_id, orderID)
+          assert.equal(event.object_id, res.body.order.id)
         })
 
         done(err)

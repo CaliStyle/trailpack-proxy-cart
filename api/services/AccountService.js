@@ -117,7 +117,10 @@ module.exports = class AccountService extends Service {
           message: `Customer account ${resAccount.foreign_id} was updated on ${resAccount.gateway}`,
           data: resAccount
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resAccount
@@ -154,7 +157,7 @@ module.exports = class AccountService extends Service {
             return this.app.services.PaymentGenericService.getCustomerSources(resAccount)
           })
           .then(accountWithSources => {
-            return Source.sequelize.Promise.all(accountWithSources.sources, (source, index) => {
+            return Source.sequelize.Promise.mapSeries(accountWithSources.sources, (source, index) => {
               source.customer_id = resAccount.customer_id
               source.is_default = index == 0 ? true : false
 
@@ -179,7 +182,10 @@ module.exports = class AccountService extends Service {
                     message: `Customer source ${resSource.foreign_id} was created on ${ resSource.gateway }`,
                     data: resSource
                   }
-                  return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+                  return this.app.services.ProxyEngineService.publish(event.type, event, {
+                    save: true,
+                    transaction: options.transaction || null
+                  })
                 })
                 .then(event => {
                   return resSource
@@ -199,7 +205,10 @@ module.exports = class AccountService extends Service {
               message: `Customer account ${account.foreign_id} was created on ${account.gateway}`,
               data: resAccount
             }
-            return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+            return this.app.services.ProxyEngineService.publish(event.type, event, {
+              save: true,
+              transaction: options.transaction || null
+            })
           })
           .then(event => {
             return resAccount
@@ -274,7 +283,10 @@ module.exports = class AccountService extends Service {
           message: `Customer source ${resSource.foreign_id} was created on ${ resSource.gateway }`,
           data: resSource
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSource
@@ -394,7 +406,10 @@ module.exports = class AccountService extends Service {
           message: `Customer source ${resSource.foreign_id} was updated on ${ resSource.gateway }`,
           data: resSource
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSource
@@ -458,7 +473,10 @@ module.exports = class AccountService extends Service {
           message: `Customer source ${source.foreign_id} was removed on ${ source.gateway }`,
           data: resSource
         }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
       })
       .then(event => {
         return resSource
