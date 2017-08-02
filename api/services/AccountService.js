@@ -538,7 +538,7 @@ module.exports = class AccountService extends Service {
         resSource = source
         return resSource.getTransactions({
           where: {
-            status: TRANSACTION_STATUS.FAILURE
+            status: [TRANSACTION_STATUS.FAILURE, TRANSACTION_STATUS.ERROR]
           },
           transaction: options.transaction || null
         })

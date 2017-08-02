@@ -59,6 +59,46 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
+  findByToken(req, res){
+    const orm = this.app.orm
+    const Order = orm['Order']
+    Order.findByTokenDefault(req.params.token, {})
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error(`Order token ${ req.params.token } not found`))
+        }
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  resolve(req, res){
+    const orm = this.app.orm
+    const Order = orm['Order']
+    Order.resolve(req.params.id, {})
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error(`Order ${ req.params.id } not found`))
+        }
+        return res.json(order)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findAll(req, res){
     const orm = this.app.orm
     const Order = orm['Order']

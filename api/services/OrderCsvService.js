@@ -198,38 +198,42 @@ module.exports = class OrderCsvService extends Service {
     })
   }
 
-  transformFromRow(obj) {
-    let resCustomer, resProducts
+  transformFromRow(obj, options) {
+    options = options || {}
     const resOrder = this.app.orm['Order'].build()
     const Customer = this.app.orm['Customer']
-    return Customer.resolve(obj.customer)
+    const Product = this.app.orm['Product']
+    let resCustomer, resProducts
+
+    return Customer.resolve(obj.customer, {transaction: options.transaction || null})
       .then(customer => {
         resCustomer = customer
-        return this.app.orm['Product'].findAll({
+        return Product.findAll({
           where: {
             handle: obj.products.map(product => product.handle)
-          }
+          },
+          transaction: options.transaction || null
         })
       })
       .then(products => {
         resProducts = products
-        return Promise.all(resProducts.map(item => {
-          return this.app.services.ProductService.resolveItem(item)
-        }))
+        return Product.sequelize.Promise.mapSeries(resProducts, item => {
+          return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
+        })
       })
       .then(resolvedItems => {
-        return Promise.all(resolvedItems.map((item) => {
+        return Product.sequelize.Promise.mapSeries(resolvedItems, (item) => {
           // item = _.omit(item.get({plain: true}), [
           //   'requires_order',
           //   'order_unit',
           //   'order_interval'
           // ])
-          return resOrder.addLine(item, 1, [])
-        }))
+          return resOrder.addLine(item, 1, [], {transaction: options.transaction || null})
+        })
       })
       .then(resolvedItems => {
         resOrder.customer_id = resCustomer.id
-        return resOrder.save()
+        return resOrder.save({transaction: options.transaction || null})
       })
       .then(order => {
 
@@ -240,8 +244,10 @@ module.exports = class OrderCsvService extends Service {
           message: 'Imported Order Created',
           data: order
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
-
+        this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
         return order
       })
   }

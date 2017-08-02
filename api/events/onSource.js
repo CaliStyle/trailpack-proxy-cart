@@ -8,7 +8,8 @@ module.exports = class onSource extends Event {
     this.app.services.ProxyEngineService.subscribe('onSource.created','customer.source.created', this.created)
     this.app.services.ProxyEngineService.subscribe('onSource.updated','customer.source.updated', this.updated)
   }
-  created(msg, data) {
+  created(msg, data, options) {
+    options = options || {}
     // this.app.log.debug('onSource.created', msg)
     // // try and fix broken/failed transactions
     // this.app.services.AccountService.sourceRetryTransactions(data.data)
@@ -16,10 +17,11 @@ module.exports = class onSource extends Event {
     //     this.app.log.error(err)
     //   })
   }
-  updated(msg, data) {
+  updated(msg, data, options) {
+    options = options || {}
     // this.app.log.debug('onSource.updated', msg)
     // try and fix broken/failed transactions
-    this.app.services.AccountService.sourceRetryTransactions(data.data)
+    this.app.services.AccountService.sourceRetryTransactions(data.data, {transaction: options.transaction || null})
       .catch(err => {
         this.app.log.error(err)
       })

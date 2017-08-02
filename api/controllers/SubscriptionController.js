@@ -46,11 +46,55 @@ module.exports = class SubscriptionController extends Controller {
   findById(req, res){
     const orm = this.app.orm
     const Subscription = orm['Subscription']
+    const id = req.params.id
+
+    Subscription.findByIdDefault(id, {})
+      .then(subscription => {
+        if (!subscription) {
+          throw new Errors.FoundError(Error(`Subscription id ${id} not found`))
+        }
+        return res.json(subscription)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findByToken(req, res){
+    const orm = this.app.orm
+    const Subscription = orm['Subscription']
+    const token = req.params.token
+
+    Subscription.findByTokenDefault(token, {})
+      .then(subscription => {
+        if (!subscription) {
+          throw new Errors.FoundError(Error(`Subscription token ${token} not found`))
+        }
+        return res.json(subscription)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  resolve(req, res){
+    const orm = this.app.orm
+    const Subscription = orm['Subscription']
     let id = req.params.id
     if (!id && req.subscription) {
       id = req.subscription.id
     }
-    Subscription.findByIdDefault(id, {})
+    Subscription.resolve(id, {})
       .then(subscription => {
         if (!subscription) {
           throw new Errors.FoundError(Error(`Subscription id ${id} not found`))

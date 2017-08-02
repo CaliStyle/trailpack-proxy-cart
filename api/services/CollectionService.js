@@ -534,6 +534,7 @@ module.exports = class CollectionService extends Service {
    * @returns {Promise.<T>}
    */
   addCollection(collection, subCollection, options){
+    options = options || {}
     const Collection = this.app.orm['Collection']
     let resCollection, resSubCollection
     return Collection.resolve(collection, {transaction: options.transaction || null})
