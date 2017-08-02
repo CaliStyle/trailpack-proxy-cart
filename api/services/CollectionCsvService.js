@@ -166,16 +166,19 @@ module.exports = class CollectionCsvService extends Service {
   /**
    *
    * @param uploadId
+   * @param options
    * @returns {Promise}
    */
-  processCollectionUpload(uploadId) {
+  processCollectionUpload(uploadId, options) {
+    options = options || {}
     const CollectionUpload = this.app.orm.CollectionUpload
-    let collectionsTotal = 0
+    let collectionsTotal = 0, errorsCount = 0
     const errors = []
     return CollectionUpload.batch({
       where: {
         upload_id: uploadId
-      }
+      },
+      transaction: options.transaction || null
     }, collections => {
 
       const Sequelize = this.app.orm.Collection.sequelize
@@ -203,12 +206,13 @@ module.exports = class CollectionCsvService extends Service {
           collections: collection.collections,
           images: collection.images
         }
-        return this.app.services.CollectionService.add(create)
+        return this.app.services.CollectionService.add(create, {transaction: options.transaction || null})
           .then(() => {
             collectionsTotal++
             return
           })
           .catch(err => {
+            errorsCount++
             errors.push(`${collection.handle}: ${err.message}`)
             return err
           })
@@ -217,6 +221,7 @@ module.exports = class CollectionCsvService extends Service {
       .then(() => {
         return CollectionUpload.destroy({where: {upload_id: uploadId }})
           .catch(err => {
+            errorsCount++
             errors.push(err.message)
             return err
           })
@@ -225,7 +230,8 @@ module.exports = class CollectionCsvService extends Service {
         const results = {
           upload_id: uploadId,
           collections: collectionsTotal,
-          errors: errors
+          errors: errors,
+          errors_count: errorsCount
         }
         this.app.services.ProxyEngineService.publish('collection_process.complete', results)
         return results

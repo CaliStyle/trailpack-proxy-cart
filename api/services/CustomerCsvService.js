@@ -150,6 +150,7 @@ module.exports = class CustomerCsvService extends Service {
     const CustomerUpload = this.app.orm.CustomerUpload
     const errors = []
     let customersTotal = 0
+    let errorsCount = 0
 
     return CustomerUpload.batch({
       where: {
@@ -200,6 +201,7 @@ module.exports = class CustomerCsvService extends Service {
             return
           })
           .catch(err => {
+            errorsCount++
             errors.push(err.message)
             return
           })
@@ -207,6 +209,7 @@ module.exports = class CustomerCsvService extends Service {
         .then(() => {
           return CustomerUpload.destroy({where: {upload_id: uploadId}})
             .catch(err => {
+              errorsCount++
               errors.push(err.message)
               return
             })
@@ -215,7 +218,8 @@ module.exports = class CustomerCsvService extends Service {
           const results = {
             upload_id: uploadId,
             customers: customersTotal,
-            errors: errors
+            errors: errors,
+            errors_count: errorsCount
           }
           this.app.services.ProxyEngineService.publish('customer_process.complete', results)
           return results

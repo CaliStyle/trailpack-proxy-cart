@@ -290,10 +290,12 @@ module.exports = class ProxyCartService extends Service {
    *
    * @param cart
    * @param shippingAddress
+   * @param options
    * @returns {Promise}
    */
   // TODO
-  resolveSendFromTo(obj, shippingAddress) {
+  resolveSendFromTo(obj, shippingAddress, options) {
+    options = options || {}
     return new Promise((resolve, reject) => {
       const Cart = this.app.orm.Cart
       const Subscription = this.app.orm.Subscription
@@ -305,7 +307,7 @@ module.exports = class ProxyCartService extends Service {
         const err = new Error('Object must be an instance!')
         return reject(err)
       }
-      Shop.findById(obj.shop_id)
+      Shop.findById(obj.shop_id, {transaction: options.transaction || null})
         .then(shop => {
           if (!shop) {
             return resolve(null)
@@ -343,7 +345,8 @@ module.exports = class ProxyCartService extends Service {
                   model: Address,
                   as: 'shipping_address'
                 }
-              ]
+              ],
+              transaction: options.transaction || null
             })
               .then(customer => {
 
@@ -403,7 +406,7 @@ module.exports = class ProxyCartService extends Service {
    *
    * @param user
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
   afterUserCreate(user, options) {
     options = options || {}
@@ -502,10 +505,11 @@ module.exports = class ProxyCartService extends Service {
    * @param next
    */
   deserializeCustomer(id, options, next) {
+    options = options || {}
     if (typeof next != 'function') {
       throw new Error('instance#deserializeCustomer requires a callback function')
     }
-    this.app.orm['Customer'].findById(id)
+    this.app.orm['Customer'].findById(id, {transaction: options.transaction || null})
       .then(customer => {
         next(null, customer)
       })

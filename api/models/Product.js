@@ -552,6 +552,12 @@ module.exports = class Product extends Model {
             },
             resolveMetadata: function(options) {
               options = options || {}
+              if (this.metadata) {
+                return Promise.resolve(this)
+              }
+              else {
+                return Promise.resolve(this)
+              }
             },
             resolveShops: function(options) {
               options = options || {}

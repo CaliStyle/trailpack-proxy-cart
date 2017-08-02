@@ -113,8 +113,8 @@ module.exports = class ProductCsvService extends Service {
                 upload[k] = this.app.services.ProxyCartService.safeHandle(data)
               }
               else if (k == 'tags') {
-                upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => {
-                  return tag.trim()
+                upload[k] = _.uniq(data.split(',').map(tag => {
+                  return tag.toLowerCase().trim()
                 }))
               }
               else if (k == 'images') {
@@ -273,8 +273,7 @@ module.exports = class ProductCsvService extends Service {
    */
   processProductUpload(uploadId) {
     const ProductUpload = this.app.orm.ProductUpload
-    const errors = []
-    let productsTotal = 0, variantsTotal = 0, associationsTotal = 0, errorsCount = 0
+    let errors = [], productsTotal = 0, variantsTotal = 0, associationsTotal = 0, errorsCount = 0
 
     return ProductUpload.batch({
       where: {
@@ -297,7 +296,7 @@ module.exports = class ProductCsvService extends Service {
             variantsTotal = variantsTotal + (results.variants || 0)
             associationsTotal = associationsTotal + (results.associations || 0)
             errorsCount = errorsCount + (results.errors_count || 0)
-            errors.concat(results.errors)
+            errors = errors.concat(results.errors)
             return results
           })
           .catch(err => {
@@ -334,7 +333,6 @@ module.exports = class ProductCsvService extends Service {
           errors_count: errorsCount,
           errors: errors
         }
-        // console.log('RESULTS', results)
         this.app.services.ProxyEngineService.publish('product_process.complete', results)
         return results
       })
@@ -344,6 +342,8 @@ module.exports = class ProductCsvService extends Service {
   /**
    *
    * @param handle
+   * @param uploadId,
+   * @param options
    * @returns {Promise}
    */
   processProductGroup(handle, uploadId, options) {
@@ -369,7 +369,8 @@ module.exports = class ProductCsvService extends Service {
         products = products.map(product => {
           return _.omit(product.get({plain: true}), ['id', 'upload_id', 'created_at', 'updated_at'])
         })
-        products.forEach(product => {
+        // Handle associations
+        products.map(product => {
           if (product.associations) {
             product.associations.forEach(a => {
               const association = {
@@ -383,21 +384,45 @@ module.exports = class ProductCsvService extends Service {
             })
           }
           delete product.associations
+          return product
         })
+        // Sort the products
+
         // Construct Root Product
         const defaultProduct = products.shift()
+
+        if (!defaultProduct) {
+          errorsCount++
+          throw new Error(`${handle}: Default Product could not be established`)
+        }
+        if (!defaultProduct.handle) {
+          errorsCount++
+          errors.push(`${handle}: Default Product could not be established, missing handle`)
+          return
+        }
+        if (!defaultProduct.title) {
+          errorsCount++
+          errors.push(`${handle}: Default Product could not be established, missing title`)
+          return
+        }
+
         // Add Product Variants
         defaultProduct.variants = products.filter( product => {
           if (!product) {
             errorsCount++
             errors.push(`${handle}: Missing`)
-            // return
+            return
+          }
+          if (!product.handle) {
+            errorsCount++
+            errors.push(`${handle}: Missing Handle`)
+            return
           }
           // Sku is required for a variant
           else if (!product.sku) {
             errorsCount++
-            errors.push(`${handle}: Missing SKU`)
-            // return
+            errors.push(`${handle}: Missing Variant SKU`)
+            return
           }
           else {
             product.images = product.variant_images
@@ -407,8 +432,11 @@ module.exports = class ProductCsvService extends Service {
 
         // console.log('BROKE', defaultProduct)
         // Add the product with it's variants
-        return this.app.services.ProductService.addProduct(defaultProduct, options)
+        return this.app.services.ProductService.addProduct(defaultProduct, {transaction: options.transaction || null})
           .then(createdProduct => {
+            if (!createdProduct) {
+              throw new Error(`${handle} was not created`)
+            }
             productsCount = 1
             if (createdProduct.variants) {
               variantsCount = createdProduct.variants.length
@@ -577,7 +605,7 @@ module.exports = class ProductCsvService extends Service {
     const ProductVariant = this.app.orm.ProductVariant
     const errors = []
 
-    let productsTotal = 0
+    let productsTotal = 0, errorsCount = 0
     return ProductMetaUpload.batch({
       where: {
         upload_id: uploadId
@@ -615,6 +643,7 @@ module.exports = class ProductCsvService extends Service {
         }
         else {
           const err = new Error(`Target ${metadata.handle} not a Product or a Variant`)
+          errorsCount++
           errors.push(err.message)
           return
         }
@@ -628,6 +657,7 @@ module.exports = class ProductCsvService extends Service {
           .then(target => {
             if (!target) {
               const err = new Error(`Target ${metadata.handle} not found`)
+              errorsCount++
               errors.push(err.message)
               return
             }
@@ -639,6 +669,7 @@ module.exports = class ProductCsvService extends Service {
                   return
                 })
                 .catch(err => {
+                  errorsCount++
                   errors.push(`${metadata.handle}: ${err.message}`)
                   return
                 })
@@ -650,12 +681,14 @@ module.exports = class ProductCsvService extends Service {
                   return
                 })
                 .catch(err => {
+                  errorsCount++
                   errors.push(`${metadata.handle}: ${err.message}`)
                   return
                 })
             }
           })
           .catch(err => {
+            errorsCount++
             errors.push(err.message)
             return
           })
@@ -666,6 +699,7 @@ module.exports = class ProductCsvService extends Service {
           where: {upload_id: uploadId }
         })
           .catch(err => {
+            errorsCount++
             errors.push(err.message)
             return
           })
@@ -674,7 +708,8 @@ module.exports = class ProductCsvService extends Service {
         const results = {
           upload_id: uploadId,
           products: productsTotal,
-          errors: errors
+          errors: errors,
+          errors_count: errorsCount
         }
         this.app.services.ProxyEngineService.publish('product_metadata_process.complete', results)
         return results
@@ -691,7 +726,7 @@ module.exports = class ProductCsvService extends Service {
     const ProductService = this.app.services.ProductService
     const errors = []
 
-    let associationsTotal = 0
+    let associationsTotal = 0, errorsCount = 0
     return AssociationUpload.batch({
       where: {
         upload_id: uploadId
@@ -712,6 +747,7 @@ module.exports = class ProductCsvService extends Service {
               return
             })
             .catch(err => {
+              errorsCount++
               errors.push(`${association.product_handle} -> ${association.associated_product_handle}: ${err.message}`)
               return
             })
@@ -722,6 +758,7 @@ module.exports = class ProductCsvService extends Service {
             where: {upload_id: uploadId }
           })
             .catch(err => {
+              errorsCount++
               errors.push(err)
               return
             })
@@ -730,7 +767,8 @@ module.exports = class ProductCsvService extends Service {
           const results = {
             upload_id: uploadId,
             associations: associationsTotal,
-            errors: errors
+            errors: errors,
+            errors_count: errorsCount
           }
           this.app.services.ProxyEngineService.publish('product_associations_process.complete', results)
           return results

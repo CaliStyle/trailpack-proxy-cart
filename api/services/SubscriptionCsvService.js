@@ -138,7 +138,7 @@ module.exports = class SubscriptionCsvService extends Service {
   processSubscriptionUpload(uploadId) {
     const SubscriptionUpload = this.app.orm.SubscriptionUpload
     const errors = []
-    let subscriptionsTotal = 0
+    let subscriptionsTotal = 0, errorsCount = 0
     return SubscriptionUpload.batch({
       where: {
         upload_id: uploadId
@@ -166,6 +166,7 @@ module.exports = class SubscriptionCsvService extends Service {
             return
           })
           .catch(err => {
+            errorsCount++
             errors.push(`${subscription.customer}: ${err.message}`)
             return
           })
@@ -174,6 +175,7 @@ module.exports = class SubscriptionCsvService extends Service {
       .then(results => {
         return SubscriptionUpload.destroy({where: {upload_id: uploadId }})
           .catch(err => {
+            errorsCount++
             errors.push(err.message)
             return
           })
@@ -182,7 +184,8 @@ module.exports = class SubscriptionCsvService extends Service {
         const results = {
           upload_id: uploadId,
           subscriptions: subscriptionsTotal,
-          errors: errors
+          errors: errors,
+          errorsCount: errorsCount
         }
         this.app.services.ProxyEngineService.publish('subscription_process.complete', results)
         return results
@@ -192,41 +195,45 @@ module.exports = class SubscriptionCsvService extends Service {
   /**
    *
    * @param obj
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  transformFromRow(obj) {
+  transformFromRow(obj, options) {
+    options = options || {}
     let resCustomer, resProducts
-    const resSubscription = this.app.orm['Subscription'].build(obj)
     const Customer = this.app.orm['Customer']
+    const Subscription = this.app.orm['Subscription']
+    const resSubscription = Subscription.build(obj)
 
-    return Customer.resolve(obj.customer)
+    return Customer.resolve(obj.customer, {transaction: options.transaction || null})
       .then(customer => {
         resCustomer = customer
         return this.app.orm['Product'].findAll({
           where: {
             handle: obj.products.map(product => product.handle)
-          }
+          },
+          transaction: options.transaction || null
         })
       })
       .then(products => {
         resProducts = products
         return Promise.all(resProducts.map(item => {
-          return this.app.services.ProductService.resolveItem(item)
+          return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         }))
       })
       .then(resolvedItems => {
-        return Promise.all(resolvedItems.map((item) => {
+        return Subscription.sequelize.Promise.mapSeries(resolvedItems, (item) => {
           // item = _.omit(item.get({plain: true}), [
           //   'requires_subscription',
           //   'subscription_unit',
           //   'subscription_interval'
           // ])
           return resSubscription.addLine(item, 1, [])
-        }))
+        })
       })
       .then(resolvedItems => {
         resSubscription.customer_id = resCustomer.id
-        return resSubscription.save()
+        return resSubscription.save({transaction: options.transaction || null})
       })
       .then(subscription => {
 
@@ -242,7 +249,10 @@ module.exports = class SubscriptionCsvService extends Service {
           message: `Customer subscribed to imported subscription ${subscription.token}`,
           data: subscription
         }
-        this.app.services.ProxyEngineService.publish(event.type, event, {save: true})
+        this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
 
         return subscription
       })

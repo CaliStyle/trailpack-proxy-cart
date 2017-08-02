@@ -22,13 +22,7 @@ module.exports = class CollectionService extends Service {
     options = options || {}
     const Collection = this.app.orm.Collection
 
-    return Collection.findOne({
-      where: {
-        handle: collection.handle
-      },
-      attributes: ['id'],
-      transaction: options.transaction || null
-    })
+    return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(resCollection => {
         if (!resCollection) {
           // Create a new Collection
@@ -152,22 +146,24 @@ module.exports = class CollectionService extends Service {
         // console.log('THESE COLLECTIONS RESOLVED', collections)
         if (images && images.length > 0) {
           return Promise.all(images.map((image, index) => {
-            return resCollection.addImage(image.id, {position: index + 1})
+            return resCollection.addImage(image.id, {position: index + 1, transaction: options.transaction || null})
           }))
         }
         return
       })
       .then(() => {
-        return resCollection.reload()
+        return resCollection.reload({transaction: options.transaction || null})
       })
   }
 
   /**
    *
    * @param cart
+   * @param options
    * @returns {*}
    */
-  cartCollections(cart) {
+  cartCollections(cart, options) {
+    options = options || {}
     const Collection = this.app.orm['Collection']
     const ItemCollection = this.app.orm['ItemCollection']
     const criteria = []
@@ -192,7 +188,8 @@ module.exports = class CollectionService extends Service {
       where: {
         $or: criteria
       },
-      attributes: ['collection_id', 'model', 'model_id']
+      attributes: ['collection_id', 'model', 'model_id'],
+      transaction: options.transaction || null
     })
       .then(itemCollections => {
         // console.log('cart checkout', itemCollections)
@@ -235,7 +232,8 @@ module.exports = class CollectionService extends Service {
             'discount_percentage',
             'discount_product_include',
             'discount_product_exclude'
-          ]
+          ],
+          transaction: options.transaction || null
         })
           .then(collections => {
             return Promise.all(collections.map(collection => {
@@ -266,7 +264,8 @@ module.exports = class CollectionService extends Service {
                       },
                       attributes: ['id','type']
                     }
-                  ]
+                  ],
+                  transaction: options.transaction || null
                 })
               }
               else {
@@ -281,9 +280,11 @@ module.exports = class CollectionService extends Service {
   /**
    *
    * @param subscription
+   * @param options
    * @returns {*}
    */
-  subscriptionCollections(subscription) {
+  subscriptionCollections(subscription, options) {
+    options = options || {}
     const Collection = this.app.orm['Collection']
     const ItemCollection = this.app.orm['ItemCollection']
     const criteria = []
@@ -307,7 +308,8 @@ module.exports = class CollectionService extends Service {
 
     return ItemCollection.findAll({
       where: { $or: criteria},
-      attributes: ['collection_id', 'model', 'model_id']
+      attributes: ['collection_id', 'model', 'model_id'],
+      transaction: options.transaction || null
     })
       .then(itemCollections => {
         // console.log('cart checkout',itemCollections)
@@ -349,7 +351,8 @@ module.exports = class CollectionService extends Service {
             'discount_percentage',
             'discount_product_include',
             'discount_product_exclude'
-          ]
+          ],
+          transaction: options.transaction || null
         })
           .then(collections => {
             return Promise.all(collections.map(collection => {
@@ -380,7 +383,8 @@ module.exports = class CollectionService extends Service {
                       },
                       attributes: ['id','type']
                     }
-                  ]
+                  ],
+                  transaction: options.transaction || null
                 })
               }
               else {
@@ -395,9 +399,12 @@ module.exports = class CollectionService extends Service {
   /**
    *
    * @param customer
+   * @param products
+   * @param options
    * @returns {*}
    */
-  customerCollections(customer, products) {
+  customerCollections(customer, products, options) {
+    options = options || {}
     const Collection = this.app.orm['Collection']
     const ItemCollection = this.app.orm['ItemCollection']
     const criteria = []
@@ -429,7 +436,8 @@ module.exports = class CollectionService extends Service {
       where: {
         $or: criteria
       },
-      attributes: ['collection_id', 'model', 'model_id']
+      attributes: ['collection_id', 'model', 'model_id'],
+      transaction: options.transaction || null
     })
       .then(itemCollections => {
         // console.log('cart checkout', itemCollections)
@@ -472,7 +480,8 @@ module.exports = class CollectionService extends Service {
             'discount_percentage',
             'discount_product_include',
             'discount_product_exclude'
-          ]
+          ],
+          transaction: options.transaction || null
         })
           .then(collections => {
             return Promise.all(collections.map(collection => {
@@ -503,7 +512,8 @@ module.exports = class CollectionService extends Service {
                       },
                       attributes: ['id','type']
                     }
-                  ]
+                  ],
+                  transaction: options.transaction || null
                 })
               }
               else {
@@ -520,34 +530,35 @@ module.exports = class CollectionService extends Service {
    *
    * @param collection
    * @param subCollection
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
-  addCollection(collection, subCollection){
+  addCollection(collection, subCollection, options){
     const Collection = this.app.orm['Collection']
     let resCollection, resSubCollection
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Collection.resolve(subCollection)
+        return Collection.resolve(subCollection, {transaction: options.transaction || null})
       })
       .then(subCollection => {
         if (!subCollection) {
           throw new Errors.FoundError(Error('Sub Collection not found'))
         }
         resSubCollection = subCollection
-        return resCollection.hasCollection(resSubCollection.id)
+        return resCollection.hasCollection(resSubCollection.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
         if (!hasCollection) {
-          return resCollection.addCollection(resSubCollection.id)
+          return resCollection.addCollection(resSubCollection.id, {transaction: options.transaction || null})
         }
         return resCollection
       })
       .then(() => {
-        return Collection.findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -555,34 +566,36 @@ module.exports = class CollectionService extends Service {
    *
    * @param collection
    * @param subCollection
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
-  removeCollection(collection, subCollection){
+  removeCollection(collection, subCollection, options){
+    options = options || {}
     const Collection = this.app.orm['Collection']
     let resCollection, resSubCollection
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Collection.resolve(subCollection)
+        return Collection.resolve(subCollection, {transaction: options.transaction || null})
       })
       .then(subCollection => {
         if (!subCollection) {
           throw new Errors.FoundError(Error('Sub Collection not found'))
         }
         resSubCollection = subCollection
-        return resCollection.hasCollection(resSubCollection.id)
+        return resCollection.hasCollection(resSubCollection.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
         if (hasCollection) {
-          return resCollection.removeCollection(resSubCollection.id)
+          return resCollection.removeCollection(resSubCollection.id, {transaction: options.transaction || null})
         }
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -590,35 +603,37 @@ module.exports = class CollectionService extends Service {
    *
    * @param collection
    * @param product
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
-  addProduct(collection, product){
+  addProduct(collection, product, options){
+    options = options || {}
     const Collection = this.app.orm['Collection']
     const Product = this.app.orm['Product']
     let resCollection, resProduct
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Product.resolve(product)
+        return Product.resolve(product, {transaction: options.transaction || null})
       })
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = product
-        return resCollection.hasProduct(resProduct.id)
+        return resCollection.hasProduct(resProduct.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
         if (!hasCollection) {
-          return resCollection.addProduct(resProduct.id)
+          return resCollection.addProduct(resProduct.id, {transaction: options.transaction || null})
         }
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -626,35 +641,37 @@ module.exports = class CollectionService extends Service {
    *
    * @param collection
    * @param product
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
-  removeProduct(collection, product){
+  removeProduct(collection, product, options){
+    options = options || {}
     const Collection = this.app.orm['Collection']
     const Product = this.app.orm['Product']
     let resCollection, resProduct
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Product.resolve(product)
+        return Product.resolve(product, {transaction: options.transaction || null})
       })
       .then(product => {
         if (!product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = product
-        return resCollection.hasProduct(resProduct.id)
+        return resCollection.hasProduct(resProduct.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
         if (hasCollection) {
-          return resCollection.removeProduct(resProduct.id)
+          return resCollection.removeProduct(resProduct.id, {transaction: options.transaction || null})
         }
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -662,35 +679,37 @@ module.exports = class CollectionService extends Service {
    *
    * @param collection
    * @param tag
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
-  addTag(collection, tag){
+  addTag(collection, tag, options){
+    options = options || {}
     const Collection = this.app.orm['Collection']
     const Tag = this.app.orm['Tag']
     let resCollection, resTag
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Tag.resolve(tag)
+        return Tag.resolve(tag, {transaction: options.transaction || null})
       })
       .then(tag => {
         if (!tag) {
           throw new Errors.FoundError(Error('Tag not found'))
         }
         resTag = tag
-        return resCollection.hasTag(resTag.id)
+        return resCollection.hasTag(resTag.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
         if (!hasCollection) {
-          return resCollection.addTag(resTag.id)
+          return resCollection.addTag(resTag.id, {transaction: options.transaction || null})
         }
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -698,35 +717,37 @@ module.exports = class CollectionService extends Service {
    *
    * @param collection
    * @param tag
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
-  removeTag(collection, tag){
+  removeTag(collection, tag, options){
+    options = options || {}
     const Collection = this.app.orm['Collection']
     const Tag = this.app.orm['Tag']
     let resCollection, resTag
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Tag.resolve(tag)
+        return Tag.resolve(tag, {transaction: options.transaction || null})
       })
       .then(tag => {
         if (!tag) {
           throw new Errors.FoundError(Error('Tag not found'))
         }
         resTag = tag
-        return resCollection.hasTag(resTag.id)
+        return resCollection.hasTag(resTag.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
         if (hasCollection) {
-          return resCollection.removeTag(resTag.id)
+          return resCollection.removeTag(resTag.id, {transaction: options.transaction || null})
         }
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -734,35 +755,37 @@ module.exports = class CollectionService extends Service {
    *
    * @param collection
    * @param customer
-   * @returns {Promise.<TResult>}
+   * @param options
+   * @returns {Promise.<T>}
    */
-  addCustomer(collection, customer){
+  addCustomer(collection, customer, options){
+    options = options || {}
     const Collection = this.app.orm['Collection']
     const Customer = this.app.orm['Customer']
     let resCollection, resCustomer
-    return Collection.resolve(collection)
+    return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(collection => {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Customer.resolve(customer)
+        return Customer.resolve(customer, {transaction: options.transaction || null})
       })
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
         }
         resCustomer = customer
-        return resCollection.hasCustomer(resCustomer.id)
+        return resCollection.hasCustomer(resCustomer.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
         if (!hasCollection) {
-          return resCollection.addCustomer(resCustomer.id)
+          return resCollection.addCustomer(resCustomer.id, {transaction: options.transaction || null})
         }
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id)
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
