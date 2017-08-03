@@ -215,6 +215,18 @@ module.exports = class Order extends Model {
               //   targetKey:
               //   foreignKey: 'last_order_id'
               // })
+              models.Order.belongsToMany(models.Event, {
+                as: 'event_items',
+                through: {
+                  model: models.EventItem,
+                  unique: false,
+                  scope: {
+                    object: 'order'
+                  }
+                },
+                foreignKey: 'object_id',
+                constraints: false
+              })
             },
             findByIdDefault: function(id, options) {
               options = options || {}

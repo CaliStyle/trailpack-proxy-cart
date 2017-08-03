@@ -161,7 +161,19 @@ module.exports = class ProductVariant extends Model {
                 as: 'order_items',
                 foreignKey: 'variant_id'
               })
-              // models.Product.belongsToMany(models.Collection, {
+              models.ProductVariant.belongsToMany(models.Event, {
+                as: 'event_items',
+                through: {
+                  model: models.EventItem,
+                  unique: false,
+                  scope: {
+                    object: 'productvariant'
+                  }
+                },
+                foreignKey: 'object_id',
+                constraints: false
+              })
+              // models.ProductVariant.belongsToMany(models.Collection, {
               //   as: 'collections',
               //   through: {
               //     model: models.ItemCollection,

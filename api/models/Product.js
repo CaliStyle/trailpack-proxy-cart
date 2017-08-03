@@ -211,6 +211,18 @@ module.exports = class Product extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Product.belongsToMany(models.Event, {
+                as: 'event_items',
+                through: {
+                  model: models.EventItem,
+                  unique: false,
+                  scope: {
+                    object: 'product'
+                  }
+                },
+                foreignKey: 'object_id',
+                constraints: false
+              })
             },
             findByIdDefault: function(criteria, options) {
               options = options || {}
