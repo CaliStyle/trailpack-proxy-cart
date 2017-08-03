@@ -66,11 +66,11 @@ module.exports = class User extends Model {
             })
             // models.User.belongsTo(models.Customer, {
             //   as: 'current_customer_id',
-            //   // foreign_key: 'id'
+            //   foreignKey: 'id'
             // })
             // models.User.belongsTo(models.Cart, {
             //   as: 'current_cart_id',
-            //   // foreign_key: 'id'
+            //   foreignKey: 'id'
             // })
             // models.User.belongsToMany(models.Cart, {
             //   as: 'carts',
@@ -83,19 +83,12 @@ module.exports = class User extends Model {
             // })
             models.User.hasOne(models.Metadata, {
               as: 'metadata',
-              through: {
-                model: models.ItemMetadata,
-                unique: false,
-                scope: {
-                  model: 'user'
-                },
-                foreignKey: 'model_id',
-                constraints: false
-              }
+              constraints: false
             })
           },
           findByIdDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findByIdDefault,
-          findOneDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findOneDefault
+          findOneDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findOneDefault,
+          resolve: ModelPassport.config(app, Sequelize).options.classMethods.resolve
         },
         instanceMethods: _.defaults({},
           ModelPassport.config(app, Sequelize).options.instanceMethods,

@@ -9,45 +9,48 @@ const moment = require('moment')
  */
 module.exports = class CouponService extends Service {
   // TODO
-  resolve(coupon){
+  create(coupon, options){
+    options = options || {}
     return Promise.resolve(coupon)
   }
   // TODO
-  create(coupon){
+  update(coupon, options){
+    options = options || {}
     return Promise.resolve(coupon)
   }
   // TODO
-  update(coupon){
-    return Promise.resolve(coupon)
-  }
-  // TODO
-  destroy(coupon){
+  destroy(coupon, options){
+    options = options || {}
     return Promise.resolve(coupon)
   }
   // TODO
   expire(coupon, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     return Promise.resolve(coupon)
   }
   // TODO
   redeem(coupon, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     return Promise.resolve(coupon)
   }
   // TODO
   validate(coupon, options){
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     return Promise.resolve(coupon)
   }
 
-  calculate(obj, collections, resolver){
-    return resolver.resolve(obj)
+  /**
+   *
+   * @param obj
+   * @param collections
+   * @param resolver
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  // TODO
+  calculate(obj, collections, resolver, options){
+    options = options || {}
+    return resolver.resolve(obj, {transaction: options.transaction || null})
       .then(obj => {
         obj.coupon_lines = []
         return obj

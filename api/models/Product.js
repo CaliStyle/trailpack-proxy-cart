@@ -112,10 +112,6 @@ module.exports = class Product extends Model {
                 foreignKey: 'product_id',
                 onDelete: 'CASCADE'
               })
-              // models.Product.hasOne(models.Metadata, {
-              //   as: 'metadata',
-              //   onDelete: 'CASCADE'
-              // })
               // models.Product.belongsToMany(models.Cart, {
               //   as: 'carts',
               //   through: 'CartProduct'
@@ -246,7 +242,7 @@ module.exports = class Product extends Model {
                 })
                 .then(collections => {
                   if (resProduct) {
-                    return resProduct.calculate()
+                    return resProduct.calculate({transaction: options.transaction || null})
                   }
                   else {
                     return resProduct
@@ -285,7 +281,7 @@ module.exports = class Product extends Model {
                 })
                 .then(collections => {
                   if (resProduct) {
-                    return resProduct.calculate()
+                    return resProduct.calculate({transaction: options.transaction || null})
                   }
                   else {
                     return resProduct
@@ -324,7 +320,7 @@ module.exports = class Product extends Model {
                 })
                 .then(collections => {
                   if (resProduct) {
-                    return resProduct.calculate()
+                    return resProduct.calculate({transaction: options.transaction || null})
                   }
                   else {
                     return resProduct
@@ -413,14 +409,19 @@ module.exports = class Product extends Model {
             }
           },
           instanceMethods: {
-            calculate: function () {
+            calculate: function (options) {
+              options = options || {}
               if (!this) {
                 return
               }
               // Set defaults
               this.calculated_price = this.price
               // Modify defaults
-              app.services.DiscountService.calculateProduct(this, this.collections)
+              app.services.DiscountService.calculateProduct(
+                this,
+                this.collections,
+                {transaction: options.transaction || null}
+              )
               return this
             },
             toJSON: function() {

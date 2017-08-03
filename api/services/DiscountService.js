@@ -32,14 +32,18 @@ module.exports = class DiscountService extends Service {
 
   /**
    *
-   * @param cart Instance
-   * @returns {Promise.<TResult>}
+   * @param obj:  cart/subscription Instance
+   * @param collections
+   * @param resolver
+   * @param options
+   * @returns {Promise.<T>}
    */
-  calculate(obj, collections, resolver){
+  calculate(obj, collections, resolver, options){
+    options = options || {}
     // Set the default
     const discountedLines = []
 
-    return resolver.resolve(obj)
+    return resolver.resolve(obj, {transaction: options.transaction || null})
       .then(obj => {
 
         // console.log('cart checkout', collections.map(collection => { return collection.title + ' ' + collection.id + ' ' + collection.discount_scope + ' products: ' + collection.products.length }))
@@ -124,7 +128,8 @@ module.exports = class DiscountService extends Service {
       })
   }
 
-  calculateProduct(product, collections){
+  calculateProduct(product, collections, options){
+    options = options || {}
     if (!product || !collections || collections.length == 0) {
       return product
     }
@@ -192,7 +197,7 @@ module.exports = class DiscountService extends Service {
 
   /**
    *
-   * @returns {Promise.<TResult>|*}
+   * @returns {Promise.<T>|*}
    */
   expireThisHour() {
     const start = moment().startOf('hour')
