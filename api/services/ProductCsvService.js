@@ -87,6 +87,8 @@ module.exports = class ProductCsvService extends Service {
         const ProductUpload = this.app.orm.ProductUpload
         const values = _.values(PRODUCT_UPLOAD)
         const keys = _.keys(PRODUCT_UPLOAD)
+        const google = {}
+        const amazon = {}
         const upload = {
           upload_id: uploadID,
           options: {}
@@ -173,6 +175,45 @@ module.exports = class ProductCsvService extends Service {
               else if (k == 'inventory_policy') {
                 upload[k] = data.toLowerCase().trim()
               }
+              else if (k == 'g_product_category') {
+                google['g_product_category'] = data.trim()
+              }
+              else if (k == 'g_gender') {
+                google['g_gender'] = data.trim()
+              }
+              else if (k == 'g_age_group') {
+                google['g_age_group'] = data.trim()
+              }
+              else if (k == 'g_mpn') {
+                google['g_mpn'] = data.trim()
+              }
+              else if (k == 'g_adwords_grouping') {
+                google['g_adwords_grouping'] = data.trim()
+              }
+              else if (k == 'g_adwords_label') {
+                google['g_adwords_label'] = data.trim()
+              }
+              else if (k == 'g_condition') {
+                google['g_condition'] = data.trim()
+              }
+              else if (k == 'g_custom_product') {
+                google['g_custom_product'] = data.trim()
+              }
+              else if (k == 'g_custom_label_0') {
+                google['g_custom_label_0'] = data.trim()
+              }
+              else if (k == 'g_custom_label_1') {
+                google['g_custom_label_1'] = data.trim()
+              }
+              else if (k == 'g_custom_label_2') {
+                google['g_custom_label_2'] = data.trim()
+              }
+              else if (k == 'g_custom_label_3') {
+                google['g_custom_label_3'] = data.trim()
+              }
+              else if (k == 'g_custom_label_4') {
+                google['g_custom_label_4'] = data.trim()
+              }
               else if (k == 'metadata') {
                 // METADATA uploaded this way MUST be in JSON
                 let formatted = data.trim()
@@ -180,6 +221,9 @@ module.exports = class ProductCsvService extends Service {
                   formatted = JSON.parse(formatted)
                   upload[k] = formatted
                 }
+                // else {
+                //   upload[k] = formatted
+                // }
               }
               else {
                 upload[k] = data
@@ -254,6 +298,10 @@ module.exports = class ProductCsvService extends Service {
           }
           return
         })
+        // Add google
+        upload.google = google
+        // Add amazon
+        upload.amazon = amazon
 
         // Handle is required, if not here, then reject whole row without error
         if (!upload.handle) {

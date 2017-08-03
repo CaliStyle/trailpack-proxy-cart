@@ -173,6 +173,8 @@ module.exports = class ProductService extends Service {
       average_shipping: product.average_shipping,
       exclude_payment_types: product.exclude_payment_types,
       metadata: Metadata.transform(product.metadata || {}),
+      google: product.google,
+      amazon: product.amazon,
       options: []
     }
     // create = Product.build(create)
@@ -210,7 +212,9 @@ module.exports = class ProductService extends Service {
     // Variants
     // Set a default variant based of off product
     let variants = [{
-      sku: product.sku
+      sku: product.sku,
+      google: product.google,
+      amazon: product.amazon
     }]
     // Set the published status
     if (product.published) {

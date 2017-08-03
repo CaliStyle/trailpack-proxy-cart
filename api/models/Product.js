@@ -786,59 +786,41 @@ module.exports = class Product extends Model {
         exclude_payment_types: helpers.JSONB('Product', app, Sequelize, 'exclude_payment_types', {
           defaultValue: []
         }),
-
-        // 'Google Shopping / Google Product Category'
-        g_product_category: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Gender'
-        g_gender: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Age Group'
-        g_age_group: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / MPN'
-        g_mpn: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Adwords Grouping'
-        g_adwords_grouping: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Adwords Labels'
-        g_adwords_label: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Condition'
-        g_condition: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Custom Product'
-        g_custom_product: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Custom Label 0'
-        g_custom_label_0: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Custom Label 1'
-        g_custom_label_1: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Custom Label 2'
-        g_custom_label_2: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Custom Label 3'
-        g_custom_label_3: {
-          type: Sequelize.STRING
-        },
-        // 'Google Shopping / Custom Label 4'
-        g_custom_label_4: {
-          type: Sequelize.STRING
-        },
+        // Google Specific Listings
+        google: helpers.JSONB('Product', app, Sequelize, 'google', {
+          defaultValue: {
+            // // 'Google Shopping / Google Product Category'
+            // g_product_category: null,
+            // // 'Google Shopping / Gender'
+            // g_gender: null,
+            // // 'Google Shopping / Age Group'
+            // g_age_group: null,
+            // // 'Google Shopping / MPN'
+            // g_mpn: null,
+            // // 'Google Shopping / Adwords Grouping'
+            // g_adwords_grouping: null,
+            // // 'Google Shopping / Adwords Labels'
+            // g_adwords_label: null,
+            // // 'Google Shopping / Condition'
+            // g_condition: null,
+            // // 'Google Shopping / Custom Product'
+            // g_custom_product: null,
+            // // 'Google Shopping / Custom Label 0'
+            // g_custom_label_0: null,
+            // // 'Google Shopping / Custom Label 1'
+            // g_custom_label_1: null,
+            // // 'Google Shopping / Custom Label 2'
+            // g_custom_label_2: null,
+            // // 'Google Shopping / Custom Label 3'
+            // g_custom_label_3: null,
+            // // 'Google Shopping / Custom Label 4'
+            // g_custom_label_4: null
+          }
+        }),
+        // Amazon Specific listings
+        amazon: helpers.JSONB('Product', app, Sequelize, 'amazon', {
+          defaultValue: {}
+        }),
 
         // Live Mode
         live_mode: {

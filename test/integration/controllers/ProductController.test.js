@@ -154,8 +154,6 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        console.log('THIS PRODUCT TAGS', res.body.tags)
-        // console.log('THESE COLLECTIONS',res.body.collections)
         // console.log(res.body)
         // Product
         assert.equal(res.body.id, createdProductID)
@@ -171,8 +169,7 @@ describe('ProductController', () => {
         assert.equal(res.body.collections.length, 1)
         assert.equal(res.body.collections[0].handle, 'fire-sale')
         // Tags
-        // TODO FIX SO THAT ONLY PRODUCT TAGS ARE RETURNED
-        // assert.equal(res.body.tags.length, 3)
+        assert.equal(res.body.tags.length, 3)
         assert.notEqual(res.body.tags.indexOf('snow'), -1)
         assert.notEqual(res.body.tags.indexOf('equipment'), -1)
         assert.notEqual(res.body.tags.indexOf('outdoor'), -1)
@@ -731,13 +728,17 @@ describe('ProductController', () => {
       .get('/product/collection/bottles')
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        console.log('BY COLLECTION',res.body)
         assert.ok(res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
         assert.equal(res.headers['x-pagination-total'], '2')
+        assert.equal(res.headers['x-pagination-offset'], '0')
+        assert.equal(res.headers['x-pagination-limit'], '10')
+        assert.equal(res.headers['x-pagination-page'], '1')
+        assert.equal(res.headers['x-pagination-pages'], '1')
         assert.equal(res.body.length, 2)
         done()
       })
