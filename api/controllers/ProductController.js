@@ -904,5 +904,65 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+  variants(req, res) {
+    const Variant = this.app.orm['ProductVariant']
+    const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    Variant.findAndCount({
+      order: sort,
+      where: {
+        product_id: productId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(variants => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, variants.count, limit, offset, sort)
+        return res.json(variants.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  images(req, res) {
+    const Image = this.app.orm['ProductImage']
+    const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    Image.findAndCount({
+      order: sort,
+      where: {
+        product_id: productId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(images => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, images.count, limit, offset, sort)
+        return res.json(images.rows)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

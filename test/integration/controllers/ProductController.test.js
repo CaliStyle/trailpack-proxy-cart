@@ -485,6 +485,7 @@ describe('ProductController', () => {
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
         assert.equal(res.body.length, 2)
         done(err)
       })
@@ -509,6 +510,21 @@ describe('ProductController', () => {
       .end((err, res) => {
         // console.log(res.body)
         assert.equal(res.body.length, 0)
+        done(err)
+      })
+  })
+  it('should make get product images', (done) => {
+    request
+      .get(`/product/${createdProductID}/images`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('This Images',res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.equal(res.body.length, 4)
         done(err)
       })
   })
@@ -566,6 +582,20 @@ describe('ProductController', () => {
         assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.sku, 'bscb-1')
         assert.equal(res.body.price, 100001)
+        done(err)
+      })
+  })
+  it('should make get product variants', (done) => {
+    request
+      .get(`/product/${createdProductID}/variants`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.equal(res.body.length, 4)
         done(err)
       })
   })
