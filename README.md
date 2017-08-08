@@ -6,7 +6,7 @@
 [![Code Climate][codeclimate-image]][codeclimate-url]
 
 ## Node.js eCommerce built for speed, scalability, flexibility, and love from [Cali Style](https://cali-style.com)
-Proxy Cart is the eCommerce component for [Proxy Engine](https://github.com/calistyle/trailpack-proxy-engine). Connect your own [Merchant Processor, Shipping Provider, Fulfillment Service, Tax Provider](https://github.com/calistyle/trailpack-proxy-generics), and import your products. Attach it to Proxy Engine and start building with [Proxy CMS](https://github.com/calistyle/trailpack-proxy-cms)!
+Proxy Cart is the eCommerce component for [Proxy Engine](https://github.com/calistyle/trailpack-proxy-engine). Connect your own [Merchant Processor, Shipping Provider, Fulfillment Service, Tax Provider](https://github.com/calistyle/trailpack-proxy-generics), and import your products. Attach it to Proxy Engine and you have an REST API based eCommerce solution!
 
 ## Dependencies
 ### Proxy Engine
@@ -23,6 +23,11 @@ Proxy Cart is the eCommerce component for [Proxy Engine](https://github.com/cali
 | Repo          |  Build Status (edge)                  |
 |---------------|---------------------------------------|
 | [trailpack-proxy-passport](https://github.com/calistyle/trailpack-proxy-passport) | [![Build status][ci-proxypassport-image]][ci-proxypassport-url] |
+
+### Proxy Notifications
+| Repo          |  Build Status (edge)                  |
+|---------------|---------------------------------------|
+| [trailpack-proxy-notifications](https://github.com/calistyle/trailpack-proxy-notifications) | [![Build status][ci-proxynotifications-image]][ci-proxynotifications-url] |
 
 ### Supported ORMs
 | Repo          |  Build Status (edge)                  |
@@ -92,18 +97,50 @@ module.exports = {
       postal_code: '<postal code>'
     }
   },
-  // The default function for an automatic order payment: manual, authorize, sale
-  order_payment_kind: 'sale',
-  // The default function for an automatic order fulfillment: manual, immediate
-  order_fulfillment_kind: 'immediate',
-  // Restock default for refunded order items
-  refund_restock: false,
   // Allow certain events
   allow: {
     // Allows a product to be destroyed, Recommended false
     destroy_product: false,
     // Allows a product variant to be destroyed, Recommended false
     destroy_variant: false
+  },
+  // The default currency used
+  default_currency: 'USD',
+  // The countries to load by default
+  default_countries: ['USA'],
+  // Emails to send
+  emails: {
+    orderCreated: false,
+    orderUpdated: false,
+    orderPaid: false,
+    orderFulfilled: false,
+    orderRefunded: false,
+    orderCancelled: false,
+    sourceWillExpire: false,
+    sourceUpdated: false,
+    subscriptionCreated: false,
+    subscriptionUpdated: false,
+    subscriptionActivated: false,
+    subscriptionDeactivated: false,
+    subscriptionCancelled: false,
+    subscriptionWillRenew: false,
+    subscriptionRenewed: false,
+    transactionFailed: false
+  },
+  // Orders
+  orders: {
+    // Restock default for refunded order items
+    refund_restock: false,
+    // The default function for an automatic order payment: manual, immediate
+    payment_kind: 'immediate',
+    // the default function for transaction kind: authorize, sale
+    transaction_kind: 'authorize',
+    // The default function for an automatic order fulfillment: manual, immediate
+    fulfillment_kind: 'manual',
+    // The amount of times a Order will retry failed transactions
+    retry_attempts: 5,
+    // The amount of days before a Order will cancel from failed transactions
+    grace_period_days: 5
   },
   // Subscriptions
   subscriptions: {
@@ -112,11 +149,11 @@ module.exports = {
     // The amount of days before a Subscription will cancel from failed transactions
     grace_period_days: 5
   },
-  // Orders
-  orders: {
-    // The amount of times a Order will retry failed transactions
+  // Transactions
+  transactions: {
+    // The amount of times a Transaction will retry failed
     retry_attempts: 5,
-    // The amount of days before a Order will cancel from failed transactions
+    // The amount of days before a Transaction will cancel from failed
     grace_period_days: 5
   }
 }
@@ -157,7 +194,7 @@ A Customer represents an account of one more users or guests.
 A User is a registered user account with an username/email and password with given permission roles. Multiple users can share a single Customer account.
 
 ## Accounts
-An Account is a 3rd party that the customer belongs to such as Stripe or Authorize.net
+An Account is a 3rd party payment provider that the customer belongs to such as Stripe or Authorize.net, each customer can have multiple accounts
 
 ## Sources
 A Source is a payment method used by the customer at checkout that belongs to a customer and a 3rd party Account.
@@ -241,6 +278,9 @@ Events published and saved during customer actions.
 
 ### Order Events
 Order events published and saved during order operations.
+
+#### order.created.*{pending|success|failure|error}
+
 #### order.transaction.sale.*{pending|success|failure|error}
 
 #### order.transaction.authorize.*{pending|success|failure|error}
@@ -265,6 +305,22 @@ Expires discounts on a schedule
 
 ### Renew Subscriptions
 Renews subscriptions on a schedule
+
+## Emails
+Emails that are constructed to be passed as notifications to the users.
+
+### Customer
+
+### Order
+
+### Source
+
+### Subscription
+
+## Templates
+Templates that are used in the construction of emails.
+### Order
+### Subscription
 
 ## Generics
 All of Proxy Carts generics can be overridden by 3rd party generic services. 
@@ -1098,6 +1154,7 @@ Proxy Cart creates many services to handle operations
 #### CartService
 #### CollectionService
 #### CollectionCsvService
+#### CountryService
 #### CouponService
 #### CustomerService
 #### CustomerCsvService
@@ -1105,6 +1162,7 @@ Proxy Cart creates many services to handle operations
 #### FulfillmentService
 #### GiftCardService
 #### OrderService
+#### OrderCsvService
 #### PaymentService
 #### ProductService
 #### ProductCsvService
@@ -1119,6 +1177,7 @@ Proxy Cart creates many services to handle operations
 #### TaxService
 #### TransactionService
 #### VendorService
+#### VendorCsvService
 
 ### Models
 Proxy Cart creates many models and extends models from Proxy Engine and Proxy Permissions
@@ -1146,16 +1205,19 @@ Proxy Cart creates many models and extends models from Proxy Engine and Proxy Pe
 #### ItemAddress
 #### ItemCollection
 Join table to handle collection children
+#### ItemCoupon
 #### ItemDiscount
 Join table to handle discount children
-#### ItemMetadata
+#### ItemImage
 #### ItemRefund
+#### ItemShippingZone
 #### ItemTag
 #### Metadata
 #### Order
 #### OrderItem
 #### OrderRisk
-
+#### OrderSource
+#### OrderUpload
 #### Product
 ##### id: number;
 The Id of the Product, can not be modified.
@@ -1219,19 +1281,23 @@ The score of the product based on reviews.
 The total amount of reviews the product has.
 ##### total_variants: number;
 The total amount of variants the product has.
-##### g_product_category: string;
-##### g_gender: string;
-##### g_age_group: string;
-##### g_mpn: string;
-##### g_adwords_grouping: string;
-##### g_adwords_label: string;
-##### g_condition: string;
-##### g_custom_product: string;
-##### g_custom_label_0: string;
-##### g_custom_label_1: string;
-##### g_custom_label_2: string;
-##### g_custom_label_3: string;
-##### g_custom_label_4: string;
+##### google
+The google shopping attributes
+###### g_product_category: string;
+###### g_gender: string;
+###### g_age_group: string;
+###### g_mpn: string;
+###### g_adwords_grouping: string;
+###### g_adwords_label: string;
+###### g_condition: string;
+###### g_custom_product: string;
+###### g_custom_label_0: string;
+###### g_custom_label_1: string;
+###### g_custom_label_2: string;
+###### g_custom_label_3: string;
+###### g_custom_label_4: string;
+##### amazon
+The amazon shopping attributes
 ##### live_mode: boolean;
 If the product was created in a live environment.
 ##### created_at: string;
@@ -1240,7 +1306,9 @@ When the product was created.
 When the product was last updated.
 
 #### ProductAssociation
+#### ProductAssociationUpload
 #### ProductImage
+#### ProductMetaUpload
 #### ProductReview
 
 #### ProductVariant
@@ -1303,13 +1371,12 @@ When this variant was first created
 ##### updated_at: string;
 When this variant was last updated.
 
-#### ProductUpload
-#### ProductMetaUpload
 #### Province
 #### Refund
 #### ShippingRestriction
 #### ShippingZone
 #### Shop
+#### ShopProduct
 #### Source
 #### Subscription
 #### SubscriptionUpload
@@ -1318,6 +1385,11 @@ When this variant was last updated.
 #### User
 #### Vendor
 #### VendorProduct
+#### VendorUpload
+
+## Utils
+### Enums
+### Query Defaults
 
 [npm-image]: https://img.shields.io/npm/v/trailpack-proxy-cart.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/trailpack-proxy-cart
@@ -1339,6 +1411,9 @@ When this variant was last updated.
 
 [ci-proxypermissions-image]: https://img.shields.io/circleci/project/github/CaliStyle/trailpack-proxy-permissions/nmaster.svg
 [ci-proxypermissions-url]: https://circleci.com/gh/CaliStyle/trailpack-proxy-permissions/tree/master
+
+[ci-proxynotifications-image]: https://img.shields.io/circleci/project/github/CaliStyle/trailpack-proxy-notifications/nmaster.svg
+[ci-proxynotifications-url]: https://circleci.com/gh/CaliStyle/trailpack-proxy-notifications/tree/master
 
 [ci-express-image]: https://img.shields.io/travis/trailsjs/trailpack-express/master.svg?style=flat-square
 [ci-express-url]: https://travis-ci.org/trailsjs/trailpack-express

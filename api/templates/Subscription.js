@@ -36,7 +36,7 @@ module.exports = class Subscription extends Template {
    */
   renewed(order) {
     const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price,order.currency)}</p>`
+      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('')
 
     return `<h1>Subscription ${ order.subscription_token } Renewed</h1>

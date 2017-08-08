@@ -6,7 +6,7 @@ const Template = require('trailpack-proxy-generics').Template
 module.exports = class Order extends Template {
   created(order) {
     const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price)}</p>`
+      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('')
 
     return `<h1>Order ${ order.name } Created</h1>
@@ -15,15 +15,15 @@ module.exports = class Order extends Template {
 <h5>Order Items</h5>
 ${orderItems}
 <p>------------------------</p>
-<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price)}</p>
-<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price / 100)}</p>
+<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price, order.currency)}</p>
+<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price / 100, order.currency)}</p>
 <p>------------------------</p>
 <p>Thank you!</p>`
   }
 
   updated(order) {
     const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price)}</p>`
+      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('')
 
     return `<h1>Order ${ order.name } was updated</h1>
@@ -36,7 +36,7 @@ ${orderItems}
 
   cancelled(order) {
     const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price)}</p>`
+      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('')
 
     return `<h1>Order ${ order.name } Cancelled</h1>
@@ -49,7 +49,7 @@ ${orderItems}
 
   fulfilled(order) {
     const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price)}</p>`
+      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('')
 
     return `<h1>Order ${ order.name } Fulfilled</h1>
@@ -61,7 +61,7 @@ ${orderItems}
   }
   failed(order) {
     const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price)}</p>`
+      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('')
 
     return `<h1>Order ${ order.name } failed to process</h1>
@@ -79,7 +79,7 @@ ${orderItems}
    */
   paid(order) {
     const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price)}</p>`
+      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('')
 
     return `<h1>Order ${ order.name } Receipt</h1>
@@ -88,14 +88,14 @@ ${orderItems}
 <h5>Order Items</h5>
 ${orderItems}
 <p>------------------------</p>
-<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price)}</p>
-<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price)}</p>
+<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price, order.currency)}</p>
+<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price, order.currency)}</p>
 <p>------------------------</p>
 <p>Thank you!</p>`
   }
   refunded(order) {
     const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${this.app.services.ProxyCartService.formatCurrency(item.calculated_price)}</p>`
+      return `<p>${ item.name } x ${item.quantity } - ${this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('')
 
     return `<h1>Order ${ order.name } Refunded</h1>
@@ -104,9 +104,9 @@ ${orderItems}
 <h5>Order Items</h5>
 ${orderItems}
 <p>------------------------</p>
-<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price)}</p>
-<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price)}</p>
-<p>Refunded: ${ this.app.services.ProxyCartService.formatCurrency(order.total_refunds)}</p>
+<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price, order.currency)}</p>
+<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price, order.currency)}</p>
+<p>Refunded: ${ this.app.services.ProxyCartService.formatCurrency(order.total_refunds, order.currency)}</p>
 <p>------------------------</p>
 <p>Thank you!</p>`
   }
