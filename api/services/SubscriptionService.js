@@ -98,56 +98,6 @@ module.exports = class SubscriptionService extends Service {
         return stats
       })
   }
-  /**
-   *
-   * @param order
-   * @param active
-   * @param options
-   * @returns {Promise.<T>}
-   */
-  setupSubscriptions(order, active, options) {
-    options = options || {}
-    const Order = this.app.orm['Order']
-    const Sequelize = Order.sequelize
-
-    let resOrder
-    return Order.resolve(order, {transaction: options.transaction || null})
-      .then(foundOrder => {
-        if (!foundOrder) {
-          throw new Error('Order nto found')
-        }
-        resOrder = foundOrder
-        return resOrder.resolveOrderItems({transaction: options.transaction || null})
-      })
-      .then(() => {
-
-        const orderItems = _.filter(resOrder.order_items, 'requires_subscription')
-
-        const groups = []
-        const units = _.groupBy(orderItems, 'subscription_unit')
-
-        _.forEach(units, function(value, unit) {
-          const intervals = _.groupBy(units[unit], 'subscription_interval')
-          _.forEach(intervals, (items, interval) => {
-            groups.push({
-              unit: unit,
-              interval: interval,
-              items: items
-            })
-          })
-        })
-        return Sequelize.Promise.mapSeries(groups, group => {
-          return this.create(
-            resOrder,
-            group.items,
-            group.unit,
-            group.interval,
-            active,
-            { transaction: options.transaction || null}
-          )
-        })
-      })
-  }
 
   /**
    *
@@ -201,7 +151,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.subscribed',
           message: `Customer subscribed to subscription ${resSubscription.token}`,
-          data: resSubscription
+          data: _.omit(resSubscription,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -243,7 +193,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.updated',
           message: `Customer subscription ${resSubscription.token} updated`,
-          data: resSubscription
+          data: _.omit(resSubscription,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -289,14 +239,14 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.cancelled',
           message: `Customer subscription ${resSubscription.token} was cancelled`,
-          data: resSubscription
+          data: _.omit(resSubscription,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
       })
-      .then(event => {
+      .then((event) => {
         if (body.cancel_pending) {
           return Order.findAll({
             where: {
@@ -318,7 +268,26 @@ module.exports = class SubscriptionService extends Service {
           return
         }
       })
-      .then(canceledOrders => {
+      .then((canceledOrders) => {
+        if (resSubscription.customer_id) {
+          return this.app.emails.Subscription.cancelled(resSubscription, {
+            send_email: this.app.config.proxyCart.emails.subscriptionCancelled
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(email => {
+              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          return
+        }
+      })
+      .then((notifications) => {
         return resSubscription
       })
   }
@@ -357,14 +326,33 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.activated',
           message: `Customer subscription ${resSubscription.token} was activated`,
-          data: resSubscription
+          data: _.omit(resSubscription,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
       })
-      .then(event => {
+      .then((event) => {
+        if (resSubscription.customer_id) {
+          return this.app.emails.Subscription.activated(resSubscription, {
+            send_email: this.app.config.proxyCart.emails.subscriptionActivated
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(email => {
+              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          return
+        }
+      })
+      .then((notification) => {
         return resSubscription
       })
   }
@@ -403,12 +391,31 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.deactivated',
           message: `Customer subscription ${resSubscription.token} was deactivated`,
-          data: resSubscription
+          data: _.omit(resSubscription,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
+      })
+      .then((event) => {
+        if (resSubscription.customer_id) {
+          return this.app.emails.Subscription.deactivated(resSubscription, {
+            send_email: this.app.config.proxyCart.emails.subscriptionDeactivated
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(email => {
+              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          return
+        }
       })
       .then(event => {
         return resSubscription
@@ -463,7 +470,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.items_added',
           message: `Customer subscription ${resSubscription.token} had items added`,
-          data: resSubscription
+          data: _.omit(resSubscription,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -518,7 +525,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.items_removed',
           message: `Customer subscription ${resSubscription.token} had items removed`,
-          data: resSubscription
+          data: _.omit(resSubscription,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -583,14 +590,33 @@ module.exports = class SubscriptionService extends Service {
             }],
             type: `customer.subscription.renewed.${renewal}`,
             message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
-            data: resSubscription
+            data: _.omit(resSubscription,['events'])
           }
           return this.app.services.ProxyEngineService.publish(event.type, event, {
             save: true,
             transaction: options.transaction || null
           })
         })
-        .then(event => {
+        .then((event) => {
+          if (renewal === 'success' && resSubscription.customer_id) {
+            return this.app.emails.Subscription.renewed(resSubscription, {
+              send_email: this.app.config.proxyCart.emails.subscriptionRenewed
+            }, {
+              transaction: options.transaction || null
+            })
+              .then(email => {
+                return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
+              })
+              .catch(err => {
+                this.app.log.error(err)
+                return
+              })
+          }
+          else {
+            return
+          }
+        })
+        .then((notification) => {
           return {
             subscription: resSubscription,
             order: resOrder
@@ -649,14 +675,33 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: `customer.subscription.renewed.${renewal}`,
           message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
-          data: resSubscription
+          data: _.omit(resSubscription,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
           transaction: options.transaction || null
         })
       })
-      .then(event => {
+      .then((event) => {
+        if (renewal === 'success' && resSubscription.customer_id) {
+          return this.app.emails.Subscription.renewed(resSubscription, {
+            send_email: this.app.config.proxyCart.emails.subscriptionRenewed
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(email => {
+              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          return
+        }
+      })
+      .then((notifications) => {
         return resSubscription
       })
     //return Promise.resolve(subscription)

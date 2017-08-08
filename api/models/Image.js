@@ -2,7 +2,7 @@
 'use strict'
 
 const Model = require('trails/model')
-
+const _ = require('lodash')
 /**
  * @module Image
  * @description Image Model
@@ -79,18 +79,65 @@ module.exports = class Image extends Model {
               return Promise.resolve(image)
             },
             transformImages: (images, options) => {
-              const Image = app.orm['Image']
-              const Sequelize = Image.sequelize
-
               options = options || {}
               images = images || []
 
+              const Image = app.orm['Image']
+              const Sequelize = Image.sequelize
+
               return Sequelize.Promise.mapSeries(images, image => {
-                if (image.id) {
+                if (image instanceof Image.Instance){
+                  return Promise.resolve(image)
+                }
+                else if (image && image.id) {
                   return Image.findById(image.id, {transaction: options.transaction || null})
+                    .then(image => {
+                      if (!image) {
+                        throw new Error('Image Could not be resolved')
+                      }
+                      return image
+                    })
+                }
+                else if (image && image.id){
+                  return Image.findById(image.id, {transaction: options.transaction || null})
+                    .then(image => {
+                      if (!image) {
+                        throw new Error('Image Could not be resolved to create')
+                      }
+                      return image
+                    })
+                }
+                else if (image && _.isObject(image)){
+                  return Image.create(image, {transaction: options.transaction || null})
+                    .then(image => {
+                      if (!image) {
+                        throw new Error('Image Could not be resolved to create')
+                      }
+                      return image
+                    })
+                }
+                else if (image && _.isNumber(image)) {
+                  return Image.findById(image, {transaction: options.transaction || null})
+                    .then(image => {
+                      if (!image) {
+                        throw new Error('Image Could not be resolved')
+                      }
+                      return image
+                    })
+                }
+                else if (image && _.isString(image)) {
+                  return Image.create({ src: image}, {transaction: options.transaction || null})
+                    .then(image => {
+                      if (!image) {
+                        throw new Error('Image Could not be resolved to create')
+                      }
+                      return image
+                    })
                 }
                 else {
-                  return Image.create(image, {transaction: options.transaction || null})
+                  // TODO create proper error
+                  const err = new Error(`Unable to resolve Image ${image}`)
+                  return Promise.reject(err)
                 }
               })
             }

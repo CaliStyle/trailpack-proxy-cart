@@ -183,12 +183,31 @@ module.exports = class CartService extends Service {
               }],
               type: 'customer.cart.checkout',
               message: `Customer Cart ${ resOrder.cart_token } checked out and created Order ${resOrder.name}`,
-              data: resOrder
+              data: _.omit(resOrder,['events'])
             }
             return this.app.services.ProxyEngineService.publish(event.type, event, {
               save: true,
               transaction: options.transaction || null
             })
+          }
+          else {
+            return
+          }
+        })
+        .then(() => {
+          if (resOrder.customer_id) {
+            return this.app.emails.Order.created(resOrder, {
+              send_email: this.app.config.proxyCart.emails.orderCreated
+            }, {
+              transaction: options.transaction || null
+            })
+              .then(email => {
+                return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
+              })
+              .catch(err => {
+                this.app.log.error(err)
+                return
+              })
           }
           else {
             return
@@ -333,6 +352,8 @@ module.exports = class CartService extends Service {
    *
    * @param overrides
    * @param id
+   * @param admin
+   * @param options
    * @returns {Promise}
    */
   pricingOverrides(overrides, id, admin, options){

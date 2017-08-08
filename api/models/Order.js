@@ -339,7 +339,10 @@ module.exports = class Order extends Model {
              */
             notifyCustomer: function(preNotification, options) {
               options = options || {}
-              return this.resolveCustomer({transaction: options.transaction || null })
+              return this.resolveCustomer({
+                attributes: ['id','email','company','first_name','last_name','full_name'],
+                transaction: options.transaction || null
+              })
                 .then(() => {
                   if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
                     return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
@@ -528,6 +531,142 @@ module.exports = class Order extends Model {
                 })
                 .then(() => {
                   return this.recalculate({transaction: options.transaction || null})
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            groupFulfillments: function(options) {
+              options = options || {}
+              return this.resolveOrderItems({ transaction: options.transaction || null })
+                .then(() => {
+                  return this.resolveFulfillments({ transaction: options.transaction || null })
+                })
+                .then(() => {
+
+                  // Group by Service
+                  let groups = _.groupBy(this.order_items, 'fulfillment_service')
+                  // Map into array
+                  groups = _.map(groups, (items, service) => {
+                    return { service: service, items: items }
+                  })
+                  // Create the non sent fulfillments
+                  return app.orm['Order'].sequelize.Promise.mapSeries(groups, (group) => {
+                    const resFulfillment = this.fulfillments.find(fulfillment => fulfillment.service == group.service)
+                    return resFulfillment.addOrder_items(group.items, {
+                      hooks: false,
+                      individualHooks: false,
+                      returning: false,
+                      transaction: options.transaction || null
+                    })
+                      .then(() => {
+                        return resFulfillment.reload({ transaction: options.transaction || null })
+                      })
+                    // .then(() => {
+                    //   return resFulfillment.saveFulfillmentStatus()
+                    // })
+                  })
+                })
+                .then((fulfillments) => {
+                  fulfillments = fulfillments || []
+                  this.fulfillments = fulfillments
+                  this.setDataValue('fulfillments', fulfillments)
+                  this.set('fulfillments', fulfillments)
+                  return this
+                })
+            },
+            /**
+             *
+             * @param paymentDetails
+             * @param options
+             * @returns {*|Promise.<T>}
+             */
+            groupTransactions: function(paymentDetails, options) {
+              options = options || {}
+              return app.orm['Order'].sequelize.Promise.mapSeries(paymentDetails, (detail, index) => {
+                const transaction = app.orm['Transaction'].build({
+                  // Set the customer id (in case we can save this source)
+                  customer_id: this.customer_id,
+                  // Set the order id
+                  order_id: this.id,
+                  // Set the source if it is given
+                  source_id: detail.source ? detail.source.id : null,
+                  // Set the order currency
+                  currency: this.currency,
+                  // Set the amount for this transaction and handle if it is a split transaction
+                  amount: detail.amount || this.total_due,
+                  // Copy the entire payment details to this transaction
+                  payment_details: paymentDetails[index],
+                  // Specify the gateway to use
+                  gateway: detail.gateway,
+                  // Set the specific type of transactions this is
+                  kind: this.transaction_kind,
+                  // Set the device (that input the credit card) or null
+                  device_id: this.device_id || null,
+                  // Set the Description
+                  description: `Order ${this.name} original transaction ${this.transaction_kind}`
+                })
+                // Return the Payment Service
+                if (this.payment_kind === PAYMENT_KIND.MANUAL) {
+                  return app.services.PaymentService.manual(transaction, {
+                    transaction: options.transaction || null
+                  })
+                }
+                else {
+                  return app.services.PaymentService[this.transaction_kind](transaction, {
+                    transaction: options.transaction || null
+                  })
+                }
+              })
+                .then(transactions => {
+                  transactions = transactions || []
+                  this.transactions = transactions
+                  this.setDataValue('transactions', transactions)
+                  this.set('transactions', transactions)
+                  return this
+                })
+            },
+            groupSubscriptions: function(active, options) {
+              options = options || {}
+
+              return this.resolveOrderItems({transaction: options.transaction || null})
+                .then(() => {
+
+                  const orderItems = _.filter(this.order_items, 'requires_subscription')
+
+                  const groups = []
+                  const units = _.groupBy(orderItems, 'subscription_unit')
+
+                  _.forEach(units, function(value, unit) {
+                    const intervals = _.groupBy(units[unit], 'subscription_interval')
+                    _.forEach(intervals, (items, interval) => {
+                      groups.push({
+                        unit: unit,
+                        interval: interval,
+                        items: items
+                      })
+                    })
+                  })
+
+                  return app.orm['Order'].sequelize.Promise.mapSeries(groups, group => {
+                    return app.services.SubscriptionService.create(
+                      this,
+                      group.items,
+                      group.unit,
+                      group.interval,
+                      active,
+                      { transaction: options.transaction || null}
+                    )
+                  })
+                })
+                .then(subscriptions => {
+                  subscriptions = subscriptions || []
+                  this.subscriptions = subscriptions
+                  this.set('subscriptions', subscriptions)
+                  this.setDataValue('subscriptions', subscriptions)
+                  return this
                 })
             },
             /**
@@ -722,7 +861,7 @@ module.exports = class Order extends Model {
                       }],
                       type: `order.financial_status.${currentStatus}`,
                       message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
-                      data: this
+                      data: _.omit(this, ['events'])
                     }
                     return app.services.ProxyEngineService.publish(event.type, event, {
                       save: true,
@@ -787,7 +926,7 @@ module.exports = class Order extends Model {
                       }],
                       type: `order.fulfillment_status.${currentStatus}`,
                       message: `Order ${ this.name || 'ID ' + this.id } fulfillment status changed from "${previousStatus}" to "${currentStatus}"`,
-                      data: this
+                      data: _.omit(this, ['events'])
                     }
                     return app.services.ProxyEngineService.publish(event.type, event, {
                       save: true,
@@ -1029,6 +1168,30 @@ module.exports = class Order extends Model {
               this.fulfillment_status = fulfillmentStatus
               return this
             },
+
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendToFulfillment: function(options) {
+              options = options || {}
+
+              return this.resolveFulfillments({transaction: options.transaction || null})
+                .then(() => {
+                  return app.orm['Order'].sequelize.Promise.mapSeries(this.fulfillments, fulfillment => {
+                    return app.services.FulfillmentService.sendFulfillment(this, fulfillment, {transaction: options.transaction || null})
+                  })
+                })
+                .then(fulfillments => {
+                  fulfillments = fulfillments || []
+                  this.fulfillments = fulfillments
+                  this.setDataValue('fulfillments', fulfillments)
+                  this.set('fulfillments', fulfillments)
+
+                  return this
+                })
+            },
             /**
              * Resolve if this should subscribe immediately
              * @returns {*}
@@ -1072,43 +1235,29 @@ module.exports = class Order extends Model {
               return this.resolveSendImmediately({ transaction: options.transaction || null })
                 .then(immediate => {
                   if (immediate) {
-                    return app.services.FulfillmentService.sendOrderToFulfillment(
-                      this,
-                      { transaction: options.transaction || null }
-                    )
+                    return this.sendToFulfillment({ transaction: options.transaction || null })
                   }
                   else {
                     return this.fulfillments
                   }
                 })
-                .then(fulfillments => {
-                  fulfillments = fulfillments || []
-                  // Set the fulfillments to the resOrder
-                  this.fulfillments = fulfillments
-                  this.setDataValue('fulfillments', fulfillments)
-                  this.set('fulfillments', fulfillments)
-
+                .then(() => {
                   // Determine if this subscription should be created immediately
                   return this.resolveSubscribeImmediately({ transaction: options.transaction || null })
                 })
                 .then(immediate => {
                   // console.log('WILL SUBSCRIBE', immediate, this)
                   if (immediate) {
-                    return app.services.SubscriptionService.setupSubscriptions(
-                      this,
+                    return this.groupSubscriptions(
                       immediate,
                       { transaction: options.transaction || null }
                     )
                   }
                   else {
-                    return this.subscriptions
+                    return
                   }
                 })
                 .then((subscriptions) => {
-                  subscriptions = subscriptions || []
-                  this.subscriptions = subscriptions
-                  this.set('subscriptions', subscriptions)
-                  this.setDataValue('subscriptions', subscriptions)
                   return this
                 })
             },
@@ -1319,7 +1468,7 @@ module.exports = class Order extends Model {
               }
             },
             /**
-             *
+             * Resolve Order's Customer if there is one
              * @param options
              */
             resolveCustomer: function(options) {
@@ -1625,7 +1774,7 @@ module.exports = class Order extends Model {
         // The three letter code (ISO 4217) for the currency used for the payment.
         currency: {
           type: Sequelize.STRING,
-          defaultValue: 'USD'
+          defaultValue: app.config.proxyCart.default_currency || 'USD'
         },
         // The customer's email address. Is required when a billing address is present.
         email: {

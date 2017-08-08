@@ -252,10 +252,10 @@ describe('CollectionController', () => {
       .attach('file', 'test/fixtures/collection_upload.csv')
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.ok(res.body.result.upload_id)
         uploadID = res.body.result.upload_id
         assert.equal(res.body.result.collections, 1)
+        assert.equal(res.body.result.errors_count, 0)
         done()
       })
   })
@@ -265,7 +265,9 @@ describe('CollectionController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
+        console.log('COLLECTION UPLOAD',res.body)
         assert.equal(res.body.collections, 1)
+        assert.equal(res.body.errors_count, 0)
         done()
       })
   })
@@ -295,6 +297,7 @@ describe('CollectionController', () => {
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
         assert.equal(res.body.length, 1)
         done()
       })

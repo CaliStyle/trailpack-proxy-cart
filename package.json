@@ -1,6 +1,6 @@
 {
   "name": "trailpack-proxy-cart",
-  "version": "0.1.75",
+  "version": "0.2.0",
   "description": "Cart - Trailpack for Proxy Engine",
   "homepage": "https://cali-style.com",
   "author": {
@@ -18,6 +18,7 @@
   ],
   "dependencies": {
     "babyparse": "^0.4.6",
+    "currency-formatter": "^1.2.1",
     "geolib": "^2.0.22",
     "joi": "^10.2.2",
     "moment": "^2.18.1",

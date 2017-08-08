@@ -328,7 +328,7 @@ module.exports = class Transaction extends Model {
         // The three letter code (ISO 4217) for the currency used for the payment.
         currency: {
           type: Sequelize.STRING,
-          defaultValue: 'USD'
+          defaultValue: app.config.proxyCart.default_currency || 'USD'
         },
         // A description of the Transaction
         description: {

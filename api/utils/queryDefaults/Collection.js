@@ -26,6 +26,16 @@ module.exports = {
           }
         }
       ]
+      // order: [
+      //   [
+      //     {
+      //       model: app.orm['Image'],
+      //       through: 'ItemImage',
+      //       as: 'images'
+      //     },
+      //     'position'
+      //   ]
+      // ]
     }
   }
 }

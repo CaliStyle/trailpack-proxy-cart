@@ -26,6 +26,9 @@ module.exports = class Order extends Email {
         return resOrder.resolveOrderItems({transaction: options.transaction || null})
       })
       .then(() => {
+        return resOrder.resolveCustomer({transaction: options.transaction || null})
+      })
+      .then(() => {
 
         const text = data.text || `Order ${ resOrder.name } Created`
         const html = data.html || this.app.templates.Order.created(resOrder)

@@ -24,6 +24,8 @@ module.exports = class CollectionCsvService extends Service {
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
+    let errorsCount = 0
+
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
@@ -40,6 +42,7 @@ module.exports = class CollectionCsvService extends Service {
             })
             .catch(err => {
               this.app.log.error('ROW ERROR', err)
+              errorsCount++
               errors.push(err.message)
               parser.resume()
             })
@@ -52,11 +55,13 @@ module.exports = class CollectionCsvService extends Service {
             .then(count => {
               results.collections = count
               results.errors = errors
+              results.errors_count = errorsCount
               // Publish the event
               ProxyEngineService.publish('collection_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
+              errorsCount++
               errors.push(err.message)
               results.errors = errors
               return resolve(results)
@@ -112,6 +117,9 @@ module.exports = class CollectionCsvService extends Service {
               else if (k == 'title') {
                 upload[k] = data.toString().trim()
               }
+              else if (k == 'description') {
+                upload[k] = data.toString().trim()
+              }
               else if (k == 'discount_product_include') {
                 upload[k] = data.split(',').map(discount => {
                   return discount.trim()
@@ -148,7 +156,7 @@ module.exports = class CollectionCsvService extends Service {
         upload.images = _.map(upload.images, (image, index) => {
           return {
             src: image,
-            alt: upload.images_alt ? upload.images_alt[index] : ''
+            alt: upload.images_alt ? upload.images_alt[index] || null : ''
           }
         })
 
@@ -186,8 +194,9 @@ module.exports = class CollectionCsvService extends Service {
       return Sequelize.Promise.mapSeries(collections, collection => {
 
         const create = {
-          title: collection.title,
           handle: collection.handle,
+          title: collection.title,
+          description: collection.description,
           body: collection.body,
           primary_purpose: collection.primary_purpose,
           position: collection.position,

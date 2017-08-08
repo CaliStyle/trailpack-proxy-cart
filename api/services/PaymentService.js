@@ -2,7 +2,7 @@
 'use strict'
 
 const Service = require('trails/service')
-// const _ = require('lodash')
+const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
@@ -40,16 +40,16 @@ module.exports = class PaymentService extends Service {
       .then(transaction => {
         resTransaction = transaction
         const event = {
-          object_id: transaction.order_id,
+          object_id: resTransaction.order_id,
           object: 'order',
           objects: [{
-            order: transaction.order_id
+            order: resTransaction.order_id
           },{
-            transaction: transaction.id
+            transaction: resTransaction.id
           }],
-          type: `order.transaction.authorize.${transaction.status}`,
-          message: `Order ID ${ transaction.order_id} transaction authorize of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
-          data: transaction
+          type: `order.transaction.authorize.${resTransaction.status}`,
+          message: `Order ID ${ resTransaction.order_id} transaction authorize of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          data: _.omit(resTransaction,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -98,16 +98,16 @@ module.exports = class PaymentService extends Service {
       .then(transaction => {
         resTransaction = transaction
         const event = {
-          object_id: transaction.order_id,
+          object_id: resTransaction.order_id,
           object: 'order',
           objects: [{
-            order: transaction.order_id
+            order: resTransaction.order_id
           },{
-            transaction: transaction.id
+            transaction: resTransaction.id
           }],
-          type: `order.transaction.capture.${transaction.status}`,
-          message: `Order ID ${transaction.order_id} transaction capture of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
-          data: transaction
+          type: `order.transaction.capture.${resTransaction.status}`,
+          message: `Order ID ${resTransaction.order_id} transaction capture of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          data: _.omit(resTransaction,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -157,8 +157,8 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.sale.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction sale of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
-          data: resTransaction
+          message: `Order ID ${resTransaction.order_id} transaction sale of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          data: _.omit(resTransaction,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -197,8 +197,8 @@ module.exports = class PaymentService extends Service {
             transaction: transaction.id
           }],
           type: `order.transaction.${transaction.kind}.${transaction.status}`,
-          message: `Order ID ${transaction.order_id} transaction ID ${ transaction.id } ${transaction.kind} of ${transaction.amount} ${transaction.currency} ${transaction.status}`,
-          data: transaction
+          message: `Order ID ${transaction.order_id} transaction ID ${ transaction.id } ${transaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(transaction.amount,transaction.currency)} ${transaction.currency} ${transaction.status}`,
+          data: _.omit(transaction,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -253,8 +253,8 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.void.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } voided of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
-          data: resTransaction
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } voided of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          data: _.omit(resTransaction,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -311,8 +311,8 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.refund.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } refund of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
-          data: resTransaction
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } refund of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          data: _.omit(resTransaction,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -363,8 +363,8 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: `order.transaction.${resTransaction.kind}.${resTransaction.status}`,
-          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } ${resTransaction.kind} of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
-          data: resTransaction
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } ${resTransaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
+          data: _.omit(resTransaction,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -407,8 +407,8 @@ module.exports = class PaymentService extends Service {
             transaction: resTransaction.id
           }],
           type: 'order.transaction.cancelled',
-          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } of ${resTransaction.amount} ${resTransaction.currency} ${resTransaction.status}`,
-          data: resTransaction
+          message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.status}`,
+          data: _.omit(resTransaction,['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,

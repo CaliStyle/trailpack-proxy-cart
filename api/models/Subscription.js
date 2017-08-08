@@ -285,7 +285,10 @@ module.exports = class Subscription extends Model {
             notifyCustomer: function(preNotification, options) {
               options = options || {}
               if (this.customer_id) {
-                return this.resolveCustomer({transaction: options.transaction || null })
+                return this.resolveCustomer({
+                  attributes: ['id','email','company','first_name','last_name','full_name'],
+                  transaction: options.transaction || null
+                })
                   .then(() => {
                     if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
                       return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})

@@ -4,6 +4,7 @@ module.exports = {
   COLLECTION_UPLOAD: {
     title: 'Title',
     handle: 'Handle',
+    description: 'Description',
     body: 'Body',
     primary_purpose: 'Primary Purpose',
     published: 'Published',

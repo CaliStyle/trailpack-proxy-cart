@@ -440,7 +440,10 @@ module.exports = class Customer extends Model {
              */
             notifyUsers: function(preNotification, options) {
               options = options || {}
-              return this.resolveUsers({transaction: options.transaction || null})
+              return this.resolveUsers({
+                attributes: ['id','email'],
+                transaction: options.transaction || null
+              })
                 .then(() => {
                   if (this.users || this.users.length > 0) {
                     return app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})

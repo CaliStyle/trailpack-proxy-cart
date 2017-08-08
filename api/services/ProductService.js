@@ -163,6 +163,8 @@ module.exports = class ProductService extends Service {
       host: product.host,
       handle: product.handle,
       title: product.title,
+      seo_title: product.seo_title,
+      seo_description: product.seo_description,
       body: product.body,
       type: product.type,
       price: product.price,
@@ -445,6 +447,8 @@ module.exports = class ProductService extends Service {
         const update = {
           host: product.host || resProduct.host,
           handle: product.handle || resProduct.handle,
+          seo_title: product.seo_title || resProduct.seo_title,
+          seo_description: product.seo_description || resProduct.seo_description,
           body: product.body || resProduct.body,
           type: product.type || resProduct.type,
           published_scope: product.published_scope || resProduct.published_scope,
@@ -490,6 +494,7 @@ module.exports = class ProductService extends Service {
           resProduct.seo_title = product.title
         }
         // Update seo_description if provided, else update it if a new product body
+        // TODO Trim to 255.
         if (product.seo_description) {
           resProduct.seo_description = product.seo_description
         }

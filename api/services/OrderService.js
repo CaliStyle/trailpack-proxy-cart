@@ -8,7 +8,7 @@ const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_M
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
 const ORDER_STATUS = require('../utils/enums').ORDER_STATUS
 const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
-const PAYMENT_KIND = require('../utils/enums').PAYMENT_KIND
+// const PAYMENT_KIND = require('../utils/enums').PAYMENT_KIND
 // const orders.fulfillment_kind = require('../utils/enums').orders.fulfillment_kind
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
@@ -33,9 +33,9 @@ module.exports = class OrderService extends Service {
     const Customer = this.app.orm['Customer']
     const Order = this.app.orm['Order']
     const OrderItem = this.app.orm['OrderItem']
-    const Transaction = this.app.orm['Transaction']
+    // const Transaction = this.app.orm['Transaction']
     // const Fulfillment = this.app.orm['Fulfillment']
-    const PaymentService = this.app.services.PaymentService
+    // const PaymentService = this.app.services.PaymentService
 
     // Set the initial total amount due for this order
     let totalDue = obj.total_due
@@ -233,10 +233,13 @@ module.exports = class OrderService extends Service {
             user_id: obj.user_id || null,
             has_shipping: obj.has_shipping,
             has_subscription: obj.has_subscription,
+
+            // Types
             fulfillment_kind: obj.fulfillment_kind || this.app.config.proxyCart.orders.fulfillment_kind,
             payment_kind: obj.payment_kind || this.app.config.proxyCart.orders.payment_kind,
-            transaction_kind: obj.transaction_kind || this.app.config.proxyCart.orders.transaction_kind,
-
+            transaction_kind: obj.transaction_kind
+              || this.app.config.proxyCart.orders.transaction_kind
+              || TRANSACTION_KIND.AUTHORIZE,
             // Gateway
             payment_gateway_names: paymentGatewayNames,
 
@@ -303,7 +306,7 @@ module.exports = class OrderService extends Service {
               }],
               type: 'customer.account_balance.deducted',
               message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } account balance was deducted by ${ deduction }`,
-              data: resCustomer
+              data: _.omit(resCustomer, ['events'])
             }
             return this.app.services.ProxyEngineService.publish(event.type, event, {
               save: true,
@@ -321,6 +324,22 @@ module.exports = class OrderService extends Service {
           }
         })
         .then(() => {
+          // Group fulfillment by service
+          return resOrder.groupFulfillments({transaction: options.transaction || null})
+        })
+        .then(() => {
+          // Group Transactions by Payment Gateway
+          return resOrder.groupTransactions(obj.payment_details, {transaction: options.transaction || null})
+        })
+        .then(() => {
+          // Reload to the freshest copy after all the events
+          return resOrder.reload({transaction: options.transaction || null})
+        })
+        .then(() => {
+          // Save the status changes
+          return resOrder.saveStatus({transaction: options.transaction || null})
+        })
+        .then(() => {
           // TODO REMOVE THIS PART WHEN WE CREATE THE EVENT ELSEWHERE
           if (resCustomer instanceof Customer.Instance) {
             return resCustomer.addOrder(resOrder.id, { transaction: options.transaction || null})
@@ -335,95 +354,12 @@ module.exports = class OrderService extends Service {
                   }],
                   type: 'customer.order.created',
                   message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } Order ${ resOrder.name } was created`,
-                  data: resOrder
+                  data: _.omit(resOrder, ['events'])
                 }
                 return this.app.services.ProxyEngineService.publish(event.type, event, {
                   save: true,
                   transaction: options.transaction || null
                 })
-              })
-          }
-          else {
-            return
-          }
-        })
-        .then(() => {
-          // Group fulfillment by service
-          return this.app.services.FulfillmentService.groupFulfillments(resOrder, {transaction: options.transaction || null})
-            .then(fulfillments => {
-              fulfillments = fulfillments || []
-              resOrder.fulfillments = fulfillments
-              resOrder.setDataValue('fulfillments', fulfillments)
-              resOrder.set('fulfillments', fulfillments)
-              return
-            })
-        })
-        .then(() => {
-          // Set proxy cart default payment kind if not set by order.create
-          let transactionKind = obj.transaction_kind || this.app.config.proxyCart.orders.transaction_kind
-          // Set transaction type to 'manual' if none is specified
-          if (!transactionKind) {
-            this.app.log.debug(`Order does not have a payment function, defaulting to ${TRANSACTION_KIND.AUTHORIZE}`)
-            transactionKind = TRANSACTION_KIND.AUTHORIZE
-          }
-
-          return Order.sequelize.Promise.mapSeries(obj.payment_details, (detail, index) => {
-            const transaction = Transaction.build({
-              // Set the customer id (in case we can save this source)
-              customer_id: resCustomer.id,
-              // Set the order id
-              order_id: resOrder.id,
-              // Set the source if it is given
-              source_id: detail.source ? detail.source.id : null,
-              // Set the order currency
-              currency: resOrder.currency,
-              // Set the amount for this transaction and handle if it is a split transaction
-              amount: detail.amount || resOrder.total_due,
-              // Copy the entire payment details to this transaction
-              payment_details: obj.payment_details[index],
-              // Specify the gateway to use
-              gateway: detail.gateway,
-              // Set the specific type of transactions this is
-              kind: transactionKind,
-              // Set the device (that input the credit card) or null
-              device_id: obj.device_id || null,
-              // Set the Description
-              description: `Order ${resOrder.name} original transaction ${resOrder.transaction_kind}`
-            })
-            // Return the Payment Service
-            if (resOrder.payment_kind === PAYMENT_KIND.MANUAL) {
-              return PaymentService.manual(transaction, {transaction: options.transaction || null})
-            }
-            else {
-              return PaymentService[resOrder.transaction_kind](transaction, {transaction: options.transaction || null})
-            }
-          })
-        })
-        .then(transactions => {
-          transactions = transactions || []
-          resOrder.transactions = transactions
-          resOrder.setDataValue('transactions', transactions)
-          resOrder.set('transactions', transactions)
-          // Reload to the freshest copy after all the events
-          return resOrder.reload({transaction: options.transaction || null})
-        })
-        .then(() => {
-          // Save the status changes
-          return resOrder.saveStatus({transaction: options.transaction || null})
-        })
-        .then(() => {
-          if (resOrder.customer_id) {
-            return this.app.emails.Order.created(resOrder, {
-              send_email: this.app.config.proxyCart.emails.orderCreated
-            }, {
-              transaction: options.transaction || null
-            })
-              .then(email => {
-                return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
-              })
-              .catch(err => {
-                this.app.log.error(err)
-                return
               })
           }
           else {
@@ -470,6 +406,25 @@ module.exports = class OrderService extends Service {
 
         return resOrder.save({transaction: options.transaction || null})
       })
+      .then(() => {
+        if (resOrder.customer_id) {
+          return this.app.emails.Order.updated(resOrder, {
+            send_email: this.app.config.proxyCart.emails.orderUpdated
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(email => {
+              return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          return
+        }
+      })
       .then(resOrder => {
         return Order.findByIdDefault(resOrder.id)
       })
@@ -507,9 +462,45 @@ module.exports = class OrderService extends Service {
           return this.app.services.TransactionService.capture(transaction, {transaction: options.transaction || null})
         })
       })
-      .then(capturedTransactions => {
-        // console.log('Captured Transactions', capturedTransactions)
-        return this.app.orm['Order'].findByIdDefault(resOrder.id)
+      .then(() => {
+        const event = {
+          object_id: resOrder.id,
+          object: 'order',
+          objects: [{
+            customer: resOrder.customer_id
+          }, {
+            order: resOrder.id
+          }],
+          type: `order.${resOrder.financial_status}`,
+          message: `Order ${ resOrder.name } was ${resOrder.financial_status}`,
+          data: _.omit(resOrder, ['events'])
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
+      })
+      .then((event) => {
+        if (resOrder.financial_status === ORDER_FINANCIAL.PAID && resOrder.customer_id) {
+          return this.app.emails.Order.paid(resOrder, {
+            send_email: this.app.config.proxyCart.emails.orderPaid
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(email => {
+              return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          return
+        }
+      })
+      .then((notifications) => {
+        return this.app.orm['Order'].findByIdDefault(resOrder.id, {transaction: options.transaction || null})
       })
   }
   /**
@@ -610,6 +601,7 @@ module.exports = class OrderService extends Service {
         resOrder.total_refunds = totalRefunds
         return resOrder.saveFinancialStatus({transaction: options.transaction || null})
       })
+
       .then(order => {
         return Order.findByIdDefault(resOrder.id)
       })
@@ -712,6 +704,43 @@ module.exports = class OrderService extends Service {
         resOrder.total_refunds = totalRefunds
         return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
       })
+      .then(() => {
+        const event = {
+          object_id: resOrder.id,
+          object: 'order',
+          objects: [{
+            customer: resOrder.customer_id
+          }, {
+            order: resOrder.id
+          }],
+          type: `order.${resOrder.financial_status}`,
+          message: `Order ${ resOrder.name } was ${resOrder.financial_status}`,
+          data: _.omit(resOrder, ['events'])
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
+      })
+      .then(() => {
+        if (resOrder.customer_id) {
+          return this.app.emails.Order.refunded(resOrder, {
+            send_email: this.app.config.proxyCart.emails.orderRefunded
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(email => {
+              return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          return
+        }
+      })
       .then(order => {
         return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
       })
@@ -720,12 +749,12 @@ module.exports = class OrderService extends Service {
   /**
    *
    * @param order
-   * @param authorizes
+   * @param authorizations
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
-  authorize(order, authorizes, options) {
-    authorizes = authorizes || []
+  authorize(order, authorizations, options) {
+    authorizations = authorizations || []
     options = options || {}
     const Order = this.app.orm['Order']
     const Sequelize = Order.sequelize
@@ -743,9 +772,9 @@ module.exports = class OrderService extends Service {
       })
       .then(() => {
         // Partially Authorize
-        if (authorizes.length > 0) {
+        if (authorizations.length > 0) {
           // Filter the authorizations
-          const toAuthorize = authorizes.filter(authorize => {
+          const toAuthorize = authorizations.filter(authorize => {
             const authorizeTransaction = resOrder.transactions.find(transaction => transaction.id == authorize.transaction)
             if (
               authorizeTransaction.kind == TRANSACTION_KIND.AUTHORIZE
@@ -780,7 +809,7 @@ module.exports = class OrderService extends Service {
           })
         }
       })
-      .then(authorized => {
+      .then(() => {
         return resOrder.saveFinancialStatus({ transaction: options.transaction || null })
       })
       .then(order => {
@@ -1072,7 +1101,7 @@ module.exports = class OrderService extends Service {
           }],
           type: 'order.cancelled',
           message: `Order ${resOrder.name} was cancelled`,
-          data: resOrder
+          data: _.omit(resOrder, ['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,

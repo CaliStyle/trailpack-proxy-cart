@@ -342,10 +342,12 @@ module.exports = class Collection extends Model {
         },
 
         // Multi Site Support
-        // TODO possibly switch to store_id for multi tenant support?
-        host: {
-          type: Sequelize.STRING,
-          defaultValue: 'localhost'
+        shop_id: {
+          type: Sequelize.INTEGER
+        },
+        // A description in text
+        description: {
+          type: Sequelize.TEXT
         },
         // The body of a collection (in markdown or html)
         body: {

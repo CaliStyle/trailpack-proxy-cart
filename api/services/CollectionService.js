@@ -44,27 +44,21 @@ module.exports = class CollectionService extends Service {
    */
   create(collection, options) {
     options = options || {}
-    // options = _.defaultsDeep(options, {
-    //   include: [
-    //     {
-    //       model: this.app.orm['Image'],
-    //       as: 'images'
-    //     }
-    //   ]
-    // })
     const Collection =  this.app.orm.Collection
     const Image =  this.app.orm.Image
 
     let resCollection
     const create = _.omit(collection, ['collections','images'])
-    return Collection.create(create, options)
+    return Collection.create(create, {transaction: options.transaction || null})
       .then(createdCollection => {
+        if (!createdCollection) {
+          throw new Error('Collection was not created')
+        }
         resCollection = createdCollection
 
         if (collection.collections && collection.collections.length > 0) {
           // Resolve the collections
           collection.collections = _.sortedUniq(collection.collections.filter(n => n))
-          // console.log('THIS COLLECTION COLLECTIONS NOW', collection.collections)
           return Collection.transformCollections(collection.collections, {transaction: options.transaction || null})
         }
         return []
@@ -77,7 +71,6 @@ module.exports = class CollectionService extends Service {
         return
       })
       .then(collections => {
-        // console.log('added collections', collections)
         if (collection.images && collection.images.length > 0) {
           // Resolve the images
           collection.images = _.sortedUniq(collection.images.filter(n => n))
@@ -86,16 +79,15 @@ module.exports = class CollectionService extends Service {
         return []
       })
       .then(images => {
-        // console.log('THESE COLLECTIONS RESOLVED', collections)
         if (images && images.length > 0) {
-          return Promise.all(images.map((image, index) => {
-            return resCollection.addImage(image.id, {position: index + 1})
-          }))
+          return Collection.sequelize.Promise.mapSeries(images, (image, index) => {
+            return resCollection.addImage(image.id, {through: {position: index + 1 }, transaction: options.transaction || null})
+          })
         }
         return
       })
       .then(() => {
-        return Collection.findByIdDefault(resCollection.id, options)
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -115,9 +107,9 @@ module.exports = class CollectionService extends Service {
     }
     let resCollection
     const update = _.omit(collection,['id','created_at','updated_at','collections','images'])
-    return Collection.findByIdDefault(collection.id)
+    return Collection.findByIdDefault(collection.id, {transaction: options.transaction || null})
       .then(resCollection => {
-        return resCollection.update(update, options)
+        return resCollection.update(update, {transaction: options.transaction || null})
       })
       .then(updatedCollection => {
         resCollection = updatedCollection
@@ -140,14 +132,19 @@ module.exports = class CollectionService extends Service {
           collection.images = _.sortedUniq(collection.images.filter(n => n))
           return Image.transformImages(collection.images, {transaction: options.transaction || null})
         }
-        return []
+        else {
+          return []
+        }
       })
       .then(images => {
         // console.log('THESE COLLECTIONS RESOLVED', collections)
         if (images && images.length > 0) {
-          return Promise.all(images.map((image, index) => {
-            return resCollection.addImage(image.id, {position: index + 1, transaction: options.transaction || null})
-          }))
+          return Collection.sequelize.Promise.mapSeries(images, (image, index) => {
+            return resCollection.addImage(image.id, {
+              through: {position: index + 1},
+              transaction: options.transaction || null
+            })
+          })
         }
         return
       })

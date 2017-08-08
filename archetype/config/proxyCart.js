@@ -26,6 +26,8 @@ module.exports = {
     // Allows a product variant to be destroyed, Recommended false
     destroy_variant: false
   },
+  // The default currency used
+  default_currency: 'USD',
   // The countries to load by default
   default_countries: ['USA'],
   // Subscriptions
@@ -68,6 +70,7 @@ module.exports = {
     sourceUpdated: false,
     subscriptionCreated: false,
     subscriptionUpdated: false,
+    subscriptionActivated: false,
     subscriptionDeactivated: false,
     subscriptionCancelled: false,
     subscriptionWillRenew: false,

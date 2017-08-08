@@ -8,6 +8,7 @@ const joi = require('joi')
 const sharp = require('sharp')
 const lib = require('../../lib')
 const geolib = require('geolib')
+const currencyFormatter = require('currency-formatter')
 
 /**
  * @module ProxyCartService
@@ -233,6 +234,16 @@ module.exports = class ProxyCartService extends Service {
     return true
   }
 
+  /**
+   *
+   * @param num
+   * @param currency
+   * @returns {*}
+   */
+  formatCurrency(num, currency) {
+    currency = currency || this.app.config.proxyCart.default_currency
+    return currencyFormatter.format(num / 100, { code: currency.toUpperCase() })
+  }
   /**
    *
    * @param address

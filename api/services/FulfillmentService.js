@@ -2,7 +2,7 @@
 'use strict'
 
 const Service = require('trails/service')
-const _ = require('lodash')
+// const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
@@ -16,91 +16,10 @@ module.exports = class FulfillmentService extends Service {
   /**
    *
    * @param order
-   * @param options
-   * @returns {Promise.<TResult>}
-   */
-  groupFulfillments(order, options) {
-    options = options || {}
-    const Order = this.app.orm['Order']
-    let resOrder
-    return Order.resolve(order, { transaction: options.transaction || null })
-      .then(foundOrder => {
-        if (!foundOrder) {
-          throw new Error('Order Not Found')
-        }
-        resOrder = foundOrder
-        return resOrder.resolveOrderItems({ transaction: options.transaction || null })
-      })
-      .then(() => {
-        return resOrder.resolveFulfillments({ transaction: options.transaction || null })
-      })
-      .then(() => {
-
-        // Group by Service
-        let groups = _.groupBy(resOrder.order_items, 'fulfillment_service')
-        // Map into array
-        groups = _.map(groups, (items, service) => {
-          return { service: service, items: items }
-        })
-        // Create the non sent fulfillments
-        return Order.sequelize.Promise.mapSeries(groups, (group) => {
-          const resFulfillment = resOrder.fulfillments.find(fulfillment => fulfillment.service == group.service)
-          return resFulfillment.addOrder_items(group.items, {
-            hooks: false,
-            individualHooks: false,
-            returning: false,
-            transaction: options.transaction || null
-          })
-            .then(() => {
-              return resFulfillment.reload({ transaction: options.transaction || null })
-            })
-            // .then(() => {
-            //   return resFulfillment.saveFulfillmentStatus()
-            // })
-        })
-      })
-      .then((fulfillments) => {
-        fulfillments = fulfillments || []
-        resOrder.fulfillments = fulfillments
-        resOrder.setDataValue('fulfillments', fulfillments)
-        resOrder.set('fulfillments', fulfillments)
-        return fulfillments
-      })
-  }
-  /**
-   *
-   * @param order
+   * @param fulfillment
    * @param options
    * @returns {Promise.<T>}
    */
-  sendOrderToFulfillment(order, options) {
-    options = options || {}
-    const Order = this.app.orm['Order']
-    let resOrder
-    return Order.resolve(order, {transaction: options.transaction || null})
-      .then(foundOrder => {
-        if (!foundOrder) {
-          throw new Error('Order Not Found')
-        }
-        resOrder = foundOrder
-
-        return resOrder.resolveFulfillments({transaction: options.transaction || null})
-      })
-      .then(() => {
-        return Order.sequelize.Promise.mapSeries(resOrder.fulfillments, fulfillment => {
-          return this.sendFulfillment(resOrder, fulfillment, {transaction: options.transaction || null})
-        })
-      })
-      .then(fulfillments => {
-        fulfillments = fulfillments || []
-        resOrder.fulfillments = fulfillments
-        resOrder.setDataValue('fulfillments', fulfillments)
-        resOrder.set('fulfillments', fulfillments)
-
-        return fulfillments
-      })
-  }
-
   sendFulfillment(order, fulfillment, options) {
     options = options || {}
     const Order = this.app.orm['Order']
