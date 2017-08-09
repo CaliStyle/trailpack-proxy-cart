@@ -1,6 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
+const Errors = require('proxy-engine-errors')
 const DISCOUNT_TYPES = require('../utils/enums').DISCOUNT_TYPES
 const DISCOUNT_STATUS = require('../utils/enums').DISCOUNT_STATUS
 const _ = require('lodash')
@@ -136,10 +137,68 @@ module.exports = class Discount extends Model {
               }
               return recursiveQuery(options)
             },
-            // TODO
+            /**
+             *
+             * @param discount
+             * @param options
+             * @returns {*}
+             */
             resolve: function(discount, options){
-              return Promise.resolve(discount)
-              //
+              options = options || {}
+              const Discount =  this
+
+              if (discount instanceof Discount.Instance){
+                return Promise.resolve(discount)
+              }
+              else if (discount && _.isObject(discount) && discount.id) {
+                return Discount.findById(discount.id, options)
+                  .then(foundDiscount => {
+                    if (!foundDiscount) {
+                      throw new Errors.FoundError(Error(`Discount ${discount.id} not found`))
+                    }
+                    return foundDiscount
+                  })
+              }
+              else if (discount && _.isObject(discount) && discount.code) {
+                return Discount.findOne(_.defaultsDeep({
+                  where: {
+                    code: discount.code
+                  }
+                }, options))
+                  .then(foundDiscount => {
+                    if (!foundDiscount) {
+                      throw new Errors.FoundError(Error(`Discount ${discount.code} not found`))
+                    }
+                    return foundDiscount
+                  })
+              }
+              else if (discount && _.isNumber(discount)) {
+                return Discount.findById(discount, options)
+                  .then(foundDiscount => {
+                    if (!foundDiscount) {
+                      throw new Errors.FoundError(Error(`Discount ${discount} not found`))
+                    }
+                    return foundDiscount
+                  })
+              }
+              else if (discount && _.isString(discount)) {
+                return Discount.findOne(_.defaultsDeep({
+                  where: {
+                    code: discount
+                  }
+                }, options))
+                  .then(foundDiscount => {
+                    if (!foundDiscount) {
+                      throw new Errors.FoundError(Error(`Discount ${discount} not found`))
+                    }
+                    return foundDiscount
+                  })
+              }
+              else {
+                // TODO make Proper Error
+                const err = new Error(`Not able to resolve discount ${discount}`)
+                return Promise.reject(err)
+              }
             }
           }
         }
@@ -152,21 +211,31 @@ module.exports = class Discount extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        // Specify how the discount's value will be applied to the order. Valid values are:
-        //
-        discount_type: {
-          type: Sequelize.ENUM,
-          values: _.values(DISCOUNT_TYPES),
-          defaultValue: DISCOUNT_TYPES.FIXED_AMOUNT
-        },
         // The case-insensitive discount code that customers use at checkout. Required when creating a discount. Maximum length of 255 characters.
         code: {
           type: Sequelize.STRING
         },
-        // The value of the discount. Required when creating a percentage-based or fixed-amount discount. See the discount_type property to learn more about how value is interpreted.
-        value: {
-          type: Sequelize.INTEGER,
-          defaultValue: 0
+        // Specify how the discount's value will be applied to the order. Valid values are: rate, percentage, shipping
+        //
+        discount_type: {
+          type: Sequelize.ENUM,
+          values: _.values(DISCOUNT_TYPES),
+          defaultValue: DISCOUNT_TYPES.RATE
+        },
+        // The value of the discount. Required when creating a percentage-based discount. See the discount_type property to learn more about how value is interpreted.
+        discount_rate: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        // The value of the discount. Required when creating a rate-based discount. See the discount_type property to learn more about how value is interpreted.
+        discount_percentage: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        // The value of the discount. Required when creating a shipping-based discount. See the discount_type property to learn more about how value is interpreted.
+        discount_shipping: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
         },
         // The date when the discount code becomes disabled
         ends_at: {

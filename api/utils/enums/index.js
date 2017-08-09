@@ -20,6 +20,8 @@ module.exports = {
     discount_percentage: 'Discount Percentage',
     discount_product_include: 'Discount Product Include',
     discount_product_exclude: 'Discount Product Exclude',
+    shipping_product_exclude: 'Discount Product Exclude',
+    tax_product_exclude: 'Discount Product Exclude',
     images: 'Images',
     images_alt: 'Images Alt',
     collections: 'Collections'
@@ -225,7 +227,7 @@ module.exports = {
     // A percentage of the price was discounted
     PERCENTAGE: 'percentage',
     // A fixed amount of the price was discounted
-    FIXED_AMOUNT: 'fixed_amount',
+    RATE: 'rate',
     // Shipping was discounted
     SHIPPING: 'shipping'
   },

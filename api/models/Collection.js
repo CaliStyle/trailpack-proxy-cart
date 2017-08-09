@@ -321,6 +321,7 @@ module.exports = class Collection extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // The handle of the Collection
         handle: {
           type: Sequelize.STRING,
           allowNull: false,
@@ -329,6 +330,7 @@ module.exports = class Collection extends Model {
             this.setDataValue('handle', app.services.ProxyCartService.slug(val))
           }
         },
+        // The title of the Collection
         title: {
           type: Sequelize.STRING,
           allowNull: false,
@@ -341,7 +343,7 @@ module.exports = class Collection extends Model {
           defaultValue: COLLECTION_PURPOSE.GROUP
         },
 
-        // Multi Site Support
+        // The id of the Shop
         shop_id: {
           type: Sequelize.INTEGER
         },
@@ -389,74 +391,87 @@ module.exports = class Collection extends Model {
         },
 
         // TODO Tax Override for products in this collection
-        tax_rate: {
-          type: Sequelize.FLOAT,
-          defaultValue: 0.0
-        },
-        tax_percentage: {
-          type: Sequelize.FLOAT,
-          defaultValue: 0.0
-        },
+        // The type of a tax modifier
         tax_type: {
           type: Sequelize.ENUM,
           values: _.values(COLLECTION_TAX_TYPE),
           defaultValue: COLLECTION_TAX_TYPE.PERCENTAGE
         },
+        // The rate of added tax if tax_type is a rate
+        tax_rate: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        // The percentage of added tax if tax_type is a percentage
+        tax_percentage: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        // The name of the tax modifier
         tax_name: {
           type: Sequelize.STRING
         },
 
         // TODO Shipping Override for products in this collection
-        shipping_rate: {
-          type: Sequelize.FLOAT,
-          defaultValue: 0.0
-        },
-        shipping_percentage: {
-          type: Sequelize.FLOAT,
-          defaultValue: 0.0
-        },
+        // The type of the shipping modifier (rate, percentage)
         shipping_type: {
           type: Sequelize.ENUM,
           values: _.values(COLLECTION_SHIPPING_TYPE),
           defaultValue: COLLECTION_SHIPPING_TYPE.PERCENTAGE
         },
+        // The shipping rate to be applied if shipping_type is rate
+        shipping_rate: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        // The shipping percentage to be applied if shipping_type is percentage
+        shipping_percentage: {
+          type: Sequelize.FLOAT,
+          defaultValue: 0.0
+        },
+        // The name of the shipping modifier
         shipping_name: {
           type: Sequelize.STRING
         },
-
+        // The scope of the discount price modifier for the collection (individual, global)
         discount_scope: {
           type: Sequelize.ENUM,
           values: _.values(COLLECTION_DISCOUNT_SCOPE),
           defaultValue: COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL
         },
+        // The type of the discount modifier (rate, percentage)
         discount_type: {
           type: Sequelize.ENUM,
           values: _.values(COLLECTION_DISCOUNT_TYPE),
           defaultValue: COLLECTION_DISCOUNT_TYPE.PERCENTAGE
         },
+        // The discount rate if the discount_type is rate
         discount_rate: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },
-        // A percentage to apply
+        // A percentage to apply if the discount_type is percentage
         discount_percentage: {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },
+        // TODO allow product includes
         // List of product types allowed to discount
         discount_product_include: helpers.JSONB('Collection', app, Sequelize, 'discount_product_include', {
           defaultValue: []
         }),
-        // discount_product_include: helpers.ARRAY('Collection', app, Sequelize, Sequelize.STRING, 'discount_product_include', {
-        //   defaultValue: []
-        // }),
-        // List of product types to forcefully excluded from discount
+        // List of product_type [<string>] to forcefully excluded from discount modifiers
         discount_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'discount_product_exclude', {
           defaultValue: []
         }),
-        // discount_product_exclude: helpers.ARRAY('Collection', app, Sequelize, Sequelize.STRING, 'discount_product_exclude', {
-        //   defaultValue: []
-        // }),
+        // List of product_type [<string>] to forcefully excluded from shipping modifiers
+        shipping_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'shipping_product_exclude', {
+          defaultValue: []
+        }),
+        // List of product_type [<string>] to forcefully excluded from tax modifiers
+        tax_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'tax_product_exclude', {
+          defaultValue: []
+        }),
         // Live Mode
         live_mode: {
           type: Sequelize.BOOLEAN,
