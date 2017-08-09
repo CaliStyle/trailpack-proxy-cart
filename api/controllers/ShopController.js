@@ -54,7 +54,10 @@ module.exports = class ShopController extends Controller {
       .then(shops => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, shops.count, limit, offset, sort)
-        return res.json(shops.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, shops.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -73,7 +76,10 @@ module.exports = class ShopController extends Controller {
         return ShopService.create(req.body)
       })
       .then(shop => {
-        return res.json(shop)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, shop)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ShopController.create', err)

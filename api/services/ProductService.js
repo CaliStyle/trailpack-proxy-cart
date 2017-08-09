@@ -305,10 +305,10 @@ module.exports = class ProductService extends Service {
           model: Vendor,
           as: 'vendors'
         },
-        {
-          model: Collection,
-          as: 'collections'
-        }
+        // {
+        //   model: Collection,
+        //   as: 'collections'
+        // }
       ]
     })
       .then(createdProduct => {

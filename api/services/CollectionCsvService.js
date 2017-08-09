@@ -239,8 +239,8 @@ module.exports = class CollectionCsvService extends Service {
         const results = {
           upload_id: uploadId,
           collections: collectionsTotal,
-          errors: errors,
-          errors_count: errorsCount
+          errors_count: errorsCount,
+          errors: errors
         }
         this.app.services.ProxyEngineService.publish('collection_process.complete', results)
         return results

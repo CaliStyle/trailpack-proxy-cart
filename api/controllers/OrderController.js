@@ -47,7 +47,10 @@ module.exports = class OrderController extends Controller {
         if (!order) {
           throw new Errors.FoundError(Error(`Order id ${ req.params.id } not found`))
         }
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -67,7 +70,10 @@ module.exports = class OrderController extends Controller {
         if (!order) {
           throw new Errors.FoundError(Error(`Order token ${ req.params.token } not found`))
         }
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -87,7 +93,10 @@ module.exports = class OrderController extends Controller {
         if (!order) {
           throw new Errors.FoundError(Error(`Order ${ req.params.id } not found`))
         }
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -116,7 +125,10 @@ module.exports = class OrderController extends Controller {
       .then(orders => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, orders.count, limit, offset, sort)
-        return res.json(orders.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orders.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -166,7 +178,10 @@ module.exports = class OrderController extends Controller {
       .then(orders => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, orders.count, limit, offset, sort)
-        return res.json(orders.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orders.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -215,12 +230,15 @@ module.exports = class OrderController extends Controller {
         // console.log('cart checkout order.create', preparedOrder)
         return OrderService.create(preparedOrder)
       })
-      .then(data => {
+      .then(order => {
         // console.log('CartController.checkout Order', data)
-        if (!data) {
+        if (!order) {
           throw new Error('Unexpected Error while creating order')
         }
-        return res.json(data)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('cart checkout order.create', err)
@@ -241,7 +259,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.update(req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -261,7 +282,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.cancel(req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -280,7 +304,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.authorize(req.params.id, req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -299,7 +326,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.capture(req.params.id, req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -318,7 +348,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.void(req.params.id, req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -336,7 +369,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.retry(req.params.id, req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -354,7 +390,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.refund(req.params.id, req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -389,7 +428,10 @@ module.exports = class OrderController extends Controller {
       .then(refunds => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, refunds.count, limit, offset, sort)
-        return res.json(refunds.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, refunds.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -455,8 +497,11 @@ module.exports = class OrderController extends Controller {
   addTag(req, res){
     const OrderService = this.app.services.OrderService
     OrderService.addTag(req.params.id, req.params.tag)
-      .then(data => {
-        return res.json(data)
+      .then(tag => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tag)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('OrderController.addTag', err)
@@ -471,8 +516,11 @@ module.exports = class OrderController extends Controller {
   removeTag(req, res){
     const OrderService = this.app.services.OrderService
     OrderService.removeTag(req.params.id, req.params.tag)
-      .then(data => {
-        return res.json(data)
+      .then(tag => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tag)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('OrderController.removeTag', err)
@@ -491,8 +539,11 @@ module.exports = class OrderController extends Controller {
       .then(values => {
         return OrderService.addItem(req.params.id, req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -509,8 +560,11 @@ module.exports = class OrderController extends Controller {
       .then(values => {
         return OrderService.updateItem(req.params.id, req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -527,8 +581,11 @@ module.exports = class OrderController extends Controller {
       .then(values => {
         return OrderService.removeItem(req.params.id, req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -546,8 +603,11 @@ module.exports = class OrderController extends Controller {
       .then(values => {
         return OrderService.addShipping(req.params.id, req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -565,8 +625,11 @@ module.exports = class OrderController extends Controller {
       .then(values => {
         return OrderService.removeShipping(req.params.id, req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -584,8 +647,11 @@ module.exports = class OrderController extends Controller {
       .then(values => {
         return OrderService.addTaxes(req.params.id, req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -603,8 +669,11 @@ module.exports = class OrderController extends Controller {
       .then(values => {
         return OrderService.removeTaxes(req.params.id, req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -623,7 +692,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.pay(req.params.id, req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -642,7 +714,10 @@ module.exports = class OrderController extends Controller {
         return OrderService.fulfill(req.params.id, req.body)
       })
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -665,7 +740,10 @@ module.exports = class OrderController extends Controller {
     }
     Event.findById(eventId)
       .then(event => {
-        return res.json(event)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, event)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -702,7 +780,10 @@ module.exports = class OrderController extends Controller {
       .then(events => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, events.count, limit, offset, sort)
-        return res.json(events.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, events.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -738,7 +819,10 @@ module.exports = class OrderController extends Controller {
       .then(transactions => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, transactions.count, limit, offset, sort)
-        return res.json(transactions.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transactions.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -773,7 +857,10 @@ module.exports = class OrderController extends Controller {
       .then(fulfillments => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, fulfillments.count, limit, offset, sort)
-        return res.json(fulfillments.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, fulfillments.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

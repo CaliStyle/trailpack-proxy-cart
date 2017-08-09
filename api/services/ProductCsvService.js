@@ -409,6 +409,7 @@ module.exports = class ProductCsvService extends Service {
         handle: handle,
         upload_id: uploadId
       },
+      order: 'id ASC',
       transaction: options.transaction || null
     })
       .then(products => {
@@ -434,7 +435,21 @@ module.exports = class ProductCsvService extends Service {
           delete product.associations
           return product
         })
-        // Sort the products
+
+        // Sort the products to find the default if they got out of order somewhere
+        if (!products[0].title || products[0].title == '') {
+          products = products.sort((a,b) => {
+            if (a.title > b.title) {
+              return 1
+            }
+            else if (a.title < b.title) {
+              return 0
+            }
+            else {
+              return -1
+            }
+          })
+        }
 
         // Construct Root Product
         const defaultProduct = products.shift()

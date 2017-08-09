@@ -36,7 +36,10 @@ module.exports = class CartController extends Controller {
           })
         })
         .then(cart => {
-          return res.json(cart)
+          return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+        })
+        .then(result => {
+          return res.json(result)
         })
         .catch(err => {
           // console.log('ProductController.checkout', err)
@@ -76,7 +79,10 @@ module.exports = class CartController extends Controller {
     if (!req.cart) {
       return res.sendStatus(401)
     }
-    return res.json(req.cart)
+    return this.app.services.ProxyPermissionsService.sanitizeResult(req, req.cart)
+    .then(result => {
+      return res.json(result)
+    })
     // req.cart.recalculate()
     //   .then(cart => {
     //     return res.json(cart)
@@ -99,7 +105,10 @@ module.exports = class CartController extends Controller {
         if (!cart) {
           throw new Errors.FoundError(Error(`Cart id ${id} not found`))
         }
-        return res.json(cart)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -128,7 +137,10 @@ module.exports = class CartController extends Controller {
       .then(carts => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, carts.count, limit, offset, sort)
-        return res.json(carts.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, carts.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -170,7 +182,10 @@ module.exports = class CartController extends Controller {
         })
       })
       .then(cart => {
-        return res.json(cart)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.create', err)
@@ -216,7 +231,10 @@ module.exports = class CartController extends Controller {
         })
       })
       .then(cart => {
-        return res.json(cart)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.create', err)
@@ -270,7 +288,7 @@ module.exports = class CartController extends Controller {
         if (!data || !data.cart || !data.order) {
           throw new Error('Unexpected Error while checking out')
         }
-
+        // TODO sanatize this
         return res.json({
           cart: data.cart,
           order: data.order
@@ -297,12 +315,14 @@ module.exports = class CartController extends Controller {
       .then(values => {
         return CartService.addItemsToCart(req.body, id)
       })
-      .then(data => {
-        // console.log('ProductController.addItemsToCart',data)
-        if (!data) {
+      .then(cart => {
+        if (!cart) {
           throw new Error('Unexpected Error while adding items')
         }
-        return res.json(data)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.addItemsToCart', err)
@@ -325,11 +345,14 @@ module.exports = class CartController extends Controller {
       .then(values => {
         return CartService.removeItemsFromCart(req.body, id)
       })
-      .then(data => {
-        if (!data) {
+      .then(cart => {
+        if (!cart) {
           throw new Error('Unexpected Error while removing items')
         }
-        return res.json(data)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.removeItemsFromCart', err)
@@ -357,7 +380,10 @@ module.exports = class CartController extends Controller {
         if (!cart) {
           throw new Error('Unexpected Error while overriding prices')
         }
-        return res.json(cart)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.removeItemsFromCart', err)
@@ -380,8 +406,14 @@ module.exports = class CartController extends Controller {
       .then(values => {
         return CartService.clearCart(id)
       })
-      .then(data => {
-        return res.json(data)
+      .then(cart => {
+        if (!cart) {
+          throw new Error('Unexpected error while clearing cart')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.clearCart', err)
@@ -428,7 +460,13 @@ module.exports = class CartController extends Controller {
         })
       })
       .then(cart => {
-        return res.json(cart)
+        if (!cart) {
+          throw new Error('Unexpected Error while login cart in')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.clearCart', err)
@@ -474,7 +512,13 @@ module.exports = class CartController extends Controller {
         })
       })
       .then(cart => {
-        return res.json(cart)
+        if (!cart) {
+          throw new Error('Unexpected Error while switching cart')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

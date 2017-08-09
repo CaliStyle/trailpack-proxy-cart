@@ -56,7 +56,10 @@ module.exports = class VendorController extends Controller {
       .then(vendors => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, vendors.count, limit, offset, sort)
-        return res.json(vendors.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, vendors.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

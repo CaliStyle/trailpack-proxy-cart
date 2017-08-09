@@ -9,9 +9,20 @@ const lib = require('../../lib')
  * @description Generated Trails.js Controller.
  */
 module.exports = class ReviewController extends Controller {
+  /**
+   *
+   * @param req
+   * @param res
+   */
   generalStats(req, res) {
     return res.json({})
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   count(req, res) {
     const ProxyEngineService = this.app.services.ProxyEngineService
     ProxyEngineService.count('Review')
@@ -25,6 +36,12 @@ module.exports = class ReviewController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findById(req, res) {
     const orm = this.app.orm
     const Review = orm['Review']
@@ -35,12 +52,21 @@ module.exports = class ReviewController extends Controller {
         if (!review) {
           throw new Errors.FoundError(Error(`Review id ${id} not found`))
         }
-        return res.json(review)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, review)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findAll(req, res) {
     const orm = this.app.orm
     const Review = orm['Review']
@@ -58,7 +84,10 @@ module.exports = class ReviewController extends Controller {
       .then(reviews => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, reviews.count, limit, offset, sort)
-        return res.json(reviews.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, reviews.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -80,38 +109,57 @@ module.exports = class ReviewController extends Controller {
       .then(values => {
         return ReviewService.create(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(review => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, review)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ReviewController.removeVariant', err)
         return res.serverError(err)
       })
   }
-  // TODO
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   update(req, res) {
     const ReviewService = this.app.services.ReviewService
     lib.Validator.validateImage.update(req.body)
       .then(values => {
         return ReviewService.update(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(review => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, review)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ReviewController.removeVariant', err)
         return res.serverError(err)
       })
   }
-  // TODO
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   destroy(req, res) {
     const ReviewService = this.app.services.ReviewService
     lib.Validator.validateImage.destroy(req.body)
       .then(values => {
         return ReviewService.destroy(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(review => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, review)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ReviewController.removeVariant', err)

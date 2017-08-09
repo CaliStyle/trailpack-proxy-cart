@@ -44,7 +44,10 @@ module.exports = class CollectionController extends Controller {
         if (!collection) {
           throw new Errors.FoundError(Error(`Collection id ${ req.params.id } not found`))
         }
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -59,7 +62,10 @@ module.exports = class CollectionController extends Controller {
         if (!collection) {
           throw new Errors.FoundError(Error(`Collection handle ${ req.params.handle } not found`))
         }
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -83,7 +89,10 @@ module.exports = class CollectionController extends Controller {
         if (!collection) {
           throw new Errors.FoundError(Error(`Collection id ${ req.params.id } not found`))
         }
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -111,7 +120,10 @@ module.exports = class CollectionController extends Controller {
       .then(collections => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
-        return res.json(collections.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -151,7 +163,10 @@ module.exports = class CollectionController extends Controller {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
 
-        return res.json(collections.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -174,7 +189,10 @@ module.exports = class CollectionController extends Controller {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection Could was not Created'))
         }
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.create', err)
@@ -199,7 +217,10 @@ module.exports = class CollectionController extends Controller {
         if (!collection) {
           throw new Errors.FoundError(Error('Collection was not updated'))
         }
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -217,7 +238,10 @@ module.exports = class CollectionController extends Controller {
 
     CollectionService.addCollection(req.params.id, req.params.collection)
       .then(collection => {
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -235,7 +259,10 @@ module.exports = class CollectionController extends Controller {
 
     CollectionService.removeCollection(req.params.id, req.params.collection)
       .then(collection => {
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -278,7 +305,10 @@ module.exports = class CollectionController extends Controller {
       .then(collections => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
-        return res.json(collections.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -295,7 +325,10 @@ module.exports = class CollectionController extends Controller {
 
     CollectionService.addProduct(req.params.id, req.params.product)
       .then(collection => {
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -313,7 +346,10 @@ module.exports = class CollectionController extends Controller {
 
     CollectionService.removeProduct(req.params.id, req.params.product)
       .then(collection => {
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -356,7 +392,10 @@ module.exports = class CollectionController extends Controller {
       .then(products => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
-        return res.json(products.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -373,7 +412,10 @@ module.exports = class CollectionController extends Controller {
 
     CollectionService.addTag(req.params.id, req.params.tag)
       .then(collection => {
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -391,7 +433,10 @@ module.exports = class CollectionController extends Controller {
 
     CollectionService.removeTag(req.params.id, req.params.tag)
       .then(collection => {
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -434,7 +479,10 @@ module.exports = class CollectionController extends Controller {
       .then(tags => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, tags.count, limit, offset, sort)
-        return res.json(tags.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tags.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -451,7 +499,10 @@ module.exports = class CollectionController extends Controller {
 
     CollectionService.addCustomer(req.params.id, req.params.customer)
       .then(collection => {
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -469,7 +520,10 @@ module.exports = class CollectionController extends Controller {
 
     CollectionService.removeCustomer(req.params.id, req.params.customer)
       .then(collection => {
-        return res.json(collection)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CollectionController.update', err)
@@ -512,7 +566,10 @@ module.exports = class CollectionController extends Controller {
       .then(customers => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
-        return res.json(customers.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

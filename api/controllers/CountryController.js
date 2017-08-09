@@ -23,8 +23,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.createCountry(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(country => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, country)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -36,8 +39,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.updateCountry(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(country => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, country)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -49,8 +55,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.destroyCountry(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(country => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, country)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -85,7 +94,10 @@ module.exports = class CountryController extends Controller {
       .then(countries => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, countries.count, limit, offset, sort)
-        return res.json(countries.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, countries.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -114,7 +126,10 @@ module.exports = class CountryController extends Controller {
       .then(cities => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, cities.count, limit, offset, sort)
-        return res.json(cities.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cities.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -141,8 +156,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.createCity(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(city => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, city)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -160,8 +178,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.updateCity(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(city => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, city)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -179,8 +200,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.destroyCity(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(city => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, city)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -207,8 +231,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.createCounty(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(county => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, county)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -226,8 +253,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.updateCounty(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(county => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, county)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -245,8 +275,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.destroyCounty(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(county => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, county)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -275,7 +308,10 @@ module.exports = class CountryController extends Controller {
       .then(counties => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, counties.count, limit, offset, sort)
-        return res.json(counties.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, counties.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -303,8 +339,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.createProvince(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(province => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, province)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -322,8 +361,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.updateProvince(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(province => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, province)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -341,8 +383,11 @@ module.exports = class CountryController extends Controller {
       .then(values => {
         return CountryService.destroyProvince(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(province => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, province)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -357,8 +402,11 @@ module.exports = class CountryController extends Controller {
   addProvince(req, res) {
     const CountryService = this.app.services.CountryService
     CountryService.addProvince(req.params.id, req.params.province)
-      .then(data => {
-        return res.json(data)
+      .then(province => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, province)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -373,8 +421,11 @@ module.exports = class CountryController extends Controller {
   removeProvince(req, res) {
     const CountryService = this.app.services.CountryService
     CountryService.removeProvince(req.params.id, req.params.province)
-      .then(data => {
-        return res.json(data)
+      .then(province => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, province)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -403,7 +454,10 @@ module.exports = class CountryController extends Controller {
       .then(provinces => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, provinces.count, limit, offset, sort)
-        return res.json(provinces.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, provinces.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

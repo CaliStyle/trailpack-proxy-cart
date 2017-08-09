@@ -53,7 +53,10 @@ module.exports = class SubscriptionController extends Controller {
         if (!subscription) {
           throw new Errors.FoundError(Error(`Subscription id ${id} not found`))
         }
-        return res.json(subscription)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -75,7 +78,10 @@ module.exports = class SubscriptionController extends Controller {
         if (!subscription) {
           throw new Errors.FoundError(Error(`Subscription token ${token} not found`))
         }
-        return res.json(subscription)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -99,7 +105,10 @@ module.exports = class SubscriptionController extends Controller {
         if (!subscription) {
           throw new Errors.FoundError(Error(`Subscription id ${id} not found`))
         }
-        return res.json(subscription)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -128,7 +137,10 @@ module.exports = class SubscriptionController extends Controller {
       .then(subscriptions => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, subscriptions.count, limit, offset, sort)
-        return res.json(subscriptions.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscriptions.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -157,7 +169,10 @@ module.exports = class SubscriptionController extends Controller {
         return SubscriptionService.update(req.body)
       })
       .then(subscription => {
-        return res.json(subscription)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('SubscriptionController.update', err)
@@ -175,7 +190,10 @@ module.exports = class SubscriptionController extends Controller {
         return SubscriptionService.activate(req.body, id)
       })
       .then(subscription => {
-        return res.json(subscription)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('SubscriptionController.update', err)
@@ -193,7 +211,10 @@ module.exports = class SubscriptionController extends Controller {
         return SubscriptionService.deactivate(req.body, id)
       })
       .then(subscription => {
-        return res.json(subscription)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('SubscriptionController.update', err)
@@ -207,7 +228,13 @@ module.exports = class SubscriptionController extends Controller {
 
     SubscriptionService.renew(id)
       .then(subscription => {
-        return res.json(subscription)
+        if (!subscription) {
+          throw new Error('Unexpected Error while renewing subscription')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('SubscriptionController.update', err)
@@ -227,7 +254,13 @@ module.exports = class SubscriptionController extends Controller {
         return SubscriptionService.cancel(req.body, id)
       })
       .then(subscription => {
-        return res.json(subscription)
+        if (!subscription) {
+          throw new Error('Unexpected Error while Cancelling Subscription')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('SubscriptionController.update', err)
@@ -247,12 +280,15 @@ module.exports = class SubscriptionController extends Controller {
       .then(values => {
         return SubscriptionService.addItems(req.body, id)
       })
-      .then(data => {
+      .then(subscription => {
         // console.log('ProductController.addItemsToSubscription',data)
-        if (!data) {
+        if (!subscription) {
           throw new Error('Unexpected Error while adding items')
         }
-        return res.json(data)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.addItemsToSubscription', err)
@@ -275,11 +311,14 @@ module.exports = class SubscriptionController extends Controller {
       .then(values => {
         return SubscriptionService.removeItems(req.body, id)
       })
-      .then(data => {
-        if (!data) {
+      .then(subscription => {
+        if (!subscription) {
           throw new Error('Unexpected Error while removing items')
         }
-        return res.json(data)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.removeItemsFromSubscription', err)

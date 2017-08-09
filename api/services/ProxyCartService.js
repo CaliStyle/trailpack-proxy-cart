@@ -156,22 +156,33 @@ module.exports = class ProxyCartService extends Service {
   /**
    *
    * @param text
-   * @returns {string}
+   * @returns {string|null}
    */
   slug(text) {
+    if (!text) {
+      return null
+    }
     return text.toString().toLowerCase().trim()
       .replace(/\s+/g, '-')           // Replace spaces with -
       .replace(/&/g, '-and-')         // Replace & with 'and'
       .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-      .replace(/\-\-+/g, '-')
+      .replace(/\-\-+/g, '-')         // Remove double hyphens
   }
 
+  /**
+   *
+   * @param text
+   * @returns {string|null}
+   */
   safeHandle(text) {
+    if (!text) {
+      return null
+    }
     return text.toString().toLowerCase().trim()
       .replace(/\s+/g, '-')           // Replace spaces with -
       .replace(/&/g, '-and-')         // Replace & with 'and'
       .replace(/[^\w:\-]+/g, '')      // Remove all non-word chars but colons
-      .replace(/\-\-+/g, '-')
+      .replace(/\-\-+/g, '-')         // Remove double hyphens
   }
   /**
    *

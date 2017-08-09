@@ -24,7 +24,10 @@ module.exports = class DiscountController extends Controller {
         if (!discount) {
           throw new Errors.FoundError(Error(`Discount id ${id} not found`))
         }
-        return res.json(discount)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discount)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -46,7 +49,10 @@ module.exports = class DiscountController extends Controller {
     })
       .then(discounts => {
         this.app.services.ProxyEngineService.paginate(res, discounts.count, limit, offset, sort)
-        return res.json(discounts.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discounts.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -58,8 +64,11 @@ module.exports = class DiscountController extends Controller {
       .then(values => {
         return DiscountService.create(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(discount => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discount)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -71,8 +80,11 @@ module.exports = class DiscountController extends Controller {
       .then(values => {
         return DiscountService.update(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(discount => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discount)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -84,8 +96,11 @@ module.exports = class DiscountController extends Controller {
       .then(values => {
         return DiscountService.destroy(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(discount => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discount)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

@@ -42,7 +42,10 @@ module.exports = class CustomerController extends Controller {
     if (!req.customer) {
       return res.sendStatus(401)
     }
-    return res.json(req.customer)
+    return this.app.services.ProxyPermissionsService.sanitizeResult(req, req.customer)
+    .then(result => {
+      return res.json(result)
+    })
   }
 
   /**
@@ -93,7 +96,10 @@ module.exports = class CustomerController extends Controller {
       .then(customers => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
-        return res.json(customers.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -117,7 +123,10 @@ module.exports = class CustomerController extends Controller {
         if (!customer) {
           throw new Errors.FoundError(Error(`Customer id ${id} not found`))
         }
-        return res.json(customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -141,7 +150,10 @@ module.exports = class CustomerController extends Controller {
         if (!customer) {
           throw new Errors.FoundError(Error(`Customer token ${token} not found`))
         }
-        return res.json(customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -169,7 +181,10 @@ module.exports = class CustomerController extends Controller {
     })
       .then(customers => {
         this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
-        return res.json(customers.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -205,7 +220,10 @@ module.exports = class CustomerController extends Controller {
       .then(customers => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
-        return res.json(customers.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -241,7 +259,10 @@ module.exports = class CustomerController extends Controller {
       .then(customers => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
-        return res.json(customers.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -276,7 +297,10 @@ module.exports = class CustomerController extends Controller {
       })
       .then(customer => {
         // console.log('Customer Request', req.customer)
-        return res.json(customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.create', err)
@@ -308,7 +332,10 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.update(req.body)
       })
       .then(customer => {
-        return res.json(customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
@@ -330,7 +357,10 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.accountBalance(req.body)
       })
       .then(customer => {
-        return res.json(customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
@@ -421,7 +451,10 @@ module.exports = class CustomerController extends Controller {
         })
       })
       .then(customer => {
-        return res.json(customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('ProductController.clearCustomer', err)
@@ -462,7 +495,10 @@ module.exports = class CustomerController extends Controller {
         })
       })
       .then(customer => {
-        return res.json(customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -492,7 +528,10 @@ module.exports = class CustomerController extends Controller {
     }
     Account.findByIdDefault(accountId)
       .then(account => {
-        return res.json(account)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, account)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -530,7 +569,10 @@ module.exports = class CustomerController extends Controller {
       .then(accounts => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, accounts.count, limit, offset, sort)
-        return res.json(accounts.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, accounts.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -555,7 +597,10 @@ module.exports = class CustomerController extends Controller {
     }
     Order.findByIdDefault(orderId)
       .then(order => {
-        return res.json(order)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -593,7 +638,10 @@ module.exports = class CustomerController extends Controller {
       .then(orders => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, orders.count, limit, offset, sort)
-        return res.json(orders.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orders.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -618,7 +666,10 @@ module.exports = class CustomerController extends Controller {
     }
     Subscription.findByIdDefault(subscriptionId)
       .then(subscription => {
-        return res.json(subscription)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -656,12 +707,11 @@ module.exports = class CustomerController extends Controller {
       limit: limit
     })
       .then(subscriptions => {
-        res.set('X-Pagination-Total', subscriptions.count)
-        res.set('X-Pagination-Pages', Math.ceil(subscriptions.count / limit))
-        res.set('X-Pagination-Page', offset == 0 ? 1 : Math.round(offset / limit))
-        res.set('X-Pagination-Limit', limit)
-        res.set('X-Pagination-Sort', sort)
-        return res.json(subscriptions.rows)
+        this.app.services.ProxyEngineService.paginate(res, subscriptions.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscriptions.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -673,6 +723,7 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  // TODO
   updateAccount(req, res) {
     let customerId = req.params.id
     if (!customerId && req.user) {
@@ -703,7 +754,10 @@ module.exports = class CustomerController extends Controller {
     }
     Address.findById(addressId)
       .then(address => {
-        return res.json(address)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, address)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -751,7 +805,10 @@ module.exports = class CustomerController extends Controller {
       .then(addresses => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, addresses.count, limit, offset, sort)
-        return res.json(addresses.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, addresses.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -803,7 +860,10 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.addAddress(req.body.customer, req.body.address, type)
       })
       .then(address => {
-        return res.json(address)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, address)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
@@ -857,7 +917,10 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.updateAddress(req.body.customer, req.body.address, type)
       })
       .then(address => {
-        return res.json(address)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, address)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
@@ -898,7 +961,10 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.removeAddress(req.body.customer, req.body.address)
       })
       .then(address => {
-        return res.json(address)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, address)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
@@ -925,7 +991,10 @@ module.exports = class CustomerController extends Controller {
     }
     Source.findById(sourceId)
       .then(source => {
-        return res.json(source)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, source)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -964,7 +1033,10 @@ module.exports = class CustomerController extends Controller {
       .then(sources => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, sources.count, limit, offset, sort)
-        return res.json(sources.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, sources.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -997,7 +1069,10 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.createCustomerSource(req.body.customer, req.body.source)
       })
       .then(source => {
-        return res.json(source)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, source)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
@@ -1038,7 +1113,10 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.updateCustomerSource(req.body.customer, req.body.source, req.body.source)
       })
       .then(source => {
-        return res.json(source)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, source)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
@@ -1078,7 +1156,10 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.removeCustomerSource(req.body.customer, req.body.source)
       })
       .then(source => {
-        return res.json(source)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, source)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.update', err)
@@ -1105,7 +1186,10 @@ module.exports = class CustomerController extends Controller {
     }
     User.findById(userId)
       .then(user => {
-        return res.json(user)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, user)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -1157,7 +1241,10 @@ module.exports = class CustomerController extends Controller {
       .then(users => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, users.count, limit, offset, sort)
-        return res.json(users.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, users.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -1172,8 +1259,11 @@ module.exports = class CustomerController extends Controller {
   addTag(req, res){
     const CustomerService = this.app.services.CustomerService
     CustomerService.addTag(req.params.id, req.params.tag)
-      .then(data => {
-        return res.json(data)
+      .then(tag => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tag)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.addTag', err)
@@ -1188,8 +1278,11 @@ module.exports = class CustomerController extends Controller {
   removeTag(req, res){
     const CustomerService = this.app.services.CustomerService
     CustomerService.removeTag(req.params.id, req.params.tag)
-      .then(data => {
-        return res.json(data)
+      .then(tag => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tag)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.removeTag', err)
@@ -1204,8 +1297,11 @@ module.exports = class CustomerController extends Controller {
   addCollection(req, res){
     const CustomerService = this.app.services.CustomerService
     CustomerService.addCollection(req.params.id, req.params.collection)
-      .then(data => {
-        return res.json(data)
+      .then(collection => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.addCollection', err)
@@ -1220,8 +1316,11 @@ module.exports = class CustomerController extends Controller {
   removeCollection(req, res){
     const CustomerService = this.app.services.CustomerService
     CustomerService.removeCollection(req.params.id, req.params.collection)
-      .then(data => {
-        return res.json(data)
+      .then(collection => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         // console.log('CustomerController.removeCollection', err)
@@ -1246,7 +1345,10 @@ module.exports = class CustomerController extends Controller {
     }
     Event.findById(eventId)
       .then(event => {
-        return res.json(event)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, event)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -1283,7 +1385,10 @@ module.exports = class CustomerController extends Controller {
       .then(events => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, events.count, limit, offset, sort)
-        return res.json(events.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, events.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -1307,7 +1412,10 @@ module.exports = class CustomerController extends Controller {
     }
     Event.findById(eventId)
       .then(event => {
-        return res.json(event)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, event)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -1343,7 +1451,10 @@ module.exports = class CustomerController extends Controller {
       .then(reviews => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, reviews.count, limit, offset, sort)
-        return res.json(reviews.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, reviews.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

@@ -218,8 +218,8 @@ module.exports = class CustomerCsvService extends Service {
           const results = {
             upload_id: uploadId,
             customers: customersTotal,
+            errors_count: errorsCount,
             errors: errors,
-            errors_count: errorsCount
           }
           this.app.services.ProxyEngineService.publish('customer_process.complete', results)
           return results

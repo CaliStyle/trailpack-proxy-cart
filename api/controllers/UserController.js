@@ -29,7 +29,10 @@ module.exports = class UserController extends ModelPermissions {
     // TODO, make this a strict relation
     Customer.findById(customerId)
       .then(customer => {
-        return res.json(customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -82,7 +85,10 @@ module.exports = class UserController extends ModelPermissions {
       .then(customers => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
-        return res.json(customers.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

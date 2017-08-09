@@ -30,7 +30,10 @@ module.exports = class CouponController extends Controller {
         if (!coupon) {
           throw new Errors.FoundError(Error(`Coupon id ${id} not found`))
         }
-        return res.json(coupon)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, coupon)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -58,7 +61,10 @@ module.exports = class CouponController extends Controller {
     })
       .then(coupons => {
         this.app.services.ProxyEngineService.paginate(res, coupons.count, limit, offset, sort)
-        return res.json(coupons.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, coupons.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -76,8 +82,11 @@ module.exports = class CouponController extends Controller {
       .then(values => {
         return CouponService.create(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(coupon => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, coupon)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -95,8 +104,11 @@ module.exports = class CouponController extends Controller {
       .then(values => {
         return CouponService.update(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(coupon => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, coupon)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -108,8 +120,11 @@ module.exports = class CouponController extends Controller {
       .then(values => {
         return CouponService.destroy(req.body)
       })
-      .then(data => {
-        return res.json(data)
+      .then(coupon => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, coupon)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

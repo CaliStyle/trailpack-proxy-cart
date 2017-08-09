@@ -32,7 +32,10 @@ module.exports = class FulfillmentController extends Controller {
         if (!fulfillment) {
           throw new Errors.FoundError(Error(`Fulfillment id ${id} not found`))
         }
-        return res.json(fulfillment)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, fulfillment)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -78,7 +81,10 @@ module.exports = class FulfillmentController extends Controller {
     })
       .then(fulfillments => {
         this.app.services.ProxyEngineService.paginate(res, fulfillments.count, limit, offset, sort)
-        return res.json(fulfillments.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, fulfillments.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -98,7 +104,10 @@ module.exports = class FulfillmentController extends Controller {
         return FulfillmentService.create(req.body)
       })
       .then(fulfillment => {
-        return res.json(fulfillment)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, fulfillment)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -118,7 +127,10 @@ module.exports = class FulfillmentController extends Controller {
         return FulfillmentService.cancel(req.body)
       })
       .then(fulfillment => {
-        return res.json(fulfillment)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, fulfillment)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -138,7 +150,10 @@ module.exports = class FulfillmentController extends Controller {
         return FulfillmentService.destroy(req.body)
       })
       .then(fulfillment => {
-        return res.json(fulfillment)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, fulfillment)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

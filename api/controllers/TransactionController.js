@@ -47,7 +47,10 @@ module.exports = class TransactionController extends Controller {
     })
       .then(transactions => {
         this.app.services.ProxyEngineService.paginate(res, transactions.count, limit, offset, sort)
-        return res.json(transactions.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transactions.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -71,7 +74,10 @@ module.exports = class TransactionController extends Controller {
         if (!transaction) {
           throw new Errors.FoundError(Error(`Transaction id ${id} not found`))
         }
-        return res.json(transaction)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transaction)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -90,7 +96,10 @@ module.exports = class TransactionController extends Controller {
         return TransactionService.authorize(req.body)
       })
       .then(transaction => {
-        return res.json(transaction)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transaction)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -110,7 +119,10 @@ module.exports = class TransactionController extends Controller {
         return TransactionService.capture(req.body)
       })
       .then(transaction => {
-        return res.json(transaction)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transaction)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -130,7 +142,10 @@ module.exports = class TransactionController extends Controller {
         return TransactionService.sale(req.body)
       })
       .then(transaction => {
-        return res.json(transaction)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transaction)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -150,7 +165,10 @@ module.exports = class TransactionController extends Controller {
         return TransactionService.void(req.body)
       })
       .then(transaction => {
-        return res.json(transaction)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transaction)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -170,7 +188,10 @@ module.exports = class TransactionController extends Controller {
         return TransactionService.refund(req.body)
       })
       .then(transaction => {
-        return res.json(transaction)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transaction)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -190,7 +211,10 @@ module.exports = class TransactionController extends Controller {
         return TransactionService.retry(req.body)
       })
       .then(transaction => {
-        return res.json(transaction)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transaction)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -210,7 +234,10 @@ module.exports = class TransactionController extends Controller {
         return TransactionService.cancel(req.body)
       })
       .then(transaction => {
-        return res.json(transaction)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, transaction)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)

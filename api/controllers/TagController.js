@@ -39,7 +39,10 @@ module.exports = class TagController extends Controller {
         if (!tag) {
           throw new Errors.FoundError(Error(`Tag id ${ req.params.id } not found`))
         }
-        return res.json(tag)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tag)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -56,7 +59,10 @@ module.exports = class TagController extends Controller {
         if (!tag) {
           throw new Errors.FoundError(Error(`Tag name ${ req.params.name } not found`))
         }
-        return res.json(tag)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tag)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -77,7 +83,10 @@ module.exports = class TagController extends Controller {
       where: where
     })
       .then(tag => {
-        return res.json(tag)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tag)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -105,7 +114,10 @@ module.exports = class TagController extends Controller {
       .then(tags => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, tags.count, limit, offset, sort)
-        return res.json(tags.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tags.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
@@ -141,7 +153,10 @@ module.exports = class TagController extends Controller {
       .then(tags => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, tags.count, limit, offset, sort)
-        return res.json(tags.rows)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tags.rows)
+      })
+      .then(result => {
+        return res.json(result)
       })
       .catch(err => {
         return res.serverError(err)
