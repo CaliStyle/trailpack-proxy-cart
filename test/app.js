@@ -46,7 +46,8 @@ else if (ORM === 'sequelize') {
     stores.sqlitedev = {
       database: 'ProxyCart',
       host: '127.0.0.1',
-      dialect: 'postgres'
+      dialect: 'postgres',
+      logging: false
     }
   }
   else {

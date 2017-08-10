@@ -200,7 +200,26 @@ module.exports = class SubscriptionService extends Service {
           transaction: options.transaction || null
         })
       })
-      .then(event => {
+      .then((event) => {
+        if (resSubscription.customer_id) {
+          return this.app.emails.Subscription.updated(resSubscription, {
+            send_email: this.app.config.proxyCart.emails.subscriptionUpdated
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(email => {
+              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          return
+        }
+      })
+      .then((notifications) => {
         return resSubscription
       })
   }

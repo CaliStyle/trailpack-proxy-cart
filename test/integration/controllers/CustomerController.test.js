@@ -22,7 +22,6 @@ describe('CustomerController', () => {
       .get('/customer/generalStats')
       .expect(200)
       .end((err, res) => {
-        console.log('GENERAL STATS', res.body)
         assert.ok(res.body)
         done(err)
       })
@@ -43,8 +42,6 @@ describe('CustomerController', () => {
       .get(`/customer/${customerID}`)
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CUSTOMER First',res.body)
-        // console.log('CUSTOMER',res.body)
         assert.equal(res.body.first_name, 'Scottie')
         assert.equal(res.body.last_name, 'Wyatt')
         assert.equal(res.body.metadata.test, 'value')
@@ -68,13 +65,12 @@ describe('CustomerController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS CUSTOMER',res.body)
         assert.equal(res.body.first_name, 'Scotty')
         assert.equal(res.body.last_name, 'W')
         // Tags
         // tags length is broken on sqlite for this case
-        // assert.equal(res.body.tags.length, 1)
-        // assert.notEqual(res.body.tags.indexOf('edited'), -1)
+        assert.equal(res.body.tags.length, 1)
+        assert.notEqual(res.body.tags.indexOf('edited'), -1)
         // Metadata
         assert.equal(res.body.metadata.test, 'new value')
         // Address

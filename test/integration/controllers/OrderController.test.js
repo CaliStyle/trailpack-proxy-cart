@@ -51,7 +51,6 @@ describe('OrderController', () => {
       .get('/order/count')
       .expect(200)
       .end((err, res) => {
-        // console.log('COUNT ORDERS', res.body.orders)
         assert.ok(_.isNumber(res.body.orders))
         done(err)
       })
@@ -177,7 +176,6 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('ADD ITEM',res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
         assert.equal(res.body.financial_status, 'authorized')
@@ -215,7 +213,6 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('UPDATE ITEM', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
 
@@ -253,7 +250,6 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('REMOVE ITEM', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
         // Transactions
@@ -532,7 +528,6 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS FULFILL', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'paid')
         assert.equal(res.body.fulfillment_status, 'sent')
@@ -543,7 +538,6 @@ describe('OrderController', () => {
           assert.equal(item.total_sent_to_fulfillment, 1)
         })
         // Order Items
-        // TODO make this work
         res.body.order_items.forEach(item => {
           assert.equal(item.fulfillment_status, 'sent')
         })
@@ -600,8 +594,6 @@ describe('OrderController', () => {
       .send([])
       .expect(200)
       .end((err, res) => {
-        //console.log('THIS ORDER', res.body)
-
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'refunded')
         assert.equal(res.body.total_refunds, 100000)
@@ -681,6 +673,8 @@ describe('OrderController', () => {
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         done(err)
       })
   })
@@ -694,6 +688,8 @@ describe('OrderController', () => {
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         done(err)
       })
   })
@@ -707,6 +703,8 @@ describe('OrderController', () => {
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         done(err)
       })
   })
@@ -718,11 +716,12 @@ describe('OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('Order Search', res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         assert.equal(res.body.length, 2)
         done(err)
       })

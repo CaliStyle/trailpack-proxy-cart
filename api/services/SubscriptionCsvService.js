@@ -185,7 +185,7 @@ module.exports = class SubscriptionCsvService extends Service {
           upload_id: uploadId,
           subscriptions: subscriptionsTotal,
           errors: errors,
-          errorsCount: errorsCount
+          errors_count: errorsCount
         }
         this.app.services.ProxyEngineService.publish('subscription_process.complete', results)
         return results

@@ -34,7 +34,6 @@ describe('CollectionController', () => {
       .expect(200)
       .end((err, res) => {
         collectionID = res.body.id
-        console.log('this collection', res.body)
         assert.equal(res.body.handle, 'have-you-seen-my-pants')
         assert.equal(res.body.title, 'Have you seen my Pants?')
         assert.equal(res.body.body, '# Honey, have you seen my Pants?')
@@ -66,7 +65,6 @@ describe('CollectionController', () => {
       .get(`/collection/${collectionID}`)
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.handle, 'have-you-seen-my-pants')
         assert.equal(res.body.title, 'Have you seen my Pants?')
         assert.equal(res.body.body, '# Honey, have you seen my Pants?')
@@ -87,7 +85,6 @@ describe('CollectionController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.handle, 'have-you-seen-my-pants')
         assert.equal(res.body.title, 'Have you seen my Pants? Again?')
         assert.equal(res.body.body, '# Honey, have you seen my Pants? Again?')
@@ -106,7 +103,6 @@ describe('CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.id, collectionID)
         done(err)
       })
@@ -127,7 +123,6 @@ describe('CollectionController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
-        // console.log('THIS COLLECTION TAGS',res.body)
         assert.ok(res.body)
         done(err)
       })
@@ -139,7 +134,6 @@ describe('CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.id, collectionID)
         done(err)
       })
@@ -151,7 +145,6 @@ describe('CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.id, collectionID)
         done(err)
       })
@@ -172,7 +165,6 @@ describe('CollectionController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
-        // console.log('THIS COLLECTION',res.body)
         assert.ok(res.body)
         done(err)
       })
@@ -184,7 +176,6 @@ describe('CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.id, collectionID)
         done(err)
       })
@@ -196,7 +187,6 @@ describe('CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.id, collectionID)
         done(err)
       })
@@ -217,7 +207,6 @@ describe('CollectionController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
-        // console.log('THIS COLLECTION',res.body)
         assert.ok(res.body)
         done(err)
       })
@@ -229,7 +218,6 @@ describe('CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.id, collectionID)
         done(err)
       })
@@ -240,7 +228,6 @@ describe('CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.collections.length, 2)
         done(err)
       })
@@ -261,7 +248,6 @@ describe('CollectionController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
-        // console.log('THIS COLLECTION',res.body)
         // assert.equal(res.body.length, 2)
         done(err)
       })
@@ -272,7 +258,6 @@ describe('CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS COLLECTION',res.body)
         assert.equal(res.body.collections.length, 1)
         done(err)
       })
@@ -297,7 +282,6 @@ describe('CollectionController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        console.log('COLLECTION UPLOAD',res.body)
         assert.equal(res.body.collections, 1)
         assert.equal(res.body.errors_count, 0)
         done()

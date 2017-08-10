@@ -86,11 +86,6 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log('BREAKING', res.body[0])
-        // console.log('THESE COLLECTIONS',res.body[0].collections)
-        // console.log('THIS METADATA',res.body[0].metadata)
-        // console.log('PRODUCT Variants',res.body[0].variants)
-        // console.log('PRODUCT Images',res.body[0].images)
         createdProductID = res.body[0].id
         defaultVariantID = res.body[0].variants[0].id
         firstVariantID = res.body[0].variants[1].id
@@ -154,7 +149,6 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         // Product
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.handle, 'snowboard')
@@ -221,7 +215,6 @@ describe('ProductController', () => {
       .get('/product/count')
       .expect(200)
       .end((err, res) => {
-        // console.log('PRODUCTS COUNT',res.body)
         assert.ok(_.isNumber(res.body.products))
         assert.ok(_.isNumber(res.body.variants))
         assert.ok(_.isNumber(res.body.images))
@@ -280,13 +273,11 @@ describe('ProductController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body[0])
         assert.equal(res.body[0].id, createdProductID)
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151 Gen 2')
         // Metadata
         assert.equal(res.body[0].metadata.test, 'new value')
         // Collections
-        // console.log('SET COLLECTIONS', res.body[0].collections)
         assert.equal(res.body[0].collections.length, 1)
         assert.equal(res.body[0].collections[0].title, 'free-shipping')
         assert.equal(res.body[0].collections[0].handle, 'free-shipping')
@@ -312,7 +303,6 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.title, 'Burton Custom Freestyle 151 Gen 2')
         // Variants
@@ -328,7 +318,6 @@ describe('ProductController', () => {
         assert.equal(res.body.images[3].position, 4)
 
         // Collections
-        // console.log('SET COLLECTIONS', res.body.collections)
         assert.equal(res.body.collections.length, 1)
         assert.equal(res.body.collections[0].title, 'free-shipping')
         assert.equal(res.body.collections[0].handle, 'free-shipping')
@@ -354,7 +343,6 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.tags.length, 3)
         assert.equal(res.body.tags.indexOf('test'), -1 )
@@ -392,7 +380,6 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         done(err)
       })
@@ -407,6 +394,8 @@ describe('ProductController', () => {
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         // assert.equal(res.headers['x-pagination-total'], '1')
         assert.equal(res.headers['x-pagination-offset'], '0')
         assert.equal(res.headers['x-pagination-limit'], '10')
@@ -424,7 +413,6 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         done(err)
       })
@@ -436,7 +424,6 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        console.log('Add Shop', res.body)
         assert.equal(res.body.id, createdProductID)
         done(err)
       })
@@ -446,12 +433,12 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}/shops`)
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
         assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         assert.equal(res.headers['x-pagination-total'], '1')
         assert.equal(res.headers['x-pagination-offset'], '0')
         assert.equal(res.headers['x-pagination-limit'], '10')
@@ -468,7 +455,6 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.id, createdProductID)
         done(err)
       })
@@ -480,7 +466,6 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('ADD VENDOR', res.body)
         assert.equal(res.body.id, createdProductID)
         assert.notEqual(res.body.vendors.indexOf('Makerbot'), -1)
         done(err)
@@ -512,7 +497,6 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('Remove Vendor', res.body)
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.vendors.indexOf('Makerbot'), -1 )
         done(err)
@@ -524,7 +508,6 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}/reviews`)
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.equal(res.body.length, 0)
         done(err)
       })
@@ -598,7 +581,6 @@ describe('ProductController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('Updated Variant', res.body)
         assert.equal(res.body.product_id, createdProductID)
         assert.equal(res.body.sku, 'bscb-1')
         assert.equal(res.body.price, 100001)
@@ -630,7 +612,10 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
+        // assert.equal(res.body.total_variants, 3)
+        // res.body.variants.forEach(variant => {
+        //   assert.notEqual(variant.id, firstVariantID)
+        // })
         done(err)
       })
   })
@@ -639,6 +624,7 @@ describe('ProductController', () => {
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
+        assert.equal(res.body.total_variants, 3)
         assert.equal(res.body.variants.length, 3)
         assert.equal(res.body.images.length, 2)
         done(err)
@@ -682,7 +668,6 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('BROKE',res.body.errors)
         assert.equal(res.body.products, 2)
         assert.equal(res.body.variants, 5)
         assert.equal(res.body.errors.length, 0)
@@ -695,7 +680,6 @@ describe('ProductController', () => {
       .get('/product/handle/yeti')
       .expect(200)
       .end((err, res) => {
-        console.log('THIS PRODUCT', res.body)
         done()
       })
   })
@@ -706,7 +690,6 @@ describe('ProductController', () => {
       .attach('file', 'test/fixtures/product_meta_upload.csv')
       .expect(200)
       .end((err, res) => {
-        console.log('testing',res.body)
         assert.ok(res.body.result.upload_id)
         uploadMetaID = res.body.result.upload_id
         assert.equal(res.body.result.products, 2)
@@ -720,7 +703,7 @@ describe('ProductController', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        console.log('TESTING',res.body)
+        assert.equal(res.body.errors_count, 0)
         assert.equal(res.body.products, 2)
         done()
       })
@@ -730,8 +713,6 @@ describe('ProductController', () => {
       .get('/product/handle/hydroflask')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS PRODUCT', res.body)
-        //recycle: 'no', material: 'plastic', condition: 'new'
         assert.equal(res.body.metadata['recycle'], 'no')
         assert.equal(res.body.metadata['material'], 'plastic')
         assert.equal(res.body.metadata['condition'], 'new')
@@ -784,7 +765,6 @@ describe('ProductController', () => {
       .get('/product/collection/bottles')
       .expect(200)
       .end((err, res) => {
-        console.log('BY COLLECTION',res.body)
         assert.ok(res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
@@ -805,7 +785,6 @@ describe('ProductController', () => {
       .get('/product/handle/discount-test')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS DISCOUNT TEST', res.body)
         assert.ok(res.body)
         assert.equal(res.body.handle, 'discount-test')
         done()
@@ -816,11 +795,13 @@ describe('ProductController', () => {
       .get('/product/search?term=Hydro')
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
+
         assert.equal(res.body.length, 1)
         assert.equal(res.headers['x-pagination-total'], '1')
         done()

@@ -206,6 +206,46 @@ module.exports = class Subscription extends Email {
    * @param options
    * @returns {Promise.<{text: string, html:string}>}
    */
+  updated(subscription, data, options) {
+    options = options || {}
+    data = data || {}
+    const Subscription = this.app.orm['Subscription']
+    let resSubscription
+    return Subscription.resolve(subscription, options)
+      .then(foundSubscription => {
+        if (!foundSubscription) {
+          throw new Error('Subscription did not resolve')
+        }
+
+        resSubscription = foundSubscription
+
+        return resSubscription.resolveCustomer({transaction: options.transaction || null})
+      })
+      .then(() => {
+
+        const text = data.text || `Subscription ${ resSubscription.token } Updated`
+        const html = data.html || this.app.templates.Subscription.updated(resSubscription)
+        const subject = data.subject || `Subscription ${ resSubscription.token } Updated`
+        const sendEmail = data.send_email || true
+        this.app.log.debug(`SEND EMAIL ${ resSubscription.token }`, sendEmail)
+
+        return {
+          type: 'subscription.updated',
+          subject: subject,
+          text: text,
+          html: html,
+          send_email: sendEmail
+        }
+      })
+  }
+
+  /**
+   *
+   * @param subscription
+   * @param data
+   * @param options
+   * @returns {Promise.<{text: string, html:string}>}
+   */
   willRenew(subscription, data, options) {
     options = options || {}
     data = data || {}

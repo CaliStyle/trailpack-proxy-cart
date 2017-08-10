@@ -325,7 +325,6 @@ describe('Order Model', () => {
         return resOrder.reload()
       })
       .then(() => {
-        console.log('THIS ORDER', resOrder.toJSON())
         assert.equal(resOrder.financial_status, 'paid')
         assert.equal(resOrder.fulfillment_status, 'fulfilled')
         done()

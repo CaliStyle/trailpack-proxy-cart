@@ -18,7 +18,6 @@ describe('SubscriptionController', () => {
       .get('/subscription/generalStats')
       .expect(200)
       .end((err, res) => {
-        // console.log('GENERAL STATS')
         assert.ok(res.body)
         done(err)
       })
@@ -28,7 +27,6 @@ describe('SubscriptionController', () => {
       .get('/subscription/count')
       .expect(200)
       .end((err, res) => {
-        // console.log('SUBSCRIPTIONS COUNT', res.body)
         assert.ok(_.isNumber(res.body.subscriptions))
         done(err)
       })
@@ -43,6 +41,7 @@ describe('SubscriptionController', () => {
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
         assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         // assert.equal(res.headers['x-pagination-total'], '2')
         assert.equal(res.headers['x-pagination-offset'], '0')
         assert.equal(res.headers['x-pagination-limit'], '10')
@@ -58,7 +57,6 @@ describe('SubscriptionController', () => {
       .attach('file', 'test/fixtures/subscription_upload.csv')
       .expect(200)
       .end((err, res) => {
-        // console.log(res.body)
         assert.ok(res.body.result.upload_id)
         uploadID = res.body.result.upload_id
         assert.equal(res.body.result.subscriptions, 1)
@@ -72,6 +70,7 @@ describe('SubscriptionController', () => {
       .expect(200)
       .end((err, res) => {
         assert.equal(res.body.subscriptions, 1)
+        assert.equal(res.body.errors_count, 0)
         done()
       })
   })
@@ -85,6 +84,8 @@ describe('SubscriptionController', () => {
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
         assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
+
         // assert.equal(res.headers['x-pagination-total'], '2')
         assert.equal(res.headers['x-pagination-offset'], '0')
         assert.equal(res.headers['x-pagination-limit'], '10')

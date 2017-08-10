@@ -18,7 +18,6 @@ describe('CartPolicy', () => {
       .send({ })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         cartID = res.body.id
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartID)
@@ -33,7 +32,6 @@ describe('CartPolicy', () => {
       .send({ })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         cartIDSwitch = res.body.id
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
@@ -75,7 +73,6 @@ describe('CartPolicy', () => {
           const err = 'Not Found'
           done(err)
         }
-        // console.log('CUSTOMER WITH DISCOUNT', customerID, collection.id)
         return collection.addCustomer(customerID)
       })
       .then(customer => {
@@ -93,7 +90,6 @@ describe('CartPolicy', () => {
       .send({ })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         cartID = res.body.id
         assert.equal(res.body.customer_id, customerID)
         assert.ok(res.body.id)
@@ -115,7 +111,6 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.customer_id, customerID)
@@ -132,7 +127,6 @@ describe('CartPolicy', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.customer_id, customerID)
@@ -160,7 +154,6 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 3)
@@ -183,7 +176,6 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 2)
@@ -198,7 +190,6 @@ describe('CartPolicy', () => {
       .get('/cart/session')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 2)
@@ -231,7 +222,6 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS ORDER', res.body.order)
         // ORDER
         const orderID = res.body.order.id
         cartIDSwitch = res.body.cart.id
@@ -304,7 +294,6 @@ describe('CartPolicy', () => {
       .get('/cart/session')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY CART', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.id, cartIDSwitch)
         assert.equal(res.body.line_items.length, 0)
@@ -316,7 +305,6 @@ describe('CartPolicy', () => {
       .get('/customer/orders')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY ORDERS', res.body)
         orderID = res.body[0].id
         assert.equal(res.body.length, 1)
         done(err)
@@ -327,7 +315,6 @@ describe('CartPolicy', () => {
       .get(`/customer/order/${ orderID }`)
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY ORDERS', res.body)
         assert.equal(res.body.id, orderID)
         done(err)
       })
@@ -337,7 +324,12 @@ describe('CartPolicy', () => {
       .get('/customer/subscriptions')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscriptions', res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         subscriptionID = res.body[0].id
         assert.equal(res.body.length, 1)
         done(err)
@@ -348,7 +340,6 @@ describe('CartPolicy', () => {
       .get(`/customer/subscription/${ subscriptionID }`)
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
         done(err)
       })
@@ -361,7 +352,6 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
         assert.equal(res.body.active, false)
         assert.equal(res.body.cancel_reason, 'customer')
@@ -376,7 +366,6 @@ describe('CartPolicy', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
         assert.equal(res.body.active, true)
         assert.equal(res.body.cancel_reason, null)
@@ -393,19 +382,21 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
+        assert.ok(res.body.token)
         assert.equal(res.body.active, true)
         assert.equal(res.body.interval, 2)
         assert.equal(res.body.unit, 'm')
         assert.ok(res.body.renews_on)
+        assert.ok(res.body.renewed_at)
+        assert.ok(res.body.line_items)
+        assert.equal(res.body.cancelled, false)
         done(err)
       })
   })
   it('should renew subscription', done => {
     global.app.services.SubscriptionService.renew(subscriptionID)
       .then(body => {
-        console.log('THIS RENEW', body)
         // ORDER
         const orderID = body.order.id
         assert.ok(body.order.id)
@@ -476,7 +467,6 @@ describe('CartPolicy', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
         assert.equal(res.body.active, false)
         assert.equal(res.body.cancel_reason, null)
@@ -490,7 +480,6 @@ describe('CartPolicy', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscription', res.body)
         assert.equal(res.body.id, subscriptionID)
         assert.equal(res.body.active, true)
         assert.equal(res.body.cancel_reason, null)
@@ -503,7 +492,6 @@ describe('CartPolicy', () => {
       .get('/customer/accounts')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscriptions', res.body)
         assert.equal(res.body.length, 1)
         done(err)
       })
@@ -513,7 +501,6 @@ describe('CartPolicy', () => {
       .get('/customer/sources')
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS POLICY subscriptions', res.body)
         assert.equal(res.body.length, 1)
         done(err)
       })
@@ -585,6 +572,12 @@ describe('CartPolicy', () => {
       .end((err, res) => {
         // console.log('Customer Users', res.body)
         assert.ok(res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         assert.equal(res.body.length, 1)
         assert.equal(res.body[0].id, userID)
         done()
@@ -595,7 +588,12 @@ describe('CartPolicy', () => {
       .get(`/customer/${ customerID }/users`)
       .expect(200)
       .end((err, res) => {
-        // console.log('Customer Users', res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         assert.ok(res.body)
         assert.equal(res.body.length, 1)
         assert.equal(res.body[0].id, userID)
@@ -607,11 +605,12 @@ describe('CartPolicy', () => {
       .get('/user/customers')
       .expect(200)
       .end((err, res) => {
-        console.log('Customer Users', res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         assert.ok(res.body)
         assert.equal(res.body.length, 1)
         assert.equal(res.body[0].id, customerID)
@@ -628,6 +627,8 @@ describe('CartPolicy', () => {
         assert.ok(res.headers['x-pagination-pages'])
         assert.ok(res.headers['x-pagination-page'])
         assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
         assert.ok(res.body)
         assert.equal(res.body.length, 1)
         assert.equal(res.body[0].id, customerID)
@@ -710,7 +711,6 @@ describe('CartPolicy', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('Customer Account Balance', res.body.order)
         cartIDSwitch = res.body.cart.id
         assert.ok(res.body.cart)
         assert.ok(res.body.order.id)
@@ -741,12 +741,6 @@ describe('CartPolicy', () => {
           assert.equal(item.fulfillment_status, 'fulfilled')
         })
         // Events
-        // TODO enable this once we have events in transactions
-        // assert.equal(res.body.order.events.length, 4)
-        // assert.equal(res.body.order.events[0].object_id, orderID)
-        // assert.equal(res.body.order.events[1].object_id, orderID)
-        // assert.equal(res.body.order.events[2].object_id, orderID)
-        // assert.equal(res.body.order.events[3].object_id, orderID)
         res.body.order.events.forEach(event => {
           assert.equal(event.object_id, res.body.order.id)
         })

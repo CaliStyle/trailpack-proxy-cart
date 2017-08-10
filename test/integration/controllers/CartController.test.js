@@ -87,7 +87,6 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('BROKE',res.body)
         assert.ok(res.body.id)
         cartID = res.body.id
         assert.equal(res.body.total_items, 0)
@@ -132,7 +131,6 @@ describe('CartController', () => {
         //assert.equal(res.body.total_weight, 9072)
         assert.equal(res.body.has_shipping, true)
 
-        // console.log('THIS CART', res.body)
         done(err)
       })
   })
@@ -144,7 +142,6 @@ describe('CartController', () => {
       .send(customer)
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CUSTOMER',res.body)
         customerID = res.body.id
         assert.equal(res.body.default_cart.id, cartID)
         // assert.equal(res.body.carts.length, 1)
@@ -156,7 +153,6 @@ describe('CartController', () => {
       .get(`/customer/${customerID}`)
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CUSTOMER', res.body)
         assert.equal(res.body.id, customerID)
         assert.equal(res.body.default_cart.id, cartID)
         // TODO add back in Carts
@@ -174,7 +170,6 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CART',res.body)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.status, 'open')
         assert.equal(res.body.line_items.length, 2)
@@ -281,7 +276,6 @@ describe('CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CART', res.body)
         assert.equal(res.body.id, cartID)
         assert.equal(res.body.total_items, 4)
         assert.equal(res.body.line_items.length, 3)
@@ -319,7 +313,6 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CART', res.body)
         // assert.equal(res.body.id, cartID)
         done(err)
       })
@@ -332,7 +325,6 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('THIS CART', res.body)
         // assert.equal(res.body.id, cartID)
         done(err)
       })
@@ -353,7 +345,6 @@ describe('CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('Current Work', res.body.order)
         orderID = res.body.order.id
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)

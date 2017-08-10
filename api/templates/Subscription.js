@@ -80,6 +80,18 @@ ${orderItems}
    * @param subscription
    * @returns {string}
    */
+  updated(subscription) {
+    return `<h1>Subscription ${ subscription.token } Updated</h1>
+<p>Dear ${subscription.Customer ? subscription.Customer.full_name || subscription.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Your subscription has been updated.</p>
+<p>Thank you!</p>`
+  }
+
+  /**
+   *
+   * @param subscription
+   * @returns {string}
+   */
   willRenew(subscription) {
     return `<h1>Subscription ${ subscription.token } Will Renew</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.full_name || subscription.Customer.company || 'Customer' : 'Customer'},</p>
