@@ -199,6 +199,19 @@ module.exports = class Product extends Model {
                 otherKey: 'associated_product_id',
                 // constraints: false
               })
+              models.Product.belongsToMany(models.Product, {
+                as: 'associated',
+                through: {
+                  model: models.ProductAssociation,
+                  unique: false
+                  // scope: {
+                  //   model: 'product'
+                  // }
+                },
+                foreignKey: 'associated_product_id',
+                otherKey: 'product_id',
+                // constraints: false
+              })
               models.Product.belongsToMany(models.Discount, {
                 as: 'discount_codes',
                 through: {

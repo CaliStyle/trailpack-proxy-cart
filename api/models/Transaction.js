@@ -67,15 +67,15 @@ module.exports = class Transaction extends Model {
               //
               // })
               models.Transaction.belongsTo(models.Order, {
-                // as: 'order_id',
+                // as: 'Order',
                 // allowNull: false
               })
               models.Transaction.belongsTo(models.Customer, {
-                // as: 'customer_id',
+                // as: 'Customer',
                 // allowNull: true
               })
               models.Transaction.belongsTo(models.Source, {
-                // as: 'customer_id',
+                // as: 'Source',
                 // allowNull: true
               })
             },
@@ -176,21 +176,42 @@ module.exports = class Transaction extends Model {
             /**
              *
              * @param options
+             * @returns {*}
+             */
+            resolveOrder: function(options) {
+              options = options || {}
+              const Order = app.orm['Order']
+              if (this.Order && this.Order instanceof Order.Instance) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getOrder({transaction: options.transaction || null})
+                  .then(order => {
+                    order = order || null
+                    this.Order = order
+                    this.setDataValue('Order', order)
+                    this.set('Order', order)
+                  })
+              }
+            },
+            /**
+             *
+             * @param options
              * @returns {Promise.<T>}
              */
             reconcileOrderFinancialStatus: function(options) {
               options = options || {}
               const Order = app.orm['Order']
-              // if (this.isNewRecord || this.changed('status')) {
+              // If the status or the kind have not changed
+              if (!this.changed('status') && !this.changed('kind')) {
+                return Promise.resolve(this)
+              }
+
               return Order.findById(this.order_id, {
-                // include: [
-                //   {
-                //     model: app.orm['Transaction'],
-                //     as: 'transactions'
-                //   }
-                // ],
                 // attributes: [
                 //   'id',
+                //   'name',
+                //   'customer_id',
                 //   'financial_status',
                 //   'total_authorized',
                 //   'total_captured',
@@ -211,10 +232,6 @@ module.exports = class Transaction extends Model {
                 .then(() => {
                   return this
                 })
-              // }
-              // else {
-              //   return Promise.resolve(this)
-              // }
             }
           }
         }

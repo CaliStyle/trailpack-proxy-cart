@@ -99,6 +99,19 @@ module.exports = class ProductVariant extends Model {
                 otherKey: 'associated_variant_id'
                 // constraints: false
               })
+              models.ProductVariant.belongsToMany(models.ProductVariant, {
+                as: 'associated',
+                through: {
+                  model: models.ProductAssociation,
+                  unique: false
+                  // scope: {
+                  //   model: 'product'
+                  // }
+                },
+                foreignKey: 'associated_variant_id',
+                otherKey: 'variant_id'
+                // constraints: false
+              })
               // models.ProductVariant.belongsTo(models.Product, {
               //   // foreignKey: 'variant_id',
               //   // as: 'product_id',

@@ -198,13 +198,23 @@ module.exports = class Collection extends Model {
                     return foundCollection
                   })
               }
-              else if (collection && _.isObject(collection) && (collection.handle || collection.title)) {
+              else if (collection && _.isObject(collection) && collection.handle) {
                 return Collection.findOne(_.defaultsDeep({
                   where: {
-                    $or: {
-                      handle: collection.handle,
-                      title: collection.title
+                    handle: collection.handle
+                  }
+                }, options))
+                  .then(resCollection => {
+                    if (resCollection) {
+                      return resCollection
                     }
+                    return Collection.create(collection, {transaction: options.transaction})
+                  })
+              }
+              else if (collection && _.isObject(collection) && collection.title) {
+                return Collection.findOne(_.defaultsDeep({
+                  where: {
+                    title: collection.title
                   }
                 }, options))
                   .then(resCollection => {

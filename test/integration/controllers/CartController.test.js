@@ -7,6 +7,7 @@ const customers = require('../../fixtures/customers')
 
 describe('CartController', () => {
   let request
+  let agent
   let cartID
   let customerID
   let orderID
@@ -17,7 +18,16 @@ describe('CartController', () => {
     shopID = global.app.shopID
     shopProducts = global.app.shopProducts
     request = supertest('http://localhost:3000')
-    done()
+    agent = supertest.agent(global.app.packs.express.server)
+    // Login as Admin
+    agent
+      .post('/auth/local')
+      .set('Accept', 'application/json') //set header for this test
+      .send({username: 'admin', password: 'admin1234'})
+      .expect(200)
+      .end((err, res) => {
+        done(err)
+      })
   })
 
   it('should exist', () => {
@@ -301,32 +311,32 @@ describe('CartController', () => {
       })
   })
   // TODO
-  // it('should make addCoupon request', (done) => {
-  //   request
-  //     .post(`/cart/${cartID}/addCoupon`)
-  //     .send({
-  //
-  //     })
-  //     .expect(200)
-  //     .end((err, res) => {
-  //       // console.log('THIS CART', res.body)
-  //       // assert.equal(res.body.id, cartID)
-  //       done(err)
-  //     })
-  // })
-  // it('should make addDiscount request', (done) => {
-  //   request
-  //     .post(`/cart/${cartID}/addDiscount`)
-  //     .send({
-  //
-  //     })
-  //     .expect(200)
-  //     .end((err, res) => {
-  //       // console.log('THIS CART', res.body)
-  //       // assert.equal(res.body.id, cartID)
-  //       done(err)
-  //     })
-  // })
+  it.skip('should make addCoupon request', (done) => {
+    request
+      .post(`/cart/${cartID}/addCoupon`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS CART', res.body)
+        // assert.equal(res.body.id, cartID)
+        done(err)
+      })
+  })
+  it.skip('should make addDiscount request', (done) => {
+    request
+      .post(`/cart/${cartID}/addDiscount`)
+      .send({
+
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS CART', res.body)
+        // assert.equal(res.body.id, cartID)
+        done(err)
+      })
+  })
   it('should make checkout post request', (done) => {
     request
       .post(`/cart/${cartID}/checkout`)

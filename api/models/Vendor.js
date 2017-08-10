@@ -79,13 +79,23 @@ module.exports = class Vendor extends Model {
                     return foundVendor
                   })
               }
-              else if (vendor && _.isObject(vendor) && (vendor.handle || vendor.name)) {
+              else if (vendor && _.isObject(vendor) && vendor.handle) {
                 return Vendor.findOne(_.defaultsDeep({
                   where: {
-                    $or: {
-                      handle: vendor.handle,
-                      name: vendor.name
+                    handle: vendor.handle
+                  }
+                }, options))
+                  .then(resVendor => {
+                    if (resVendor) {
+                      return resVendor
                     }
+                    return Vendor.create(vendor, { transaction: options.transaction || null})
+                  })
+              }
+              else if (vendor && _.isObject(vendor) && vendor.name) {
+                return Vendor.findOne(_.defaultsDeep({
+                  where: {
+                    name: vendor.name
                   }
                 }, options))
                   .then(resVendor => {

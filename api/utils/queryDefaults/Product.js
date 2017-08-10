@@ -40,7 +40,7 @@ module.exports = {
         // {
         //   model: app.orm['Product'],
         //   as: 'associations',
-        //   duplicating: false
+        //   // duplicating: false
         // },
         {
           model: app.orm['Metadata'],
@@ -50,7 +50,7 @@ module.exports = {
         {
           model: app.orm['Vendor'],
           as: 'vendors',
-          attributes: ['id','name']
+          attributes: ['id','handle','name']
         },
         {
           model: app.orm['Collection'],
@@ -62,7 +62,6 @@ module.exports = {
             'tax_type',
             'tax_rate',
             'tax_name',
-            'tax_type',
             'discount_scope',
             'discount_type',
             'discount_rate',
@@ -123,12 +122,17 @@ module.exports = {
             'tax_type',
             'tax_rate',
             'tax_name',
-            'tax_type',
             'discount_scope',
             'discount_type',
             'discount_rate',
             'discount_percentage'
           ]
+        },
+        {
+          model: app.orm['Vendor'],
+          as: 'vendors',
+          duplicating: false,
+          attributes: ['id','handle','name']
         }
       ],
       order: [

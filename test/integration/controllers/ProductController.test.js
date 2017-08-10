@@ -689,6 +689,7 @@ describe('ProductController', () => {
         done()
       })
   })
+  // TODO list associations
   it('It should get product with uploaded association', (done) => {
     request
       .get('/product/handle/yeti')

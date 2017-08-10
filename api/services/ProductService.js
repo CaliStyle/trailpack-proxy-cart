@@ -403,12 +403,13 @@ module.exports = class ProductService extends Service {
     if (!Array.isArray(products)) {
       products = [products]
     }
-    return this.app.orm.Product.sequelize.transaction(t => {
-      return Promise.all(products.map(product => {
+    const Product = this.app.orm.Product
+    return Product.sequelize.transaction(t => {
+      return Product.sequelize.Promise.mapSeries(products, product => {
         return this.updateProduct(product, {
           transaction: t
         })
-      }))
+      })
     })
   }
 
@@ -548,11 +549,12 @@ module.exports = class ProductService extends Service {
         })
 
         // Update existing Images
-        _.each(resProduct.images, image => {
+        resProduct.images.map(image => {
           return _.extend(image, _.find(product.images, { id: image.id }))
         })
+
         // Create a List of new Images
-        product.images = _.filter(product.images, image => {
+        product.images = product.images.filter(image => {
           if (typeof image.id === 'undefined') {
             return Image.build(image)
           }
@@ -560,11 +562,10 @@ module.exports = class ProductService extends Service {
         // Join all the images
         resProduct.images = _.sortBy(_.concat(resProduct.images, product.images),'position')
         // Set the Positions
-        _.each(resProduct.images, (image, index) => {
+        resProduct.images.map((image, index) => {
           image.position = index + 1
+          return image
         })
-
-        // console.log('THESE VARIANTS', resProduct.variants)
         return resProduct.updateAttributes(update, {transaction: options.transaction || null})
       })
       .then(updateProduct => {
@@ -578,7 +579,7 @@ module.exports = class ProductService extends Service {
       .then(tags => {
         // Set Tags
         if (tags && tags.length > 0) {
-          return resProduct.setTags(_.map(tags, t  => t.id), {transaction: options.transaction || null})
+          return resProduct.setTags(tags.map(t => t.id), {transaction: options.transaction || null})
         }
         return
       })
@@ -593,7 +594,7 @@ module.exports = class ProductService extends Service {
       .then(collections => {
         // console.log('THESE COLLECTIONS', collections)
         if (collections && collections.length > 0) {
-          return resProduct.setCollections(_.map(collections, c => c.id), {transaction: options.transaction || null})
+          return resProduct.setCollections(collections.map(c => c.id), {transaction: options.transaction || null})
         }
         return
       })
@@ -609,12 +610,12 @@ module.exports = class ProductService extends Service {
       })
       .then(vendors => {
         if (vendors && vendors.length > 0) {
-          return resProduct.setVendors(_.map(vendors, v => v.id), { transaction: options.transaction || null })
+          return resProduct.setVendors(vendors.map(v => v.id), { transaction: options.transaction || null })
         }
         return
       })
       .then(vendors => {
-        return Promise.all(resProduct.variants.map(variant => {
+        return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
           // gather options
           if (variant.option) {
             if (!_.some(productOptions, option => variant.option.name)) {
@@ -622,7 +623,7 @@ module.exports = class ProductService extends Service {
             }
           }
 
-          if (variant.id) {
+          if (variant instanceof Variant.Instance) {
             return variant.save({ transaction: options.transaction || null })
           }
           else {
@@ -630,17 +631,15 @@ module.exports = class ProductService extends Service {
               transaction: options.transaction || null
             })
           }
-        }))
+        })
       })
       .then(variants => {
-        // console.log('THESE VARIANTS', variants)
-        // return Product.findByIdDefault(resProduct.id)
-        return Promise.all(resProduct.images.map(image => {
+        return Product.sequelize.Promise.mapSeries(resProduct.images, image => {
           if (typeof image.variant !== 'undefined') {
             image.product_variant_id = resProduct.variants[image.variant].id
             delete image.variant
           }
-          if (image.id) {
+          if (image instanceof Image.Instance) {
             return image.save({ transaction: options.transaction || null })
           }
           else {
@@ -648,7 +647,7 @@ module.exports = class ProductService extends Service {
               transaction: options.transaction || null
             })
           }
-        }))
+        })
       })
       .then(images => {
         return Product.findByIdDefault(resProduct.id, {
@@ -665,19 +664,19 @@ module.exports = class ProductService extends Service {
     if (!Array.isArray(products)) {
       products = [products]
     }
-    return Promise.all(products.map(product => {
+    const Product = this.app.orm['Product']
+    return Product.sequelize.Promise.mapSeries(products, product => {
       return this.removeProduct(product)
-    }))
+    })
   }
 
   /**
    *
    * @param product
+   * @param options
    */
   removeProduct(product, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     if (!product.id) {
       const err = new Errors.FoundError(Error('Product is missing id'))
       return Promise.reject(err)
@@ -796,7 +795,6 @@ module.exports = class ProductService extends Service {
         resProduct = product
         return Variant.resolve(variant, options)
       })
-      // TODO Update
       .then(foundVariant => {
         resVariant = foundVariant
         resVariant = _.extend(resVariant, _.omit(variant, ['id','sku']))
@@ -820,9 +818,9 @@ module.exports = class ProductService extends Service {
           const keys = Object.keys(variant.option)
           productOptions = _.union(productOptions, keys)
         })
-        return Promise.all(updates.map(variant => {
+        return Product.sequelize.Promise.mapSeries(updates, variant => {
           return variant.save({transaction: options.transaction || null})
-        }))
+        })
       })
       .then(updatedVariants => {
         resProduct.options = product.options

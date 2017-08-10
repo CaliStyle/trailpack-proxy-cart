@@ -280,7 +280,15 @@ module.exports = class ProductCsvService extends Service {
         // Map vendors
         upload.vendors = _.map(upload.vendors, (vendor, index) => {
           return {
+            handle: this.app.services.ProxyCartService.safeHandle(vendor),
             name: vendor
+          }
+        })
+
+        upload.collections = _.map(upload.collections, (collection, index) => {
+          return {
+            handle: this.app.services.ProxyCartService.safeHandle(collection),
+            title: collection
           }
         })
 

@@ -118,7 +118,7 @@ module.exports = class CollectionCsvService extends Service {
                 upload[k] = data.toString().trim()
               }
               else if (k == 'description') {
-                upload[k] = data.toString().trim()
+                upload[k] = data.toString().trim().substring(0,255)
               }
               else if (k == 'discount_product_include') {
                 upload[k] = data.split(',').map(discount => {

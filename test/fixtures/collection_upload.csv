@@ -1,1 +1,2 @@
-﻿Handle,Title,Body,Primary Purpose,Postion,Sort Order,Published,Tax Type,Tax Rate,Tax Percentage,Tax Name,Discount Scope,Discount Type,Discount Rate,Discount Percentage,Images,Images Altawesome,Awesome,Everything is Awesome,group,1,price-asc,TRUE,,,,,global,fixed,100,,https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150,Hello World 3
+Handle,Title,Description,Body,Primary Purpose,Postion,Sort Order,Published,Tax Type,Tax Rate,Tax Percentage,Tax Name,Discount Scope,Discount Type,Discount Rate,Discount Percentage,Images,Images Alt
+awesome,Awesome,Test Description,Everything is Awesome,group,1,price-asc,TRUE,,,,,global,fixed,100,,https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150,Hello World 3

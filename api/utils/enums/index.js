@@ -130,7 +130,7 @@ module.exports = {
     g_custom_label_1: 'Google Shopping / Custom Label 1',
     g_custom_label_2: 'Google Shopping / Custom Label 2',
     g_custom_label_3: 'Google Shopping / Custom Label 3',
-    g_custom_label_4: 'Google Shopping / Custom Label 4'
+    g_custom_label_4: 'Google Shopping / Custom Label 4',
   },
   PRODUCT_META_UPLOAD: {
     handle: 'Handle',
