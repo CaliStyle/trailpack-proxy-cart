@@ -11,6 +11,7 @@ const COLLECTION_PURPOSE = require('../utils/enums').COLLECTION_PURPOSE
 const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
 const COLLECTION_DISCOUNT_TYPE = require('../utils/enums').COLLECTION_DISCOUNT_TYPE
 const COLLECTION_TAX_TYPE = require('../utils/enums').COLLECTION_TAX_TYPE
+const COLLECTION_SHIPPING_TYPE = require('../utils/enums').COLLECTION_SHIPPING_TYPE
 
 /**
  * @module CollectionUpload
@@ -30,6 +31,7 @@ module.exports = class CollectionUpload extends Model {
           COLLECTION_DISCOUNT_SCOPE: COLLECTION_DISCOUNT_SCOPE,
           COLLECTION_DISCOUNT_TYPE: COLLECTION_DISCOUNT_TYPE,
           COLLECTION_TAX_TYPE: COLLECTION_TAX_TYPE,
+          COLLECTION_SHIPPING_TYPE: COLLECTION_SHIPPING_TYPE,
           /**
            *
            * @param options
@@ -120,6 +122,22 @@ module.exports = class CollectionUpload extends Model {
         defaultValue: COLLECTION_TAX_TYPE.PERCENTAGE
       },
       tax_name: {
+        type: Sequelize.STRING
+      },
+      shipping_rate: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
+      },
+      shipping_percentage: {
+        type: Sequelize.FLOAT,
+        defaultValue: 0.0
+      },
+      shipping_type: {
+        type: Sequelize.ENUM,
+        values: _.values(COLLECTION_SHIPPING_TYPE),
+        defaultValue: COLLECTION_SHIPPING_TYPE.PERCENTAGE
+      },
+      shipping_name: {
         type: Sequelize.STRING
       },
       discount_scope: {

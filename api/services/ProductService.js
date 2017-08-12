@@ -1042,7 +1042,7 @@ module.exports = class ProductService extends Service {
    * @param product
    * @param association
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
   addAssociation(product, association, options){
     options = options || {}

@@ -16,7 +16,8 @@ module.exports = class CollectionService extends Service {
   /**
    * Add a Collection
    * @param collection
-   * @returns {Promise}
+   * @param options
+   * @returns {Promise.<T>}
    */
   add(collection, options) {
     options = options || {}
@@ -26,13 +27,12 @@ module.exports = class CollectionService extends Service {
       .then(resCollection => {
         if (!resCollection) {
           // Create a new Collection
-          return this.create(collection, options)
+          return this.create(collection, {transaction: options.transaction || null})
         }
         else {
-          // Set ID in case it's missing in this transaction
-          collection.id = resCollection.id
           // Update the existing collection
-          return this.update(collection, options)
+          resCollection = _.extend(resCollection, collection)
+          return this.update(resCollection, {transaction: options.transaction || null})
         }
       })
   }
@@ -107,8 +107,12 @@ module.exports = class CollectionService extends Service {
     }
     let resCollection
     const update = _.omit(collection,['id','created_at','updated_at','collections','images'])
-    return Collection.findByIdDefault(collection.id, {transaction: options.transaction || null})
-      .then(resCollection => {
+    return Collection.resolve(collection, {transaction: options.transaction || null})
+      .then(foundCollection => {
+        if (!foundCollection) {
+          throw new Error('Collection could not be resolved')
+        }
+        resCollection = foundCollection
         return resCollection.update(update, {transaction: options.transaction || null})
       })
       .then(updatedCollection => {
@@ -149,7 +153,7 @@ module.exports = class CollectionService extends Service {
         return
       })
       .then(() => {
-        return resCollection.reload({transaction: options.transaction || null})
+        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 

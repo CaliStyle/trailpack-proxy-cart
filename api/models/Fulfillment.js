@@ -236,7 +236,7 @@ module.exports = class Fulfillment extends Model {
             /**
              *
              * @param options
-             * @returns {Promise.<TResult>}
+             * @returns {Promise.<T>}
              */
             reconcileFulfillmentStatus: function (options) {
               options = options || {}

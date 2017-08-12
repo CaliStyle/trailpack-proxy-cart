@@ -105,13 +105,19 @@ module.exports = class CustomerCsvService extends Service {
             upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => { return tag.trim()}))
           }
           else if (k == 'collections') {
-            upload[k] = data.split(',').map(collection => { return collection.trim()})
+            upload[k] = data.split(',').map(collection => {
+              return collection.trim()
+            })
           }
           else if (k == 'accounts') {
-            upload[k] = data.split(',').map(account => { return account.trim()})
+            upload[k] = data.split(',').map(account => {
+              return account.trim()
+            })
           }
           else if (k == 'users') {
-            upload[k] = data.split(',').map(user => { return user.trim()})
+            upload[k] = data.split(',').map(user => {
+              return user.trim()
+            })
           }
           else {
             upload[k] = data
@@ -122,9 +128,11 @@ module.exports = class CustomerCsvService extends Service {
 
     upload.collections = _.map(upload.collections, (collection, index) => {
       return {
+        handle: this.app.services.ProxyCartService.safeHandle(collection),
         title: collection
       }
     })
+
     upload.accounts = _.map(upload.accounts, (account, index) => {
       return {
         gateway: account.split(/:(.+)/)[0],

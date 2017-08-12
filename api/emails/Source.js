@@ -1,7 +1,7 @@
 /* eslint no-console: [0] */
 'use strict'
 
-const Email = require('trailpack-proxy-generics').Email
+const Email = require('trailpack-proxy-email').Email
 
 module.exports = class Source extends Email {
   /**

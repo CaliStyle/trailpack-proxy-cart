@@ -91,7 +91,9 @@ module.exports = class CollectionCsvService extends Service {
         const keys = _.keys(COLLECTION_UPLOAD)
         const upload = {
           upload_id: uploadID,
-          options: {}
+          options: {},
+          images: [],
+          collections: []
         }
 
         _.each(row, (data, key) => {
@@ -153,12 +155,22 @@ module.exports = class CollectionCsvService extends Service {
         })
 
         // Map images
-        upload.images = _.map(upload.images, (image, index) => {
+        upload.images = upload.images.map((image, index) => {
           return {
             src: image,
             alt: upload.images_alt ? upload.images_alt[index] || null : ''
           }
         })
+        upload.images = upload.images.filter(image => image)
+
+        // Map Collections
+        upload.collections = upload.collections.map(collection => {
+          return {
+            handle: this.app.services.ProxyCartService.safeHandle(collection),
+            title: collection
+          }
+        })
+        upload.collections = upload.collections.filter(collection => collection)
 
         // If not collection handle, resolve without doing anything or throwing an error
         if (!upload.handle) {
@@ -206,6 +218,10 @@ module.exports = class CollectionCsvService extends Service {
           tax_percentage: collection.tax_percentage,
           tax_type: collection.tax_type,
           tax_name: collection.tax_name,
+          shipping_rate: collection.shipping_rate,
+          shipping_percentage: collection.shipping_percentage,
+          shipping_type: collection.shipping_type,
+          shipping_name: collection.shipping_name,
           discount_scope: collection.discount_scope,
           discount_type: collection.discount_type,
           discount_rate: collection.discount_rate,
@@ -215,12 +231,14 @@ module.exports = class CollectionCsvService extends Service {
           collections: collection.collections,
           images: collection.images
         }
+        console.log('CSV CREATE',create)
         return this.app.services.CollectionService.add(create, {transaction: options.transaction || null})
           .then(() => {
             collectionsTotal++
             return
           })
           .catch(err => {
+            this.app.log.error(err)
             errorsCount++
             errors.push(`${collection.handle}: ${err.message}`)
             return err

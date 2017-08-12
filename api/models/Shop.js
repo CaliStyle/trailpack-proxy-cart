@@ -132,8 +132,9 @@ module.exports = class Shop extends Model {
               shops = shops || []
               const Shop = app.orm['Shop']
               const Sequelize = Shop.sequelize
+
               // Transform if necessary to objects
-              shops = _.map(shops, shop => {
+              shops = shops.map(shop => {
                 if (shop && _.isNumber(shop)) {
                   return { id: shop }
                 }
@@ -141,26 +142,25 @@ module.exports = class Shop extends Model {
                   shop = { name: shop }
                   return shop
                 }
-                else if (shop) {
-                  return _.omit(shop, ['created_at','updated_at'])
+                else if (shop && _.isObject(shop)) {
+                  return shop
                 }
               })
-              // console.log('THESE SHOPS', shops)
+              // Filter out undefined
+              shops = shops.filter(shop => shop)
+
               return Sequelize.Promise.mapSeries(shops, shop => {
-                const newShop = shop
                 return Shop.findOne({
-                  where: shop,
+                  where: _.pick(shop, ['id','handle']),
                   attributes: ['id', 'name', 'handle'],
                   transaction: options.transaction || null
                 })
-                  .then(shop => {
-                    if (shop) {
-                      // console.log('SHOP', shop.get({ plain: true }))
-                      return shop
+                  .then(foundShop => {
+                    if (foundShop) {
+                      return _.extend(foundShop, shop)
                     }
                     else {
-                      // console.log('CREATING SHOP',shops[index])
-                      return Shop.create(newShop, {
+                      return Shop.create(shop, {
                         transaction: options.transaction || null
                       })
                     }

@@ -77,27 +77,8 @@ module.exports = class Order extends Model {
              * @param options
              * @param fn
              */
-            beforeUpdate: (values, options, fn) => {
-              if (values.ip) {
-                values.update_ip = values.ip
-              }
-              // if (values.changed('fulfillment_status') || values.changed('financial_status')) {
-              //   values.setStatus()
-              // }
-              if (values.changed('status') && values.status == ORDER_STATUS.CLOSED) {
-                values.close()
-              }
-              fn()
-            },
-            /**
-             *
-             * @param values
-             * @param options
-             * @param fn
-             */
-            // Will not save updates from hooks!
-            afterUpdate: (values, options, fn) => {
-              app.services.OrderService.afterUpdate(values, options)
+            afterCreate: (values, options, fn) => {
+              app.services.OrderService.afterCreate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -111,11 +92,23 @@ module.exports = class Order extends Model {
              * @param options
              * @param fn
              */
-            afterCreate: (values, options, fn) => {
-              app.services.OrderService.afterCreate(values, options)
-                .then(values => {
-                  return values.save({transaction: options.transaction || null})
-                })
+            beforeUpdate: (values, options, fn) => {
+              if (values.ip) {
+                values.update_ip = values.ip
+              }
+              if (values.changed('status') && values.status == ORDER_STATUS.CLOSED) {
+                values.close()
+              }
+              fn()
+            },
+            /**
+             *
+             * @param values
+             * @param options
+             * @param fn
+             */
+            afterUpdate: (values, options, fn) => {
+              app.services.OrderService.afterUpdate(values, options)
                 .then(values => {
                   return fn(null, values)
                 })
@@ -1069,7 +1062,7 @@ module.exports = class Order extends Model {
                 financialStatus = ORDER_FINANCIAL.CANCELLED
               }
 
-              app.log.debug(`FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}, Pending: ${totalPending}, Cancelled: ${totalCancelled}`)
+              app.log.debug(`ORDER ${this.id}: FINANCIAL Status: ${financialStatus}, Sales: ${totalSale}, Authorized: ${totalAuthorized}, Refunded: ${totalRefund}, Pending: ${totalPending}, Cancelled: ${totalCancelled}`)
               // pending: The finances are pending. (This is the default value.)
               // cancelled: The finances pending have been cancelled.
               // authorized: The finances have been authorized.
@@ -1130,12 +1123,6 @@ module.exports = class Order extends Model {
                   totalCancelledFulfillments++
                 }
               })
-
-              // this.order_items.forEach(item => {
-              //   if (!item.fulfillment_id) {
-              //     totalNonFulfillments++
-              //   }
-              // })
 
               if (totalFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
                 fulfillmentStatus = ORDER_FULFILLMENT.FULFILLED

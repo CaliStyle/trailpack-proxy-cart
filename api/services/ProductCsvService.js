@@ -91,7 +91,12 @@ module.exports = class ProductCsvService extends Service {
         const amazon = {}
         const upload = {
           upload_id: uploadID,
-          options: {}
+          options: {},
+          images: [],
+          variant_images: [],
+          vendors: [],
+          collections: [],
+          associations: []
         }
 
         _.each(row, (data, key) => {
@@ -260,40 +265,44 @@ module.exports = class ProductCsvService extends Service {
         delete upload.options
 
         // Map images
-        upload.images = _.map(upload.images, (image, index) => {
+        upload.images = upload.images.map((image, index) => {
           return {
             src: image,
             alt: upload.images_alt ? upload.images_alt[index] : ''
           }
         })
         delete upload.images_alt
+        upload.images = upload.images.filter(image => image)
 
         // Map variant images
-        upload.variant_images = _.map(upload.variant_images, (image, index) => {
+        upload.variant_images = upload.variant_images.map((image, index) => {
           return {
             src: image,
             alt: upload.variant_images_alt ? upload.variant_images_alt[index] : ''
           }
         })
         delete upload.variant_images_alt
+        upload.variant_images = upload.variant_images.filter(image => image)
 
         // Map vendors
-        upload.vendors = _.map(upload.vendors, (vendor, index) => {
+        upload.vendors = upload.vendors.map(vendor => {
           return {
             handle: this.app.services.ProxyCartService.safeHandle(vendor),
             name: vendor
           }
         })
+        upload.vendors = upload.vendors.filter(vendor => vendor)
 
-        upload.collections = _.map(upload.collections, (collection, index) => {
+        upload.collections = upload.collections.map(collection => {
           return {
             handle: this.app.services.ProxyCartService.safeHandle(collection),
             title: collection
           }
         })
+        upload.collections = upload.collections.filter(collection => collection)
 
         // Map associations
-        upload.associations = _.map(upload.associations, (association) => {
+        upload.associations = upload.associations.map(association => {
           const handle = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[0])
           const sku = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[1])
           const res = {}
@@ -306,6 +315,7 @@ module.exports = class ProductCsvService extends Service {
           }
           return
         })
+        upload.associations = upload.associations.filter(association => association)
         // Add google
         upload.google = google
         // Add amazon
@@ -343,7 +353,6 @@ module.exports = class ProductCsvService extends Service {
     }, (products) => {
 
       const Sequelize = this.app.orm.Product.sequelize
-
       return Sequelize.Promise.mapSeries(products, product => {
         return this.processProductGroup(product.handle, uploadId, {})
           .then((results) => {
@@ -369,7 +378,7 @@ module.exports = class ProductCsvService extends Service {
           })
       })
       .then(destroyed => {
-        return this.processProductAssociationUpload(uploadId)
+        return this.processProductAssociationUpload(uploadId, {})
           .then(results => {
             // Calculate the totals created
             associationsTotal = associationsTotal + (results.associations || 0)
@@ -403,144 +412,151 @@ module.exports = class ProductCsvService extends Service {
    * @returns {Promise}
    */
   processProductGroup(handle, uploadId, options) {
-    if (!options) {
-      options = {}
-    }
+    options = options || {}
     this.app.log.debug('ProxyCartService.processProductGroup', handle)
+
+    const Product = this.app.orm['Product']
     const ProductUpload = this.app.orm['ProductUpload']
     const AssociationUpload = this.app.orm['ProductAssociationUpload']
     const associations = []
     const errors = []
     let errorsCount = 0, productsCount = 0, variantsCount = 0, associationsCount = 0
-    return ProductUpload.findAll({
-      where: {
-        handle: handle,
-        upload_id: uploadId
-      },
-      order: 'id ASC',
-      transaction: options.transaction || null
-    })
-      .then(products => {
 
-        // Remove Upload Junk
-        products = products.map(product => {
-          return _.omit(product.get({plain: true}), ['id', 'upload_id', 'created_at', 'updated_at'])
-        })
-        // Handle associations
-        products.map(product => {
-          if (product.associations) {
-            product.associations.forEach(a => {
-              const association = {
-                upload_id: uploadId,
-                product_handle: product.handle || null,
-                product_sku: product.sku || null,
-                associated_product_handle: a.handle || null,
-                associated_product_sku: a.sku || null,
+    return Product.sequelize.transaction(t => {
+      options.transaction = t
+
+      return ProductUpload.findAll({
+        where: {
+          handle: handle,
+          upload_id: uploadId
+        },
+        order: 'id ASC',
+        // transaction: options.transaction || null
+      })
+        .then(products => {
+
+          // Remove Upload Junk
+          products = products.map(product => {
+            return _.omit(product.get({plain: true}), ['id', 'upload_id', 'created_at', 'updated_at'])
+          })
+          // Handle associations
+          products.map(product => {
+            if (product.associations) {
+              product.associations.forEach(a => {
+                const association = {
+                  upload_id: uploadId,
+                  product_handle: product.handle || null,
+                  product_sku: product.sku || null,
+                  associated_product_handle: a.handle || null,
+                  associated_product_sku: a.sku || null,
+                }
+                associations.push(association)
+              })
+            }
+            delete product.associations
+            return product
+          })
+
+          // Sort the products to find the default if they got out of order somewhere
+          if (!products[0].title || products[0].title == '') {
+            products = products.sort((a, b) => {
+              if (a.title > b.title) {
+                return 1
               }
-              associations.push(association)
+              else if (a.title < b.title) {
+                return 0
+              }
+              else {
+                return -1
+              }
             })
           }
-          delete product.associations
-          return product
-        })
 
-        // Sort the products to find the default if they got out of order somewhere
-        if (!products[0].title || products[0].title == '') {
-          products = products.sort((a,b) => {
-            if (a.title > b.title) {
-              return 1
+          // Construct Root Product
+          const defaultProduct = products.shift()
+
+          if (!defaultProduct) {
+            throw new Error(`${handle}: Default Product could not be established`)
+          }
+          if (!defaultProduct.handle) {
+            throw new Error(`${handle}: Default Product could not be established, missing handle`)
+          }
+          if (!defaultProduct.title) {
+            throw new Error(`${handle}: Default Product could not be established, missing title`)
+          }
+
+          // Add Product Variants
+          defaultProduct.variants = products.map(product => {
+            if (!product) {
+              throw new Error(`${handle}: Missing`)
             }
-            else if (a.title < b.title) {
-              return 0
+            else if (!product.handle) {
+              throw new Error(`${handle}: Missing Handle`)
+            }
+            // Sku is required for a variant
+            else if (!product.sku) {
+              throw new Error(`${handle}: Missing Variant SKU`)
             }
             else {
-              return -1
+              // Set the Images on the Variant
+              product.images = product.variant_images
+              return _.omit(product, ['variant_images'])
             }
           })
-        }
+          // Remove Undefined
+          defaultProduct.variants.filter(variant => variant)
 
-        // Construct Root Product
-        const defaultProduct = products.shift()
-
-        if (!defaultProduct) {
-          errorsCount++
-          throw new Error(`${handle}: Default Product could not be established`)
-        }
-        if (!defaultProduct.handle) {
-          errorsCount++
-          errors.push(`${handle}: Default Product could not be established, missing handle`)
-          return
-        }
-        if (!defaultProduct.title) {
-          errorsCount++
-          errors.push(`${handle}: Default Product could not be established, missing title`)
-          return
-        }
-
-        // Add Product Variants
-        defaultProduct.variants = products.filter( product => {
-          if (!product) {
-            errorsCount++
-            errors.push(`${handle}: Missing`)
-            return
-          }
-          if (!product.handle) {
-            errorsCount++
-            errors.push(`${handle}: Missing Handle`)
-            return
-          }
-          // Sku is required for a variant
-          else if (!product.sku) {
-            errorsCount++
-            errors.push(`${handle}: Missing Variant SKU`)
-            return
-          }
-          else {
-            product.images = product.variant_images
-            return _.omit(product, ['variant_images'])
+          // Add the product with it's variants
+          return this.app.services.ProductService.addProduct(defaultProduct, {transaction: options.transaction || null})
+            .then(createdProduct => {
+              if (!createdProduct) {
+                throw new Error(`${handle} was not created`)
+              }
+              productsCount = 1
+              if (createdProduct.variants) {
+                variantsCount = createdProduct.variants.length
+              }
+              return
+            })
+            .catch(err => {
+              errorsCount++
+              errors.push(`${handle}: ${err.message}`)
+              return
+            })
+        })
+        .then(() => {
+          return AssociationUpload.bulkCreate(associations)
+            .then(uploadedAssociations => {
+              associationsCount = uploadedAssociations ? uploadedAssociations.length : 0
+              return
+            })
+            .catch(err => {
+              errorsCount++
+              errors.push(err.message)
+              return
+            })
+        })
+        .then(uploadedAssociations => {
+          return {
+            products: productsCount,
+            variants: variantsCount,
+            associations: associationsCount,
+            errors_count: errorsCount,
+            errors: errors
           }
         })
-
-        // console.log('BROKE', defaultProduct)
-        // Add the product with it's variants
-        return this.app.services.ProductService.addProduct(defaultProduct, {transaction: options.transaction || null})
-          .then(createdProduct => {
-            if (!createdProduct) {
-              throw new Error(`${handle} was not created`)
-            }
-            productsCount = 1
-            if (createdProduct.variants) {
-              variantsCount = createdProduct.variants.length
-            }
-            return
-          })
-          .catch(err => {
-            errorsCount++
-            errors.push(`${handle}: ${err.message}`)
-            return
-          })
-      })
-      .then(() => {
-        return AssociationUpload.bulkCreate(associations)
-          .then(uploadedAssociations => {
-            associationsCount = uploadedAssociations ? uploadedAssociations.length : 0
-            return
-          })
-          .catch(err => {
-            errorsCount++
-            errors.push(err.message)
-            return
-          })
-      })
-      .then(uploadedAssociations => {
-        return {
-          products: productsCount,
-          variants: variantsCount,
-          associations: associationsCount,
-          errors_count: errorsCount,
-          errors: errors
-        }
-      })
+        .catch(err => {
+          errorsCount++
+          errors.push(err.message)
+          return {
+            products: productsCount,
+            variants: variantsCount,
+            associations: associationsCount,
+            errors_count: errorsCount,
+            errors: errors
+          }
+        })
+    })
   }
 
   /**
@@ -554,6 +570,7 @@ module.exports = class ProductCsvService extends Service {
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
+    let errorsCount = 0
     return new Promise((resolve, reject) => {
       const options = {
         header: true,
@@ -569,6 +586,7 @@ module.exports = class ProductCsvService extends Service {
               parser.resume()
             })
             .catch(err => {
+              errorsCount++
               errors.push(err.message)
               this.app.log.error('ROW ERROR', err)
               parser.resume()
@@ -582,13 +600,16 @@ module.exports = class ProductCsvService extends Service {
             .then(count => {
               results.products = count
               results.errors = errors
+              results.errors_count = errorsCount
               // Publish the event
               ProxyEngineService.publish('product_meta_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
+              errorsCount++
               errors.push(err.message)
               results.errors = errors
+              results.errors_count = errorsCount
               return resolve(results)
             })
         },
@@ -779,8 +800,8 @@ module.exports = class ProductCsvService extends Service {
         const results = {
           upload_id: uploadId,
           products: productsTotal,
-          errors: errors,
-          errors_count: errorsCount
+          errors_count: errorsCount,
+          errors: errors
         }
         this.app.services.ProxyEngineService.publish('product_metadata_process.complete', results)
         return results
@@ -790,9 +811,11 @@ module.exports = class ProductCsvService extends Service {
   /**
    *
    * @param uploadId
+   * @param options
    * @returns {Promise}
    */
-  processProductAssociationUpload(uploadId) {
+  processProductAssociationUpload(uploadId, options) {
+    options = options || {}
     const AssociationUpload = this.app.orm['ProductAssociationUpload']
     const ProductService = this.app.services.ProductService
     const errors = []
@@ -801,49 +824,54 @@ module.exports = class ProductCsvService extends Service {
     return AssociationUpload.batch({
       where: {
         upload_id: uploadId
-      }
+      },
+      transaction: options.transaction | null
     }, associations => {
 
-      const Sequelize = AssociationUpload.sequelize
-      return Sequelize.Promise.mapSeries(associations, association => {
+      return AssociationUpload.sequelize.Promise.mapSeries(associations, association => {
         return ProductService.addAssociation({
           handle: association.product_handle,
           sku: association.product_sku
         }, {
           handle: association.associated_product_handle,
           sku: association.associated_product_sku
+        }, {
+          transaction: options.transaction || null
         })
-            .then(() => {
-              associationsTotal++
-              return
-            })
-            .catch(err => {
-              errorsCount++
-              errors.push(`${association.product_handle} -> ${association.associated_product_handle}: ${err.message}`)
-              return
-            })
+          .then(() => {
+            associationsTotal++
+            return
+          })
+          .catch(err => {
+            errorsCount++
+            errors.push(`${association.product_handle} -> ${association.associated_product_handle}: ${err.message}`)
+            return
+          })
       })
     })
-        .then(results => {
-          return AssociationUpload.destroy({
-            where: {upload_id: uploadId }
+      .then(results => {
+        return AssociationUpload.destroy({
+          where: {
+            upload_id: uploadId
+          },
+          transaction: options.transaction || null
+        })
+          .catch(err => {
+            errorsCount++
+            errors.push(err)
+            return
           })
-            .catch(err => {
-              errorsCount++
-              errors.push(err)
-              return
-            })
-        })
-        .then(destroyed => {
-          const results = {
-            upload_id: uploadId,
-            associations: associationsTotal,
-            errors: errors,
-            errors_count: errorsCount
-          }
-          this.app.services.ProxyEngineService.publish('product_associations_process.complete', results)
-          return results
-        })
+      })
+      .then(destroyed => {
+        const results = {
+          upload_id: uploadId,
+          associations: associationsTotal,
+          errors_count: errorsCount,
+          errors: errors
+        }
+        this.app.services.ProxyEngineService.publish('product_associations_process.complete', results)
+        return results
+      })
   }
 }
 

@@ -146,35 +146,41 @@ module.exports = class Vendor extends Model {
               const Vendor = app.orm['Vendor']
               const Sequelize = Vendor.sequelize
 
-              vendors = _.map(vendors, vendor => {
-                if (vendor && _.isString(vendor)) {
+              vendors = vendors.map(vendor => {
+                if (vendor && _.isNumber(vendor)) {
                   vendor = {
-                    handle: app.services.ProxyCartService.slug(vendor),
+                    id: vendor
+                  }
+                  return vendor
+                }
+                else if (vendor && _.isString(vendor)) {
+                  vendor = {
+                    handle: app.services.ProxyCartService.safeHandle(vendor),
                     name: vendor
                   }
                   return vendor
                 }
-                else if (vendor) {
-                  return _.omit(vendor, ['created_at','updated_at'])
+                else if (vendor && _.isObject(vendor)) {
+                  vendor.handle = vendor.handle || app.services.ProxyCartService.safeHandle(vendor.name)
+                  return vendor
                 }
               })
-              // console.log('THESE VENDORS', vendors)
-              // return Vendor.sequelize.transaction(t => {
+              vendors = vendors.filter(vendor => vendor)
+
               return Sequelize.Promise.mapSeries(vendors, vendor => {
-                const newVendor = vendor
                 return Vendor.findOne({
-                  where: vendor,
-                  attributes: ['id', 'name', 'handle'],
+                  where: _.pick(vendor,['id','handle']),
+                  attributes: ['id', 'handle', 'name'],
                   transaction: options.transaction || null
                 })
-                  .then(vendor => {
-                    if (vendor) {
+                  .then(foundVendor => {
+                    if (foundVendor) {
                       // console.log('VENDOR', vendor.get({ plain: true }))
-                      return vendor
+                      return _.extend(foundVendor, vendor)
                     }
                     else {
                       // console.log('CREATING VENDOR',vendors[index])
-                      return Vendor.create(newVendor, {
+                      return Vendor.create(vendor, {
                         transaction: options.transaction || null
                       })
                     }
@@ -183,13 +189,17 @@ module.exports = class Vendor extends Model {
             },
             transform: function (vendor) {
               if (vendor && _.isObject(vendor)) {
+                vendor.handle = vendor.handle || app.services.ProxyCartService.safeHandle(vendor.name)
                 return vendor
               }
               else if (vendor && _.isString(vendor)) {
                 return {
-                  handle: app.services.ProxyCartService.slug(vendor),
+                  handle: app.services.ProxyCartService.safeHandle(vendor),
                   name: vendor
                 }
+              }
+              else {
+                return null
               }
             },
             reverseTransform: function (vendor) {
@@ -213,7 +223,7 @@ module.exports = class Vendor extends Model {
         notNull: true,
         unique: true,
         set: function(val) {
-          this.setDataValue('handle', app.services.ProxyCartService.slug(val))
+          this.setDataValue('handle', app.services.ProxyCartService.safeHandle(val))
         }
       },
       // The name of the vendor

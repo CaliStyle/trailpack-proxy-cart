@@ -14,6 +14,7 @@ const packs = [
   require('trailpack-proxy-permissions'),
   require('trailpack-proxy-notifications'),
   require('trailpack-proxy-generics'),
+  require('trailpack-proxy-email'),
   require('trailpack-proxy-cart-countries'),
   require('../') // trailpack-proxy-cart
 ]
@@ -33,7 +34,8 @@ const stores = {
     database: 'ProxyCart',
     storage: './test/test.uploads.sqlite',
     host: '127.0.0.1',
-    dialect: 'sqlite'
+    dialect: 'sqlite',
+    logging: false
   }
 }
 
@@ -55,7 +57,8 @@ else if (ORM === 'sequelize') {
       database: 'ProxyCart',
       storage: './test/test.sqlite',
       host: '127.0.0.1',
-      dialect: 'sqlite'
+      dialect: 'sqlite',
+      logging: false
     }
   }
 }
@@ -325,6 +328,24 @@ const App = {
         retry_attempts: 5,
         // The amount of days before a Transaction will cancel from failed
         grace_period_days: 5
+      },
+      emails: {
+        orderCreated: true,
+        orderUpdated: true,
+        orderPaid: true,
+        orderFulfilled: true,
+        orderRefunded: true,
+        orderCancelled: true,
+        sourceWillExpire: true,
+        sourceUpdated: true,
+        subscriptionCreated: true,
+        subscriptionUpdated: true,
+        subscriptionActivated: true,
+        subscriptionDeactivated: true,
+        subscriptionCancelled: true,
+        subscriptionWillRenew: true,
+        subscriptionRenewed: true,
+        transactionFailed: true
       }
     },
     proxyNotifications: {
@@ -338,6 +359,10 @@ const App = {
         // The name of the email sending this notification
         name: 'Test'
       }
+    },
+    // Proxy Email
+    proxyEmail: {
+
     },
     // Proxy Generics
     proxyGenerics: {

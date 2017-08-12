@@ -1,7 +1,7 @@
 /* eslint no-console: [0] */
 'use strict'
 
-const Template = require('trailpack-proxy-generics').Template
+const Template = require('trailpack-proxy-email').Template
 
 module.exports = class Order extends Template {
   created(order) {

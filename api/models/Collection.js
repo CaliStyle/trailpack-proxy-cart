@@ -184,7 +184,6 @@ module.exports = class Collection extends Model {
             resolve: function(collection, options){
               options = options || {}
               const Collection =  this
-
               if (collection instanceof Collection.Instance){
                 return Promise.resolve(collection)
               }
@@ -192,7 +191,6 @@ module.exports = class Collection extends Model {
                 return Collection.findById(collection.id, options)
                   .then(foundCollection => {
                     if (!foundCollection) {
-                      // TODO create proper error
                       throw new Errors.FoundError(Error(`Collection ${collection.id} not found`))
                     }
                     return foundCollection
@@ -208,39 +206,49 @@ module.exports = class Collection extends Model {
                     if (resCollection) {
                       return resCollection
                     }
-                    return Collection.create(collection, {transaction: options.transaction})
+                    collection.title = collection.title || collection.handle
+                    return app.services.CollectionService.create(collection, {transaction: options.transaction})
                   })
               }
               else if (collection && _.isObject(collection) && collection.title) {
                 return Collection.findOne(_.defaultsDeep({
                   where: {
-                    title: collection.title
+                    handle: app.services.ProxyCartService.safeHandle(collection.title)
                   }
                 }, options))
                   .then(resCollection => {
                     if (resCollection) {
                       return resCollection
                     }
-                    return Collection.create(collection, {transaction: options.transaction})
+                    collection.handle = collection.handle || app.ProxyCartService.safeHandle(collection.title)
+                    return app.services.CollectionService.create(collection, {transaction: options.transaction})
                   })
               }
               else if (collection && _.isNumber(collection)) {
                 return Collection.findById(collection, options)
+                  .then(foundCollection => {
+                    if (!foundCollection) {
+                      throw new Errors.FoundError(Error(`Collection ${collection.id} not found`))
+                    }
+                    return foundCollection
+                  })
               }
               else if (collection && _.isString(collection)) {
                 return Collection.findOne(_.defaultsDeep({
                   where: {
-                    $or: {
-                      handle: collection,
-                      title: collection
-                    }
+                    handle: app.services.ProxyCartService.safeHandle(collection)
                   }
                 }, options))
                   .then(resCollection => {
                     if (resCollection) {
                       return resCollection
                     }
-                    return this.create({title: collection}, {transaction: options.transaction || null})
+                    return app.services.CollectionService.create({
+                      handle: app.services.ProxyCartService.safeHandle(collection),
+                      title: collection
+                    }, {
+                      transaction: options.transaction || null
+                    })
                   })
               }
               else {
@@ -249,47 +257,51 @@ module.exports = class Collection extends Model {
                 return Promise.reject(err)
               }
             },
+            /**
+             *
+             * @param collections
+             * @param options
+             * @returns {Promise.<T>}
+             */
             transformCollections: (collections, options) => {
-              const Collection = app.orm['Collection']
-              const Sequelize = Collection.sequelize
               options = options || {}
               collections = collections || []
 
+              const Collection = app.orm['Collection']
+              const Sequelize = Collection.sequelize
+
               // Transform if necessary to objects
               collections = collections.map(collection => {
-                if (collection && _.isString(collection)) {
-                  collection = {
-                    handle: app.services.ProxyCartService.slug(collection),
+                if (collection && _.isNumber(collection)) {
+                  return { id: collection }
+                }
+                else if (collection && _.isString(collection)) {
+                  return {
+                    handle: app.services.ProxyCartService.safeHandle(collection),
                     title: collection
                   }
+                }
+                else if (collection && _.isObject(collection)) {
                   return collection
                 }
-                else if (collection) {
-                  return _.omit(collection, ['created_at','updated_at'])
-                }
               })
-              // console.log('THESE COLLECTIONS', collections)
+              // Filter out undefined
+              collections = collections.filter(collection => collection)
+
               return Sequelize.Promise.mapSeries(collections, collection => {
-                const newCollection = collection
                 return Collection.findOne({
-                  where: {
-                    handle: collection.handle
-                  },
-                  attributes: ['id', 'title', 'handle'],
+                  where: _.pick(collection, ['id','handle']),
+                  attributes: ['id', 'handle', 'title'],
                   transaction: options.transaction || null
                 })
                   .then(foundCollection => {
                     if (foundCollection) {
                       // console.log('COLLECTION', collection.get({ plain: true }))
-                      return foundCollection
+                      return _.extend(foundCollection, collection)
                     }
                     else {
                       // console.log('CREATING COLLECTION',collections[index])
-                      return Collection.create(newCollection, {
-                        include: [{
-                          model: app.orm['Image'],
-                          as: 'images'
-                        }],
+                      return app.services.CollectionService.create(collection, {
                         transaction: options.transaction || null
                       })
                     }
@@ -337,14 +349,14 @@ module.exports = class Collection extends Model {
           allowNull: false,
           unique: true,
           set: function(val) {
-            this.setDataValue('handle', app.services.ProxyCartService.slug(val))
+            this.setDataValue('handle', app.services.ProxyCartService.safeHandle(val))
           }
         },
         // The title of the Collection
         title: {
           type: Sequelize.STRING,
-          allowNull: false,
-          unique: true
+          allowNull: false
+          // unique: true
         },
         // The purpose of the collection
         primary_purpose: {

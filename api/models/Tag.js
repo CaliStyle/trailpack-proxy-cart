@@ -124,15 +124,13 @@ module.exports = class Tag extends Model {
              * @returns {Promise.<*>}
              */
             transformTags: (tags, options) => {
+              options = options || {}
+              tags = tags || []
+
               const Tag = app.orm['Tag']
               const Sequelize = Tag.sequelize
 
-              options = options || {}
-
-              if (!tags) {
-                tags = []
-              }
-
+              // Transform tag to object if necessary.
               tags = tags.map(tag => {
                 if (tag && _.isNumber(tag)) {
                   return { id: tag }
@@ -142,14 +140,15 @@ module.exports = class Tag extends Model {
                   return tag
                 }
                 else if (tag && _.isObject(tag)) {
-                  return _.omit(tag, ['created_at','updated_at'])
+                  return tag
                 }
               })
-              // console.log('THESE TAGS', tags)
+              // Filter out undefined
+              tags = tags.filter(tag => tag)
               return Sequelize.Promise.mapSeries(tags, tag => {
                 const newTag = tag
                 return Tag.findOne({
-                  where: tag,
+                  where: _.pick(tag, ['id','name']),
                   attributes: ['id', 'name'],
                   transaction: options.transaction || null
                 })
