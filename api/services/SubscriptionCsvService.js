@@ -23,23 +23,23 @@ module.exports = class SubscriptionCsvService extends Service {
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
-
+    const errors = []
+    let errorsCount = 0, lineNumber = 0
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
         dynamicTyping: true,
         step: (results, parser) => {
-          // console.log(parser)
-          // console.log('Row data:', results.data)
-          // TODO handle errors
-          // console.log('Row errors:', results.errors)
           parser.pause()
+          lineNumber++
           return this.csvSubscriptionRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
             .catch(err => {
-              console.log(err)
+              errorsCount++
+              errors.push(`Line ${lineNumber}: ${err.message}`)
+              this.app.log.error('ROW ERROR', err)
               parser.resume()
             })
         },
@@ -50,13 +50,18 @@ module.exports = class SubscriptionCsvService extends Service {
           ProxyEngineService.count('SubscriptionUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.subscriptions = count
+              results.errors = errors
+              results.errors_count = errorsCount
               // Publish the event
               ProxyEngineService.publish('subscription_upload.complete', results)
               return resolve(results)
             })
-            // TODO handle this more gracefully
             .catch(err => {
-              return reject(err)
+              errorsCount++
+              errors.push(err.message)
+              results.errors = errors
+              results.errors_count = errorsCount
+              return resolve(results)
             })
         },
         error: (err, file) => {

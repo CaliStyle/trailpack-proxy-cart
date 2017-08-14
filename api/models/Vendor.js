@@ -165,6 +165,7 @@ module.exports = class Vendor extends Model {
                   return vendor
                 }
               })
+
               vendors = vendors.filter(vendor => vendor)
 
               return Sequelize.Promise.mapSeries(vendors, vendor => {
@@ -175,11 +176,9 @@ module.exports = class Vendor extends Model {
                 })
                   .then(foundVendor => {
                     if (foundVendor) {
-                      // console.log('VENDOR', vendor.get({ plain: true }))
                       return _.extend(foundVendor, vendor)
                     }
                     else {
-                      // console.log('CREATING VENDOR',vendors[index])
                       return Vendor.create(vendor, {
                         transaction: options.transaction || null
                       })

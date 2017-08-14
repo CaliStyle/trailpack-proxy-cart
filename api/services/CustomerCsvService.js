@@ -23,23 +23,23 @@ module.exports = class CustomerCsvService extends Service {
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
-
+    const errors = []
+    let errorsCount = 0, lineNumber = 0
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
         dynamicTyping: true,
         step: (results, parser) => {
-          // console.log(parser)
-          // console.log('Row data:', results.data)
-          // TODO handle errors
-          // console.log('Row errors:', results.errors)
           parser.pause()
+          lineNumber++
           return this.csvCustomerRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
             .catch(err => {
-              console.log(err)
+              errorsCount++
+              errors.push(`Line ${lineNumber}: ${err.message}`)
+              this.app.log.error('ROW ERROR',err)
               parser.resume()
             })
         },
@@ -50,13 +50,18 @@ module.exports = class CustomerCsvService extends Service {
           ProxyEngineService.count('CustomerUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.customers = count
+              results.errors = errors
+              results.errors_count = errorsCount
               // Publish the event
               ProxyEngineService.publish('customer_upload.complete', results)
               return resolve(results)
             })
-            // TODO handle this more gracefully
             .catch(err => {
-              return reject(err)
+              errorsCount++
+              errors.push(err.message)
+              results.errors = errors
+              results.errors_count = errorsCount
+              return resolve(results)
             })
         },
         error: (err, file) => {
@@ -81,11 +86,14 @@ module.exports = class CustomerCsvService extends Service {
     const keys = _.keys(CUSTOMER_UPLOAD)
     const upload = {
       upload_id: uploadID,
+      users: [],
+      collections: [],
+      accounts: [],
       options: {}
     }
 
     _.each(row, (data, key) => {
-      if (data === '') {
+      if (!data || data === '') {
         row[key] = null
       }
     })
@@ -97,12 +105,14 @@ module.exports = class CustomerCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data !== '') {
+      if (data && data !== '') {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
           if (k == 'tags') {
-            upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => { return tag.trim()}))
+            upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => {
+              return tag.trim()
+            }))
           }
           else if (k == 'collections') {
             upload[k] = data.split(',').map(collection => {
@@ -126,24 +136,28 @@ module.exports = class CustomerCsvService extends Service {
       }
     })
 
-    upload.collections = _.map(upload.collections, (collection, index) => {
+    upload.collections = upload.collections.map((collection, index) => {
       return {
         handle: this.app.services.ProxyCartService.safeHandle(collection),
         title: collection
       }
     })
+    upload.collections = upload.collections.filter(collection => collection)
 
-    upload.accounts = _.map(upload.accounts, (account, index) => {
+    upload.accounts = upload.accounts.map((account, index) => {
       return {
         gateway: account.split(/:(.+)/)[0],
         foreign_id: account.split(/:(.+)/)[1]
       }
     })
-    upload.users = _.map(upload.users, (user, index) => {
+    upload.accounts = upload.accounts.filter(account => account)
+
+    upload.users = upload.users.map((user, index) => {
       return {
         email: user
       }
     })
+    upload.users = upload.users.filter(user => user)
 
     const newCustomer = CustomerUpload.build(upload)
     return newCustomer.save()

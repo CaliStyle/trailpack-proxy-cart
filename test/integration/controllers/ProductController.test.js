@@ -111,16 +111,22 @@ describe('ProductController', () => {
         assert.notEqual(res.body[0].tags.indexOf('equipment'), -1)
         assert.notEqual(res.body[0].tags.indexOf('outdoor'), -1)
         // Images
+        assert.equal(res.body[0].images.length, 2)
         assert.equal(res.body[0].images[0].position, 1)
+        assert.equal(res.body[0].images[1].position, 2)
         assert.equal(res.body[0].images[0].product_id, createdProductID)
         assert.equal(res.body[0].images[0].product_variant_id, defaultVariantID)
-        assert.ok(res.body[0].images[0].src)
-        assert.ok(res.body[0].images[0].full)
-        assert.ok(res.body[0].images[0].thumbnail)
-        assert.ok(res.body[0].images[0].small)
-        assert.ok(res.body[0].images[0].medium)
-        assert.ok(res.body[0].images[0].large)
         assert.equal(res.body[0].images[0].alt, 'Hello World')
+
+        res.body[0].images.forEach(image => {
+          assert.ok(image.src)
+          assert.ok(image.full)
+          assert.ok(image.thumbnail)
+          assert.ok(image.small)
+          assert.ok(image.medium)
+          assert.ok(image.large)
+        })
+
         // Variants
         assert.equal(res.body[0].variants.length, 2)
         assert.equal(res.body[0].variants[0].position, 1)
@@ -168,27 +174,25 @@ describe('ProductController', () => {
         assert.notEqual(res.body.tags.indexOf('equipment'), -1)
         assert.notEqual(res.body.tags.indexOf('outdoor'), -1)
         // Images
+        assert.equal(res.body.images.length, 2)
         assert.equal(res.body.images[0].product_id, createdProductID)
         assert.equal(res.body.images[0].product_variant_id, defaultVariantID)
         assert.equal(res.body.images[0].position, 1)
-        assert.ok(res.body.images[0].src)
-        assert.ok(res.body.images[0].full)
-        assert.ok(res.body.images[0].thumbnail)
-        assert.ok(res.body.images[0].small)
-        assert.ok(res.body.images[0].medium)
-        assert.ok(res.body.images[0].large)
         assert.equal(res.body.images[0].alt, 'Hello World')
 
         assert.equal(res.body.images[1].product_id, createdProductID)
         assert.equal(res.body.images[1].product_variant_id, firstVariantID)
         assert.equal(res.body.images[1].position, 2)
-        assert.ok(res.body.images[1].src)
-        assert.ok(res.body.images[1].full)
-        assert.ok(res.body.images[1].thumbnail)
-        assert.ok(res.body.images[1].small)
-        assert.ok(res.body.images[1].medium)
-        assert.ok(res.body.images[1].large)
         assert.equal(res.body.images[1].alt, 'Hello World 2')
+
+        res.body.images.forEach(image => {
+          assert.ok(image.src)
+          assert.ok(image.full)
+          assert.ok(image.thumbnail)
+          assert.ok(image.small)
+          assert.ok(image.medium)
+          assert.ok(image.large)
+        })
 
         // Variants
         assert.equal(res.body.variants.length, 2)
@@ -287,7 +291,8 @@ describe('ProductController', () => {
         assert.equal(res.body[0].variants[1].position, 2)
         assert.equal(res.body[0].variants[2].position, 3)
         assert.equal(res.body[0].variants[0].title, res.body[0].title)
-        assert.equal(res.body[0].variants[2].title, 'Youth Burton Custom Freestyle 151')
+        assert.equal(res.body[0].variants[2].title, 'Women\'s Burton Custom Freestyle 151 Updated')
+        assert.equal(res.body[0].variants[1].title, 'Youth Burton Custom Freestyle 151')
 
         // Images
         assert.equal(res.body[0].images.length, 4)

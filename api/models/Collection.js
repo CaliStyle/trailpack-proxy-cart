@@ -281,7 +281,8 @@ module.exports = class Collection extends Model {
                     title: collection
                   }
                 }
-                else if (collection && _.isObject(collection)) {
+                else if (collection && _.isObject(collection) && (collection.title || collection.handle)) {
+                  collection.handle = collection.handle || app.services.ProxyCartService.safeHandle(collection.title)
                   return collection
                 }
               })
@@ -296,11 +297,9 @@ module.exports = class Collection extends Model {
                 })
                   .then(foundCollection => {
                     if (foundCollection) {
-                      // console.log('COLLECTION', collection.get({ plain: true }))
                       return _.extend(foundCollection, collection)
                     }
                     else {
-                      // console.log('CREATING COLLECTION',collections[index])
                       return app.services.CollectionService.create(collection, {
                         transaction: options.transaction || null
                       })
@@ -309,7 +308,8 @@ module.exports = class Collection extends Model {
               })
             },
             reverseTransformCollections: (collections) => {
-              collections = _.map(collections, collection => {
+              collections = collections || []
+              collections.map(collection => {
                 if (collection && _.isString(collection)) {
                   return collection
                 }

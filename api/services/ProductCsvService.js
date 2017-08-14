@@ -25,24 +25,23 @@ module.exports = class ProductCsvService extends Service {
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
+    let errorsCount = 0, lineNumber = 0
 
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
         dynamicTyping: true,
         step: (results, parser) => {
-          // console.log(parser)
-          // console.log('Row data:', results.data)
-          // TODO handle errors
-          // console.log('Row errors:', results.errors)
           parser.pause()
+          lineNumber++
           return this.csvProductRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
             .catch(err => {
-              this.app.log.error('ROW ERROR',err)
-              errors.push(err.message)
+              errorsCount++
+              this.app.log.error('ROW ERROR', err)
+              errors.push(`Line ${lineNumber}: ${err.message}`)
               parser.resume()
             })
         },
@@ -53,13 +52,17 @@ module.exports = class ProductCsvService extends Service {
           ProxyEngineService.count('ProductUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.products = count
+              results.errors_count = errorsCount
               results.errors = errors
+
               // Publish the event
               ProxyEngineService.publish('product_upload.complete', results)
               return resolve(results)
             })
             .catch(err => {
+              errorsCount++
               errors.push(err.message)
+              results.errors_count = errorsCount
               results.errors = errors
               return resolve(results)
             })
@@ -100,7 +103,7 @@ module.exports = class ProductCsvService extends Service {
         }
 
         _.each(row, (data, key) => {
-          if (data === '') {
+          if (!data || data === '') {
             row[key] = null
           }
         })
@@ -112,12 +115,15 @@ module.exports = class ProductCsvService extends Service {
         }
 
         _.each(row, (data, key) => {
-          if (data !== '') {
+          if (data && data !== '') {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
             const k = keys[i]
             if (i > -1 && k) {
               if (k == 'handle') {
                 upload[k] = this.app.services.ProxyCartService.safeHandle(data)
+              }
+              if (k == 'seo_description') {
+                upload[k] = data.toString().trim().substring(0, 255)
               }
               else if (k == 'tags') {
                 upload[k] = _.uniq(data.split(',').map(tag => {
@@ -291,15 +297,22 @@ module.exports = class ProductCsvService extends Service {
             name: vendor
           }
         })
+        // Filter out undefined
         upload.vendors = upload.vendors.filter(vendor => vendor)
+        // Get only Unique handles
+        upload.vendors = _.uniqBy(upload.vendors, 'handle')
 
+        // Map collections
         upload.collections = upload.collections.map(collection => {
           return {
             handle: this.app.services.ProxyCartService.safeHandle(collection),
             title: collection
           }
         })
+        // Filter out undefined
         upload.collections = upload.collections.filter(collection => collection)
+        // Get only Unique handles
+        upload.collections = _.uniqBy(upload.collections, 'handle')
 
         // Map associations
         upload.associations = upload.associations.map(association => {
@@ -315,7 +328,9 @@ module.exports = class ProductCsvService extends Service {
           }
           return
         })
+        // Filter out undefined
         upload.associations = upload.associations.filter(association => association)
+
         // Add google
         upload.google = google
         // Add amazon
@@ -440,7 +455,7 @@ module.exports = class ProductCsvService extends Service {
             return _.omit(product.get({plain: true}), ['id', 'upload_id', 'created_at', 'updated_at'])
           })
           // Handle associations
-          products.map(product => {
+          products = products.map(product => {
             if (product.associations) {
               product.associations.forEach(a => {
                 const association = {
@@ -519,6 +534,7 @@ module.exports = class ProductCsvService extends Service {
               return
             })
             .catch(err => {
+              this.app.log.error(err)
               errorsCount++
               errors.push(`${handle}: ${err.message}`)
               return
@@ -570,24 +586,21 @@ module.exports = class ProductCsvService extends Service {
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
-    let errorsCount = 0
+    let errorsCount = 0, lineNumber
     return new Promise((resolve, reject) => {
       const options = {
         header: true,
         dynamicTyping: true,
         step: (results, parser) => {
-          // console.log(parser)
-          // console.log('Row data:', results.data)
-          // TODO handle errors
-          // console.log('Row errors:', results.errors)
           parser.pause()
+          lineNumber++
           return this.csvProductMetaRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
             .catch(err => {
               errorsCount++
-              errors.push(err.message)
+              errors.push(`Line ${lineNumber}: ${err.message}`)
               this.app.log.error('ROW ERROR', err)
               parser.resume()
             })
@@ -641,7 +654,7 @@ module.exports = class ProductCsvService extends Service {
         }
 
         _.each(row, (data, key) => {
-          if (data === '') {
+          if (!data || data === '') {
             row[key] = null
           }
         })
@@ -653,7 +666,7 @@ module.exports = class ProductCsvService extends Service {
         }
 
         _.each(row, (data, key) => {
-          if (data !== '') {
+          if (data && data !== '') {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
             const k = keys[i]
             if (i > -1 && k) {

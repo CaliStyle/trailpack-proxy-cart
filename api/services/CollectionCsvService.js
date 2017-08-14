@@ -24,18 +24,15 @@ module.exports = class CollectionCsvService extends Service {
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
-    let errorsCount = 0
+    let errorsCount = 0, lineNumber = 0
 
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
         dynamicTyping: true,
         step: (results, parser) => {
-          // console.log(parser)
-          // console.log('Row data:', results.data)
-          // TODO handle errors
-          // console.log('Row errors:', results.errors)
           parser.pause()
+          lineNumber ++
           return this.csvCollectionRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
@@ -43,7 +40,7 @@ module.exports = class CollectionCsvService extends Service {
             .catch(err => {
               this.app.log.error('ROW ERROR', err)
               errorsCount++
-              errors.push(err.message)
+              errors.push(`Line ${lineNumber}: ${err.message}`)
               parser.resume()
             })
         },
@@ -97,7 +94,7 @@ module.exports = class CollectionCsvService extends Service {
         }
 
         _.each(row, (data, key) => {
-          if (data === '') {
+          if (!data || data === '') {
             row[key] = null
           }
         })
@@ -109,7 +106,7 @@ module.exports = class CollectionCsvService extends Service {
         }
 
         _.each(row, (data, key) => {
-          if (data !== '') {
+          if (data && data !== '') {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
             const k = keys[i]
             if (i > -1 && k) {
@@ -117,7 +114,7 @@ module.exports = class CollectionCsvService extends Service {
                 upload[k] = this.app.services.ProxyCartService.safeHandle(data)
               }
               else if (k == 'title') {
-                upload[k] = data.toString().trim()
+                upload[k] = data.toString().trim().substring(0,255)
               }
               else if (k == 'description') {
                 upload[k] = data.toString().trim().substring(0,255)
@@ -143,7 +140,7 @@ module.exports = class CollectionCsvService extends Service {
                 })
               }
               else if (k == 'images_alt') {
-                upload[k] = data.split(',').map(images => {
+                upload[k] = data.split('|').map(images => {
                   return images.trim()
                 })
               }
@@ -170,7 +167,10 @@ module.exports = class CollectionCsvService extends Service {
             title: collection
           }
         })
+        // Filer out undefined
         upload.collections = upload.collections.filter(collection => collection)
+        // Get only Unique handles
+        upload.collections = _.uniqBy(upload.collections, 'handle')
 
         // If not collection handle, resolve without doing anything or throwing an error
         if (!upload.handle) {
@@ -201,9 +201,7 @@ module.exports = class CollectionCsvService extends Service {
       transaction: options.transaction || null
     }, collections => {
 
-      const Sequelize = this.app.orm.Collection.sequelize
-
-      return Sequelize.Promise.mapSeries(collections, collection => {
+      return this.app.orm.Collection.sequelize.Promise.mapSeries(collections, collection => {
 
         const create = {
           handle: collection.handle,
@@ -231,9 +229,11 @@ module.exports = class CollectionCsvService extends Service {
           collections: collection.collections,
           images: collection.images
         }
-        console.log('CSV CREATE',create)
         return this.app.services.CollectionService.add(create, {transaction: options.transaction || null})
-          .then(() => {
+          .then((createdCollection) => {
+            if (!createdCollection) {
+              throw new Error(`${collection.handle} was not created`)
+            }
             collectionsTotal++
             return
           })

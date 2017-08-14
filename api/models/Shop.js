@@ -127,6 +127,12 @@ module.exports = class Shop extends Model {
                 // Promise.reject(err)
               }
             },
+            /**
+             *
+             * @param shops
+             * @param options
+             * @returns {*}
+             */
             transformShops: (shops, options) => {
               options = options || {}
               shops = shops || []

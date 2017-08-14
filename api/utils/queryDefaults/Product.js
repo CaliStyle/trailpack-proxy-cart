@@ -75,14 +75,14 @@ module.exports = {
             model: app.orm['ProductVariant'],
             as: 'variants'
           },
-          'position'
+          'position','ASC'
         ],
         [
           {
             model: app.orm['ProductImage'],
             as: 'images'
           },
-          'position'
+          'position','ASC'
         ]
       ]
     }
@@ -141,7 +141,7 @@ module.exports = {
             model: app.orm['ProductImage'],
             as: 'images'
           },
-          'position'
+          'position', 'ASC'
         ]
       ]
     }

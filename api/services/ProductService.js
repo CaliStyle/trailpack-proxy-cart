@@ -6,7 +6,7 @@ const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
 const VARIANT_DEFAULTS = require('../utils/enums').VARIANT_DEFAULTS
-
+const removeMd = require('remove-markdown')
 /**
  * @module ProductService
  * @description Product Service
@@ -145,7 +145,7 @@ module.exports = class ProductService extends Service {
     const Product = this.app.orm.Product
     const Tag = this.app.orm.Tag
     const Variant = this.app.orm.ProductVariant
-    const Image = this.app.orm.ProductImage
+    // const Image = this.app.orm.ProductImage
     const Metadata = this.app.orm.Metadata
     const Collection = this.app.orm.Collection
     const Vendor = this.app.orm.Vendor
@@ -177,12 +177,15 @@ module.exports = class ProductService extends Service {
       metadata: Metadata.transform(product.metadata || {}),
       google: product.google,
       amazon: product.amazon,
-      options: []
+      options: product.options
     }
     // create = Product.build(create)
 
-    if (product.published) {
+    if (product.published === true) {
       create.published_at = new Date()
+    }
+    if (product.published === false) {
+      create.unpublished_at = new Date()
     }
     if (product.published_scope) {
       create.published_scope = product.published_scope
@@ -190,22 +193,23 @@ module.exports = class ProductService extends Service {
     if (product.seo_title) {
       create.seo_title = product.seo_title
     }
-    else {
+    if (!product.seo_title && product.title) {
       create.seo_title = product.title
     }
     if (product.seo_description) {
       create.seo_description = product.seo_description
     }
-    else {
-      create.seo_description = product.body
+    if (!product.seo_description && product.body) {
+      create.seo_description = removeMd(product.body).substring(0, 255)
     }
 
     // Images
     let images = []
     // If this request came with product images
-    if (product.images) {
-      _.map(product.images, image => {
+    if (product.images.length > 0) {
+      product.images = product.images.map(image => {
         image.variant = 0
+        return image
       })
       images = images.concat(product.images)
       delete product.images
@@ -214,29 +218,32 @@ module.exports = class ProductService extends Service {
     // Variants
     // Set a default variant based of off product
     let variants = [{
+      title: product.title,
       sku: product.sku,
       google: product.google,
       amazon: product.amazon
     }]
     // Set the published status
-    if (product.published) {
+    if (product.published === true) {
       variants[0].published_at = create.published_at
+    }
+    if (product.published === false) {
+      variants[0].unpublished_at = create.unpublished_at
     }
     // If this is not a true variant because it is missing a sku (which is required), let's remove it.
     if (!variants[0].sku) {
       variants.splice(0,1)
     }
     // Add variants to the default
-    if (product.variants) {
+    if (product.variants.length > 0) {
       variants = variants.concat(product.variants)
     }
     // For every variant, map missing defaults and images
-    _.map(variants, (variant, index) => {
+    variants = variants.map((variant, index) => {
+      // Set defaults from product to variant
       variant = this.variantDefaults(variant, product)
       // Map Variant Positions putting default at 1
-      //if (!variant.position) {
       variant.position = index + 1
-      //}
       // If this variant is not explicitly not published set to status of parent
       if (product.published && variant.published !== false) {
         variant.published = true
@@ -246,9 +253,10 @@ module.exports = class ProductService extends Service {
         variant.published_at = create.published_at
       }
       // Handle Variant Images
-      if (variant.images && variant.images.length > 0) {
-        _.map(variant.images, image => {
+      if (variant.images.length > 0) {
+        variant.images = variant.images.map(image => {
           image.variant = index
+          return image
         })
         images = images.concat(variant.images)
         delete variant.images
@@ -257,30 +265,25 @@ module.exports = class ProductService extends Service {
         const keys = Object.keys(variant.option)
         create.options = _.union(create.options, keys)
       }
+      return variant
     })
+    // Filter out undefined
+    variants = variants.filter(variant => variant)
 
     // Assign the variants to the create model
-    create.variants = variants
     create.total_variants = variants.length
+    create.variants = variants
 
     // Map image positions
-    _.map(images, (image, index) => {
+    images = images.map((image, index) => {
       image.position = index + 1
+      return image
     })
 
     // Set the resulting Product
     let resProduct
     return Product.create(create, {
-      transaction: options.transaction || null,
       include: [
-        {
-          model: Tag,
-          as: 'tags'
-        },
-        {
-          model: Image,
-          as: 'images'
-        },
         {
           model: Variant,
           as: 'variants',
@@ -290,26 +293,13 @@ module.exports = class ProductService extends Service {
               as: 'metadata'
             }
           ]
-            // include: [
-            //   {
-            //     model: Image,
-            //     as: 'images'
-            //   }
-            // ]
         },
         {
           model: Metadata,
           as: 'metadata',
-        },
-        {
-          model: Vendor,
-          as: 'vendors'
-        },
-        // {
-        //   model: Collection,
-        //   as: 'collections'
-        // }
-      ]
+        }
+      ],
+      transaction: options.transaction || null
     })
       .then(createdProduct => {
         if (!createdProduct) {
@@ -319,7 +309,6 @@ module.exports = class ProductService extends Service {
         // console.log('createdProduct',createdProduct)
         if (product.tags && product.tags.length > 0) {
           product.tags = _.sortedUniq(product.tags.filter(n => n))
-          // console.log('THIS PRODUCT TAGS NOW', product.tags)
           return Tag.transformTags(product.tags, {transaction: options.transaction || null})
         }
         return
@@ -327,14 +316,13 @@ module.exports = class ProductService extends Service {
       .then(tags => {
         if (tags && tags.length > 0) {
           // Add Tags
-          return resProduct.setTags(_.map(tags, tag  => tag.id), {transaction: options.transaction || null})
+          return resProduct.setTags(tags.map(tag => tag.id), {transaction: options.transaction || null})
         }
         return
       })
       .then(productTags => {
         if (product.shops && product.shops.length > 0) {
           product.shops = _.sortedUniq(product.shops.filter(n => n))
-          // console.log('THIS PRODUCT SHOPS NOW', product.shops)
           return Shop.transformShops(product.shops, {transaction: options.transaction || null})
         }
         return
@@ -346,19 +334,16 @@ module.exports = class ProductService extends Service {
         return
       })
       .then(shops => {
-        // console.log('THESE COLLECTIONS', product.collections)
         if (product.collections && product.collections.length > 0) {
           // Resolve the collections
           product.collections = _.sortedUniq(product.collections.filter(n => n))
-          // console.log('THIS PRODUCT COLLECTIONS NOW', product.collections)
           return Collection.transformCollections(product.collections, {transaction: options.transaction || null})
         }
         return
       })
       .then(collections => {
-        // console.log('THESE COLLECTIONS RESOLVED', collections)
         if (collections && collections.length > 0) {
-          return resProduct.setCollections(_.map(collections, c => c.id), {transaction: options.transaction || null})
+          return resProduct.setCollections(collections.map(c => c.id), {transaction: options.transaction || null})
         }
         return
       })
@@ -370,27 +355,23 @@ module.exports = class ProductService extends Service {
       })
       .then(vendors => {
         if (vendors && vendors.length > 0) {
-          // console.log('THIS VENDOR', vendor)
-          return resProduct.setVendors(_.map(vendors, v => v.id), {transaction: options.transaction || null})
+          return resProduct.setVendors(vendors.map(v => v.id), {transaction: options.transaction || null})
         }
         return
       })
       .then(vendors => {
-        return Promise.all(images.map(image => {
-          // image.product_id = resProduct.id
+        return Product.sequelize.Promise.mapSeries(images, image => {
+          // If variant index, set the variant image
           if (typeof image.variant !== 'undefined') {
-            if (resProduct.variants[image.variant]) {
+            if (resProduct.variants && resProduct.variants[image.variant] && resProduct.variants[image.variant].id) {
               image.product_variant_id = resProduct.variants[image.variant].id
             }
             delete image.variant
           }
           return resProduct.createImage(image, {transaction: options.transaction || null})
-        }))
+        })
       })
       .then(createdImages => {
-        // Reload
-        // console.log(resProduct)
-        // return resProduct
         return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
@@ -428,11 +409,7 @@ module.exports = class ProductService extends Service {
     const Tag = this.app.orm.Tag
     const Collection = this.app.orm.Collection
     const Vendor = this.app.orm.Vendor
-    // const Shop = this.app.orm.Shop
-    // const Metadata = this.app.orm.Metadata
-    // let newTags = []
-    // return Product.sequelize.transaction(t => {
-    // Create an empty product options array
+
     const productOptions = []
     if (!product.id) {
       throw new Errors.FoundError(Error('Product is missing id'))
@@ -443,6 +420,9 @@ module.exports = class ProductService extends Service {
       transaction: options.transaction || null
     })
       .then(foundProduct => {
+        if (!foundProduct){
+          throw new Error('Product not found')
+        }
         resProduct = foundProduct
 
         const update = {
@@ -459,14 +439,18 @@ module.exports = class ProductService extends Service {
           tax_code: product.tax_code || resProduct.tax_code,
           options: productOptions
         }
-        if (product.published) {
+
+        // If product is getting published
+        if (product.published === true && resProduct.published === false) {
           resProduct.published = resProduct.variants[0].published = product.published
           resProduct.published_at = resProduct.variants[0].published_at = new Date()
         }
-        if (product.published === false) {
+        // If product is getting unpublished
+        if (product.published === false && resProduct.published === true) {
           update.published = resProduct.variants[0].published = product.published
           update.unpublished_at = resProduct.variants[0].unpublished_at = new Date()
         }
+
         // If the SKU is changing, set the default sku
         if (product.sku) {
           resProduct.variants[0].sku = product.sku
@@ -489,59 +473,82 @@ module.exports = class ProductService extends Service {
 
         // Update seo_title if provided, else update it if a new product title
         if (product.seo_title) {
-          resProduct.seo_title = product.seo_title
+          resProduct.seo_title = product.seo_title //.substring(0,255)
         }
-        else if (product.title) {
-          resProduct.seo_title = product.title
+        if (product.title && !product.seo_title) {
+          resProduct.seo_title = product.title //.substring(0,255)
         }
         // Update seo_description if provided, else update it if a new product body
-        // TODO Trim to 255.
         if (product.seo_description) {
-          resProduct.seo_description = product.seo_description
+          resProduct.seo_description = product.seo_description //.substring(0,255)
         }
-        else if (product.body) {
-          resProduct.seo_description = product.body
+        if (!product.seo_description && product.body) {
+          resProduct.seo_description = removeMd(product.body).substring(0, 255)
         }
 
         // Update Existing Variant
-        _.each(resProduct.variants, variant => {
-          return _.extend(variant, _.find(product.variants, { id: variant.id }))
-        })
-        // Create a List of new Variants
-        product.variants = _.filter(product.variants, (variant, index ) => {
-          if (typeof variant.id === 'undefined') {
-            variant = this.variantDefaults(variant, resProduct.get({plain: true}))
-            // variant.product_id = resProduct.id
-            if (variant.images ) {
-              // Update the master image if new/updated attributes are defined
-              _.map(resProduct.images, image => {
-                return _.merge(image, _.find(variant.images, { id: image.id }))
-              })
-              // Remove all the images that are already created
-              variant.images = _.filter(variant.images, image => {
-                if (typeof id === 'undefined') {
-                  // image.variant = index
-                  image.product_id = resProduct.id
-                  return Image.build(image)
-                }
-              })
-              // Add these variant images to the new array.
-              resProduct.images = _.concat(resProduct.images, variant.images)
-              // delete variant.images
-            }
-            return Variant.build(variant)
+        resProduct.variants = resProduct.variants.map(variant => {
+          // Find the existing variant
+          const variantToUpdate = _.find(product.variants, { id: variant.id })
+          // Add new Images
+          if (variantToUpdate && variantToUpdate.images) {
+            let newImages = variantToUpdate.images.filter(image => !image.id)
+            // let oldImages = variantToUpdate.images.filter(image => image.id)
+            newImages = newImages.map(image => {
+              image.product_id = resProduct.id
+              image.product_variant_id = variant.id
+              return Image.build(image)
+            })
+            resProduct.images = _.concat(resProduct.images, newImages)
           }
+          return _.extend(variant, variantToUpdate)
         })
-        // Join all the variants
+
+
+        // Create a List of new Variants
+        product.variants = product.variants.filter(variant => !variant.id)
+        // Build the new Variants
+        product.variants = product.variants.map((variant) => {
+          // Set the product id of the variant
+          variant.product_id = resProduct.id
+          // Set the defaults
+          variant = this.variantDefaults(variant, resProduct.get({plain: true}))
+
+          if (variant.images.length > 0) {
+            // Update the master image if new/updated attributes are defined
+            resProduct.images = resProduct.images.map(image => {
+              return _.extend(image, _.find(variant.images, { id: image.id }))
+            })
+
+            // Create a list of new variant images
+            variant.images = variant.images.filter(image => !image.id)
+            // build the new images
+            variant.images = variant.images.map( image => {
+              // image.variant = index
+              image.product_id = resProduct.id
+              return Image.build(image)
+            })
+
+            // Add these variant images to the new array.
+            resProduct.images = _.concat(resProduct.images, variant.images)
+            // delete variant.images
+          }
+          return Variant.build(variant)
+        })
+
+        // Join all the variants and sort by current positions
         resProduct.variants = _.sortBy(_.concat(resProduct.variants, product.variants), 'position')
-        // Set the Positions
-        _.each(resProduct.variants, (variant, index) => {
+
+        // Set the new Positions
+        resProduct.variants = resProduct.variants.map((variant, index) => {
           variant.position = index + 1
+          return variant
         })
+        // Calculate new total of variants
         resProduct.total_variants = resProduct.variants.length
 
         // Set the new product options
-        _.each(resProduct.variants, variant => {
+        resProduct.variants.forEach(variant => {
           if (variant.option) {
             const keys = Object.keys(variant.option)
             resProduct.options = _.union(resProduct.options, keys)
@@ -549,23 +556,26 @@ module.exports = class ProductService extends Service {
         })
 
         // Update existing Images
-        resProduct.images.map(image => {
+        resProduct.images = resProduct.images.map(image => {
           return _.extend(image, _.find(product.images, { id: image.id }))
         })
 
         // Create a List of new Images
-        product.images = product.images.filter(image => {
-          if (typeof image.id === 'undefined') {
-            return Image.build(image)
-          }
+        product.images = product.images.filter(image => !image.id)
+        product.images = product.images.map(image => {
+          image.product_id = resProduct.id
+          return Image.build(image)
         })
+
         // Join all the images
-        resProduct.images = _.sortBy(_.concat(resProduct.images, product.images),'position')
+        resProduct.images = _.sortBy(_.concat(resProduct.images, product.images), 'position')
         // Set the Positions
-        resProduct.images.map((image, index) => {
+        resProduct.images = resProduct.images.map((image, index) => {
           image.position = index + 1
           return image
         })
+
+        // Update changed attributes
         return resProduct.updateAttributes(update, {transaction: options.transaction || null})
       })
       .then(updateProduct => {
@@ -592,7 +602,7 @@ module.exports = class ProductService extends Service {
         return
       })
       .then(collections => {
-        // console.log('THESE COLLECTIONS', collections)
+        // Set the collections
         if (collections && collections.length > 0) {
           return resProduct.setCollections(collections.map(c => c.id), {transaction: options.transaction || null})
         }
@@ -616,15 +626,10 @@ module.exports = class ProductService extends Service {
       })
       .then(vendors => {
         return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
-          // gather options
-          if (variant.option) {
-            if (!_.some(productOptions, option => variant.option.name)) {
-              productOptions.push(variant.option.name)
-            }
-          }
-
           if (variant instanceof Variant.Instance) {
-            return variant.save({ transaction: options.transaction || null })
+            return variant.save({
+              transaction: options.transaction || null
+            })
           }
           else {
             return resProduct.createVariant(variant, {
@@ -875,9 +880,9 @@ module.exports = class ProductService extends Service {
           const keys = Object.keys(variant.option)
           productOptions = _.union(productOptions, keys)
         })
-        return Promise.all(updates.map(variant => {
+        return Variant.sequelize.Promise.mapSeries(updates, variant => {
           return variant.save({transaction: options.transaction || null})
-        }))
+        })
       })
       .then(updatedVariants => {
         resProduct.options = productOptions
@@ -945,11 +950,11 @@ module.exports = class ProductService extends Service {
         _.map(updates, (image, index) => {
           image.position = index + 1
         })
-        return Promise.all(updates.map(image => {
+        return Image.sequelize.Promise.mapSeries(updates, image => {
           return image.save({
             transaction: options.transaction || null
           })
-        }))
+        })
       })
       .then(updatedImages => {
         return resDestroy.destroy({
@@ -1004,7 +1009,7 @@ module.exports = class ProductService extends Service {
    * @param product
    * @param tag
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
   removeTag(product, tag, options){
     options = options || {}
@@ -1343,36 +1348,47 @@ module.exports = class ProductService extends Service {
    * @returns {*}
    */
   productDefaults(product) {
+
+    // Establish an array of variants
+    product.variants = product.variants || []
+    product.images = product.images || []
+    product.collections = product.collections || []
+    product.associations = product.associations || []
+    product.tags = product.tags || []
+    product.options = []
+    product.google = product.google || {}
+    product.amazon = product.amazon || {}
+
     // Actual Product Defaults
     if (_.isNil(product.host)) {
       product.host = PRODUCT_DEFAULTS.HOST
     }
+    // If not options, set default options
     if (_.isNil(product.options)) {
       product.options = PRODUCT_DEFAULTS.OPTIONS
     }
+    // If no tax code set a default tax coe
     if (_.isNil(product.tax_code)) {
       product.tax_code = PRODUCT_DEFAULTS.TAX_CODE
     }
+    // If no currency set default currency
     if (_.isNil(product.currency)) {
-      product.currency = PRODUCT_DEFAULTS.currency
+      product.currency = PRODUCT_DEFAULTS.CURRENCY
     }
     if (_.isNil(product.published_scope)) {
       product.published_scope = PRODUCT_DEFAULTS.PUBLISHED_SCOPE
     }
+    // If not established publish status, default status
     if (_.isNil(product.published)) {
       product.published = PRODUCT_DEFAULTS.PUBLISHED
     }
-    if (_.isNil(product.options)) {
-      product.options = PRODUCT_DEFAULTS.options
-    }
+    // If not a weight, default weight
     if (_.isNil(product.weight)) {
       product.weight = PRODUCT_DEFAULTS.WEIGHT
     }
+    // If not a weight unit, default weight unit
     if (_.isNil(product.weight_unit)) {
       product.weight_unit = PRODUCT_DEFAULTS.WEIGHT_UNIT
-    }
-    if (_.isNil(product.tax_code)) {
-      product.tax_code = PRODUCT_DEFAULTS.TAX_CODE
     }
 
     // Variant Defaults for addProduct/updateProduct
@@ -1418,6 +1434,10 @@ module.exports = class ProductService extends Service {
    * @returns {*}
    */
   variantDefaults(variant, product){
+    // Defaults for these keys
+    variant.images = variant.images || []
+    variant.collections = variant.collections || []
+    variant.associations = variant.associations || []
 
     // If the title set on parent
     if (_.isString(product.title) && _.isNil(variant.title)) {

@@ -23,6 +23,8 @@ module.exports = class OrderCsvService extends Service {
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
+    const errors = []
+    let errorsCount = 0
 
     return new Promise((resolve, reject)=>{
       const options = {
@@ -39,7 +41,9 @@ module.exports = class OrderCsvService extends Service {
               parser.resume()
             })
             .catch(err => {
-              console.log(err)
+              this.app.log.error(err)
+              errorsCount++
+              errors.push(err.message)
               parser.resume()
             })
         },
@@ -50,13 +54,18 @@ module.exports = class OrderCsvService extends Service {
           ProxyEngineService.count('OrderUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.orders = count
+              results.errors_count = errorsCount
+              results.errors = errors
               // Publish the event
               ProxyEngineService.publish('order_upload.complete', results)
               return resolve(results)
             })
-            // TODO handle this more gracefully
             .catch(err => {
-              return reject(err)
+              errorsCount++
+              errors.push(err.message)
+              results.errors_count = errorsCount
+              results.errors = errors
+              return resolve(results)
             })
         },
         error: (err, file) => {
@@ -85,7 +94,7 @@ module.exports = class OrderCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data === '') {
+      if (!data || data === '') {
         row[key] = null
       }
     })
@@ -97,7 +106,7 @@ module.exports = class OrderCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data) {
+      if (data && data !== '') {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {

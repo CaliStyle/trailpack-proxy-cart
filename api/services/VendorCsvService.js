@@ -23,23 +23,23 @@ module.exports = class VendorCsvService extends Service {
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
-
+    const errors = []
+    let errorsCount = 0, lineNumber = 0
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
         dynamicTyping: true,
         step: (results, parser) => {
-          // console.log(parser)
-          // console.log('Row data:', results.data)
-          // TODO handle errors
-          // console.log('Row errors:', results.errors)
           parser.pause()
+          lineNumber++
           return this.csvVendorRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
             .catch(err => {
-              console.log(err)
+              errorsCount++
+              errors.push(`Line ${lineNumber}: ${err.message}`)
+              this.app.log.error('ROW ERROR',err)
               parser.resume()
             })
         },
@@ -50,13 +50,18 @@ module.exports = class VendorCsvService extends Service {
           ProxyEngineService.count('VendorUpload', { where: { upload_id: uploadID }})
             .then(count => {
               results.vendors = count
+              results.errors_count = errorsCount
+              results.errors = errors
               // Publish the event
               ProxyEngineService.publish('vendor_upload.complete', results)
               return resolve(results)
             })
-            // TODO handle this more gracefully
             .catch(err => {
-              return reject(err)
+              errorsCount++
+              errors.push(err.message)
+              results.errors_count = errorsCount
+              results.errors = errors
+              return resolve(results)
             })
         },
         error: (err, file) => {
@@ -85,7 +90,7 @@ module.exports = class VendorCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data === '') {
+      if (!data || data === '') {
         row[key] = null
       }
     })
@@ -97,7 +102,7 @@ module.exports = class VendorCsvService extends Service {
     }
 
     _.each(row, (data, key) => {
-      if (data) {
+      if (data && data !== '') {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
