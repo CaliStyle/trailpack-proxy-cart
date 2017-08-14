@@ -94,7 +94,7 @@ module.exports = class CollectionCsvService extends Service {
         }
 
         _.each(row, (data, key) => {
-          if (!data || data === '') {
+          if (typeof(data) === 'undefined' || data === '') {
             row[key] = null
           }
         })
@@ -106,7 +106,7 @@ module.exports = class CollectionCsvService extends Service {
         }
 
         _.each(row, (data, key) => {
-          if (data && data !== '') {
+          if (typeof(data) !== 'undefined' && data !== null && data !== '') {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
             const k = keys[i]
             if (i > -1 && k) {
