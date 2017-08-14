@@ -440,6 +440,17 @@ module.exports = class ProductService extends Service {
           options: productOptions
         }
 
+        // force array of variants
+        product.variants = product.variants || []
+        // force array of variants
+        product.images = product.images || []
+        // force array of variants
+        product.tags = product.tags || []
+        // force array of variants
+        product.collections = product.collections || []
+        // force array of variants
+        product.associations = product.associations || []
+
         // If product is getting published
         if (product.published === true && resProduct.published === false) {
           resProduct.published = resProduct.variants[0].published = product.published
@@ -503,7 +514,6 @@ module.exports = class ProductService extends Service {
           }
           return _.extend(variant, variantToUpdate)
         })
-
 
         // Create a List of new Variants
         product.variants = product.variants.filter(variant => !variant.id)
