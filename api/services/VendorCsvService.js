@@ -24,7 +24,7 @@ module.exports = class VendorCsvService extends Service {
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
-    let errorsCount = 0, lineNumber = 0
+    let errorsCount = 0, lineNumber = 1
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,

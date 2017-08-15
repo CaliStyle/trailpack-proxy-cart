@@ -755,13 +755,13 @@ module.exports = class Order extends Model {
               ) {
                 this.close()
               }
-              // else if (
-              //   this.financial_status === ORDER_FINANCIAL.PAID
-              //   && this.fulfillment_status === ORDER_FULFILLMENT.CANCELLED
-              //   && this.status === ORDER_STATUS.OPEN
-              // ) {
-              //   this.cancel()
-              // }
+              else if (
+                this.financial_status === ORDER_FINANCIAL.CANCELLED
+                && this.fulfillment_status === ORDER_FULFILLMENT.CANCELLED
+                && this.status === ORDER_STATUS.OPEN
+              ) {
+                this.cancel()
+              }
               return this
             },
             resolveStatus: function(options) {

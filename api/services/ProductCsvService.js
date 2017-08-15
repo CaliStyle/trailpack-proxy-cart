@@ -20,12 +20,11 @@ module.exports = class ProductCsvService extends Service {
    * @returns {Promise}
    */
   productCsv(file) {
-    // TODO validate csv and return rows with errors
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
-    let errorsCount = 0, lineNumber = 0
+    let errorsCount = 0, lineNumber = 1
 
     return new Promise((resolve, reject)=>{
       const options = {
@@ -450,7 +449,7 @@ module.exports = class ProductCsvService extends Service {
       })
         .then(products => {
 
-          // Remove Upload Junk
+          // Remove Upload Attributes
           products = products.map(product => {
             return _.omit(product.get({plain: true}), ['id', 'upload_id', 'created_at', 'updated_at'])
           })
@@ -501,25 +500,25 @@ module.exports = class ProductCsvService extends Service {
           }
 
           // Add Product Variants
-          defaultProduct.variants = products.map(product => {
-            if (!product) {
+          defaultProduct.variants = products.map(variant => {
+            if (!variant) {
               throw new Error(`${handle}: Missing`)
             }
-            else if (!product.handle) {
+            else if (!variant.handle) {
               throw new Error(`${handle}: Missing Handle`)
             }
             // Sku is required for a variant
-            else if (!product.sku) {
+            else if (!variant.sku) {
               throw new Error(`${handle}: Missing Variant SKU`)
             }
             else {
               // Set the Images on the Variant
-              product.images = product.variant_images
-              return _.omit(product, ['variant_images'])
+              variant.images = variant.variant_images
+              return _.omit(variant, ['variant_images'])
             }
           })
           // Remove Undefined
-          defaultProduct.variants.filter(variant => variant)
+          defaultProduct.variants = defaultProduct.variants.filter(variant => variant)
 
           // Add the product with it's variants
           return this.app.services.ProductService.addProduct(defaultProduct, {transaction: options.transaction || null})
@@ -581,12 +580,11 @@ module.exports = class ProductCsvService extends Service {
    * @returns {Promise}
    */
   productMetaCsv(file) {
-    // TODO validate csv and return rows with errors
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
-    let errorsCount = 0, lineNumber
+    let errorsCount = 0, lineNumber = 1
     return new Promise((resolve, reject) => {
       const options = {
         header: true,

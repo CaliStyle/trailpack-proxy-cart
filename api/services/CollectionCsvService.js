@@ -19,12 +19,11 @@ module.exports = class CollectionCsvService extends Service {
    * @returns {Promise}
    */
   collectionCsv(file) {
-    // TODO validate csv
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
-    let errorsCount = 0, lineNumber = 0
+    let errorsCount = 0, lineNumber = 1
 
     return new Promise((resolve, reject)=>{
       const options = {

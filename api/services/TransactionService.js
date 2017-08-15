@@ -245,6 +245,7 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Order = this.app.orm['Order']
     const Transaction = this.app.orm['Transaction']
+    const Customer = this.app.orm['Customer']
     let resOrder, totalNew = 0, availablePending = []
     return Order.resolve(order, {transaction: options.transaction || null})
       .then(foundOrder => {
@@ -273,39 +274,56 @@ module.exports = class TransactionService extends Service {
         }
         else {
           // TODO get Source info
-          const transaction = Transaction.build({
-            // Set the customer id (in case we can save this source)
-            customer_id: resOrder.customer_id,
-            // Set the order id
-            order_id: resOrder.id,
-            // Set the source if it is given
-            // source_id: detail.source ? detail.source.id : null,
-            // Set the order currency
-            currency: resOrder.currency,
-            // Set the amount for this transaction and handle if it is a split transaction
-            amount: totalNew,
-            // Copy the entire payment details to this transaction
-            // payment_details: obj.payment_details[index],
-            // Specify the gateway to use
-            gateway: resOrder.payment_gateway_names[0],
-            // Set the device (that input the credit card) or null
-            // device_id: obj.device_id || null,
-            // The kind of this new transaction
-            kind: resOrder.payment_kind,
-            // Set the Description
-            description: `Order ${resOrder.name} original transaction ${resOrder.payment_kind}`
-          })
-          // Process the transaction
-          return this.app.services.PaymentService[resOrder.transaction_kind](transaction, {
-            hooks: false,
-            transaction: options.transaction || null
-          })
-            .then(transaction => {
-              // resOrder.addTransaction(transaction) has an updatedAt bug
-              const transactions = resOrder.transactions.concat(transaction)
-              resOrder.set('transactions', transactions)
-              return transaction
-            })
+          if (!(resOrder.Customer instanceof Customer.Instance)) {
+            return null
+          }
+          else {
+            return resOrder.Customer.getDefaultSource({transaction: options.transaction || null})
+              .then(resSource => {
+
+                const transaction = Transaction.build({
+                  // Set the customer id (in case we can save this source)
+                  customer_id: resOrder.customer_id,
+                  // Set the order id
+                  order_id: resOrder.id,
+                  // Set the source if it is given
+                  source_id: resSource.id || null,
+                  // Set the order currency
+                  currency: resOrder.currency,
+                  // Set the amount for this transaction and handle if it is a split transaction
+                  amount: totalNew,
+                  // Copy the entire payment details to this transaction
+                  payment_details: {
+                    gateway: resSource.gateway,
+                    source: resSource,
+                  },
+                  // Specify the gateway to use
+                  gateway: resSource.gateway,
+                  // Set the device (that input the credit card) or null
+                  device_id: resSource.device_id || null,
+                  // The kind of this new transaction
+                  kind: resOrder.payment_kind,
+                  // Set the Description
+                  description: `Order ${resOrder.name} original transaction ${resOrder.payment_kind}`
+                })
+                // Process the transaction
+                return this.app.services.PaymentService[resOrder.transaction_kind](transaction, {
+                  hooks: false,
+                  transaction: options.transaction || null
+                })
+              })
+              .then(transaction => {
+                // resOrder.addTransaction(transaction) has an updatedAt bug
+                if (transaction) {
+                  const transactions = resOrder.transactions.concat(transaction)
+                  resOrder.transactions = transactions
+                  resOrder.setDataValue('transactions', transactions)
+                  resOrder.set('transactions', transactions)
+                }
+
+                return transaction
+              })
+          }
         }
       })
       .then(() => {

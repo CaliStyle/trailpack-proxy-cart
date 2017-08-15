@@ -1,7 +1,9 @@
 'use strict'
 // const _ = require('lodash')
-module.exports = class FakeGeolocationProvider {
+const Generic = require('trailpack-proxy-generics').Generic
+module.exports = class FakeGeolocationProvider extends Generic{
   constructor(options) {
+    super()
     this.options = options
   }
 

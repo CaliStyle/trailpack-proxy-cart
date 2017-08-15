@@ -1,7 +1,10 @@
+/* eslint no-console: [0] */
 'use strict'
+const Generic = require('trailpack-proxy-generics').Generic
 const _ = require('lodash')
-module.exports = class ManualFulfillmentProvider {
+module.exports = class ManualFulfillmentProvider extends Generic {
   constructor(options) {
+    super()
     this.options = options
   }
 
@@ -41,6 +44,10 @@ module.exports = class ManualFulfillmentProvider {
    * @returns {Promise.<T>}
    */
   updateOrder(fulfillment){
+    fulfillment.order_items.map(i => {
+      i.fulfillment_staus = fulfillment.status
+      return i
+    })
     return Promise.resolve(fulfillment)
   }
 
@@ -50,6 +57,12 @@ module.exports = class ManualFulfillmentProvider {
    * @returns {Promise.<T>}
    */
   updateOrders(fulfillments){
+    fulfillments = _.map(fulfillments, fulfillment => {
+      fulfillment.order_items.map(i => {
+        i.fulfillment_staus = fulfillment.status
+        return i
+      })
+    })
     return Promise.resolve(fulfillments)
   }
 

@@ -140,7 +140,7 @@ module.exports = class TagController extends Controller {
       where: {
         $or: [
           {
-            title: {
+            name: {
               $iLike: `%${term}%`
             }
           }

@@ -1,7 +1,9 @@
 'use strict'
 // const _ = require('lodash')
-module.exports = class FakeEmailProvider {
+const Generic = require('trailpack-proxy-generics').Generic
+module.exports = class FakeEmailProvider extends Generic {
   constructor(options) {
+    super()
     this.options = options
   }
   send(data) {

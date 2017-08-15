@@ -168,6 +168,7 @@ module.exports = class ProductService extends Service {
       body: product.body,
       type: product.type,
       price: product.price,
+      tax_code: product.tax_code,
       published: product.published,
       published_scope: product.published_scope,
       weight: product.weight,
@@ -197,10 +198,10 @@ module.exports = class ProductService extends Service {
       create.seo_title = product.title
     }
     if (product.seo_description) {
-      create.seo_description = product.seo_description
+      create.seo_description = product.seo_description.toString().substring(0, 255)
     }
     if (!product.seo_description && product.body) {
-      create.seo_description = removeMd(product.body).substring(0, 255)
+      create.seo_description = removeMd(product.body).toString().substring(0, 255)
     }
 
     // Images
@@ -491,10 +492,10 @@ module.exports = class ProductService extends Service {
         }
         // Update seo_description if provided, else update it if a new product body
         if (product.seo_description) {
-          resProduct.seo_description = product.seo_description //.substring(0,255)
+          resProduct.seo_description = product.seo_description.toString().substring(0,255)
         }
         if (!product.seo_description && product.body) {
-          resProduct.seo_description = removeMd(product.body).substring(0, 255)
+          resProduct.seo_description = removeMd(product.body).toString().substring(0, 255)
         }
 
         // Update Existing Variant
@@ -981,7 +982,7 @@ module.exports = class ProductService extends Service {
    * @param product
    * @param tag
    * @param options
-   * @returns {Promise.<TResult>}
+   * @returns {Promise.<T>}
    */
   addTag(product, tag, options){
     options = options || {}
@@ -998,7 +999,7 @@ module.exports = class ProductService extends Service {
       })
       .then(tag => {
         if (!tag) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new Errors.FoundError(Error('Tag not found'))
         }
         resTag = tag
         return resProduct.hasTag(resTag.id, {transaction: options.transaction || null})
@@ -1036,7 +1037,7 @@ module.exports = class ProductService extends Service {
       })
       .then(tag => {
         if (!tag) {
-          throw new Errors.FoundError(Error('Product not found'))
+          throw new Errors.FoundError(Error('Tag not found'))
         }
         resTag = tag
         return resProduct.hasTag(resTag.id, {transaction: options.transaction || null})

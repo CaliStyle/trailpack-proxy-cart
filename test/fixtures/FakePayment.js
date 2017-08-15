@@ -1,8 +1,11 @@
 'use strict'
 const _ = require('lodash')
-const shortid = require('shortid')
-module.exports = class FakePaymentProcessor {
+const shortId = require('shortid')
+const Generic = require('trailpack-proxy-generics').Generic
+
+module.exports = class FakePaymentProcessor extends Generic {
   constructor(options) {
+    super()
     this.options = options
   }
   authorize(transaction) {
@@ -55,7 +58,7 @@ module.exports = class FakePaymentProcessor {
     const res = {
       gateway: 'payment_processor',
       foreign_key: 'customer',
-      foreign_id: 'customer_' + shortid.generate(),
+      foreign_id: 'customer_' + shortId.generate(),
       data: customer
     }
     return Promise.resolve(res)
@@ -66,7 +69,7 @@ module.exports = class FakePaymentProcessor {
       account_foreign_key: 'customer',
       account_foreign_id: source.account_foreign_id,
       foreign_key: 'customer',
-      foreign_id: 'source_' + shortid.generate(),
+      foreign_id: 'source_' + shortId.generate(),
       payment_details: source
     }
     return Promise.resolve(res)
@@ -103,7 +106,7 @@ module.exports = class FakePaymentProcessor {
           account_foreign_key: 'customer',
           account_foreign_id: customer.foreign_id,
           foreign_key: 'source',
-          foreign_id: 'source_' + shortid.generate(),
+          foreign_id: 'source_' + shortId.generate(),
           payment_details: {}
         }
       ]

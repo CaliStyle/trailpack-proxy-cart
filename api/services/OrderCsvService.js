@@ -19,31 +19,27 @@ module.exports = class OrderCsvService extends Service {
    * @returns {Promise}
    */
   orderCsv(file) {
-    // TODO validate csv
     console.time('csv')
     const uploadID = shortid.generate()
     const ProxyEngineService = this.app.services.ProxyEngineService
     const errors = []
-    let errorsCount = 0
+    let errorsCount = 0, lineNumber = 1
 
     return new Promise((resolve, reject)=>{
       const options = {
         header: true,
         dynamicTyping: true,
         step: (results, parser) => {
-          // console.log(parser)
-          // console.log('Row data:', results.data)
-          // TODO handle errors
-          // console.log('Row errors:', results.errors)
           parser.pause()
+          lineNumber++
           return this.csvOrderRow(results.data[0], uploadID)
             .then(row => {
               parser.resume()
             })
             .catch(err => {
-              this.app.log.error(err)
+              this.app.log.error('ROW ERROR', err)
               errorsCount++
-              errors.push(err.message)
+              errors.push(`Line Number ${lineNumber}: ${err.message}`)
               parser.resume()
             })
         },
