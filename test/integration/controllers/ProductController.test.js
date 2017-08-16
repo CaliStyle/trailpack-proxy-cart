@@ -560,6 +560,16 @@ describe('ProductController', () => {
         done(err)
       })
   })
+  it('Create a New image and add it to a product', (done) => {
+    request
+      .post(`/product/${createdProductID}/image/create`)
+      .attach('file', 'test/fixtures/test.jpg')
+      .expect(200)
+      .end((err, res) => {
+        console.log('UPLOADED IMAGE',res.body)
+        done(err)
+      })
+  })
   it('should make createVariant post request', (done) => {
     request
       .post(`/product/${createdProductID}/variant`)
@@ -631,7 +641,7 @@ describe('ProductController', () => {
       .end((err, res) => {
         assert.equal(res.body.total_variants, 3)
         assert.equal(res.body.variants.length, 3)
-        assert.equal(res.body.images.length, 2)
+        assert.equal(res.body.images.length, 3)
         done(err)
       })
   })

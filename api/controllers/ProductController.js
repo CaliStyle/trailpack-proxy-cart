@@ -515,6 +515,35 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
+  createImage(req, res){
+    const ProductService = this.app.services.ProductService
+    const image = req.file
+    const product = req.params.id
+    const variant = req.params.variant
+
+    if (!image) {
+      const err = new Error('Image File failed to upload, check input type is file and try again.')
+      return res.serverError(err)
+    }
+    console.log('BROKE',image)
+
+    ProductService.createImage(product, variant, image.path, req.body)
+      .then(image => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, image)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   removeImages(req, res){
     const ProductService = this.app.services.ProductService
     lib.Validator.validateImage.removeImages(req.body)

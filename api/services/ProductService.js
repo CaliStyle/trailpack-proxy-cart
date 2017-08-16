@@ -7,6 +7,8 @@ const Errors = require('proxy-engine-errors')
 const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
 const VARIANT_DEFAULTS = require('../utils/enums').VARIANT_DEFAULTS
 const removeMd = require('remove-markdown')
+const fs = require('fs')
+
 /**
  * @module ProductService
  * @description Product Service
@@ -932,9 +934,8 @@ module.exports = class ProductService extends Service {
     options = options || {}
     const Image = this.app.orm['ProductImage']
     const Product = this.app.orm['Product']
-    let resDestroy
-    let updates
 
+    let resDestroy
     return Image.findById(id,{
       transaction: options.transaction || null
     })
@@ -949,19 +950,17 @@ module.exports = class ProductService extends Service {
           where: {
             product_id: resDestroy.product_id
           },
+          order: 'position ASC',
           transaction: options.transaction || null
         })
       })
       .then(foundImages => {
-        updates = _.sortBy(_.filter(foundImages, image => {
-          if (image.id !== id){
-            return image
-          }
-        }), 'position')
-        _.map(updates, (image, index) => {
+        foundImages = foundImages.filter(image => image.id !== id)
+        foundImages = foundImages.map((image, index) => {
           image.position = index + 1
+          return image
         })
-        return Image.sequelize.Promise.mapSeries(updates, image => {
+        return Image.sequelize.Promise.mapSeries(foundImages, image => {
           return image.save({
             transaction: options.transaction || null
           })
@@ -977,6 +976,120 @@ module.exports = class ProductService extends Service {
       })
   }
 
+  /**
+   * @param product
+   * @param image
+   * @param options
+   */
+  addImage(product, image, options){
+    options = options || {}
+    // const Image = this.app.orm['ProductImage']
+    // const Product = this.app.orm['Product']
+    // let resImage, resProduct
+    // return Image.resolve(image, {
+    //   transaction: options.transaction || null
+    // })
+    //   .then(foundImage => {
+    //     if (!foundImage) {
+    //       // TODO proper error
+    //       throw new Error('Image not created or found')
+    //     }
+    //     resImage = foundImage
+    //
+    //     return Image.findAll({
+    //       where: {
+    //         product_id: resDestroy.product_id
+    //       },
+    //       transaction: options.transaction || null
+    //     })
+    //   })
+    //   .then(foundImages => {
+    //     updates = _.sortBy(_.filter(foundImages, image => {
+    //       if (image.id !== id){
+    //         return image
+    //       }
+    //     }), 'position')
+    //     _.map(updates, (image, index) => {
+    //       image.position = index + 1
+    //     })
+    //     return Image.sequelize.Promise.mapSeries(updates, image => {
+    //       return image.save({
+    //         transaction: options.transaction || null
+    //       })
+    //     })
+    //   })
+    //   .then(updatedImages => {
+    //     return resDestroy.destroy({
+    //       transaction: options.transaction || null
+    //     })
+    //   })
+    //   .then(() => {
+    //     return Product.findByIdDefault(resDestroy.product_id ,{transaction: options.transaction || null})
+    //   })
+  }
+
+  createImage(product, variant, filePath, options) {
+    options = options || {}
+    const image = fs.readFileSync(filePath)
+    const Image = this.app.orm['ProductImage']
+    const Product = this.app.orm['Product']
+    const Variant = this.app.orm['Variant']
+    let resProduct, resImage, resVariant
+    return Product.resolve(product, {transaction: options.transaction || null})
+      .then(foundProduct => {
+        if (!foundProduct) {
+          throw new Error('Product could not be resolved')
+        }
+        resProduct = foundProduct
+        if (variant) {
+          return Variant.resolve(variant, {transaction: options.transaction || null})
+        }
+        else {
+          return null
+        }
+      })
+      .then(foundVariant => {
+        resVariant = foundVariant ? foundVariant.id : null
+        return this.app.services.ProxyCartService.uploadImage(image, filePath)
+      })
+      .then(uploadedImage => {
+        return resProduct.createImage({
+          product_variant_id: resVariant,
+          src: uploadedImage.url,
+          position: options.position || null,
+          alt: options.alt || null
+        }, {
+          transaction: options.transaction
+        })
+      })
+      .then(createdImage => {
+        if (!createdImage) {
+          throw new Error('Image Could not be created')
+        }
+        resImage = createdImage
+        return Image.findAll({
+          where: {
+            product_id: resProduct.id
+          },
+          order: 'position ASC',
+          transaction: options.transaction || null
+        })
+      })
+      .then(foundImages => {
+        foundImages = foundImages.map((image, index) => {
+          image.position = index + 1
+          return image
+        })
+        return Image.sequelize.Promise.mapSeries(foundImages, image => {
+          return image.save({
+            transaction: options.transaction || null
+          })
+        })
+      })
+      .then(updatedImages => {
+        return resImage.reload()
+      })
+  }
   /**
    *
    * @param product
