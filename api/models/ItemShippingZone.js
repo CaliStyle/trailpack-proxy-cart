@@ -1,7 +1,8 @@
 'use strict'
 
 const Model = require('trails/model')
-
+const SHIPPING_MODELS = require('../utils/enums').SHIPPING_MODELS
+const _ = require('lodash')
 /**
  * @module ItemShippingZone
  * @description Country and Province Shipping Zone
@@ -14,6 +15,9 @@ module.exports = class ItemShippingZone extends Model {
       config = {
         options: {
           underscored: true
+        },
+        classMethods: {
+          SHIPPING_MODELS: SHIPPING_MODELS
         }
       }
     }
@@ -33,8 +37,9 @@ module.exports = class ItemShippingZone extends Model {
         notNull: true
       },
       model: {
-        type: Sequelize.STRING,
-        unique: 'shipping_zone_model'
+        type: Sequelize.ENUM,
+        unique: 'shipping_zone_model',
+        values: _.values(SHIPPING_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

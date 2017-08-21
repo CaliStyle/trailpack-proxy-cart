@@ -9,8 +9,6 @@ const UNITS = require('../utils/enums').UNITS
 const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
 const queryDefaults = require('../utils/queryDefaults')
 const _ = require('lodash')
-const removeMd = require('remove-markdown')
-const striptags = require('striptags')
 // const Errors = require('proxy-engine-errors')
 
 /**
@@ -191,22 +189,16 @@ module.exports = class Product extends Model {
                 through: {
                   model: models.ProductAssociation,
                   unique: false
-                  // scope: {
-                  //   model: 'product'
-                  // }
                 },
                 foreignKey: 'product_id',
                 otherKey: 'associated_product_id',
                 // constraints: false
               })
               models.Product.belongsToMany(models.Product, {
-                as: 'associated',
+                as: 'relations',
                 through: {
                   model: models.ProductAssociation,
                   unique: false
-                  // scope: {
-                  //   model: 'product'
-                  // }
                 },
                 foreignKey: 'associated_product_id',
                 otherKey: 'product_id',
@@ -687,12 +679,15 @@ module.exports = class Product extends Model {
           allowNull: false,
           unique: true,
           set: function(val) {
-            this.setDataValue('handle', app.services.ProxyCartService.slug(val))
+            this.setDataValue('handle', app.services.ProxyCartService.handle(val))
           }
         },
         // Product Title
         title: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          set: function(val) {
+            this.setDataValue('title', app.services.ProxyCartService.title(val))
+          }
         },
         // The body of a product (in markdown or html)
         body: {
@@ -706,20 +701,23 @@ module.exports = class Product extends Model {
         seo_title: {
           type: Sequelize.STRING,
           set: function(val) {
-            this.setDataValue('seo_title', removeMd(striptags(val)))
+            this.setDataValue('seo_title', app.services.ProxyCartService.title(val))
           }
         },
         // SEO description
         seo_description: {
           type: Sequelize.TEXT,
           set: function(val) {
-            this.setDataValue('seo_description', removeMd(striptags(val)))
+            this.setDataValue('seo_description', app.services.ProxyCartService.description(val))
           }
         },
         // Type of the product e.g. 'Snow Board'
         type: {
           type: Sequelize.STRING,
-          allowNull: false
+          allowNull: false,
+          set: function(val) {
+            this.setDataValue('type', app.services.ProxyCartService.title(val))
+          }
         },
         // The tax code of the product, defaults to physical good.
         tax_code: {
@@ -750,7 +748,6 @@ module.exports = class Product extends Model {
           type: Sequelize.INTEGER,
           defaultValue: PRODUCT_DEFAULTS.TOTAL_DISCOUNTS
         },
-
         // The sales channels in which the product is visible.
         published_scope: {
           type: Sequelize.STRING,

@@ -71,9 +71,13 @@ module.exports = class ProductMetaUpload extends Model {
         type: Sequelize.STRING,
         allowNull: false
       },
+      // This handle can be <product_handle:sku> in which case it might be larger than 255
       handle: {
-        type: Sequelize.STRING,
-        allowNull: false
+        type: Sequelize.STRING(500),
+        allowNull: false,
+        set: function(val) {
+          this.setDataValue('handle', app.services.ProxyCartService.splitHandle(val) || null)
+        }
         // references: {
         //   model: 'Product',
         //   key: 'handle'

@@ -1304,6 +1304,12 @@ module.exports = class Order extends Model {
                 live_mode: item.live_mode
               })
             },
+            /**
+             *
+             * @param orderItem
+             * @param options
+             * @returns {*}
+             */
             // TODO add new tax_lines shipping_lines coupon_lines discount_lines to parent order
             addItem: function(orderItem, options) {
               options = options || {}
@@ -1343,7 +1349,13 @@ module.exports = class Order extends Model {
                   return this.reload({transaction: options.transaction || null})
                 })
             },
-            // TODO add new taxlines shippinglines couponlines discountlines to parent order
+            /**
+             *
+             * @param orderItem
+             * @param options
+             * @returns {*}
+             */
+            // TODO add new tax_lines shipping_lines coupon_lines discount_lines to parent order
             updateItem: function(orderItem, options) {
               options = options || {}
               if (!this.order_items) {
@@ -1379,6 +1391,12 @@ module.exports = class Order extends Model {
                   return this.reload({transaction: options.transaction || null})
                 })
             },
+            /**
+             *
+             * @param orderItem
+             * @param options
+             * @returns {*}
+             */
             // TODO remove tax_lines shipping_lines coupon_lines discount_lines to parent order
             removeItem: function(orderItem, options) {
               options = options || {}
@@ -1421,6 +1439,7 @@ module.exports = class Order extends Model {
             },
             /**
              *
+             * @param options
              * @returns {*}
              */
             reconcileTransactions: function(options) {
@@ -1432,7 +1451,6 @@ module.exports = class Order extends Model {
                 // partially cancel/void/refund
                 if (this.total_due <= this.previous('total_due')) {
                   const amount = this.previous('total_due') - this.total_due
-                  // console.log('VOID/REFUND TRANSACTION', amount)
                   return app.services.TransactionService.reconcileUpdate(
                     this,
                     amount,

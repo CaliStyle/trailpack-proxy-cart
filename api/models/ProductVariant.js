@@ -100,7 +100,7 @@ module.exports = class ProductVariant extends Model {
                 // constraints: false
               })
               models.ProductVariant.belongsToMany(models.ProductVariant, {
-                as: 'associated',
+                as: 'relations',
                 through: {
                   model: models.ProductAssociation,
                   unique: false
@@ -301,7 +301,10 @@ module.exports = class ProductVariant extends Model {
         sku: {
           type: Sequelize.STRING,
           unique: 'productvariant_sku',
-          allowNull: false
+          allowNull: false,
+          set: function(val) {
+            this.setDataValue('sku', app.services.ProxyCartService.sku(val))
+          }
         },
         // Variant Title
         title: {

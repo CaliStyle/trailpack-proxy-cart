@@ -73,19 +73,31 @@ module.exports = class ProductAssociationUpload extends Model {
       },
       product_handle: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        set: function(val) {
+          this.setDataValue('product_handle', app.services.ProxyCartService.handle(val))
+        }
       },
       product_sku: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
+        set: function(val) {
+          this.setDataValue('product_sku', app.services.ProxyCartService.sku(val))
+        }
       },
       associated_product_handle: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        set: function(val) {
+          this.setDataValue('associated_product_handle', app.services.ProxyCartService.handle(val))
+        }
       },
       associated_product_sku: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
+        set: function(val) {
+          this.setDataValue('associated_product_sku', app.services.ProxyCartService.sku(val))
+        }
       },
       live_mode: {
         type: Sequelize.BOOLEAN,

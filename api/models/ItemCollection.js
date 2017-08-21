@@ -1,7 +1,8 @@
 'use strict'
 
 const Model = require('trails/model')
-
+const COLLECTION_MODELS = require('../utils/enums').COLLECTION_MODELS
+const _ = require('lodash')
 /**
  * @module ItemCollection
  * @description Item Collection Model n:m
@@ -14,6 +15,9 @@ module.exports = class ItemCollection extends Model {
       config = {
         options: {
           underscored: true
+        },
+        classMethods: {
+          COLLECTION_MODELS: COLLECTION_MODELS
         }
       }
     }
@@ -33,8 +37,9 @@ module.exports = class ItemCollection extends Model {
         notNull: true
       },
       model: {
-        type: Sequelize.STRING,
-        unique: 'collection_model'
+        type: Sequelize.ENUM,
+        unique: 'collection_model',
+        values: _.values(COLLECTION_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

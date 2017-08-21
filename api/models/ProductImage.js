@@ -94,7 +94,10 @@ module.exports = class ProductImage extends Model {
         },
         // Image Alt Text (Description)
         alt: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          set: function(val) {
+            this.setDataValue('alt', app.services.ProxyCartService.description(val))
+          }
         },
         // The order of the image in the list of images.
         position: {

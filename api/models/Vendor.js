@@ -155,13 +155,13 @@ module.exports = class Vendor extends Model {
                 }
                 else if (vendor && _.isString(vendor)) {
                   vendor = {
-                    handle: app.services.ProxyCartService.safeHandle(vendor),
+                    handle: app.services.ProxyCartService.handle(vendor),
                     name: vendor
                   }
                   return vendor
                 }
                 else if (vendor && _.isObject(vendor)) {
-                  vendor.handle = vendor.handle || app.services.ProxyCartService.safeHandle(vendor.name)
+                  vendor.handle = vendor.handle || app.services.ProxyCartService.handle(vendor.name)
                   return vendor
                 }
               })
@@ -188,12 +188,12 @@ module.exports = class Vendor extends Model {
             },
             transform: function (vendor) {
               if (vendor && _.isObject(vendor)) {
-                vendor.handle = vendor.handle || app.services.ProxyCartService.safeHandle(vendor.name)
+                vendor.handle = vendor.handle || app.services.ProxyCartService.handle(vendor.name)
                 return vendor
               }
               else if (vendor && _.isString(vendor)) {
                 return {
-                  handle: app.services.ProxyCartService.safeHandle(vendor),
+                  handle: app.services.ProxyCartService.handle(vendor),
                   name: vendor
                 }
               }
@@ -222,13 +222,16 @@ module.exports = class Vendor extends Model {
         notNull: true,
         unique: true,
         set: function(val) {
-          this.setDataValue('handle', app.services.ProxyCartService.safeHandle(val))
+          this.setDataValue('handle', app.services.ProxyCartService.handle(val))
         }
       },
       // The name of the vendor
       name: {
         type: Sequelize.STRING,
-        notNull: true
+        notNull: true,
+        set: function(val) {
+          this.setDataValue('name', app.services.ProxyCartService.title(val))
+        }
       },
 
       // Live Mode

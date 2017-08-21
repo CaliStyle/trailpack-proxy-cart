@@ -1,6 +1,8 @@
 'use strict'
 
 const Model = require('trails/model')
+const REFUND_MODELS = require('../utils/enums').REFUND_MODELS
+const _ = require('lodash')
 
 /**
  * @module ItemRefund
@@ -14,6 +16,9 @@ module.exports = class ItemRefund extends Model {
       config = {
         options: {
           underscored: true
+        },
+        classMethods: {
+          REFUND_MODELS: REFUND_MODELS
         }
       }
     }
@@ -35,9 +40,10 @@ module.exports = class ItemRefund extends Model {
           notNull: true
         },
         model: {
-          type: Sequelize.STRING,
+          type: Sequelize.ENUM,
           unique: 'item_refund',
-          notNull: true
+          notNull: true,
+          values: _.values(REFUND_MODELS)
         },
         model_id: {
           type: Sequelize.STRING,

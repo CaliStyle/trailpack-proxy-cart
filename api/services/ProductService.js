@@ -6,7 +6,6 @@ const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
 const VARIANT_DEFAULTS = require('../utils/enums').VARIANT_DEFAULTS
-const removeMd = require('remove-markdown')
 const fs = require('fs')
 
 /**
@@ -200,10 +199,10 @@ module.exports = class ProductService extends Service {
       create.seo_title = product.title
     }
     if (product.seo_description) {
-      create.seo_description = product.seo_description.toString().substring(0, 255)
+      create.seo_description = this.app.services.ProxyCartService.description(product.seo_description)
     }
     if (!product.seo_description && product.body) {
-      create.seo_description = removeMd(product.body).toString().substring(0, 255)
+      create.seo_description = this.app.services.ProxyCartService.description(product.body)
     }
 
     // Images
@@ -494,10 +493,10 @@ module.exports = class ProductService extends Service {
         }
         // Update seo_description if provided, else update it if a new product body
         if (product.seo_description) {
-          resProduct.seo_description = product.seo_description.toString().substring(0,255)
+          resProduct.seo_description = this.app.services.ProxyCartService.description(product.seo_description)
         }
         if (!product.seo_description && product.body) {
-          resProduct.seo_description = removeMd(product.body).toString().substring(0, 255)
+          resProduct.seo_description = this.app.services.ProxyCartService.description(product.body)
         }
 
         // Update Existing Variant
@@ -978,54 +977,69 @@ module.exports = class ProductService extends Service {
 
   /**
    * @param product
+   * @param variant
    * @param image
    * @param options
    */
-  addImage(product, image, options){
+  // TODO
+  addImage(product, variant, image, options){
     options = options || {}
-    // const Image = this.app.orm['ProductImage']
-    // const Product = this.app.orm['Product']
-    // let resImage, resProduct
-    // return Image.resolve(image, {
-    //   transaction: options.transaction || null
-    // })
-    //   .then(foundImage => {
-    //     if (!foundImage) {
-    //       // TODO proper error
-    //       throw new Error('Image not created or found')
-    //     }
-    //     resImage = foundImage
-    //
-    //     return Image.findAll({
-    //       where: {
-    //         product_id: resDestroy.product_id
-    //       },
-    //       transaction: options.transaction || null
-    //     })
-    //   })
-    //   .then(foundImages => {
-    //     updates = _.sortBy(_.filter(foundImages, image => {
-    //       if (image.id !== id){
-    //         return image
-    //       }
-    //     }), 'position')
-    //     _.map(updates, (image, index) => {
-    //       image.position = index + 1
-    //     })
-    //     return Image.sequelize.Promise.mapSeries(updates, image => {
-    //       return image.save({
-    //         transaction: options.transaction || null
-    //       })
-    //     })
-    //   })
-    //   .then(updatedImages => {
-    //     return resDestroy.destroy({
-    //       transaction: options.transaction || null
-    //     })
-    //   })
-    //   .then(() => {
-    //     return Product.findByIdDefault(resDestroy.product_id ,{transaction: options.transaction || null})
-    //   })
+    const Image = this.app.orm['ProductImage']
+    const Product = this.app.orm['Product']
+    const Variant = this.app.orm['Variant']
+    let resProduct, resImage, resVariant
+    return Product.resolve(product, {transaction: options.transaction || null})
+      .then(foundProduct => {
+        if (!foundProduct) {
+          throw new Error('Product could not be resolved')
+        }
+        resProduct = foundProduct
+        if (variant) {
+          return Variant.resolve(variant, {transaction: options.transaction || null})
+        }
+        else {
+          return null
+        }
+      })
+      .then(foundVariant => {
+        resVariant = foundVariant ? foundVariant.id : null
+
+        return resProduct.createImage({
+          product_variant_id: resVariant,
+          src: image,
+          position: options.position || null,
+          alt: options.alt || null
+        }, {
+          transaction: options.transaction
+        })
+      })
+      .then(createdImage => {
+        if (!createdImage) {
+          throw new Error('Image Could not be created')
+        }
+        resImage = createdImage
+        return Image.findAll({
+          where: {
+            product_id: resProduct.id
+          },
+          order: 'position ASC',
+          transaction: options.transaction || null
+        })
+      })
+      .then(foundImages => {
+        foundImages = foundImages.map((image, index) => {
+          image.position = index + 1
+          return image
+        })
+        return Image.sequelize.Promise.mapSeries(foundImages, image => {
+          return image.save({
+            transaction: options.transaction || null
+          })
+        })
+      })
+      .then(updatedImages => {
+        return resImage.reload()
+      })
   }
 
   createImage(product, variant, filePath, options) {

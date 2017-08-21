@@ -62,11 +62,18 @@ module.exports = class VendorUpload extends Model {
       },
       // Handle
       handle: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
+        set: function(val) {
+          this.setDataValue('handle', app.services.ProxyCartService.handle(val))
+        }
       },
       // Name
       name: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        set: function(val) {
+          this.setDataValue('name', app.services.ProxyCartService.title(val))
+        }
       },
       // Shipping Line 1
       shipping_address_1: {

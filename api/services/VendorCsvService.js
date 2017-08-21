@@ -86,7 +86,8 @@ module.exports = class VendorCsvService extends Service {
     const keys = _.keys(VENDOR_UPLOAD)
     const upload = {
       upload_id: uploadID,
-      options: {}
+      options: {},
+      products: []
     }
 
     _.each(row, (data, key) => {
@@ -106,8 +107,14 @@ module.exports = class VendorCsvService extends Service {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
-          if (k == 'products') {
-            upload[k] = data.split(',').map(product => { return product.trim()})
+          if (k == 'handle') {
+            upload[k] = this.app.services.ProxyCartService.splitHandle(data.toString())
+          }
+          else if (k == 'name') {
+            upload[k] = data.toString().trim()
+          }
+          else if (k == 'products') {
+            upload[k] = data.toString().split(',').map(product => { return product.trim()})
           }
           else {
             upload[k] = data
@@ -116,19 +123,13 @@ module.exports = class VendorCsvService extends Service {
       }
     })
 
-    upload.products = _.map(upload.products, (handle, index) => {
+    upload.products = upload.products.map((handle, index) => {
       return {
         handle: handle
       }
     })
 
-    // customer is required, if not here, then reject whole row without error
-    if (!upload.customer) {
-      return Promise.resolve({})
-    }
-
     const newVendor = VendorUpload.build(upload)
-
     return newVendor.save()
   }
 

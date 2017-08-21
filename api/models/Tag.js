@@ -136,10 +136,13 @@ module.exports = class Tag extends Model {
                   return { id: tag }
                 }
                 else if (tag && _.isString(tag)) {
-                  tag = { name: tag }
+                  tag = {
+                    name: app.services.ProxyCartService.name(tag)
+                  }
                   return tag
                 }
-                else if (tag && _.isObject(tag)) {
+                else if (tag && _.isObject(tag) && tag.name ) {
+                  tag.name = app.services.ProxyCartService.name(tag.name)
                   return tag
                 }
               })
@@ -192,7 +195,7 @@ module.exports = class Tag extends Model {
           unique: true,
           notNull: true,
           set: function(val) {
-            this.setDataValue('name', val.toLowerCase())
+            this.setDataValue('name', app.services.ProxyCartService.name(val))
           }
         },
 

@@ -98,7 +98,8 @@ module.exports = class ProductCsvService extends Service {
           variant_images: [],
           vendors: [],
           collections: [],
-          associations: []
+          associations: [],
+          tags: []
         }
 
         _.each(row, (data, key) => {
@@ -119,114 +120,117 @@ module.exports = class ProductCsvService extends Service {
             const k = keys[i]
             if (i > -1 && k) {
               if (k == 'handle') {
-                upload[k] = this.app.services.ProxyCartService.safeHandle(data)
+                upload[k] = this.app.services.ProxyCartService.handle(data)
               }
-              if (k == 'seo_description') {
-                upload[k] = data.toString().trim().substring(0, 255)
+              else if (k == 'title') {
+                upload[k] = this.app.services.ProxyCartService.title(data)
+              }
+              else if (k == 'seo_description') {
+                upload[k] = this.app.services.ProxyCartService.description(data)
               }
               else if (k == 'tags') {
-                upload[k] = _.uniq(data.split(',').map(tag => {
+                upload[k] = _.uniq(data.toString().split(',').map(tag => {
                   return tag.toLowerCase().trim()
                 }))
               }
               else if (k == 'images') {
-                upload[k] = data.split(',').map(image => {
+                upload[k] = data.toString().split(',').map(image => {
                   return image.trim()
                 })
               }
               else if (k == 'images_alt') {
-                upload[k] = data.split('|').map(alt => {
+                upload[k] = data.toString().split('|').map(alt => {
                   return alt.trim()
                 })
               }
               else if (k == 'variant_images') {
-                upload[k] = data.split(',').map(image => {
+                upload[k] = data.toString().split(',').map(image => {
                   return image.trim()
                 })
               }
               else if (k == 'variant_images_alt') {
-                upload[k] = data.split('|').map(alt => {
+                upload[k] = data.toString().split('|').map(alt => {
                   return alt.trim()
                 })
               }
               else if (k == 'collections') {
-                upload[k] = _.uniq(data.split(',').map(collection => {
+                upload[k] = _.uniq(data.toString().split(',').map(collection => {
                   return collection.trim()
                 }))
               }
               else if (k == 'associations') {
-                upload[k] = data.split(',').map(collection => {
+                upload[k] = data.toString().split(',').map(collection => {
                   return collection.trim()
                 })
               }
               else if (k == 'exclude_payment_types') {
-                upload[k] = data.split(',').map(type => {
+                upload[k] = data.toString().split(',').map(type => {
                   return type.trim()
                 })
               }
               else if (k == 'vendors') {
-                upload[k] = data.split(',').map(vendor => {
+                upload[k] = data.toString().split(',').map(vendor => {
                   return vendor.trim()
                 })
               }
               else if (k == 'shops') {
-                upload[k] = data.split(',').map(shop => {
+                upload[k] = data.toString().split(',').map(shop => {
                   return shop.trim()
                 })
               }
               else if (k == 'shops_quantity') {
-                upload[k] = data.split(',').map(shopQty => {
+                upload[k] = data.toString().split(',').map(shopQty => {
                   return parseInt(shopQty.trim())
                 })
               }
               else if (k == 'weight_unit') {
-                upload[k] = data.toLowerCase().trim()
+                upload[k] = data.toString().toLowerCase().trim()
               }
               else if (k == 'inventory_policy') {
-                upload[k] = data.toLowerCase().trim()
+                upload[k] = data.toString().toLowerCase().trim()
               }
               else if (k == 'g_product_category') {
-                google['g_product_category'] = data.trim()
+                google['g_product_category'] = data.toString().trim()
               }
               else if (k == 'g_gender') {
-                google['g_gender'] = data.trim()
+                google['g_gender'] = data.toString().trim()
               }
               else if (k == 'g_age_group') {
-                google['g_age_group'] = data.trim()
+                google['g_age_group'] = data.toString().trim()
               }
               else if (k == 'g_mpn') {
-                google['g_mpn'] = data.trim()
+                google['g_mpn'] = data.toString().trim()
               }
               else if (k == 'g_adwords_grouping') {
-                google['g_adwords_grouping'] = data.trim()
+                google['g_adwords_grouping'] = data.toString().trim()
               }
               else if (k == 'g_adwords_label') {
-                google['g_adwords_label'] = data.trim()
+                google['g_adwords_label'] = data.toString().trim()
               }
               else if (k == 'g_condition') {
-                google['g_condition'] = data.trim()
+                google['g_condition'] = data.toString().trim()
               }
               else if (k == 'g_custom_product') {
-                google['g_custom_product'] = data.trim()
+                google['g_custom_product'] = data.toString().trim()
               }
               else if (k == 'g_custom_label_0') {
-                google['g_custom_label_0'] = data.trim()
+                google['g_custom_label_0'] = data.toString().trim()
               }
               else if (k == 'g_custom_label_1') {
-                google['g_custom_label_1'] = data.trim()
+                google['g_custom_label_1'] = data.toString().trim()
               }
               else if (k == 'g_custom_label_2') {
-                google['g_custom_label_2'] = data.trim()
+                google['g_custom_label_2'] = data.toString().trim()
               }
               else if (k == 'g_custom_label_3') {
-                google['g_custom_label_3'] = data.trim()
+                google['g_custom_label_3'] = data.toString().trim()
               }
               else if (k == 'g_custom_label_4') {
-                google['g_custom_label_4'] = data.trim()
+                google['g_custom_label_4'] = data.toString().trim()
               }
               else if (k == 'metadata') {
                 // METADATA uploaded this way MUST be in JSON
-                let formatted = data.trim()
+                let formatted = data.toString().trim()
                 if (this.app.services.ProxyCartService.isJson(formatted)) {
                   formatted = JSON.parse(formatted)
                   upload[k] = formatted
@@ -273,7 +277,8 @@ module.exports = class ProductCsvService extends Service {
         upload.images = upload.images.map((image, index) => {
           return {
             src: image,
-            alt: upload.images_alt ? upload.images_alt[index] : ''
+            alt: upload.images_alt &&  upload.images_alt[index]
+              ? this.app.services.ProxyCartService.description(upload.images_alt[index]) : ''
           }
         })
         delete upload.images_alt
@@ -283,7 +288,8 @@ module.exports = class ProductCsvService extends Service {
         upload.variant_images = upload.variant_images.map((image, index) => {
           return {
             src: image,
-            alt: upload.variant_images_alt ? upload.variant_images_alt[index] : ''
+            alt: upload.variant_images_alt && upload.variant_images_alt[index]
+              ? this.app.services.ProxyCartService.description(upload.variant_images_alt[index]) : null
           }
         })
         delete upload.variant_images_alt
@@ -292,8 +298,8 @@ module.exports = class ProductCsvService extends Service {
         // Map vendors
         upload.vendors = upload.vendors.map(vendor => {
           return {
-            handle: this.app.services.ProxyCartService.safeHandle(vendor),
-            name: vendor
+            handle: this.app.services.ProxyCartService.handle(vendor),
+            name: this.app.services.ProxyCartService.title(vendor)
           }
         })
         // Filter out undefined
@@ -303,9 +309,11 @@ module.exports = class ProductCsvService extends Service {
 
         // Map collections
         upload.collections = upload.collections.map(collection => {
-          return {
-            handle: this.app.services.ProxyCartService.safeHandle(collection),
-            title: collection
+          if (collection !== '') {
+            return {
+              handle: this.app.services.ProxyCartService.handle(collection),
+              title: collection
+            }
           }
         })
         // Filter out undefined
@@ -313,14 +321,28 @@ module.exports = class ProductCsvService extends Service {
         // Get only Unique handles
         upload.collections = _.uniqBy(upload.collections, 'handle')
 
+        // Map tags
+        upload.tags = upload.tags.map(tag => {
+          if (tag !== '') {
+            return {
+              name: this.app.services.ProxyCartService.name(tag)
+            }
+          }
+        })
+        // Filter out undefined
+        upload.tags = upload.tags.filter(tag => tag)
+        // Get only Unique names
+        upload.tags = _.uniqBy(upload.tags, 'name')
+
         // Map associations
         upload.associations = upload.associations.map(association => {
-          const handle = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[0])
-          const sku = this.app.services.ProxyCartService.safeHandle(association.split(/:(.+)/)[1])
+          const product = association.split(/:(.+)/)
+          const handle = this.app.services.ProxyCartService.handle(product[0])
+          const sku = this.app.services.ProxyCartService.title(product[1])
           const res = {}
-          if (handle && handle != '') {
+          if (handle && handle !== '') {
             res.handle = handle
-            if (sku && sku != '') {
+            if (sku && sku !== '') {
               res.sku = sku
             }
             return res
@@ -335,14 +357,8 @@ module.exports = class ProductCsvService extends Service {
         // Add amazon
         upload.amazon = amazon
 
-        // Handle is required, if not here, then reject whole row without error
-        if (!upload.handle) {
-          return Promise.resolve({})
-        }
-        else {
-          const newProduct = ProductUpload.build(upload)
-          return newProduct.save()
-        }
+        // Handle is required, if not here, then reject whole row
+        return ProductUpload.build(upload).save()
       })
   }
 
@@ -669,7 +685,8 @@ module.exports = class ProductCsvService extends Service {
             const k = keys[i]
             if (i > -1 && k) {
               if (k == 'handle') {
-                upload[k] = this.app.services.ProxyCartService.safeHandle(data)
+                // Can be a Product handle or a Product Handle with SKU
+                upload[k] = this.app.services.ProxyCartService.splitHandle(data)
               }
               else {
                 upload[k] = data
@@ -685,14 +702,7 @@ module.exports = class ProductCsvService extends Service {
           }
         })
 
-        // If not metadata handle, resolve without doing anything or throwing an error
-        // if (!upload.handle) {
-        //   return Promise.resolve({})
-        // }
-        // else {
-        const newMeta = ProductMetaUpload.build(upload)
-        return newMeta.save()
-        // }
+        return ProductMetaUpload.build(upload).save()
       })
   }
 
@@ -701,7 +711,8 @@ module.exports = class ProductCsvService extends Service {
    * @param uploadId
    * @returns {Promise}
    */
-  processProductMetaUpload(uploadId) {
+  processProductMetaUpload(uploadId, options) {
+    options = options || {}
     const ProductMetaUpload = this.app.orm.ProductMetaUpload
     const Metadata = this.app.orm.Metadata
     const Product = this.app.orm.Product
@@ -735,9 +746,10 @@ module.exports = class ProductCsvService extends Service {
           }
         }
         else if (Type === ProductVariant){
+          const product = metadata.handle.split(/:(.+)/)
           where = {
-            'sku': metadata.handle.split(/:(.+)/)[1],
-            '$Product.handle$': metadata.handle.split(/:(.+)/)[0]
+            'sku': this.app.services.ProxyCartService.sku(product[1]),
+            '$Product.handle$': this.app.services.ProxyCartService.handle(product[0])
           }
           includes.push({
             model: Product,
@@ -755,18 +767,19 @@ module.exports = class ProductCsvService extends Service {
           {
             where: where,
             attributes: ['id'],
-            include: includes
+            include: includes,
+            transaction: options.transaction || null
           })
           .then(target => {
             if (!target) {
-              const err = new Error(`Target ${metadata.handle} not found`)
+              const err = new Error(`Target ${Type.getTableName()} ${metadata.handle} not found`)
               errorsCount++
               errors.push(err.message)
               return
             }
             if (target.metadata) {
               target.metadata.data = metadata.data
-              return target.metadata.save()
+              return target.metadata.save({transaction: options.transaction || null})
                 .then(() => {
                   productsTotal++
                   return
@@ -778,7 +791,7 @@ module.exports = class ProductCsvService extends Service {
                 })
             }
             else {
-              return target.createMetadata({data: metadata.data})
+              return target.createMetadata({data: metadata.data}, {transaction: options.transaction || null})
                 .then(() => {
                   productsTotal++
                   return

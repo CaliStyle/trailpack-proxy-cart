@@ -9,6 +9,8 @@ const sharp = require('sharp')
 const lib = require('../../lib')
 const geolib = require('geolib')
 const currencyFormatter = require('currency-formatter')
+const removeMd = require('remove-markdown')
+const stripTags = require('striptags')
 
 /**
  * @module ProxyCartService
@@ -158,15 +160,18 @@ module.exports = class ProxyCartService extends Service {
    * @param text
    * @returns {string|null}
    */
-  slug(text) {
+  handle(text) {
     if (!text) {
       return null
     }
-    return text.toString().toLowerCase().trim()
+    return text.toString().trim()
+      // .replace(/(\r\n|\n|\r)/g,'')    // Replace new lines
       .replace(/\s+/g, '-')           // Replace spaces with -
       .replace(/&/g, '-and-')         // Replace & with 'and'
-      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars but hyphens
       .replace(/\-\-+/g, '-')         // Remove double hyphens
+      .toLowerCase()                  // Make lowercase
+      .substring(0, 255)              // Allow only 255 characters
   }
 
   /**
@@ -174,15 +179,71 @@ module.exports = class ProxyCartService extends Service {
    * @param text
    * @returns {string|null}
    */
-  safeHandle(text) {
+  splitHandle(text) {
     if (!text) {
       return null
     }
-    return text.toString().toLowerCase().trim()
+    return text.toString().trim()
+      // .replace(/(\r\n|\n|\r)/g, '')   // Replace new lines
       .replace(/\s+/g, '-')           // Replace spaces with -
       .replace(/&/g, '-and-')         // Replace & with 'and'
-      .replace(/[^\w:\-]+/g, '')      // Remove all non-word chars but colons
+      .replace(/[^\w:\-]+/g, '')      // Remove all non-word chars but colons and hyphens
       .replace(/\-\-+/g, '-')         // Remove double hyphens
+      .toLowerCase()                  // Make Lowercase
+
+  }
+
+  /**
+   *
+   * @param text
+   * @returns {string|null}
+   */
+  sku(text) {
+    if (!text) {
+      return null
+    }
+    text = text.toString().trim()
+      .replace(/[^\w:\-]+/g, '')      // Remove all non-word chars but colons and hyphens
+    return removeMd(stripTags(text)).toString()
+  }
+
+  /**
+   *
+   * @param text
+   * @returns {string|null}
+   */
+  title(text) {
+    if (!text) {
+      return null
+    }
+    text = text.toString().trim()
+    return removeMd(stripTags(text)).toString().substring(0, 255)
+  }
+
+  /**
+   *
+   * @param text
+   * @returns {string|null}
+   */
+  name(text) {
+    if (!text) {
+      return null
+    }
+    text = text.toString().trim()
+    return removeMd(stripTags(text)).toString().toLowerCase().substring(0, 255)
+  }
+
+  /**
+   *
+   * @param text
+   * @returns {string|null}
+   */
+  description(text) {
+    if (!text) {
+      return null
+    }
+    text = text.toString().trim()
+    return removeMd(stripTags(text)).toString()
   }
   /**
    *

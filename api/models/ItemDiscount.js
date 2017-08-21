@@ -1,6 +1,8 @@
 'use strict'
 
 const Model = require('trails/model')
+const DISCOUNT_MODELS = require('../utils/enums').DISCOUNT_MODELS
+const _ = require('lodash')
 
 /**
  * @module ItemDiscount
@@ -14,6 +16,9 @@ module.exports = class ItemDiscount extends Model {
       config = {
         options: {
           underscored: true
+        },
+        classMethods: {
+          DISCOUNT_MODELS: DISCOUNT_MODELS
         }
       }
     }
@@ -32,8 +37,9 @@ module.exports = class ItemDiscount extends Model {
         unique: 'discount_model'
       },
       model: {
-        type: Sequelize.STRING,
-        unique: 'discount_model'
+        type: Sequelize.ENUM,
+        unique: 'discount_model',
+        values: _.values(DISCOUNT_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

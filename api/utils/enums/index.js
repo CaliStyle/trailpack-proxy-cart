@@ -26,6 +26,15 @@ module.exports = {
     images_alt: 'Images Alt',
     collections: 'Collections'
   },
+  COLLECTION_MODELS: {
+    COLLECTION: 'collection',
+    CUSTOMER: 'customer',
+    PRODUCT: 'product',
+    PRODUCT_VARIANT: 'productvariant',
+  },
+  COUPON_MODELS: {
+    PRODUCT: 'product',
+  },
   CUSTOMER_UPLOAD: {
     account_balance: 'Account Balance',
     email: 'Email',
@@ -53,6 +62,17 @@ module.exports = {
     collections: 'Collections',
     accounts: 'Accounts',
     users: 'Users'
+  },
+  DISCOUNT_MODELS: {
+    CART: 'cart',
+    CUSTOMER: 'customer',
+    PRODUCT: 'product',
+  },
+  IMAGE_MODELS: {
+    COLLECTION: 'collection',
+    CUSTOMER: 'customer',
+    PRODUCT: 'product',
+    USER: 'user'
   },
   ORDER_UPLOAD: {
     customer: 'Customer Email',
@@ -354,6 +374,24 @@ module.exports = {
     OFFSITE: 'offsite',
     // Payment was processed without a success/failure
     EXPRESS: 'express'
+  },
+  REFUND_MODELS: {
+    TRANSACTION: 'transaction'
+  },
+  SHIPPING_MODELS: {
+    CITY: 'city',
+    COUNTY: 'county',
+    COUNTRY: 'country',
+    PROVINCE: 'province'
+  },
+  TAG_MODELS: {
+    CART: 'cart',
+    COLLECTION: 'collection',
+    CUSTOMER: 'customer',
+    ORDER: 'order',
+    PRODUCT: 'product',
+    PRODUCT_VARIANT: 'product_variant',
+    USER: 'user'
   },
   TRANSACTION_ERRORS: {
     // Incorrect credit card number

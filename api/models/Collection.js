@@ -213,14 +213,14 @@ module.exports = class Collection extends Model {
               else if (collection && _.isObject(collection) && collection.title) {
                 return Collection.findOne(_.defaultsDeep({
                   where: {
-                    handle: app.services.ProxyCartService.safeHandle(collection.title)
+                    handle: app.services.ProxyCartService.handle(collection.title)
                   }
                 }, options))
                   .then(resCollection => {
                     if (resCollection) {
                       return resCollection
                     }
-                    collection.handle = collection.handle || app.ProxyCartService.safeHandle(collection.title)
+                    collection.handle = collection.handle || app.ProxyCartService.handle(collection.title)
                     return app.services.CollectionService.create(collection, {transaction: options.transaction})
                   })
               }
@@ -236,7 +236,7 @@ module.exports = class Collection extends Model {
               else if (collection && _.isString(collection)) {
                 return Collection.findOne(_.defaultsDeep({
                   where: {
-                    handle: app.services.ProxyCartService.safeHandle(collection)
+                    handle: app.services.ProxyCartService.handle(collection)
                   }
                 }, options))
                   .then(resCollection => {
@@ -244,7 +244,7 @@ module.exports = class Collection extends Model {
                       return resCollection
                     }
                     return app.services.CollectionService.create({
-                      handle: app.services.ProxyCartService.safeHandle(collection),
+                      handle: app.services.ProxyCartService.handle(collection),
                       title: collection
                     }, {
                       transaction: options.transaction || null
@@ -277,12 +277,12 @@ module.exports = class Collection extends Model {
                 }
                 else if (collection && _.isString(collection)) {
                   return {
-                    handle: app.services.ProxyCartService.safeHandle(collection),
+                    handle: app.services.ProxyCartService.handle(collection),
                     title: collection
                   }
                 }
                 else if (collection && _.isObject(collection) && (collection.title || collection.handle)) {
-                  collection.handle = collection.handle || app.services.ProxyCartService.safeHandle(collection.title)
+                  collection.handle = app.services.ProxyCartService.handle(collection.handle) || app.services.ProxyCartService.handle(collection.title)
                   return collection
                 }
               })
@@ -349,13 +349,16 @@ module.exports = class Collection extends Model {
           allowNull: false,
           unique: true,
           set: function(val) {
-            this.setDataValue('handle', app.services.ProxyCartService.safeHandle(val))
+            this.setDataValue('handle', app.services.ProxyCartService.splitHandle(val) || null)
           }
         },
         // The title of the Collection
         title: {
           type: Sequelize.STRING,
-          allowNull: false
+          allowNull: false,
+          set: function(val) {
+            this.setDataValue('title', app.services.ProxyCartService.title(val))
+          }
           // unique: true
         },
         // The purpose of the collection

@@ -78,11 +78,17 @@ module.exports = class CollectionUpload extends Model {
       },
       handle: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        set: function(val) {
+          this.setDataValue('handle', app.services.ProxyCartService.handle(val))
+        }
       },
       title: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        set: function(val) {
+          this.setDataValue('title', app.services.ProxyCartService.title(val))
+        }
       },
       description: {
         type: Sequelize.STRING

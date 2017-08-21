@@ -1,6 +1,8 @@
 'use strict'
 
 const Model = require('trails/model')
+const IMAGE_MODELS = require('../utils/enums').IMAGE_MODELS
+const _ = require('lodash')
 
 /**
  * @module ItemImage
@@ -14,6 +16,9 @@ module.exports = class ItemImage extends Model {
       config = {
         options: {
           underscored: true
+        },
+        classMethods: {
+          IMAGE_MODELS: IMAGE_MODELS
         }
       }
     }
@@ -33,8 +38,9 @@ module.exports = class ItemImage extends Model {
       },
       // Model the image belongs to
       model: {
-        type: Sequelize.STRING,
-        unique: 'image_model'
+        type: Sequelize.ENUM,
+        unique: 'image_model',
+        values: _.values(IMAGE_MODELS)
       },
       // ID of the model the image belongs to
       model_id: {

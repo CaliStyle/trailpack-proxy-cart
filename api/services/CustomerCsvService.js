@@ -137,7 +137,7 @@ module.exports = class CustomerCsvService extends Service {
 
     upload.collections = upload.collections.map((collection, index) => {
       return {
-        handle: this.app.services.ProxyCartService.safeHandle(collection),
+        handle: this.app.services.ProxyCartService.splitHandle(collection),
         title: collection
       }
     })

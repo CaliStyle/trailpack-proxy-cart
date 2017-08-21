@@ -72,11 +72,17 @@ module.exports = class ProductUpload extends Model {
       // 'Handle'
       handle: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        set: function(val) {
+          this.setDataValue('handle', app.services.ProxyCartService.handle(val))
+        }
       },
       // 'Title'
       title: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        set: function(val) {
+          this.setDataValue('title', app.services.ProxyCartService.title(val))
+        }
       },
       // 'Body'
       body: {

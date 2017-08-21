@@ -179,7 +179,10 @@ module.exports = class Image extends Model {
         },
         // Image Alt Text (Description)
         alt: {
-          type: Sequelize.STRING
+          type: Sequelize.STRING,
+          set: function(val) {
+            this.setDataValue('alt', app.services.ProxyCartService.description(val))
+          }
         },
 
         live_mode: {

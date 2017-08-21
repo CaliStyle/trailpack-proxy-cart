@@ -12,23 +12,54 @@ const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_
  * @description Discount Service
  */
 module.exports = class DiscountService extends Service {
-
+  // TODO
   create(data, options){
-    return Promise.resolve(data)
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    Discount.create(data, {transaction: options.transaction || null})
+      .then(createdDiscount => {
+        return createdDiscount
+      })
   }
+  // TODO
   update(data, options){
-    return Promise.resolve(data)
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    Discount.resolve(data, {transaction: options.transaction || null})
+      .then(foundDiscount => {
+        foundDiscount = _.extend(foundDiscount, data)
+        return foundDiscount.save({transaction: options.transaction || null})
+      })
   }
+  // TODO
   destroy(data, options){
-    return Promise.resolve(data)
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    Discount.resolve(data, {transaction: options.transaction || null})
+      .then(foundDiscount => {
+        return foundDiscount.destroy({transaction: options.transaction || null})
+      })
+  }
+  // TODO
+  start(discount, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(foundDiscount => {
+        return foundDiscount.start({transaction: options.transaction || null})
+      })
   }
 
+  // TODO
   expire(discount, options) {
-    return Promise.resolve(discount)
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(foundDiscount => {
+        return foundDiscount.expire({transaction: options.transaction || null})
+      })
   }
-  start(discount, options) {
-    return Promise.resolve(discount)
-  }
+
 
   /**
    *

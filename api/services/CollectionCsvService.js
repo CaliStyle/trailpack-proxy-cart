@@ -110,7 +110,7 @@ module.exports = class CollectionCsvService extends Service {
             const k = keys[i]
             if (i > -1 && k) {
               if (k == 'handle') {
-                upload[k] = this.app.services.ProxyCartService.safeHandle(data)
+                upload[k] = this.app.services.ProxyCartService.splitHandle(data.toString())
               }
               else if (k == 'title') {
                 upload[k] = data.toString().trim().substring(0,255)
@@ -119,27 +119,27 @@ module.exports = class CollectionCsvService extends Service {
                 upload[k] = data.toString().trim().substring(0,255)
               }
               else if (k == 'discount_product_include') {
-                upload[k] = data.split(',').map(discount => {
+                upload[k] = data.toString().split(',').map(discount => {
                   return discount.trim()
                 })
               }
               else if (k == 'discount_product_exclude') {
-                upload[k] = data.split(',').map(discount => {
+                upload[k] = data.toString().split(',').map(discount => {
                   return discount.trim()
                 })
               }
               else if (k == 'collections') {
-                upload[k] = data.split(',').map(collection => {
+                upload[k] = data.toString().split(',').map(collection => {
                   return collection.trim()
                 })
               }
               else if (k == 'images') {
-                upload[k] = data.split(',').map(images => {
+                upload[k] = data.toString().split(',').map(images => {
                   return images.trim()
                 })
               }
               else if (k == 'images_alt') {
-                upload[k] = data.split('|').map(images => {
+                upload[k] = data.toString().split('|').map(images => {
                   return images.trim()
                 })
               }
@@ -162,7 +162,7 @@ module.exports = class CollectionCsvService extends Service {
         // Map Collections
         upload.collections = upload.collections.map(collection => {
           return {
-            handle: this.app.services.ProxyCartService.safeHandle(collection),
+            handle: this.app.services.ProxyCartService.splitHandle(collection),
             title: collection
           }
         })

@@ -1,6 +1,8 @@
 'use strict'
 
 const Model = require('trails/model')
+const TAG_MODELS = require('../utils/enums').TAG_MODELS
+const _ = require('lodash')
 
 /**
  * @module ItemTag
@@ -14,6 +16,9 @@ module.exports = class ItemTag extends Model {
       config = {
         options: {
           underscored: true
+        },
+        classMethods: {
+          TAG_MODELS: TAG_MODELS
         }
       }
     }
@@ -33,8 +38,9 @@ module.exports = class ItemTag extends Model {
         notNull: true
       },
       model: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM,
         unique: 'tag_model',
+        values: _.values(TAG_MODELS)
       },
       model_id: {
         type: Sequelize.INTEGER,

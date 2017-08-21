@@ -195,7 +195,7 @@ module.exports = class Shop extends Model {
           allowNull: false,
           unique: true,
           set: function(val) {
-            this.setDataValue('handle', app.services.ProxyCartService.slug(val))
+            this.setDataValue('handle', app.services.ProxyCartService.handle(val))
           }
         },
         // The contact phone number for the shop.
