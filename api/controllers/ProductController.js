@@ -247,6 +247,53 @@ module.exports = class ProductController extends Controller {
       })
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  searchByCollection(req, res) {
+    const orm = this.app.orm
+    const Product = orm['Product']
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || 'created_at DESC'
+    const term = req.query.term
+
+    Product.findAndCountDefault({
+      where: {
+        '$collections.handle$': req.params.handle,
+        $or: [
+          {
+            title: {
+              $iLike: `%${term}%`
+            }
+          },
+          {
+            type: {
+              $iLike: `%${term}%`
+            }
+          }
+        ]
+      },
+      order: sort,
+      offset: offset,
+      req: req,
+      limit: limit
+    })
+      .then(products => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
 
 
   /**

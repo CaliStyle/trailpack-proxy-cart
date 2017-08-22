@@ -412,6 +412,50 @@ describe('ProductController', () => {
       })
   })
   // TODO complete test
+  it('should show relations of product', (done) => {
+    request
+      .get(`/product/${createdProductID}/relations`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
+        // assert.equal(res.headers['x-pagination-total'], '1')
+        // assert.equal(res.headers['x-pagination-offset'], '0')
+        // assert.equal(res.headers['x-pagination-limit'], '10')
+        // assert.equal(res.headers['x-pagination-page'], '1')
+        // assert.equal(res.headers['x-pagination-pages'], '1')
+        // console.log('Show Associations', createdProductID, res.body)
+        // assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should show similar suggestions of product', (done) => {
+    request
+      .get(`/product/${createdProductID}/suggestions`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
+        // assert.equal(res.headers['x-pagination-total'], '1')
+        // assert.equal(res.headers['x-pagination-offset'], '0')
+        // assert.equal(res.headers['x-pagination-limit'], '10')
+        // assert.equal(res.headers['x-pagination-page'], '1')
+        // assert.equal(res.headers['x-pagination-pages'], '1')
+        // console.log('Show Associations', createdProductID, res.body)
+        // assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
+  // TODO complete test
   it('should remove association from product', (done) => {
     request
       .post(`/product/${createdProductID}/removeAssociation/1`)
@@ -793,6 +837,27 @@ describe('ProductController', () => {
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
         assert.equal(res.body.length, 2)
+        done()
+      })
+  })
+  it('It should search products by collection', (done) => {
+    request
+      .get('/product/collection/bottles/search?term=hydro')
+      .expect(200)
+      .end((err, res) => {
+        console.log('SEARCHED', res.body)
+        assert.ok(res.body)
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.equal(res.headers['x-pagination-total'], '1')
+        assert.equal(res.headers['x-pagination-offset'], '0')
+        assert.equal(res.headers['x-pagination-limit'], '10')
+        assert.equal(res.headers['x-pagination-page'], '1')
+        assert.equal(res.headers['x-pagination-pages'], '1')
+        assert.equal(res.body.length, 1)
         done()
       })
   })
