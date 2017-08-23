@@ -49,7 +49,7 @@ else if (ORM === 'sequelize') {
       database: 'ProxyCart',
       host: '127.0.0.1',
       dialect: 'postgres',
-      // logging: false
+      logging: false
     }
   }
   else {
