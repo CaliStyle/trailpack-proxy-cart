@@ -212,7 +212,7 @@ module.exports = class ProductVariant extends Model {
             },
             resolve: function(variant, options){
               options = options || {}
-              const Variant =  this
+              const Variant = this
 
               if (variant instanceof Variant.Instance){
                 return Promise.resolve(variant)
@@ -228,7 +228,9 @@ module.exports = class ProductVariant extends Model {
               }
               else if (variant && _.isObject(variant) && variant.sku) {
                 return Variant.findOne(_.defaultsDeep({
-                  where: { sku: variant.sku }
+                  where: {
+                    sku: variant.sku
+                  }
                 }, options))
                   .then(resVariant => {
                     if (!resVariant) {
@@ -237,8 +239,21 @@ module.exports = class ProductVariant extends Model {
                     return resVariant
                   })
               }
-              else if (variant && (_.isString(variant) || _.isNumber(variant))) {
+              else if (variant && _.isNumber(variant)) {
                 return Variant.findById(variant, options)
+                  .then(resVariant => {
+                    if (!resVariant) {
+                      throw new Errors.FoundError(Error(`Variant ${variant} not found`))
+                    }
+                    return resVariant
+                  })
+              }
+              else if (variant && _.isString(variant)) {
+                return Variant.findOne(_.defaultsDeep({
+                  where: {
+                    sku: variant
+                  }
+                }, options))
                   .then(resVariant => {
                     if (!resVariant) {
                       throw new Errors.FoundError(Error(`Variant ${variant} not found`))

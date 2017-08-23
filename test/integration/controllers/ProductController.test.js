@@ -633,6 +633,18 @@ describe('ProductController', () => {
         done(err)
       })
   })
+  it('Create a New image and add it to a product variant', (done) => {
+    request
+      .post(`/product/${createdProductID}/variant/${createdVariantID}/image/create`)
+      .attach('file', 'test/fixtures/test.jpg')
+      .expect(200)
+      .end((err, res) => {
+        // console.log('UPLOADED IMAGE',res.body)
+        assert.equal(res.body.product_id, createdProductID)
+        assert.equal(res.body.product_variant_id, createdVariantID)
+        done(err)
+      })
+  })
   it('should make updateVariant post request', (done) => {
     request
       .post(`/product/${createdProductID}/variant/${createdVariantID}`)
@@ -666,6 +678,7 @@ describe('ProductController', () => {
         done(err)
       })
   })
+  // TODO complete test
   it('should make removeVariant post request', (done) => {
     request
       .post(`/product/${createdProductID}/variant/${firstVariantID}/remove`)
@@ -686,10 +699,11 @@ describe('ProductController', () => {
       .end((err, res) => {
         assert.equal(res.body.total_variants, 3)
         assert.equal(res.body.variants.length, 3)
-        assert.equal(res.body.images.length, 3)
+        assert.equal(res.body.images.length, 4)
         done(err)
       })
   })
+  // TODO complete test
   it('should make removeProducts post request', (done) => {
     request
       .post('/product/removeProducts')

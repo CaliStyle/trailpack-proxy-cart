@@ -1047,7 +1047,7 @@ module.exports = class ProductService extends Service {
     const image = fs.readFileSync(filePath)
     const Image = this.app.orm['ProductImage']
     const Product = this.app.orm['Product']
-    const Variant = this.app.orm['Variant']
+    const Variant = this.app.orm['ProductVariant']
     let resProduct, resImage, resVariant
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(foundProduct => {
