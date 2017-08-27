@@ -230,9 +230,9 @@ module.exports = class OrderService extends Service {
             total_weight: obj.total_weight,
             total_items: obj.total_items,
             shop_id: obj.shop_id || null,
-            user_id: obj.user_id || null,
             has_shipping: obj.has_shipping,
             has_subscription: obj.has_subscription,
+            email: obj.email || resCustomer.email || null,
 
             // Types
             fulfillment_kind: obj.fulfillment_kind || this.app.config.proxyCart.orders.fulfillment_kind,
@@ -250,14 +250,19 @@ module.exports = class OrderService extends Service {
             // Customer Info
             customer_id: resCustomer.id, // (May Be Null)
             buyer_accepts_marketing: resCustomer.accepts_marketing || obj.buyer_accepts_marketing,
-            email: resCustomer.email || obj.email || null,
             billing_address: resBillingAddress,
             shipping_address: resShippingAddress,
+
+            // User Info
+            user_id: obj.user_id || null,
 
             // Overrides
             pricing_override_id: obj.pricing_override_id || null,
             pricing_overrides: obj.pricing_overrides || [],
             total_overrides: obj.total_overrides || 0,
+
+            // Notes
+            notes: obj.notes || null,
 
             // Fulfillments
             fulfillments: fulfillments,

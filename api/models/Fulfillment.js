@@ -1,8 +1,10 @@
+/* eslint new-cap: [0] */
 /* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
 const _ = require('lodash')
+const helpers = require('proxy-engine-helpers')
 const Errors = require('proxy-engine-errors')
 const queryDefaults = require('../utils/queryDefaults')
 const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
@@ -405,17 +407,23 @@ module.exports = class Fulfillment extends Model {
           // },
           allowNull: false
         },
+        // The receipt given by fulfillment service
         receipt: {
-          type: Sequelize.STRING
+          type: Sequelize.TEXT
         },
-        //The status of the fulfillment.
-        // fulfilled, none, partial
+        //The status of the fulfillment:
+        // pending: in process of doing something
+        // none: nothing has happened
+        // sent: the fulfillment has been sent to fulfillment service
+        // fulfilled: has been fulfilled
+        // partial: has been partially fulfilled (in case of split orders)
+        // cancelled: has been cancelled
         status: {
           type: Sequelize.ENUM,
           values: _.values(FULFILLMENT_STATUS),
           defaultValue: FULFILLMENT_STATUS.PENDING
         },
-        // The total items in this instance
+        // The total number of order items in this instance
         total_items: {
           type: Sequelize.INTEGER,
           defaultValue: 0
@@ -444,24 +452,47 @@ module.exports = class Fulfillment extends Model {
         status_url: {
           type: Sequelize.STRING
         },
+        // The name of the fulfillment service provider
         service: {
           type: Sequelize.STRING,
           defaultValue: FULFILLMENT_SERVICE.MANUAL
         },
-        //The name of the shipping company.
+        //The name of the tracking company.
         tracking_company: {
           type: Sequelize.STRING
         },
-        //The shipping number, provided by the shipping company.
+        // The shipping number, provided by the shipping company.
         tracking_number: {
           type: Sequelize.STRING
         },
+        // Extra attributes in JSON to send to fulfillment:
+        // Create a return label to be included in the shipment
+        // "include_return_label": true,
+        // If a signature confirmation is required
+        // "require_signature_confirmation": true,
+        // "insurance": {
+        //   "amount": "200",
+        //   "currency": "USD",
+        //   "provider": "FEDEX"
+        //   "content": "t-shirts"
+        // },
+        // "alcohol": {
+        //   "contains_alcohol": true, // boolean
+        //   "recipient_type": "licensee" //
+        // },
+        // "dry_ice": {
+        //   "contains_dry_ice": true, // boolean
+        //   "weight": "0.1" // Weight in grams
+        // }
+        extras: helpers.JSONB('Fulfillment', app, Sequelize, 'extras', {
+          defaultValue: {}
+        }),
         // Live mode
         live_mode: {
           type: Sequelize.BOOLEAN,
           defaultValue: app.config.proxyEngine.live_mode
         },
-        // Date time sent at
+        // Date time sent to fulfillment at
         sent_at: {
           type: Sequelize.DATE
         },

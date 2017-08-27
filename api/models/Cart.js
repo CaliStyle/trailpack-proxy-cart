@@ -57,6 +57,171 @@ module.exports = class Cart extends Model {
             }
 
           },
+          classMethods: {
+            CART_STATUS: CART_STATUS,
+            /**
+             * Associate the Model
+             * @param models
+             */
+            associate: (models) => {
+              models.Cart.belongsTo(models.Customer, {
+                // as: 'customer_id',
+              })
+              models.Cart.belongsTo(models.Shop, {
+                // as: 'shop_id',
+              })
+
+              models.Cart.belongsToMany(models.User, {
+                as: 'owners',
+                through: {
+                  model: models.UserItem,
+                  scope: {
+                    item: 'cart'
+                  }
+                },
+                foreign_id: 'item_id',
+                constraints: false
+              })
+              models.Cart.belongsTo(models.Address, {
+                as: 'shipping_address',
+              })
+              models.Cart.belongsTo(models.Address, {
+                as: 'billing_address',
+              })
+              models.Cart.belongsToMany(models.Address, {
+                as: 'addresses',
+                // otherKey: 'address_id',
+                foreignKey: 'model_id',
+                through: {
+                  model: models.ItemAddress,
+                  scope: {
+                    model: 'cart'
+                  },
+                  constraints: false
+                },
+                constraints: false
+              })
+              models.Cart.belongsToMany(models.Discount, {
+                as: 'discount_codes',
+                through: {
+                  model: models.ItemDiscount,
+                  unique: false,
+                  scope: {
+                    model: 'cart'
+                  }
+                },
+                foreignKey: 'model_id',
+                constraints: false
+              })
+              // models.Cart.belongsTo(models.Customer, {
+              //   foreignKey: 'default_cart'
+              //   // as: 'customer_id'
+              // })
+              // models.Cart.hasMany(models.Product, {
+              //   as: 'products'
+              //   // constraints: false
+              // })
+              // models.Cart.hasMany(models.ProductVariant, {
+              //   as: 'variants'
+              //   // constraints: false
+              // })
+              // models.Cart.hasMany(models.Coupon, {
+              //   as: 'coupons'
+              //   // constraints: false
+              // })
+              // models.Cart.hasMany(models.GiftCard, {
+              //   as: 'gift_cards'
+              //   // constraints: false
+              // })
+            },
+            /**
+             *
+             * @param criteria
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
+            findByIdDefault: function(criteria, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Cart.default(app))
+              return this.findById(criteria, options)
+            },
+            /**
+             *
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
+            findOneDefault: function(options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Cart.default(app))
+              return this.findOne(options)
+            },
+            /**
+             *
+             * @param token
+             * @param options
+             * @returns {*|Promise.<Instance>}
+             */
+            findByTokenDefault: function(token, options) {
+              options = options || {}
+              options = _.defaultsDeep(options, queryDefaults.Cart.default(app), {
+                where: {
+                  token: token
+                }
+              })
+              return this.findOne(options)
+            },
+            resolve: function(cart, options){
+              options = options || {}
+              const Cart =  this
+              if (cart instanceof Cart.Instance){
+                return Promise.resolve(cart)
+              }
+              else if (cart && _.isObject(cart) && cart.id) {
+                return Cart.findByIdDefault(cart.id, options)
+                  .then(resCart => {
+                    if (!resCart) {
+                      throw new Errors.FoundError(Error(`Cart ${cart.id} not found`))
+                    }
+                    return resCart
+                  })
+              }
+              else if (cart && _.isObject(cart) && cart.token) {
+                return Cart.findByTokenDefault(cart.token, options)
+                  .then(resCart => {
+                    if (!resCart) {
+                      throw new Errors.FoundError(Error(`Cart ${cart.token} not found`))
+                    }
+                    return resCart
+                  })
+              }
+              else if (cart && _.isObject(cart)) {
+                return this.create(cart, options)
+              }
+              else if (cart && (_.isNumber(cart))) {
+                return Cart.findByIdDefault(cart, options)
+                  .then(resCart => {
+                    if (!resCart) {
+                      throw new Errors.FoundError(Error(`Cart ${cart} not found`))
+                    }
+                    return resCart
+                  })
+              }
+              else if (cart && (_.isString(cart))) {
+                return Cart.findByTokenDefault(cart, options)
+                  .then(resCart => {
+                    if (!resCart) {
+                      throw new Errors.FoundError(Error(`Cart ${cart} not found`))
+                    }
+                    return resCart
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Cart ${cart}`)
+                return Promise.reject(err)
+              }
+            }
+          },
           instanceMethods: {
             /**
              *
@@ -107,6 +272,7 @@ module.exports = class Cart extends Model {
                 vendor_id: data.vendor_id || null,
                 average_shipping: data.Product.average_shipping,
                 exclude_payment_types: data.Product.exclude_payment_types,
+                fulfillment_extras: data.fufillment_extras,
                 live_mode: data.live_mode
               }
               return line
@@ -273,10 +439,10 @@ module.exports = class Cart extends Model {
                 processing_method: options.processing_method || PAYMENT_PROCESSING_METHOD.CHECKOUT,
                 shipping_address: options.shipping_address || this.shipping_address,
                 billing_address: options.billing_address || this.billing_address,
+                email: options.email || null,
 
                 // Customer Info
                 customer_id: options.customer_id || this.customer_id || null,
-                email: options.email || null,
 
                 // User ID
                 user_id: options.user_id || this.user_id || null,
@@ -302,6 +468,7 @@ module.exports = class Cart extends Model {
                 shop_id: this.shop_id,
                 has_shipping: this.has_shipping,
                 has_subscription: this.has_subscription,
+                notes: this.notes,
 
                 //Pricing Overrides
                 pricing_override_id: this.pricing_override_id,
@@ -445,171 +612,6 @@ module.exports = class Cart extends Model {
             //
             //   return resp
             // }
-          },
-          classMethods: {
-            CART_STATUS: CART_STATUS,
-            /**
-             * Associate the Model
-             * @param models
-             */
-            associate: (models) => {
-              models.Cart.belongsTo(models.Customer, {
-                // as: 'customer_id',
-              })
-              models.Cart.belongsTo(models.Shop, {
-                // as: 'shop_id',
-              })
-
-              models.Cart.belongsToMany(models.User, {
-                as: 'owners',
-                through: {
-                  model: models.UserItem,
-                  scope: {
-                    item: 'cart'
-                  }
-                },
-                foreign_id: 'item_id',
-                constraints: false
-              })
-              models.Cart.belongsTo(models.Address, {
-                as: 'shipping_address',
-              })
-              models.Cart.belongsTo(models.Address, {
-                as: 'billing_address',
-              })
-              models.Cart.belongsToMany(models.Address, {
-                as: 'addresses',
-                // otherKey: 'address_id',
-                foreignKey: 'model_id',
-                through: {
-                  model: models.ItemAddress,
-                  scope: {
-                    model: 'cart'
-                  },
-                  constraints: false
-                },
-                constraints: false
-              })
-              models.Cart.belongsToMany(models.Discount, {
-                as: 'discount_codes',
-                through: {
-                  model: models.ItemDiscount,
-                  unique: false,
-                  scope: {
-                    model: 'cart'
-                  }
-                },
-                foreignKey: 'model_id',
-                constraints: false
-              })
-              // models.Cart.belongsTo(models.Customer, {
-              //   foreignKey: 'default_cart'
-              //   // as: 'customer_id'
-              // })
-              // models.Cart.hasMany(models.Product, {
-              //   as: 'products'
-              //   // constraints: false
-              // })
-              // models.Cart.hasMany(models.ProductVariant, {
-              //   as: 'variants'
-              //   // constraints: false
-              // })
-              // models.Cart.hasMany(models.Coupon, {
-              //   as: 'coupons'
-              //   // constraints: false
-              // })
-              // models.Cart.hasMany(models.GiftCard, {
-              //   as: 'gift_cards'
-              //   // constraints: false
-              // })
-            },
-            /**
-             *
-             * @param criteria
-             * @param options
-             * @returns {*|Promise.<Instance>}
-             */
-            findByIdDefault: function(criteria, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Cart.default(app))
-              return this.findById(criteria, options)
-            },
-            /**
-             *
-             * @param options
-             * @returns {*|Promise.<Instance>}
-             */
-            findOneDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Cart.default(app))
-              return this.findOne(options)
-            },
-            /**
-             *
-             * @param token
-             * @param options
-             * @returns {*|Promise.<Instance>}
-             */
-            findByTokenDefault: function(token, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Cart.default(app), {
-                where: {
-                  token: token
-                }
-              })
-              return this.findOne(options)
-            },
-            resolve: function(cart, options){
-              options = options || {}
-              const Cart =  this
-              if (cart instanceof Cart.Instance){
-                return Promise.resolve(cart)
-              }
-              else if (cart && _.isObject(cart) && cart.id) {
-                return Cart.findByIdDefault(cart.id, options)
-                  .then(resCart => {
-                    if (!resCart) {
-                      throw new Errors.FoundError(Error(`Cart ${cart.id} not found`))
-                    }
-                    return resCart
-                  })
-              }
-              else if (cart && _.isObject(cart) && cart.token) {
-                return Cart.findByTokenDefault(cart.token, options)
-                  .then(resCart => {
-                    if (!resCart) {
-                      throw new Errors.FoundError(Error(`Cart ${cart.token} not found`))
-                    }
-                    return resCart
-                  })
-              }
-              else if (cart && _.isObject(cart)) {
-                return this.create(cart, options)
-              }
-              else if (cart && (_.isNumber(cart))) {
-                return Cart.findByIdDefault(cart, options)
-                  .then(resCart => {
-                    if (!resCart) {
-                      throw new Errors.FoundError(Error(`Cart ${cart} not found`))
-                    }
-                    return resCart
-                  })
-              }
-              else if (cart && (_.isString(cart))) {
-                return Cart.findByTokenDefault(cart, options)
-                  .then(resCart => {
-                    if (!resCart) {
-                      throw new Errors.FoundError(Error(`Cart ${cart} not found`))
-                    }
-                    return resCart
-                  })
-              }
-              else {
-                // TODO create proper error
-                const err = new Error(`Unable to resolve Cart ${cart}`)
-                return Promise.reject(err)
-              }
-            }
           }
         }
       }
@@ -662,9 +664,6 @@ module.exports = class Cart extends Model {
         line_items: helpers.JSONB('Cart', app, Sequelize, 'line_items', {
           defaultValue: []
         }),
-        // line_items: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'line_items', {
-        //   defaultValue: []
-        // }),
         // Price of the checkout before shipping and taxes
         subtotal_price: {
           type: Sequelize.INTEGER,
@@ -674,23 +673,14 @@ module.exports = class Cart extends Model {
         discounted_lines: helpers.JSONB('Cart', app, Sequelize, 'discounted_lines', {
           defaultValue: []
         }),
-        // discounted_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB,  'discounted_lines', {
-        //   defaultValue: []
-        // }),
         // The line_items that have discounts
         coupon_lines: helpers.JSONB('Cart', app, Sequelize, 'coupon_lines', {
           defaultValue: []
         }),
-        // coupon_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB,  'coupon_lines', {
-        //   defaultValue: []
-        // }),
         // The line_items that require shipping
         shipping_lines: helpers.JSONB('Cart', app, Sequelize, 'shipping_lines', {
           defaultValue: []
         }),
-        // shipping_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'shipping_lines', {
-        //   defaultValue: []
-        // }),
         // If the cost of shipping is included
         shipping_included: {
           type: Sequelize.BOOLEAN,
@@ -700,16 +690,10 @@ module.exports = class Cart extends Model {
         shipping_rate: helpers.JSONB('Cart', app, Sequelize, 'shipping_rate', {
           defaultValue: []
         }),
-        // shipping_rate: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'shipping_rate', {
-        //   defaultValue: []
-        // }),
         // An array of shipping_rate objects, each of which details the shipping methods available.
         shipping_rates: helpers.JSONB('Cart', app, Sequelize, 'shipping_rates', {
           defaultValue: []
         }),
-        // shipping_rates: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'shipping_rates', {
-        //   defaultValue: []
-        // }),
         // If this cart contains an item that requires a subscription
         has_subscription: {
           type: Sequelize.BOOLEAN,
@@ -720,6 +704,7 @@ module.exports = class Cart extends Model {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
+        // Total Items in Cart
         total_items: {
           type: Sequelize.INTEGER,
           defaultValue: 0
@@ -733,9 +718,6 @@ module.exports = class Cart extends Model {
         tax_lines: helpers.JSONB('Cart', app, Sequelize, 'tax_lines', {
           defaultValue: []
         }),
-        // tax_lines: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'tax_lines', {
-        //   defaultValue: []
-        // }),
         // The rate at which taxes are applied
         tax_rate: {
           type: Sequelize.FLOAT,
@@ -751,23 +733,21 @@ module.exports = class Cart extends Model {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
-        // The total amount of discounts applied
+        // The total monetary amount of discounts applied
         total_discounts: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The total monetary amount coupons applied
         total_coupons: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
-        // The line_items that have taxes
+        // Array of pricing overrides objects
         pricing_overrides: helpers.JSONB('Cart', app, Sequelize, 'pricing_overrides', {
           defaultValue: []
         }),
-        // pricing_overrides: helpers.ARRAY('Cart', app, Sequelize, Sequelize.JSONB, 'pricing_overrides', {
-        //   defaultValue: []
-        // }),
-        // The total amount of pricing overrides
+        // The total monetary amount of pricing overrides
         total_overrides: {
           type: Sequelize.INTEGER,
           defaultValue: 0
@@ -836,6 +816,10 @@ module.exports = class Cart extends Model {
         reservation_time_left: {
           type: Sequelize.INTEGER,
           defaultValue: 0
+        },
+        // Notes Supplied by customer
+        notes: {
+          type: Sequelize.TEXT
         },
         // Live Mode
         live_mode: {
