@@ -557,10 +557,11 @@ module.exports = class ProxyCartService extends Service {
    */
   deserializeCart(id, options, next) {
     // console.log('DESERIALIZE CART')
+    options = options || {}
     if (typeof next != 'function') {
       throw new Error('instance#deserializeCart requires a callback function')
     }
-    this.app.orm['Cart'].findById(id)
+    this.app.orm['Cart'].findById(id, {transaction: options.transaction || null})
       .then(cart => {
         next(null, cart)
       })
