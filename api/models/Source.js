@@ -6,6 +6,7 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
+const shortId = require('shortid')
 
 /**
  * @module Source
@@ -25,6 +26,13 @@ module.exports = class Source extends Model {
           //   }
           // },
           hooks: {
+            beforeCreate: (values, options, fn) => {
+              // If not token was already created, create it
+              if (!values.token) {
+                values.token = `source_${shortId.generate()}`
+              }
+              fn()
+            },
             afterCreate: (values, options, fn) => {
               app.services.AccountService.afterSourceCreate(values)
                 .then(values => {
@@ -79,6 +87,41 @@ module.exports = class Source extends Model {
                     return resSource
                   })
               }
+              else if (source && _.isObject(source) && source.token) {
+                return Source.findOne(_.defaultsDeep({
+                  where: {
+                    token: source.token
+                  }
+                }, options))
+                  .then(resSource => {
+                    if (!resSource) {
+                      throw new Errors.FoundError(Error(`Source ${source.token} not found`))
+                    }
+                    return resSource
+                  })
+              }
+              else if (source && _.isNumber(source)) {
+                return Source.findById(source, options)
+                  .then(resSource => {
+                    if (!resSource) {
+                      throw new Errors.FoundError(Error(`Source ${source} not found`))
+                    }
+                    return resSource
+                  })
+              }
+              else if (source && _.isString(source)) {
+                return Source.findOne(_.defaultsDeep({
+                  where: {
+                    token: source
+                  }
+                }, options))
+                  .then(resSource => {
+                    if (!resSource) {
+                      throw new Errors.FoundError(Error(`Source ${source} not found`))
+                    }
+                    return resSource
+                  })
+              }
               else {
                 // TODO create proper error
                 const err = new Error(`Unable to resolve Source ${source}`)
@@ -109,6 +152,11 @@ module.exports = class Source extends Model {
         //   key: 'id'
         // },
         allowNull: true
+      },
+      // Unique identifier for a particular source.
+      token: {
+        type: Sequelize.STRING,
+        unique: true
       },
       // The gateway used to create this source
       gateway: {

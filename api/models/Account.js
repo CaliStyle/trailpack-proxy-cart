@@ -6,6 +6,7 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
+const shortId = require('shortid')
 
 /**
  * @module Account
@@ -24,6 +25,15 @@ module.exports = class Account extends Model {
           //     live_mode: app.config.proxyEngine.live_mode
           //   }
           // },
+          hooks: {
+            beforeCreate: (values, options, fn) => {
+              // If not token was already created, create it
+              if (!values.token) {
+                values.token = `account_${shortId.generate()}`
+              }
+              fn()
+            }
+          },
           classMethods: {
             associate: (models) => {
               models.Account.belongsTo(models.Customer, {
@@ -74,6 +84,41 @@ module.exports = class Account extends Model {
                     return resAccount
                   })
               }
+              else if (account && _.isObject(account) && account.token) {
+                return Account.findOne(_.defaultsDeep({
+                  where: {
+                    token: account.token
+                  }
+                }, options))
+                  .then(resAccount => {
+                    if (!resAccount) {
+                      throw new Errors.FoundError(Error(`Account token ${account.token} not found`))
+                    }
+                    return resAccount
+                  })
+              }
+              else if (account && _.isNumber(account)) {
+                return Account.findById(account, options)
+                  .then(resAccount => {
+                    if (!resAccount) {
+                      throw new Errors.FoundError(Error(`Account ${account.token} not found`))
+                    }
+                    return resAccount
+                  })
+              }
+              else if (account && _.isString(account)) {
+                return Account.findOne(_.defaultsDeep({
+                  where: {
+                    token: account
+                  }
+                }, options))
+                  .then(resAccount => {
+                    if (!resAccount) {
+                      throw new Errors.FoundError(Error(`Account ${account} not found`))
+                    }
+                    return resAccount
+                  })
+              }
               else {
                 // TODO create proper error
                 const err = new Error(`Unable to resolve Account ${account}`)
@@ -96,6 +141,11 @@ module.exports = class Account extends Model {
         //   key: 'id'
         // },
         allowNull: false
+      },
+      // Unique identifier for a particular source.
+      token: {
+        type: Sequelize.STRING,
+        unique: true
       },
       email: {
         type: Sequelize.STRING

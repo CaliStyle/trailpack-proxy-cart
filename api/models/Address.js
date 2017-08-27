@@ -1,7 +1,10 @@
 'use strict'
 
 const Model = require('trails/model')
+const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
+const shortId = require('shortid')
+
 /**
  * @module Address
  * @description Address Model
@@ -25,6 +28,11 @@ module.exports = class Address extends Model {
               }
             },
             beforeCreate: (values, options, fn) => {
+
+              if (!values.token) {
+                values.token = `address_${shortId.generate()}`
+              }
+
               app.services.GeolocationGenericService.locate(values)
                 .then(latLng => {
                   values = _.defaults(values, latLng)
@@ -104,8 +112,61 @@ module.exports = class Address extends Model {
                 constraints: false
               })
             },
-            resolve: function(address, options){
-              //
+            resolve: function (address, options) {
+              options = options || {}
+              const Address = this
+              if (address instanceof Address.Instance) {
+                return Promise.resolve(address)
+              }
+              else if (address && _.isObject(address) && address.id) {
+                return Address.findById(address.id, options)
+                  .then(resAddress => {
+                    if (!resAddress) {
+                      throw new Errors.FoundError(Error(`Address ${address.id} not found`))
+                    }
+                    return resAddress
+                  })
+              }
+              else if (address && _.isObject(address) && address.token) {
+                return Address.findOne(_.defaultsDeep({
+                  where: {
+                    token: address.token
+                  }
+                }, options))
+                  .then(resAddress => {
+                    if (!resAddress) {
+                      throw new Errors.FoundError(Error(`Address token ${address.token} not found`))
+                    }
+                    return resAddress
+                  })
+              }
+              else if (address && _.isNumber(address)) {
+                return Address.findById(address, options)
+                  .then(resAddress => {
+                    if (!resAddress) {
+                      throw new Errors.FoundError(Error(`Address ${address.token} not found`))
+                    }
+                    return resAddress
+                  })
+              }
+              else if (address && _.isString(address)) {
+                return Address.findOne(_.defaultsDeep({
+                  where: {
+                    token: address
+                  }
+                }, options))
+                  .then(resAddress => {
+                    if (!resAddress) {
+                      throw new Errors.FoundError(Error(`Address ${address} not found`))
+                    }
+                    return resAddress
+                  })
+              }
+              else {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Address ${address}`)
+                return Promise.reject(err)
+              }
             }
           }
         }
@@ -118,6 +179,11 @@ module.exports = class Address extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // Unique identifier for a particular source.
+        token: {
+          type: Sequelize.STRING,
+          unique: true
+        },
         // Line 1
         address_1: {
           type: Sequelize.STRING,

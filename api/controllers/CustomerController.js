@@ -514,6 +514,12 @@ module.exports = class CustomerController extends Controller {
     req.logoutCustomer()
     res.ok()
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   account(req, res) {
     const Account = this.app.orm['Account']
     const accountId = req.params.account
@@ -537,6 +543,7 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
   /**
    *
    * @param req
@@ -578,6 +585,7 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
   /**
    *
    * @param req
@@ -595,7 +603,7 @@ module.exports = class CustomerController extends Controller {
       res.send(401, err)
 
     }
-    Order.findByIdDefault(orderId)
+    Order.resolve(orderId)
       .then(order => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
       })
@@ -664,7 +672,7 @@ module.exports = class CustomerController extends Controller {
       const err = new Error('A customer id, subscription id, and a user in session are required')
       return res.forbidden(err)
     }
-    Subscription.findByIdDefault(subscriptionId)
+    Subscription.resolve(subscriptionId)
       .then(subscription => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
       })
@@ -752,7 +760,7 @@ module.exports = class CustomerController extends Controller {
       res.send(401, err)
 
     }
-    Address.findById(addressId)
+    Address.resolve(addressId)
       .then(address => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, address)
       })
@@ -989,7 +997,7 @@ module.exports = class CustomerController extends Controller {
       res.send(401, err)
 
     }
-    Source.findById(sourceId)
+    Source.resolve(sourceId)
       .then(source => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, source)
       })

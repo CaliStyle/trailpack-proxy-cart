@@ -5,7 +5,7 @@
 const Model = require('trails/model')
 // const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
-const shortid = require('shortid')
+const shortId = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
 const CUSTOMER_STATE = require('../utils/enums').CUSTOMER_STATE
 
@@ -33,7 +33,7 @@ module.exports = class Customer extends Model {
               }
               // If not token was already created, create it
               if (!values.token) {
-                values.token = `customer_${shortid.generate()}`
+                values.token = `customer_${shortId.generate()}`
               }
               fn()
             },
