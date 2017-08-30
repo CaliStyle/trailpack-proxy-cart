@@ -185,31 +185,66 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
+  // TODO make this work pas the Cartesian Product Sequelize Bug
   findByTag(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
-    Product.findAndCountDefault({
-      include: [
-        {
-          model: this.app.orm['Tag'],
-          as: 'tags',
-          where: {
-            name: req.params.tag
-          }
-        }
-      ],
-      order: sort,
-      offset: offset,
-      req: req,
-      limit: limit
+    // Product.findAndCountDefault({
+    //   include: [
+    //     {
+    //       model: this.app.orm['Tag'],
+    //       as: 'tags',
+    //       where: {
+    //         name: req.params.tag
+    //       }
+    //     }
+    //   ],
+    //   order: sort,
+    //   offset: offset,
+    //   req: req,
+    //   limit: limit
+    // })
+    const Tag = this.app.orm['Tag']
+    const ItemTag = this.app.orm['ItemTag']
+    let tagId, count = 0
+    Tag.findOne({
+      where: {
+        name: req.params.tag
+      },
+      attributes: ['id']
     })
+      .then(tag => {
+        if (!tag) {
+          throw new Error(`Tag ${req.params.tag} not found`)
+        }
+        tagId = tag.id
+
+        return ItemTag.findAndCount({
+          where: {
+            tag_id: tagId,
+            model: 'product'
+          },
+          attributes: ['model_id'],
+          limit: limit,
+          offset: offset
+        })
+      })
+      .then(arr => {
+        count = arr.count
+        const productIds = arr.rows.map(model => model.model_id)
+        return Product.findAllDefault({
+          where: {
+            id: productIds
+          }
+        })
+      })
       .then(products => {
         // Paginate
-        this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
-        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
+        this.app.services.ProxyEngineService.paginate(res, count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products)
       })
       .then(result => {
         return res.json(result)
@@ -224,64 +259,100 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
+  // TODO, make this work past the Cartesian Product
   findByCollection(req, res) {
     const Product = this.app.orm['Product']
+
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    let count = 0
-    const query = {
-      distinct: true,
-      // subQuery: false,
-      include: [
-        {
-          model: this.app.orm['Collection'],
-          as: 'collections',
-          where: {
-            handle: req.params.handle
-          }
-        },
-        {
-          model: this.app.orm['ProductImage'],
-          as: 'images',
-          order: ['position', 'ASC']
-        },
-        {
-          model: this.app.orm['Tag'],
-          as: 'tags',
-          attributes: ['name', 'id'],
-          order: ['name', 'ASC']
-        },
-        {
-          model: this.app.orm['Vendor'],
-          as: 'vendors',
-          attributes: [
-            'id',
-            'handle',
-            'name'
-          ]
-        }
-      ],
-      offset: offset,
-      limit: limit,
-      order: sort,
-      req: req
-    }
-    Product.count({
-      distinct: true,
-      include: [
-        {
-          model: this.app.orm['Collection'],
-          as: 'collections',
-          where: {
-            handle: req.params.handle
-          }
-        }
-      ]
+    // const query = {
+    //   distinct: true,
+    //   // subQuery: false,
+    //   include: [
+    //     {
+    //       model: this.app.orm['Collection'],
+    //       as: 'collections',
+    //       where: {
+    //         handle: req.params.handle
+    //       }
+    //     },
+    //     {
+    //       model: this.app.orm['ProductImage'],
+    //       as: 'images',
+    //       order: ['position', 'ASC']
+    //     },
+    //     {
+    //       model: this.app.orm['Tag'],
+    //       as: 'tags',
+    //       attributes: ['name', 'id'],
+    //       order: ['name', 'ASC']
+    //     },
+    //     {
+    //       model: this.app.orm['Vendor'],
+    //       as: 'vendors',
+    //       attributes: [
+    //         'id',
+    //         'handle',
+    //         'name'
+    //       ]
+    //     }
+    //   ],
+    //   offset: offset,
+    //   limit: limit,
+    //   order: sort,
+    //   req: req
+    // }
+    // Product.count({
+    //   distinct: true,
+    //   include: [
+    //     {
+    //       model: this.app.orm['Collection'],
+    //       as: 'collections',
+    //       where: {
+    //         handle: req.params.handle
+    //       }
+    //     }
+    //   ]
+    // })
+    //   .then(c => {
+    //     count = c
+    //     return Product.findAll(query)
+    //   })
+    const Collection = this.app.orm['Collection']
+    const ItemCollection = this.app.orm['ItemCollection']
+    let collectionId, count = 0
+    Collection.findOne({
+      where: {
+        handle: req.params.handle
+      },
+      attributes: ['id']
     })
-      .then(c => {
-        count = c
-        return Product.findAll(query)
+      .then(collection => {
+        if (!collection) {
+          throw new Error(`Collection ${req.params.handle} not found`)
+        }
+        collectionId = collection.id
+
+        return ItemCollection.findAndCount({
+          where: {
+            collection_id: collectionId,
+            model: 'product'
+          },
+          attributes: ['model_id'],
+          limit: limit,
+          offset: offset
+        })
+      })
+      .then(arr => {
+        count = arr.count
+        const productIds = arr.rows.map(model => model.model_id)
+        return Product.findAllDefault({
+          where: {
+            id: productIds
+          },
+          req: req
+        })
       })
       .then(products => {
         // Paginate
