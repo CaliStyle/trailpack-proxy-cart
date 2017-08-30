@@ -15,6 +15,13 @@ module.exports = class Refund extends Model {
       config = {
         options: {
           underscored: true,
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            }
+          },
           hooks: {
             afterCreate: (values, options, fn) => {
 

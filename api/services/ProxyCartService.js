@@ -601,5 +601,102 @@ module.exports = class ProxyCartService extends Service {
         next(err)
       })
   }
+
+  // /**
+  //  *
+  //  * @param defaults
+  //  * @param overrides
+  //  * @param others
+  //  * @returns {*|{}}
+  //  */
+  // mergeOptionDefaults(defaults, overrides, ...others) {
+  //   defaults = defaults || {}
+  //   overrides = overrides || {}
+  //
+  //   const include = this.mergeIncludes(defaults, overrides)
+  //   const order =  this.mergeOrder(defaults, overrides)
+  //
+  //   const newOptions = _.defaults({include: include, order: order}, overrides, defaults)
+  //
+  //   return newOptions
+  // }
+
+  /**
+   *
+   * @param options
+   * @returns {*|{}}
+   */
+  mergeOptionDefaults(...options) {
+    let includes = []
+    let orders = []
+    let newOptions
+
+    for (const option of options) {
+      if (!_.isObject(option)) {
+        throw new Error('Option must be an object, type of option was', typeof option)
+      }
+      includes = this.mergeOptionIncludes(includes, option.include)
+      orders = this.mergeOptionOrders(orders, option.order)
+    }
+    newOptions = {include: includes, order: orders}
+
+    for (const option of options.reverse()) {
+      newOptions = _.defaults(newOptions, option)
+    }
+    return newOptions
+  }
+
+  /**
+   *
+   * @param defaults
+   * @param overrides
+   * @returns {*|Array}
+   */
+  mergeOptionIncludes(defaults, overrides) {
+    defaults = defaults || []
+    overrides = overrides || []
+    const includes = defaults
+
+    if (!_.isArray(defaults) || !_.isArray(overrides)) {
+      throw new Error('include must be an array')
+    }
+
+    overrides.map(include => {
+      const inIncludes = includes.findIndex(i => i.model == include.model)
+      if (inIncludes !== -1) {
+        includes[inIncludes] = include
+      }
+      else {
+        includes.push(include)
+      }
+    })
+    return includes
+  }
+
+  /**
+   *
+   * @param defaults
+   * @param overrides
+   * @returns {*|Array}
+   */
+  // TODO
+  mergeOptionOrders(defaults, overrides) {
+    defaults = defaults || []
+    overrides = overrides || []
+    const order = defaults
+
+    // if (_.isString(overrides)) {
+    //   order.push(overrides)
+    // }
+    // else if (_.isObject(overrides)) {
+    //   order.push(overrides)
+    // }
+    // else if (_.isArray(overrides)) {
+    //   order = _.merge(order, overrides)
+    // }
+
+    return order // = _.defaultsDeep(order, overrides)
+  }
+
 }
 

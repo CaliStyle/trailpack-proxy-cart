@@ -28,6 +28,13 @@ module.exports = class Transaction extends Model {
           //     live_mode: app.config.proxyEngine.live_mode
           //   }
           // },
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            }
+          },
           hooks: {
             beforeCreate: (values, options, fn) => {
               if (!values.token) {

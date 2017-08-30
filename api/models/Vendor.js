@@ -16,9 +16,16 @@ module.exports = class Vendor extends Model {
       config = {
         options: {
           underscored: true,
-          defaultScope: {
-            where: {
-              live_mode: app.config.proxyEngine.live_mode
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   }
+          // },
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
             }
           },
           hooks: {
@@ -49,17 +56,16 @@ module.exports = class Vendor extends Model {
                   model: models.ItemAddress,
                   scope: {
                     model: 'vendor'
-                  },
-                  constraints: false
+                  }
                 },
                 constraints: false
               })
               models.Vendor.belongsToMany(models.Product, {
                 as: 'products',
                 through: {
-                  model: models.VendorProduct,
-                  foreignKey: 'vendor_id'
+                  model: models.VendorProduct
                 },
+                foreignKey: 'vendor_id'
                 //constraints: false
               })
             },

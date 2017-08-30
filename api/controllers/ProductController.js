@@ -192,9 +192,15 @@ module.exports = class ProductController extends Controller {
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'created_at DESC'
     Product.findAndCountDefault({
-      where: {
-        '$tags.name$': req.params.tag
-      },
+      include: [
+        {
+          model: this.app.orm['Tag'],
+          as: 'tags',
+          where: {
+            name: req.params.tag
+          }
+        }
+      ],
       order: sort,
       offset: offset,
       req: req,
@@ -219,25 +225,68 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   findByCollection(req, res) {
-    const orm = this.app.orm
-    const Product = orm['Product']
+    const Product = this.app.orm['Product']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
-
-    Product.findAndCountDefault({
-      where: {
-        '$collections.handle$': req.params.handle
-      },
-      order: sort,
+    const sort = req.query.sort || [['created_at', 'DESC']]
+    let count = 0
+    const query = {
+      distinct: true,
+      // subQuery: false,
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections',
+          where: {
+            handle: req.params.handle
+          }
+        },
+        {
+          model: this.app.orm['ProductImage'],
+          as: 'images',
+          order: ['position', 'ASC']
+        },
+        {
+          model: this.app.orm['Tag'],
+          as: 'tags',
+          attributes: ['name', 'id'],
+          order: ['name', 'ASC']
+        },
+        {
+          model: this.app.orm['Vendor'],
+          as: 'vendors',
+          attributes: [
+            'id',
+            'handle',
+            'name'
+          ]
+        }
+      ],
       offset: offset,
-      req: req,
-      limit: limit
+      limit: limit,
+      order: sort,
+      req: req
+    }
+    Product.count({
+      distinct: true,
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections',
+          where: {
+            handle: req.params.handle
+          }
+        }
+      ]
     })
+      .then(c => {
+        count = c
+        return Product.findAll(query)
+      })
       .then(products => {
         // Paginate
-        this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
-        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
+        this.app.services.ProxyEngineService.paginate(res, count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products)
       })
       .then(result => {
         return res.json(result)
@@ -253,16 +302,14 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   searchByCollection(req, res) {
-    const orm = this.app.orm
-    const Product = orm['Product']
+    const Product = this.app.orm['Product']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const term = req.query.term
-
-    Product.findAndCountDefault({
+    const query = {
+      distinct: true,
       where: {
-        '$collections.handle$': req.params.handle,
         $or: [
           {
             title: {
@@ -276,11 +323,42 @@ module.exports = class ProductController extends Controller {
           }
         ]
       },
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections',
+          where: {
+            handle: req.params.handle
+          }
+        },
+        {
+          model: this.app.orm['ProductImage'],
+          as: 'images',
+          order: ['position', 'ASC']
+        },
+        {
+          model: this.app.orm['Tag'],
+          as: 'tags',
+          attributes: ['name', 'id'],
+          order: ['name', 'ASC']
+        },
+        {
+          model: this.app.orm['Vendor'],
+          as: 'vendors',
+          attributes: [
+            'id',
+            'handle',
+            'name'
+          ]
+        }
+      ],
       order: sort,
       offset: offset,
       req: req,
       limit: limit
-    })
+    }
+
+    Product.findAndCount(query)
       .then(products => {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
@@ -393,7 +471,6 @@ module.exports = class ProductController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.updateProducts', err)
         return res.serverError(err)
       })
   }
@@ -416,7 +493,6 @@ module.exports = class ProductController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.updateProducts', err)
         return res.serverError(err)
       })
   }
@@ -438,7 +514,6 @@ module.exports = class ProductController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.removeProducts', err)
         return res.serverError(err)
       })
   }
@@ -460,7 +535,6 @@ module.exports = class ProductController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.removeProducts', err)
         return res.serverError(err)
       })
   }
@@ -573,7 +647,6 @@ module.exports = class ProductController extends Controller {
       return res.serverError(err)
     }
 
-    // this.app.log.debug(image)
     ProductService.createImage(product, variant, image.path, req.body)
       .then(image => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, image)
@@ -1025,9 +1098,6 @@ module.exports = class ProductController extends Controller {
 
     Vendor.findAndCount({
       order: sort,
-      where: {
-        '$products.id$': productId
-      },
       offset: offset,
       limit: limit,
       include: [
@@ -1035,7 +1105,9 @@ module.exports = class ProductController extends Controller {
           model: this.app.orm['Product'],
           as: 'products',
           attributes: ['id'],
-          duplicating: false
+          where: {
+            id: productId
+          }
         }
       ]
     })

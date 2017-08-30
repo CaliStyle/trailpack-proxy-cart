@@ -90,11 +90,13 @@ module.exports = {
   },
   findAndCountDefault: (app) => {
     return {
+      distinct: true,
       include: [
         {
           model: app.orm['ProductImage'],
           as: 'images',
-          duplicating: false,
+          // duplicating: false,
+          // require: true,
           // attributes: {
           //   exclude: ['src', 'updated_at', 'created_at']
           // },
@@ -103,7 +105,8 @@ module.exports = {
         {
           model: app.orm['Tag'],
           as: 'tags',
-          duplicating: false,
+          // duplicating: false,
+          // require: true,
           attributes: ['name', 'id'],
           order: ['name', 'ASC']
         },
@@ -115,7 +118,8 @@ module.exports = {
         {
           model: app.orm['Collection'],
           as: 'collections',
-          duplicating: false,
+          // duplicating: false,
+          // require: true,
           attributes: [
             'id',
             'title',
@@ -132,8 +136,13 @@ module.exports = {
         {
           model: app.orm['Vendor'],
           as: 'vendors',
-          duplicating: false,
-          attributes: ['id','handle','name']
+          // duplicating: false,
+          // require: true,
+          attributes: [
+            'id',
+            'handle',
+            'name'
+          ]
         }
       ],
       order: [
@@ -144,6 +153,65 @@ module.exports = {
           },
           'position', 'ASC'
         ]
+      ]
+    }
+  },
+  findByCollectionDefault: (app) => {
+    return {
+      distinct: true,
+      include: [
+        {
+          model: app.orm['ProductImage'],
+          as: 'images',
+          // duplicating: false,
+          // require: true,
+          // attributes: {
+          //   exclude: ['src', 'updated_at', 'created_at']
+          // },
+          order: ['position', 'ASC']
+        },
+        {
+          model: app.orm['Tag'],
+          as: 'tags',
+          // duplicating: false,
+          // require: true,
+          attributes: ['name', 'id'],
+          order: ['name', 'ASC']
+        },
+        // {
+        //   model: app.orm['Product'],
+        //   as: 'associations',
+        //   duplicating: false
+        // },
+        {
+          model: app.orm['Collection'],
+          as: 'collections',
+          // duplicating: false,
+          // require: true,
+          attributes: [
+            'id',
+            'title',
+            'handle',
+            'tax_type',
+            'tax_rate',
+            'tax_name',
+            'discount_scope',
+            'discount_type',
+            'discount_rate',
+            'discount_percentage'
+          ]
+        },
+        {
+          model: app.orm['Vendor'],
+          as: 'vendors',
+          // duplicating: false,
+          // require: true,
+          attributes: [
+            'id',
+            'handle',
+            'name'
+          ]
+        }
       ]
     }
   }

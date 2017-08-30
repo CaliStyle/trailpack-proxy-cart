@@ -24,13 +24,18 @@ module.exports = class Product extends Model {
         options: {
           underscored: true,
           // paranoid: !app.config.proxyCart.allow.destroy_product,
-          defaultScope: {
-            where: {
-              live_mode: app.config.proxyEngine.live_mode
-            }
-            // paranoid: false
-          },
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   }
+          //   // paranoid: false
+          // },
           scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            },
             published: {
               where: {
                 published: true
@@ -170,6 +175,7 @@ module.exports = class Product extends Model {
                   }
                 },
                 foreignKey: 'model_id',
+                otherKey: 'tag_id',
                 constraints: false
               })
               models.Product.belongsToMany(models.Collection, {
@@ -182,6 +188,7 @@ module.exports = class Product extends Model {
                   }
                 },
                 foreignKey: 'model_id',
+                otherKey: 'collection_id',
                 constraints: false
               })
               models.Product.belongsToMany(models.Product, {
@@ -351,8 +358,10 @@ module.exports = class Product extends Model {
              * @returns {*|Promise.<Array.<Instance>>}
              */
             findAllDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Product.default(app))
+              options = app.services.ProxyCartService.mergeOptionDefaults(
+                queryDefaults.Product.default(app),
+                options || {}
+              )
               return this.findAll(options)
             },
             /**
@@ -361,8 +370,10 @@ module.exports = class Product extends Model {
              * @returns {Promise.<Object>}
              */
             findAndCountDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Product.findAndCountDefault(app), {distinct: true})
+              options = app.services.ProxyCartService.mergeOptionDefaults(
+                queryDefaults.Product.findAndCountDefault(app),
+                options || {}
+              )
               return this.findAndCount(options)
             },
             /**
@@ -388,7 +399,7 @@ module.exports = class Product extends Model {
                   })
               }
               else if (product && _.isObject(product) && product.handle) {
-                return Product.findOne(_.defaultsDeep({
+                return Product.findOne(app.services.ProxyCartService.mergeOptionDefaults({
                   where: { handle: product.handle }
                 }, options))
                   .then(resProduct => {
@@ -408,7 +419,7 @@ module.exports = class Product extends Model {
                   })
               }
               else if (product && _.isString(product)) {
-                return Product.findOne(_.defaultsDeep({
+                return Product.findOne(app.services.ProxyCartService.mergeOptionDefaults({
                   where: { handle: product.handle }
                 }, options))
                   .then(resProduct => {

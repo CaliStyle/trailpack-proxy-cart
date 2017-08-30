@@ -34,7 +34,7 @@ module.exports = class Order extends Email {
         const html = data.html || this.app.templates.Order.created(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Created`
         const sendEmail = data.send_email || true
-        this.app.log.debug(`SEND EMAIL ${ resOrder.name }`, sendEmail)
+        this.app.log.debug(`ORDER CREATED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
         return {
           type: 'order.created',
@@ -73,6 +73,8 @@ module.exports = class Order extends Email {
         const subject = data.subject || `Order ${ resOrder.name } Updated`
         const sendEmail = data.send_email || true
 
+        this.app.log.debug(`ORDER UPDATED SEND EMAIL ${ resOrder.name }`, sendEmail)
+
         return {
           type: 'order.updated',
           subject: subject,
@@ -109,6 +111,8 @@ module.exports = class Order extends Email {
         const html = data.html || this.app.templates.Order.cancelled(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Cancelled`
         const sendEmail = data.send_email || true
+
+        this.app.log.debug(`ORDER CANCELLED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
         return {
           type: 'order.fulfilled',
@@ -147,6 +151,8 @@ module.exports = class Order extends Email {
         const subject = data.subject || `Order ${ resOrder.name } Failed`
         const sendEmail = data.send_email || true
 
+        this.app.log.debug(`ORDER FAILED SEND EMAIL ${ resOrder.name }`, sendEmail)
+
         return {
           type: 'order.failed',
           subject: subject,
@@ -184,6 +190,8 @@ module.exports = class Order extends Email {
         const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
         const sendEmail = data.send_email || true
 
+        this.app.log.debug(`ORDER FULFILLED SEND EMAIL ${ resOrder.name }`, sendEmail)
+
         return {
           type: 'order.fulfilled',
           subject: subject,
@@ -219,6 +227,8 @@ module.exports = class Order extends Email {
         const html = data.html || this.app.templates.Order.paid(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Receipt`
         const sendEmail = data.send_email || true
+
+        this.app.log.debug(`ORDER PAID SEND EMAIL ${ resOrder.name }`, sendEmail)
 
         return {
           type: 'order.receipt',
@@ -256,6 +266,8 @@ module.exports = class Order extends Email {
         const html = data.html || this.app.templates.Order.refunded(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Refunded`
         const sendEmail = data.send_email || true
+
+        this.app.log.debug(`ORDER REFUNDED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
         return {
           type: 'order.refunded',

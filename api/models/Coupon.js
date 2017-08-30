@@ -14,14 +14,18 @@ module.exports = class Coupon extends Model {
       config = {
         options: {
           underscored: true,
-          scope: {
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            },
             expired: () => {
               return {
                 where: {
                   expires_on: {
                     $gte: new Date()
-                  },
-                  live_mode: app.config.proxyEngine.live_mode
+                  }
                 }
               }
             }

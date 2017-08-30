@@ -17,9 +17,38 @@ module.exports = class Discount extends Model {
       config = {
         options: {
           underscored: true,
-          defaultScope: {
-            where: {
-              live_mode: app.config.proxyEngine.live_mode
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   }
+          // },
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            },
+            expired: () => {
+              return {
+                where: {
+                  ends_at: {
+                    $gte: new Date()
+                  }
+                }
+              }
+            },
+            active: () => {
+              return {
+                where: {
+                  status: DISCOUNT_STATUS.ENABLED,
+                  starts_at: {
+                    $gte: new Date()
+                  },
+                  ends_at: {
+                    $lte: new Date()
+                  }
+                }
+              }
             }
           },
           classMethods: {

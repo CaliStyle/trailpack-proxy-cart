@@ -17,6 +17,13 @@ module.exports = class Address extends Model {
       config = {
         options: {
           underscored: true,
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            }
+          },
           hooks: {
             beforeValidate: (values, options, fn) => {
               try {

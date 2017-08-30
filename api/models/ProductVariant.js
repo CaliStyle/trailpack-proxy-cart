@@ -25,12 +25,19 @@ module.exports = class ProductVariant extends Model {
         options: {
           underscored: true,
           // paranoid: !app.config.proxyCart.allow.destroy_variant,
-          defaultScope: {
-            where: {
-              live_mode: app.config.proxyEngine.live_mode
-            },
-            // paranoid: false,
-            order: [['position','ASC']]
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   },
+          //   // paranoid: false,
+          //   order: [['position','ASC']]
+          // },
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            }
           },
           hooks: {
             beforeValidate(values, options, fn) {

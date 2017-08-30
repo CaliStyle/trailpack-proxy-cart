@@ -32,6 +32,11 @@ module.exports = class Fulfillment extends Model {
           //   }
           // },
           scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            },
             none: {
               where: {
                 status: FULFILLMENT_STATUS.NONE

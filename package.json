@@ -1,6 +1,6 @@
 {
   "name": "trailpack-proxy-cart",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "description": "Cart - Trailpack for Proxy Engine",
   "homepage": "https://cali-style.com",
   "author": {
@@ -28,7 +28,7 @@
     "proxy-engine-helpers": "^1.0.6",
     "proxy-generics-render": "^0.0.3",
     "remove-markdown": "^0.2.0",
-    "sequelize": "^4.1.0",
+    "sequelize": "^4.7.5",
     "sharp": "0.17.1",
     "shortid": "^2.2.8",
     "sqlite3": "^3.1.4",

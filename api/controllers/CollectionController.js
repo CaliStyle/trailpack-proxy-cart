@@ -287,16 +287,18 @@ module.exports = class CollectionController extends Controller {
       return res.send(401, err)
     }
 
-    Collection.findAndCount({
+    Collection.findAndCountDefault({
       order: sort,
-      where: {
-        '$collections.id$': collectionId
-      },
+      // where: {
+      //   '$collections.id$': collectionId
+      // },
       include: [
         {
           model: this.app.orm['Collection'],
           as: 'collections',
-          duplicating: false
+          where: {
+            id: collectionId
+          }
         }
       ],
       offset: offset,
@@ -374,18 +376,17 @@ module.exports = class CollectionController extends Controller {
       return res.send(401, err)
     }
 
-    Product.findAndCount({
-      order: sort,
-      where: {
-        '$collections.id$': collectionId
-      },
+    Product.findAndCountDefault({
       include: [
         {
           model: this.app.orm['Collection'],
           as: 'collections',
-          duplicating: false
+          where: {
+            id: collectionId
+          }
         }
       ],
+      order: sort,
       offset: offset,
       limit: limit
     })
@@ -463,14 +464,13 @@ module.exports = class CollectionController extends Controller {
 
     Tag.findAndCount({
       order: sort,
-      where: {
-        '$collections.id$': collectionId
-      },
       include: [
         {
           model: this.app.orm['Collection'],
           as: 'collections',
-          duplicating: false
+          where: {
+            id: collectionId
+          }
         }
       ],
       offset: offset,
@@ -550,14 +550,13 @@ module.exports = class CollectionController extends Controller {
 
     Customer.findAndCount({
       order: sort,
-      where: {
-        '$collections.id$': collectionId
-      },
       include: [
         {
           model: this.app.orm['Collection'],
           as: 'collections',
-          duplicating: false
+          where: {
+            id: collectionId
+          }
         }
       ],
       offset: offset,

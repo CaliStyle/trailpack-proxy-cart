@@ -15,6 +15,13 @@ module.exports = class Tag extends Model {
       config = {
         options: {
           underscored: true,
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            }
+          },
           classMethods: {
             /**
              * Associate the Model
@@ -31,6 +38,7 @@ module.exports = class Tag extends Model {
                   }
                 },
                 foreignKey: 'tag_id',
+                otherKey: 'model_id',
                 constraints: false
               })
               models.Tag.belongsToMany(models.Customer, {
@@ -43,6 +51,7 @@ module.exports = class Tag extends Model {
                   }
                 },
                 foreignKey: 'tag_id',
+                otherKey: 'model_id',
                 constraints: false
               })
               models.Tag.belongsToMany(models.Collection, {
@@ -55,6 +64,7 @@ module.exports = class Tag extends Model {
                   }
                 },
                 foreignKey: 'tag_id',
+                otherKey: 'model_id',
                 constraints: false
               })
             },

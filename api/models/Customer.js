@@ -21,9 +21,16 @@ module.exports = class Customer extends Model {
       config = {
         options: {
           underscored: true,
-          defaultScope: {
-            where: {
-              live_mode: app.config.proxyEngine.live_mode
+          // defaultScope: {
+          //   where: {
+          //     live_mode: app.config.proxyEngine.live_mode
+          //   }
+          // },
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
             }
           },
           hooks: {

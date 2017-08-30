@@ -14,6 +14,13 @@ module.exports = class Province extends Model {
       config = {
         options: {
           underscored: true,
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            }
+          },
           classMethods: {
             /**
              * Associate the Model

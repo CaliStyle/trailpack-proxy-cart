@@ -31,7 +31,7 @@ module.exports = class Subscription extends Email {
         const html = data.html || this.app.templates.Subscription.cancelled(resSubscription)
         const subject = data.subject || `Subscription ${ resSubscription.token } Cancelled`
         const sendEmail = data.send_email || true
-        this.app.log.debug(`SEND EMAIL ${ resSubscription.token }`, sendEmail)
+        this.app.log.debug(`SUBSCRIPTION CANCELLED SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
         return {
           type: 'subscription.cancelled',
@@ -70,7 +70,7 @@ module.exports = class Subscription extends Email {
         const html = data.html || this.app.templates.Subscription.willRenew(resSubscription)
         const subject = data.subject || `Subscription ${ resSubscription.token } Failed`
         const sendEmail = data.send_email || true
-        this.app.log.debug(`SEND EMAIL ${ resSubscription.token }`, sendEmail)
+        this.app.log.debug(`SUBSCRIPTION FAILED SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
         return {
           type: 'subscription.failed',
@@ -111,7 +111,7 @@ module.exports = class Subscription extends Email {
         const html = data.html || this.app.templates.Subscription.renewed(resOrder)
         const subject = data.subject || `Subscription ${ resOrder.subscription_token } Renewed`
         const sendEmail = data.send_email || true
-        this.app.log.debug(`SEND EMAIL ${ resOrder.subscription_token }`, sendEmail)
+        this.app.log.debug(`SUBSCRIPTION RENEWED SEND EMAIL ${ resOrder.subscription_token }`, sendEmail)
 
         return {
           type: 'subscription.renewed',
@@ -149,7 +149,7 @@ module.exports = class Subscription extends Email {
         const html = data.html || this.app.templates.Subscription.activated(resSubscription)
         const subject = data.subject || `Subscription ${ resSubscription.token } Activated`
         const sendEmail = data.send_email || true
-        this.app.log.debug(`SEND EMAIL ${ resSubscription.token }`, sendEmail)
+        this.app.log.debug(`SUBSCRIPTION ACTIVATED SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
         return {
           type: 'subscription.activated',
@@ -187,7 +187,7 @@ module.exports = class Subscription extends Email {
         const html = data.html || this.app.templates.Subscription.deactivated(resSubscription)
         const subject = data.subject || `Subscription ${ resSubscription.token } Deactivated`
         const sendEmail = data.send_email || true
-        this.app.log.debug(`SEND EMAIL ${ resSubscription.token }`, sendEmail)
+        this.app.log.debug(`SUBSCRIPTION DEACTIVATED SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
         return {
           type: 'subscription.deactivated',
@@ -227,7 +227,7 @@ module.exports = class Subscription extends Email {
         const html = data.html || this.app.templates.Subscription.updated(resSubscription)
         const subject = data.subject || `Subscription ${ resSubscription.token } Updated`
         const sendEmail = data.send_email || true
-        this.app.log.debug(`SEND EMAIL ${ resSubscription.token }`, sendEmail)
+        this.app.log.debug(`SUBSCRIPTION UPDATED SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
         return {
           type: 'subscription.updated',
@@ -267,7 +267,7 @@ module.exports = class Subscription extends Email {
         const html = data.html || this.app.templates.Subscription.willRenew(resSubscription)
         const subject = data.subject || `Subscription ${ resSubscription.token } Will Renew`
         const sendEmail = data.send_email || true
-        this.app.log.debug(`SEND EMAIL ${ resSubscription.token }`, sendEmail)
+        this.app.log.debug(`SUBSCRIPTION WILL RENEW SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
         return {
           type: 'subscription.willRenew',

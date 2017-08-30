@@ -25,6 +25,13 @@ module.exports = class Collection extends Model {
       config = {
         options: {
           underscored: true,
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            }
+          },
           hooks: {
             beforeValidate(values, options, fn) {
               if (!values.handle && values.title) {
@@ -79,6 +86,7 @@ module.exports = class Collection extends Model {
                   constraints: false
                 },
                 foreignKey: 'collection_id',
+                otherKey: 'model_id',
                 constraints: false
               })
               models.Collection.belongsToMany(models.Customer, {
@@ -92,6 +100,7 @@ module.exports = class Collection extends Model {
                   constraints: false
                 },
                 foreignKey: 'collection_id',
+                otherKey: 'model_id',
                 constraints: false
               })
               models.Collection.belongsToMany(models.Discount, {
@@ -116,6 +125,7 @@ module.exports = class Collection extends Model {
                   }
                 },
                 foreignKey: 'model_id',
+                otherKey: 'tag_id',
                 constraints: false
               })
               models.Collection.belongsToMany(models.Collection, {
@@ -129,6 +139,7 @@ module.exports = class Collection extends Model {
                   constraints: false
                 },
                 foreignKey: 'model_id',
+                otherKey: 'collection_id',
                 constraints: false
               })
               models.Collection.belongsToMany(models.Image, {
@@ -146,33 +157,43 @@ module.exports = class Collection extends Model {
               })
             },
             findByIdDefault: function(id, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
-              // console.log('THIS COLLECTION',options)
+              options = app.services.ProxyCartService.mergeOptionDefaults(
+                queryDefaults.Collection.default(app),
+                options || {}
+              )
               return this.findById(id, options)
             },
             findByHandleDefault: function(handle, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Collection.default(app), {
-                where: {
-                  handle: handle
-                }
-              })
+              options = app.services.ProxyCartService.mergeOptionDefaults(
+                queryDefaults.Collection.default(app),
+                {
+                  where: {
+                    handle: handle
+                  }
+                },
+                options || {}
+              )
               return this.findOne(options)
             },
             findOneDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
+              options = app.services.ProxyCartService.mergeOptionDefaults(
+                queryDefaults.Collection.default(app),
+                options || {}
+              )
               return this.findOne(options)
             },
             findAllDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
+              options = app.services.ProxyCartService.mergeOptionDefaults(
+                queryDefaults.Collection.default(app),
+                options || {}
+              )
               return this.findAll(options)
             },
             findAndCountDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Collection.default(app))
+              options = app.services.ProxyCartService.mergeOptionDefaults(
+                queryDefaults.Collection.findAndCountDefault(app),
+                options || {}
+              )
               return this.findAndCount(options)
             },
             /**

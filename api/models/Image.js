@@ -15,6 +15,13 @@ module.exports = class Image extends Model {
       config = {
         options: {
           underscored: true,
+          scopes: {
+            live: {
+              where: {
+                live_mode: true
+              }
+            }
+          },
           hooks: {
             beforeCreate: (values, options, fn) => {
               app.services.ProxyCartService.buildImages(values.src, options)
