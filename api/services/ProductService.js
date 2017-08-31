@@ -169,6 +169,8 @@ module.exports = class ProductService extends Service {
       body: product.body,
       type: product.type,
       price: product.price,
+      compare_at_price: product.compare_at_price,
+      calculated_price: product.calculated_price,
       tax_code: product.tax_code,
       published: product.published,
       published_scope: product.published_scope,
@@ -222,6 +224,7 @@ module.exports = class ProductService extends Service {
     let variants = [{
       title: product.title,
       sku: product.sku,
+      vendors: product.vendors,
       google: product.google,
       amazon: product.amazon
     }]
@@ -357,7 +360,11 @@ module.exports = class ProductService extends Service {
       })
       .then(vendors => {
         if (vendors && vendors.length > 0) {
-          return resProduct.setVendors(vendors.map(v => v.id), {transaction: options.transaction || null})
+          // TODO add vendor_price, policies
+          return resProduct.setVendors(vendors.map(v => v.id), {
+            through: { vendor_price: resProduct.price },
+            transaction: options.transaction || null
+          })
         }
         return
       })

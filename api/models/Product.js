@@ -50,6 +50,9 @@ module.exports = class Product extends Model {
               if (!values.calculated_price && values.price) {
                 values.calculated_price = values.price
               }
+              if (!values.compare_at_price && values.price) {
+                values.compare_at_price = values.price
+              }
               fn()
             },
             beforeCreate(values, options, fn) {
@@ -734,6 +737,11 @@ module.exports = class Product extends Model {
         tax_code: {
           type: Sequelize.STRING,
           defaultValue: PRODUCT_DEFAULTS.TAX_CODE // Physical Good
+        },
+        // Pricing Average against competitors
+        compare_at_price: {
+          type: Sequelize.INTEGER,
+          defaultValue: PRODUCT_DEFAULTS.PRICE
         },
         // Default price of the product in cents
         price: {

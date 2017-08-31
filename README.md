@@ -39,6 +39,10 @@ Proxy Cart is the eCommerce component for [Proxy Engine](https://github.com/cali
 |---------------|---------------------------------------|
 | [trailpack-express](https://github.com/trailsjs/trailpack-express) | [![Build status][ci-express-image]][ci-express-url] |
 
+
+## Development
+Proxy Cart currently only support sequelize on Postgres. To contribute to Proxy Cart, first create a Local Postgres Database named `ProxyCart`. Then test the build with `DIALECT=postgres npm test`. 
+
 ## Install
 
 ```sh

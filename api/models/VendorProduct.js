@@ -30,13 +30,23 @@ module.exports = class VendorProduct extends Model {
           primaryKey: true,
           autoIncrement: true
         },
+        // The vendor Id
         vendor_id: {
           type: Sequelize.INTEGER,
           unique: 'vendor_product'
         },
+        // The Product Id the Vendor has
         product_id: {
-          type: Sequelize.STRING,
+          type: Sequelize.INTEGER,
           unique: 'vendor_product'
+        },
+        product_variant_id: {
+          type: Sequelize.INTEGER,
+          unique: 'vendor_product'
+        },
+        // The price of the product the vendor is offering.
+        vendor_price: {
+          type: Sequelize.INTEGER
         },
         // Specifies whether or not Proxy Cart tracks the number of items in stock for this product variant.
         inventory_management: {
