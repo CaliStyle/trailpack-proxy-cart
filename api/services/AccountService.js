@@ -23,18 +23,18 @@ module.exports = class AccountService extends Service {
     options = options || {}
     const Source = this.app.orm['Source']
     return Source.sequelize.Promise.mapSeries(paymentDetails, detail => {
-      if (detail.token) {
+      if (detail.gateway_token) {
         const account = {
           customer_id: customer.id,
           gateway: detail.gateway
         }
         return this.addSource(
           account,
-          detail.token,
+          detail.gateway_token,
           { transaction: options.transaction || null }
         )
          .then(source => {
-           delete detail.token
+           delete detail.gateway_token
            detail.source = source.get({ plain: true })
            return detail
          })
@@ -219,11 +219,11 @@ module.exports = class AccountService extends Service {
   /**
    *
    * @param account
-   * @param token
+   * @param gatewayToken
    * @param options
    * @returns {Promise.<TResult>}
    */
-  addSource(account, token, options) {
+  addSource(account, gatewayToken, options) {
     options = options || {}
     const Account = this.app.orm['Account']
     const Source = this.app.orm['Source']
@@ -237,7 +237,7 @@ module.exports = class AccountService extends Service {
         resAccount = account
         return this.app.services.PaymentGenericService.createCustomerSource({
           account_foreign_id: resAccount.foreign_id,
-          token: token
+          gateway_token: gatewayToken
         })
       })
       .then(serviceCustomerSource => {

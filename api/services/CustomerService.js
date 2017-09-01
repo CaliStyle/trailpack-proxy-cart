@@ -858,7 +858,7 @@ module.exports = class CustomerService extends Service {
           throw new Error('Account not found')
         }
         // source.account_id = account.id
-        return this.app.services.AccountService.addSource(account, source.token)
+        return this.app.services.AccountService.addSource(account, source.gateway_token)
       })
   }
 

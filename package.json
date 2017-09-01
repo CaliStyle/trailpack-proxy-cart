@@ -1,6 +1,6 @@
 {
   "name": "trailpack-proxy-cart",
-  "version": "0.2.20",
+  "version": "0.2.21",
   "description": "Cart - Trailpack for Proxy Engine",
   "homepage": "https://cali-style.com",
   "author": {
@@ -36,7 +36,7 @@
     "trailpack": "^2.0.0",
     "trailpack-proxy-cart-countries": "^0.0.5",
     "trailpack-proxy-email": "^1.0.0",
-    "trailpack-proxy-generics": "^1.1.0",
+    "trailpack-proxy-generics": "^1.2.0",
     "trailpack-proxy-notifications": "^1.0.4",
     "trailpack-proxy-passport": "^1.0.9",
     "trailpack-proxy-permissions": "^1.0.11",

@@ -215,7 +215,7 @@ describe('CartPolicy', () => {
         payment_details: [
           {
             gateway: 'payment_processor',
-            token: '123'
+            gateway_token: '123'
           }
         ],
         fulfillment_kind: 'immediate'
@@ -511,7 +511,7 @@ describe('CartPolicy', () => {
       .send({
         source: {
           gateway: 'payment_processor',
-          token: 'abc123'
+          gateway_token: 'abc123'
         }
       })
       .expect(200)

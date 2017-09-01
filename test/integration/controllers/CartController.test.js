@@ -338,7 +338,7 @@ describe('CartController', () => {
         payment_details: [
           {
             gateway: 'payment_processor',
-            token: '123'
+            gateway_token: '123'
           }
         ],
         fulfillment_kind: 'immediate'

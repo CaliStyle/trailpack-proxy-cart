@@ -74,7 +74,7 @@ describe('OrderController', () => {
         payment_details: [
           {
             gateway: 'payment_processor',
-            token: '123'
+            gateway_token: '123'
           }
         ]
       })
@@ -488,7 +488,7 @@ describe('OrderController', () => {
         payment_details: [
           {
             gateway: 'payment_processor',
-            token: '123'
+            gateway_token: '123'
           }
         ]
       })
