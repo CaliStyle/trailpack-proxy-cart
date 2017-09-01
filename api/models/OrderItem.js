@@ -105,6 +105,7 @@ module.exports = class OrderItem extends Model {
               })
             },
             resolve: function(item, options){
+              options = options || {}
               const OrderItem =  this
               if (item instanceof OrderItem.Instance){
                 return Promise.resolve(item)

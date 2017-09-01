@@ -266,7 +266,7 @@ module.exports = class Order extends Model {
                     return resOrder
                   })
               }
-              else if (order && (_.isNumber(order))) {
+              else if (order && _.isNumber(order)) {
                 return Order.findByIdDefault(order, options)
                   .then(resOrder => {
                     if (!resOrder) {
@@ -275,7 +275,7 @@ module.exports = class Order extends Model {
                     return resOrder
                   })
               }
-              else if (order && (_.isString(order))) {
+              else if (order && _.isString(order)) {
                 return Order.findByTokenDefault(order, options)
                   .then(resOrder => {
                     if (!resOrder) {
@@ -339,7 +339,8 @@ module.exports = class Order extends Model {
               options = options || {}
               return this.resolveCustomer({
                 attributes: ['id','email','company','first_name','last_name','full_name'],
-                transaction: options.transaction || null
+                transaction: options.transaction || null,
+                reload: options.reload || null
               })
                 .then(() => {
                   if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
@@ -363,7 +364,10 @@ module.exports = class Order extends Model {
               shipping = shipping || []
               options = options || {}
 
-              return this.resolveOrderItems({transaction: options.transaction || null})
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   const shippingLines = this.shipping_lines
 
@@ -413,7 +417,10 @@ module.exports = class Order extends Model {
               shipping = shipping || []
               options = options || {}
 
-              return this.resolveOrderItems({transaction: options.transaction || null})
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   const shippingLines = this.shipping_lines
 
@@ -452,7 +459,10 @@ module.exports = class Order extends Model {
               taxes = taxes || []
               options = options || {}
 
-              return this.resolveOrderItems({transaction: options.transaction || null})
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   const taxLines = this.tax_lines
 
@@ -502,7 +512,10 @@ module.exports = class Order extends Model {
               taxes = taxes || []
               options = options || {}
 
-              return this.resolveOrderItems({transaction: options.transaction || null})
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   const taxLines = this.tax_lines
 
@@ -538,9 +551,15 @@ module.exports = class Order extends Model {
              */
             groupFulfillments: function(options) {
               options = options || {}
-              return this.resolveOrderItems({ transaction: options.transaction || null })
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
-                  return this.resolveFulfillments({ transaction: options.transaction || null })
+                  return this.resolveFulfillments({
+                    transaction: options.transaction || null,
+                    reload: options.reload || null
+                  })
                 })
                 .then(() => {
 
@@ -629,7 +648,10 @@ module.exports = class Order extends Model {
             groupSubscriptions: function(active, options) {
               options = options || {}
 
-              return this.resolveOrderItems({transaction: options.transaction || null})
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
 
                   const orderItems = _.filter(this.order_items, 'requires_subscription')
@@ -677,9 +699,15 @@ module.exports = class Order extends Model {
               fulfillments = fulfillments || []
               options = options || {}
 
-              return this.resolveOrderItems({transaction: options.transaction || null})
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
-                  return this.resolveFulfillments({transaction: options.transaction || null})
+                  return this.resolveFulfillments({
+                    transaction: options.transaction || null,
+                    reload: options.reload || null
+                  })
                 })
                 .then(() => {
                   if (_.isArray(fulfillments)) {
@@ -716,6 +744,7 @@ module.exports = class Order extends Model {
                   return this.saveFulfillmentStatus({transaction: options.transaction || null})
                 })
             },
+
             /**
              *
              * @param options
@@ -725,7 +754,10 @@ module.exports = class Order extends Model {
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return this.resolveTransactions({transaction: options.transaction || null})
+              return this.resolveTransactions({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   // Set the new financial status
                   this.setFinancialStatus()
@@ -741,7 +773,10 @@ module.exports = class Order extends Model {
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return this.resolveFulfillments({transaction: options.transaction || null})
+              return this.resolveFulfillments({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   // Set the new fulfillment status
                   this.setFulfillmentStatus()
@@ -771,9 +806,15 @@ module.exports = class Order extends Model {
             },
             resolveStatus: function(options) {
               options = options || {}
-              return this.resolveFinancialStatus({transaction: options.transaction || null})
+              return this.resolveFinancialStatus({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
-                  return this.resolveFulfillmentStatus({transaction: options.transaction || null})
+                  return this.resolveFulfillmentStatus({
+                    transaction: options.transaction || null,
+                    reload: options.reload || null
+                  })
                 })
                 .then(() => {
                   return this.setStatus()
@@ -789,7 +830,10 @@ module.exports = class Order extends Model {
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return this.resolveStatus({transaction: options.transaction || null})
+              return this.resolveStatus({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   return this.save({
                     fields: [
@@ -827,7 +871,10 @@ module.exports = class Order extends Model {
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return this.resolveFinancialStatus({transaction: options.transaction || null})
+              return this.resolveFinancialStatus({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   if (this.changed('financial_status')) {
                     currentStatus = this.financial_status
@@ -889,9 +936,15 @@ module.exports = class Order extends Model {
               if (!this.id) {
                 return Promise.resolve(this)
               }
-              return this.resolveOrderItems({transaction: options.transaction || null})
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
-                  return this.resolveFulfillments({transaction: options.transaction || null})
+                  return this.resolveFulfillments({
+                    transaction: options.transaction || null,
+                    reload: options.reload || null
+                  })
                 })
                 .then(() => {
                   this.setFulfillmentStatus()
@@ -1169,7 +1222,10 @@ module.exports = class Order extends Model {
             sendToFulfillment: function(options) {
               options = options || {}
 
-              return this.resolveFulfillments({transaction: options.transaction || null})
+              return this.resolveFulfillments({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   return app.orm['Order'].sequelize.Promise.mapSeries(this.fulfillments, fulfillment => {
                     return app.services.FulfillmentService.sendFulfillment(this, fulfillment, {transaction: options.transaction || null})
@@ -1193,7 +1249,10 @@ module.exports = class Order extends Model {
               if (!this.has_subscription) {
                 return Promise.resolve(false)
               }
-              return this.resolveFinancialStatus({ transaction: options.transaction || null })
+              return this.resolveFinancialStatus({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   return this.financial_status === ORDER_FINANCIAL.PAID
                 })
@@ -1224,7 +1283,10 @@ module.exports = class Order extends Model {
              */
             attemptImmediate: function(options) {
               options = options || {}
-              return this.resolveSendImmediately({ transaction: options.transaction || null })
+              return this.resolveSendImmediately({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(immediate => {
                   if (immediate) {
                     return this.sendToFulfillment({ transaction: options.transaction || null })
@@ -1235,10 +1297,12 @@ module.exports = class Order extends Model {
                 })
                 .then(() => {
                   // Determine if this subscription should be created immediately
-                  return this.resolveSubscribeImmediately({ transaction: options.transaction || null })
+                  return this.resolveSubscribeImmediately({
+                    transaction: options.transaction || null,
+                    reload: options.reload || null
+                  })
                 })
                 .then(immediate => {
-                  // console.log('WILL SUBSCRIBE', immediate, this)
                   if (immediate) {
                     return this.groupSubscriptions(
                       immediate,
@@ -1483,7 +1547,11 @@ module.exports = class Order extends Model {
              */
             resolveCustomer: function(options) {
               options = options || {}
-              if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
+              if (
+                this.Customer
+                && this.Customer instanceof app.orm['Customer'].Instance
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               // Some orders may not have a customer Id
@@ -1503,7 +1571,7 @@ module.exports = class Order extends Model {
             },
             resolveOrderItems: function(options) {
               options = options || {}
-              if (this.order_items) {
+              if (this.order_items && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -1523,7 +1591,12 @@ module.exports = class Order extends Model {
              */
             resolveRefunds: function(options) {
               options = options || {}
-              if (this.refunds) {
+              let totalRefunds = 0
+              if (this.refunds && options.reload !== true) {
+                this.refunds.forEach(refund => {
+                  totalRefunds = totalRefunds + refund.amount
+                })
+                this.total_refunds = totalRefunds
                 return Promise.resolve(this)
               }
               else {
@@ -1533,6 +1606,12 @@ module.exports = class Order extends Model {
                     this.refunds = refunds
                     this.setDataValue('refunds', refunds)
                     this.set('refunds', refunds)
+
+                    this.refunds.forEach(refund => {
+                      totalRefunds = totalRefunds + refund.amount
+                    })
+                    this.total_refunds = totalRefunds
+
                     return this
                   })
               }
@@ -1543,7 +1622,7 @@ module.exports = class Order extends Model {
              */
             resolveTransactions: function(options) {
               options = options || {}
-              if (this.transactions) {
+              if (this.transactions && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -1564,9 +1643,12 @@ module.exports = class Order extends Model {
              */
             resolveFulfillments: function(options) {
               options = options || {}
-              if (this.fulfillments) {
+              if (this.fulfillments && options.reload !== true) {
                 return this.sequelize.Promise.mapSeries(this.fulfillments, fulfillment => {
-                  return fulfillment.resolveOrderItems({transaction: options.transaction || null})
+                  return fulfillment.resolveOrderItems({
+                    transaction: options.transaction || null,
+                    reload: options.reload || null
+                  })
                 })
                   .then(fulfillments => {
                     fulfillments = fulfillments || []

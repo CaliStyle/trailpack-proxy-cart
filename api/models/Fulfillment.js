@@ -134,6 +134,7 @@ module.exports = class Fulfillment extends Model {
               return this.findAndCount(options)
             },
             resolve: function(fulfillment, options){
+              options = options || {}
               const Fulfillment =  this
               if (fulfillment instanceof Fulfillment.Instance){
                 return Promise.resolve(fulfillment)
@@ -218,7 +219,10 @@ module.exports = class Fulfillment extends Model {
             fulfill: function (data, options) {
               data = data || {}
               options = options || {}
-              return this.resolveOrderItems({transaction: options.transaction || null })
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   this.status = data.status || this.status
                   this.status_url = data.status_url || this.status_url
@@ -247,7 +251,10 @@ module.exports = class Fulfillment extends Model {
              */
             reconcileFulfillmentStatus: function (options) {
               options = options || {}
-              return this.resolveFulfillmentStatus({transaction: options.transaction || null})
+              return this.resolveFulfillmentStatus({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   if (this.changed('status')) {
                     return this.getOrder({transaction: options.transaction || null})
@@ -279,7 +286,10 @@ module.exports = class Fulfillment extends Model {
               if (!this.id){
                 return Promise.resolve(this)
               }
-              return this.resolveOrderItems({transaction: options.transaction || null})
+              return this.resolveOrderItems({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   this.setFulfillmentStatus()
                   return this
@@ -292,7 +302,7 @@ module.exports = class Fulfillment extends Model {
              */
             resolveOrderItems: function(options) {
               options = options || {}
-              if (this.order_items) {
+              if (this.order_items && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -314,7 +324,10 @@ module.exports = class Fulfillment extends Model {
              */
             saveFulfillmentStatus: function (options) {
               options = options || {}
-              return this.resolveFulfillmentStatus({transaction: options.transaction || null})
+              return this.resolveFulfillmentStatus({
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
                 .then(() => {
                   return this.save({transaction: options.transaction || null})
                 })

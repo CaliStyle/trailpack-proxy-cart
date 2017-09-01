@@ -188,7 +188,7 @@ module.exports = class Transaction extends Model {
             resolveOrder: function(options) {
               options = options || {}
               const Order = app.orm['Order']
-              if (this.Order && this.Order instanceof Order.Instance) {
+              if (this.Order && this.Order instanceof Order.Instance && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {

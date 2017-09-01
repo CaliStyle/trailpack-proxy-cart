@@ -404,8 +404,15 @@ module.exports = class Customer extends Model {
                     return resCustomer
                   })
               }
-              else if (customer && (_.isString(customer) || _.isNumber(customer))) {
+              else if (customer && _.isNumber(customer)) {
                 return Customer.findById(customer, options)
+              }
+              else if (customer && _.isString(customer)) {
+                return Customer.findById(_.defaultsDeep({
+                  where: {
+                    email: customer
+                  }
+                }, options))
               }
               else {
                 return app.services.CustomerService.create(customer, options)
@@ -467,7 +474,7 @@ module.exports = class Customer extends Model {
              */
             resolveUsers(options) {
               options = options || {}
-              if (this.users) {
+              if (this.users && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -509,6 +516,7 @@ module.exports = class Customer extends Model {
                 return source
               })
             },
+            // TODO
             resolvePaymentDetailsToSources: function(options) {
               options = options || {}
             },

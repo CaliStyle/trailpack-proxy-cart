@@ -520,7 +520,7 @@ module.exports = class Product extends Model {
             },
             resolveVariants: function(options) {
               options = options || {}
-              if (this.variants) {
+              if (this.variants && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -536,7 +536,7 @@ module.exports = class Product extends Model {
             },
             resolveAssociations: function(options) {
               options = options || {}
-              if (this.associations) {
+              if (this.associations && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -552,7 +552,7 @@ module.exports = class Product extends Model {
             },
             resolveImages: function(options) {
               options = options || {}
-              if (this.images) {
+              if (this.images && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -568,7 +568,7 @@ module.exports = class Product extends Model {
             },
             resolveVendors: function(options) {
               options = options || {}
-              if (this.vendors) {
+              if (this.vendors && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -582,9 +582,10 @@ module.exports = class Product extends Model {
                   })
               }
             },
+            // TODO
             resolveMetadata: function(options) {
               options = options || {}
-              if (this.metadata) {
+              if (this.metadata && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -593,7 +594,7 @@ module.exports = class Product extends Model {
             },
             resolveShops: function(options) {
               options = options || {}
-              if (this.shops) {
+              if (this.shops && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -609,7 +610,7 @@ module.exports = class Product extends Model {
             },
             resolveTags: function(options) {
               options = options || {}
-              if (this.tags) {
+              if (this.tags && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -625,7 +626,7 @@ module.exports = class Product extends Model {
             },
             resolveCollections: function(options) {
               options = options || {}
-              if (this.collections) {
+              if (this.collections && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -641,7 +642,7 @@ module.exports = class Product extends Model {
             },
             resolveCoupons: function(options) {
               options = options || {}
-              if (this.coupons) {
+              if (this.coupons && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
@@ -657,7 +658,7 @@ module.exports = class Product extends Model {
             },
             resolveDiscounts: function(options) {
               options = options || {}
-              if (this.discounts) {
+              if (this.discounts && options.reload !== true) {
                 return Promise.resolve(this)
               }
               else {
