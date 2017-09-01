@@ -377,7 +377,7 @@ module.exports = class Order extends Model {
                         return s.name === ship.name
                       })
                       // Make sure shipping price is a number
-                      ship.price = parseInt(ship.price)
+                      ship.price = app.services.ProxyCartService.normalizeCurrency(parseInt(ship.price))
                       if (i > -1) {
                         shippingLines[i] = ship
                       }
@@ -391,7 +391,7 @@ module.exports = class Order extends Model {
                       return s.name === shipping.name
                     })
                     // Make sure shipping price is a number
-                    shipping.price = parseInt(shipping.price)
+                    shipping.price = app.services.ProxyCartService.normalizeCurrency(parseInt(shipping.price))
 
                     if (i > -1) {
                       shippingLines[i] = shipping
@@ -472,7 +472,7 @@ module.exports = class Order extends Model {
                         return s.name === tax.name
                       })
                       // Make sure taxes price is a number
-                      tax.price = parseInt(tax.price)
+                      tax.price = app.services.ProxyCartService.normalizeCurrency(parseInt(tax.price))
                       if (i > -1) {
                         taxLines[i] = tax
                       }
@@ -486,7 +486,7 @@ module.exports = class Order extends Model {
                       return s.name === taxes.name
                     })
                     // Make sure taxes price is a number
-                    taxes.price = parseInt(taxes.price)
+                    taxes.price = app.services.ProxyCartService.normalizeCurrency(parseInt(taxes.price))
 
                     if (i > -1) {
                       taxLines[i] = taxes

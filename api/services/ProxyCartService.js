@@ -370,6 +370,23 @@ module.exports = class ProxyCartService extends Service {
   }
 
   /**
+   * Converts a currency with a decimal to it's exponent of 0's following the decimal
+   * @param amount
+   * @returns number
+   */
+  normalizeCurrency(amount) {
+    if (!amount || !_.isNumber(amount)) {
+      throw new Error('Amount must be a number')
+    }
+    const amountString = amount.toString().split('.')
+    if (amountString[1]) {
+      const exponent = amountString[1].length
+      amount = amount * Math.pow(10, exponent)
+    }
+    return amount
+  }
+
+  /**
    *
    * @param cart
    * @param shippingAddress
