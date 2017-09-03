@@ -545,7 +545,7 @@ module.exports = class AccountService extends Service {
       })
       .then(transactions => {
         return Source.sequelize.Promise.mapSeries(transactions, transaction => {
-          transaction.payment_detials.source = resSource
+          transaction.payment_details.source = resSource
           return this.app.services.TransactionService.retry(transaction, {transaction: options.transaction || null})
         })
       })

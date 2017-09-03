@@ -79,6 +79,10 @@ module.exports = class Source extends Model {
                 // }
                 // constraints: false
               })
+              models.Source.hasMany(models.Transaction, {
+                as: 'transactions',
+                // constraints: false
+              })
             },
             resolve: function(source, options){
               const Source =  this
