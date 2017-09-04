@@ -24,7 +24,7 @@ module.exports = class Customer extends Email {
         const text = `${ resCustomer.name }`
         const html = `${ resCustomer.name }`
         const subject = data.subject || `${ resCustomer.name } Invitation`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         return {
           text: text,
@@ -57,7 +57,7 @@ module.exports = class Customer extends Email {
         const text = `${ resCustomer.name }`
         const html = `${ resCustomer.name }`
         const subject = data.subject || `${ resCustomer.name } Invite Accepted`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         return {
           text: text,
@@ -88,7 +88,7 @@ module.exports = class Customer extends Email {
         const text = `${ resCustomer.name }`
         const html = `${ resCustomer.name }`
         const subject = data.subject || `${ resCustomer.name } Account Balance Updated`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         return {
           text: text,
@@ -119,7 +119,7 @@ module.exports = class Customer extends Email {
         const text = `${ resCustomer.name }`
         const html = `${ resCustomer.name }`
         const subject = data.subject || `${ resCustomer.name } Account Balance Deducted`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         return {
           text: text,

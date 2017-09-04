@@ -33,7 +33,7 @@ module.exports = class Order extends Email {
         const text = data.text || `Order ${ resOrder.name } Created`
         const html = data.html || this.app.templates.Order.created(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Created`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
         this.app.log.debug(`ORDER CREATED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
         return {
@@ -71,7 +71,7 @@ module.exports = class Order extends Email {
         const text = data.text || `Order ${ resOrder.name } Updated`
         const html = data.html || this.app.templates.Order.updated(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Updated`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER UPDATED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
@@ -110,7 +110,7 @@ module.exports = class Order extends Email {
         const text = data.text || `Order ${ resOrder.name } Cancelled`
         const html = data.html || this.app.templates.Order.cancelled(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Cancelled`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER CANCELLED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
@@ -149,7 +149,7 @@ module.exports = class Order extends Email {
         const text = data.text || `Order ${ resOrder.name } Failed`
         const html = data.html || this.app.templates.Order.failed(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Failed`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER FAILED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
@@ -188,7 +188,7 @@ module.exports = class Order extends Email {
         const text = data.text || `Order ${ resOrder.name } Fulfilled`
         const html = data.html || this.app.templates.Order.fulfilled(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER FULFILLED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
@@ -226,7 +226,7 @@ module.exports = class Order extends Email {
         const text = data.text || `Order ${ resOrder.name } Receipt`
         const html = data.html || this.app.templates.Order.paid(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Receipt`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER PAID SEND EMAIL ${ resOrder.name }`, sendEmail)
 
@@ -265,7 +265,7 @@ module.exports = class Order extends Email {
         const text = data.text || `${ resOrder.name }`
         const html = data.html || this.app.templates.Order.refunded(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Refunded`
-        const sendEmail = data.send_email || true
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER REFUNDED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
