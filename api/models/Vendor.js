@@ -231,7 +231,7 @@ module.exports = class Vendor extends Model {
           this.setDataValue('handle', app.services.ProxyCartService.handle(val))
         }
       },
-      // The name of the vendor
+      // The vendor's name
       name: {
         type: Sequelize.STRING,
         notNull: true,
@@ -239,7 +239,14 @@ module.exports = class Vendor extends Model {
           this.setDataValue('name', app.services.ProxyCartService.title(val))
         }
       },
-
+      // The vendor's website
+      website: {
+        type: Sequelize.STRING
+      },
+      // The vendor's Phone number
+      phone: {
+        type: Sequelize.STRING
+      },
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,

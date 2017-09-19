@@ -48,6 +48,10 @@ module.exports = class VendorProduct extends Model {
         vendor_price: {
           type: Sequelize.INTEGER
         },
+        // The url of the product on the vendor's site
+        vendor_url: {
+          type: Sequelize.STRING
+        },
         // Specifies whether or not Proxy Cart tracks the number of items in stock for this product variant.
         inventory_management: {
           type: Sequelize.BOOLEAN,

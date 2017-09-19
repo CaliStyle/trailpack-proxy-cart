@@ -59,6 +59,7 @@ module.exports = {
     // The amount of days before a Transaction will cancel from failed
     grace_period_days: 5
   },
+  // Emails that are allowed to send
   emails: {
     orderCreated: false,
     orderUpdated: false,
@@ -76,5 +77,7 @@ module.exports = {
     subscriptionWillRenew: false,
     subscriptionRenewed: false,
     transactionFailed: false
-  }
+  },
+  // Events to allow "publish"
+  events: {},
 }

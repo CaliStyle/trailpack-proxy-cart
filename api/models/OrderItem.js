@@ -357,6 +357,11 @@ module.exports = class OrderItem extends Model {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
+        // The MSRP
+        compare_at_price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
         // The price of the item before discounts have been applied.
         price: {
           type: Sequelize.INTEGER,

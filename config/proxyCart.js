@@ -49,6 +49,8 @@ module.exports = {
     subscriptionRenewed: false,
     transactionFailed: false
   },
+  // Events to allow "publish"
+  events: {},
   // Orders
   orders: {
     // Restock default for refunded order items

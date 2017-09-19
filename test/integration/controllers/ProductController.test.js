@@ -92,6 +92,7 @@ describe('ProductController', () => {
         assert.notEqual(res.body.tags.indexOf('outdoor'), -1)
 
         // Images
+        let imagePos = 1
         res.body.images.forEach(image => {
           assert.ok(image.src)
           assert.ok(image.full)
@@ -99,6 +100,8 @@ describe('ProductController', () => {
           assert.ok(image.small)
           assert.ok(image.medium)
           assert.ok(image.large)
+          assert.equal(image.position, imagePos)
+          imagePos++
         })
 
         // Variants
@@ -200,21 +203,29 @@ describe('ProductController', () => {
         assert.equal(res.body[0].images[0].product_variant_id, defaultVariantID)
         assert.equal(res.body[0].images[0].alt, 'Hello World')
 
+        let imagePos = 1
         res.body[0].images.forEach(image => {
+          assert.equal(image.product_id, createdProductID)
           assert.ok(image.src)
           assert.ok(image.full)
           assert.ok(image.thumbnail)
           assert.ok(image.small)
           assert.ok(image.medium)
           assert.ok(image.large)
+          assert.equal(image.position, imagePos)
+          imagePos++
         })
 
         // Variants
         assert.equal(res.body[0].variants.length, 2)
-        assert.equal(res.body[0].variants[0].position, 1)
-        assert.equal(res.body[0].variants[1].position, 2)
 
-        assert.equal(res.body[0].variants[0].product_id, createdProductID)
+        let variantPos = 1
+        res.body[0].variants.forEach(variant => {
+          assert.equal(variant.product_id, createdProductID)
+          assert.equal(variant.position, variantPos)
+          variantPos++
+        })
+
         assert.equal(res.body[0].variants[0].sku, 'board-m-123')
         assert.equal(res.body[0].variants[0].title, res.body[0].title)
         assert.equal(res.body[0].variants[0].price, res.body[0].price)
@@ -222,7 +233,6 @@ describe('ProductController', () => {
         assert.equal(res.body[0].variants[0].weight_unit, res.body[0].weight_unit)
         assert.equal(res.body[0].variants[0].option.width, '18in')
 
-        assert.equal(res.body[0].variants[1].product_id, createdProductID)
         assert.equal(res.body[0].variants[1].sku, 'board-w-123')
         assert.equal(res.body[0].variants[1].title, 'Women\'s Burton Custom Freestyle 151')
         assert.equal(res.body[0].variants[1].price, '10001')
@@ -257,6 +267,19 @@ describe('ProductController', () => {
         assert.notEqual(res.body.tags.indexOf('outdoor'), -1)
         // Images
         assert.equal(res.body.images.length, 2)
+        let imagePos = 1
+        res.body.images.forEach(image => {
+          assert.equal(image.product_id, createdProductID)
+          assert.ok(image.src)
+          assert.ok(image.full)
+          assert.ok(image.thumbnail)
+          assert.ok(image.small)
+          assert.ok(image.medium)
+          assert.ok(image.large)
+          assert.equal(image.position, imagePos)
+          imagePos++
+        })
+
         assert.equal(res.body.images[0].product_id, createdProductID)
         assert.equal(res.body.images[0].product_variant_id, defaultVariantID)
         assert.equal(res.body.images[0].position, 1)
@@ -267,27 +290,20 @@ describe('ProductController', () => {
         assert.equal(res.body.images[1].position, 2)
         assert.equal(res.body.images[1].alt, 'Hello World 2')
 
-        res.body.images.forEach(image => {
-          assert.ok(image.src)
-          assert.ok(image.full)
-          assert.ok(image.thumbnail)
-          assert.ok(image.small)
-          assert.ok(image.medium)
-          assert.ok(image.large)
-        })
-
         // Variants
         assert.equal(res.body.variants.length, 2)
-        assert.equal(res.body.variants[0].position, 1)
-        assert.equal(res.body.variants[1].position, 2)
+        let variantPos = 1
+        res.body.variants.forEach(variant => {
+          assert.equal(variant.product_id, createdProductID)
+          assert.equal(variant.position, variantPos)
+          variantPos++
+        })
 
-        assert.equal(res.body.variants[0].product_id, createdProductID)
         assert.equal(res.body.variants[0].title, res.body.title)
         assert.equal(res.body.variants[0].price, res.body.price)
         assert.equal(res.body.variants[0].weight, res.body.weight)
         assert.equal(res.body.variants[0].weight_unit, res.body.weight_unit)
 
-        assert.equal(res.body.variants[1].product_id, createdProductID)
         assert.equal(res.body.variants[1].title, 'Women\'s Burton Custom Freestyle 151')
         assert.equal(res.body.variants[1].price, '10001')
         assert.equal(res.body.variants[1].weight, res.body.weight)
@@ -369,6 +385,12 @@ describe('ProductController', () => {
         assert.equal(res.body[0].collections[0].handle, 'free-shipping')
         // Variants
         assert.equal(res.body[0].variants.length, 3)
+        let variantPos = 1
+        res.body[0].variants.forEach(variant => {
+          assert.equal(variant.product_id, createdProductID)
+          assert.equal(variant.position, variantPos)
+          variantPos++
+        })
         assert.equal(res.body[0].variants[0].position, 1)
         assert.equal(res.body[0].variants[1].position, 2)
         assert.equal(res.body[0].variants[2].position, 3)
@@ -378,10 +400,19 @@ describe('ProductController', () => {
 
         // Images
         assert.equal(res.body[0].images.length, 4)
-        assert.equal(res.body[0].images[0].position, 1)
-        assert.equal(res.body[0].images[1].position, 2)
-        assert.equal(res.body[0].images[2].position, 3)
-        assert.equal(res.body[0].images[3].position, 4)
+        let imagePos = 1
+        res.body[0].images.forEach(image => {
+          assert.equal(image.product_id, createdProductID)
+          assert.ok(image.src)
+          assert.ok(image.full)
+          assert.ok(image.thumbnail)
+          assert.ok(image.small)
+          assert.ok(image.medium)
+          assert.ok(image.large)
+          assert.equal(image.position, imagePos)
+          imagePos++
+        })
+
         done(err)
       })
   })
@@ -394,20 +425,33 @@ describe('ProductController', () => {
         assert.equal(res.body.title, 'Burton Custom Freestyle 151 Gen 2')
         // Variants
         assert.equal(res.body.variants.length, 3)
-        assert.equal(res.body.variants[0].position, 1)
-        assert.equal(res.body.variants[1].position, 2)
-        assert.equal(res.body.variants[2].position, 3)
+        let variantPos = 1
+        res.body.variants.forEach(variant => {
+          assert.equal(variant.product_id, createdProductID)
+          assert.equal(variant.position, variantPos)
+          variantPos++
+        })
+
         // Images
         assert.equal(res.body.images.length, 4)
-        assert.equal(res.body.images[0].position, 1)
-        assert.equal(res.body.images[1].position, 2)
-        assert.equal(res.body.images[2].position, 3)
-        assert.equal(res.body.images[3].position, 4)
+        let imagePos = 1
+        res.body.images.forEach(image => {
+          assert.equal(image.product_id, createdProductID)
+          assert.ok(image.src)
+          assert.ok(image.full)
+          assert.ok(image.thumbnail)
+          assert.ok(image.small)
+          assert.ok(image.medium)
+          assert.ok(image.large)
+          assert.equal(image.position, imagePos)
+          imagePos++
+        })
 
         // Collections
         assert.equal(res.body.collections.length, 1)
         assert.equal(res.body.collections[0].title, 'free-shipping')
         assert.equal(res.body.collections[0].handle, 'free-shipping')
+
         done(err)
       })
   })
