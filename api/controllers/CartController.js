@@ -13,6 +13,13 @@ module.exports = class CartController extends Controller {
   generalStats(req, res) {
     res.json({})
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO perhaps we should update the cart if there is one in session and this is a post request?
   init(req, res) {
     if (!req.cart) {
       if (!req.body) {
@@ -42,7 +49,7 @@ module.exports = class CartController extends Controller {
           return res.json(result)
         })
         .catch(err => {
-          // console.log('ProductController.checkout', err)
+          console.log('CartController.init', err)
           return res.serverError(err)
         })
     }
@@ -79,14 +86,13 @@ module.exports = class CartController extends Controller {
     if (!req.cart) {
       return res.sendStatus(401)
     }
-    return this.app.services.ProxyPermissionsService.sanitizeResult(req, req.cart)
-    .then(result => {
-      return res.json(result)
-    })
-    // req.cart.recalculate()
-    //   .then(cart => {
-    //     return res.json(cart)
-    //   })
+    return this.app.orm['Cart'].findByIdDefault(req.cart.id)
+      .then(cart => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
   }
   /**
    *
@@ -96,14 +102,37 @@ module.exports = class CartController extends Controller {
   findById(req, res){
     const orm = this.app.orm
     const Cart = orm['Cart']
-    let id = req.params.id
-    if (!id && req.cart) {
-      id = req.cart.id
-    }
-    Cart.findByIdDefault(id, {})
+    Cart.findByIdDefault(req.params.id, {})
       .then(cart => {
         if (!cart) {
-          throw new Errors.FoundError(Error(`Cart id ${id} not found`))
+          throw new Errors.FoundError(Error(`Cart id ${req.params.id} not found`))
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  resolve(req, res){
+    const Cart = this.app.orm['Cart']
+
+    if (!req.params.id) {
+      const err =  new Error('id is required')
+      return res.serverError(err)
+    }
+
+    Cart.resolve(req.params.id, {})
+      .then(cart => {
+        if (!cart) {
+          throw new Errors.FoundError(Error(`Cart ${req.params.id} not found`))
         }
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
       })
@@ -164,14 +193,12 @@ module.exports = class CartController extends Controller {
 
     lib.Validator.validateCart.create(req.body)
       .then(values => {
-        console.log(values)
         return CartService.create(req.body)
       })
       .then(cart => {
         if (!cart) {
           throw new Error('Unexpected Error while creating cart')
         }
-        // console.log('THIS CREATED CART', cart)
         return new Promise((resolve,reject) => {
           req.loginCart(cart, function (err) {
             if (err) {
@@ -188,7 +215,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.create', err)
+        console.log('CartController.create', err)
         return res.serverError(err)
       })
 
@@ -201,26 +228,34 @@ module.exports = class CartController extends Controller {
    */
   update(req, res) {
     const CartService = this.app.services.CartService
-
+    let id = req.params.id
+    // if no id through endpoint, use the session endpoint
+    if (!id && req.body.id) {
+      id = req.body.id
+    }
+    else if (!id && req.body.token) {
+      id = req.body.token
+    }
+    else if (!id && req.cart) {
+      id = req.cart.id
+    }
+    // If customer logged in and no customer in body, use customer id
     if (req.customer && !req.body.customer_id) {
       req.body.customer_id = req.customer.id
     }
+    // if user logged in and no owners in body add user
     if (req.user && !req.body.owners) {
       req.body.owners = [req.user]
-    }
-    if (!req.body.id) {
-      req.body.id = req.params.id
     }
     lib.Validator.validateCart.update(req.body)
       .then(values => {
         console.log(values)
-        return CartService.update(req.body)
+        return CartService.update(id, req.body)
       })
       .then(cart => {
         if (!cart) {
           throw new Error('Unexpected Error while creating cart')
         }
-        // console.log('THIS CREATED CART', cart)
         return new Promise((resolve,reject) => {
           req.loginCart(cart, function (err) {
             if (err) {
@@ -249,6 +284,7 @@ module.exports = class CartController extends Controller {
    * @param res
    */
   checkout(req, res) {
+
     if (!req.body.cart) {
       req.body.cart = {}
     }
@@ -284,18 +320,17 @@ module.exports = class CartController extends Controller {
 
       })
       .then(data => {
-        // console.log('cart checkout CartController.checkout', data)
         if (!data || !data.cart || !data.order) {
           throw new Error('Unexpected Error while checking out')
         }
-        // TODO sanatize this
+        // TODO sanitize this
         return res.json({
           cart: data.cart,
           order: data.order
         })
       })
       .catch(err => {
-        // console.log('ProductController.checkout', err)
+        console.log(err)
         return res.serverError(err)
       })
   }

@@ -344,28 +344,36 @@ module.exports = class ProxyCartService extends Service {
    */
   normalizeAddress(address){
     const ProxyCountryService = this.app.services.ProxyCountryService
+    const Address = this.app.orm['Address']
     const countryNorm = address.country_code || address.country || address.country_name
     const provinceNorm = address.province_code || address.province
+    let normalizedProvince, ext
 
-    if (!provinceNorm && !countryNorm) {
+    if (!provinceNorm || !countryNorm) {
+      // throw new Error(`Unable to normalize ${provinceNorm}, ${countryNorm}`)
       return address
     }
 
-    const normalizedProvince  = ProxyCountryService.province(countryNorm, provinceNorm)
+    normalizedProvince  = ProxyCountryService.province(countryNorm, provinceNorm)
 
     if (!normalizedProvince) {
       throw new Error(`Unable to normalize ${provinceNorm}, ${countryNorm}`)
     }
 
-    const ext = {
+    ext = {
       country: normalizedProvince.country.name,
       country_name: normalizedProvince.country.name,
       country_code: normalizedProvince.country.ISO.alpha2,
       province: normalizedProvince.name,
       province_code: normalizedProvince.code
     }
-    address = _.merge(address, ext)
-    // console.log(address)
+    if (address instanceof Address.Instance) {
+      address = address.merge(ext)
+    }
+    else {
+      address = _.merge(address, ext)
+    }
+
     return address
   }
 

@@ -34,17 +34,27 @@ describe('CustomerController', () => {
       .expect(200)
       .end((err, res) => {
         customerID = res.body.id
+        assert.equal(res.body.first_name, customer.first_name)
+        assert.equal(res.body.last_name, customer.last_name)
+        assert.equal(res.body.metadata.test, customer.metadata.test)
+        assert.equal(res.body.shipping_address.first_name, customer.default_address.first_name)
+        assert.equal(res.body.shipping_address.last_name, customer.default_address.last_name)
         done(err)
       })
   })
   it('should find created customer', (done) => {
+    const customer = customers[1]
+
     request
       .get(`/customer/${customerID}`)
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.first_name, 'Scottie')
-        assert.equal(res.body.last_name, 'Wyatt')
-        assert.equal(res.body.metadata.test, 'value')
+        assert.equal(res.body.first_name, customer.first_name)
+        assert.equal(res.body.last_name, customer.last_name)
+        assert.equal(res.body.metadata.test, customer.metadata.test)
+        assert.equal(res.body.shipping_address.first_name, customer.default_address.first_name)
+        assert.equal(res.body.shipping_address.last_name, customer.default_address.last_name)
+
         done(err)
       })
   })

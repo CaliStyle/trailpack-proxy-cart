@@ -506,6 +506,10 @@ module.exports = {
     TOTAL_REVIEWS: 0,
     TOTAL_VARIANTS: 0
   },
+  TRANSACTION_DEFAUTLS: {
+    CURRENCY: 'USD',
+    SOURCE_NAME: 'web'
+  },
   VARIANT_DEFAULTS: {
     PUBLISHED: false,
     MAX_QUANTITY: -1,

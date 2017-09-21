@@ -625,7 +625,7 @@ describe('OrderController', () => {
         done(err)
       })
   })
-  it('should remove tag to an order', (done) => {
+  it('should remove tag from an order', (done) => {
     request
       .post(`/order/${orderID}/removeTag/1`)
       .send({})

@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
@@ -174,6 +175,61 @@ module.exports = class Address extends Model {
                 const err = new Error(`Unable to resolve Address ${address}`)
                 return Promise.reject(err)
               }
+            },
+            /**
+             *
+             * @param address
+             */
+            cleanAddress: function(address) {
+              return _.pick(address, [
+                'address_1',
+                'address_2',
+                'address_3',
+                'company',
+                'city',
+                'prefix',
+                'first_name',
+                'last_name',
+                'suffix',
+                'phone',
+                'province',
+                'province_code',
+                'country',
+                'country_name',
+                'country_code',
+                'postal_code'
+              ])
+            }
+          },
+          instanceMethods: {
+            /**
+             *
+             * @param updates
+             * @returns {*}
+             */
+            merge: function(updates) {
+
+              this.address_1 = updates.address_1 || this.address_1
+              this.address_2 = updates.address_2 || this.address_2
+              this.address_3 = updates.address_3 || this.address_3
+              this.company = updates.company || this.company
+              this.city = updates.city || this.city
+              this.prefix = updates.prefix || this.prefix
+              this.first_name = updates.first_name || this.first_name
+              this.last_name = updates.last_name || this.last_name
+              this.suffix = updates.suffix || this.suffix
+              this.phone = updates.phone || this.phone
+              this.province = updates.province || this.province
+              this.province_code = updates.province_code || this.province_code
+              this.country = updates.country || this.country
+              this.country_name = updates.country_name || this.country_name
+              this.country_code = updates.country_code || this.country_code
+              this.postal_code = updates.postal_code || this.postal_code
+              this.formatted_address = updates.formatted_address || this.formatted_address
+              this.latitude = updates.latitude || this.latitude
+              this.longitude = updates.longitude || this.longitude
+
+              return this
             }
           }
         }

@@ -420,6 +420,34 @@ module.exports = class Customer extends Model {
             }
           },
           instanceMethods: {
+            getDefaultSource: function (options) {
+              options = options || {}
+              const Source = app.orm['Source']
+              return Source.findOne({
+                where: {
+                  customer_id: this.id,
+                  is_default: true
+                },
+                transaction: options.transaction || null
+              })
+                .then(source => {
+                  // If there is no default, find one for the customer
+                  if (!source) {
+                    return Source.findOne({
+                      where: {
+                        customer_id: this.id
+                      },
+                      transaction: options.transaction || null
+                    })
+                  }
+                  else {
+                    return source
+                  }
+                })
+                .then(source => {
+                  return source
+                })
+            },
             /**
              *
              * @param order
@@ -488,37 +516,199 @@ module.exports = class Customer extends Model {
                   })
               }
             },
-            getDefaultSource: function (options) {
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
+            resolveDefaultAddress: function(options) {
               options = options || {}
-              const Source = app.orm['Source']
-              return Source.findOne({
-                where: {
-                  customer_id: this.id,
-                  is_default: true
-                },
-                transaction: options.transaction || null
-              })
-              .then(source => {
-                // If there is no default, find one for the customer
-                if (!source) {
-                  return Source.findOne({
-                    where: {
-                      customer_id: this.id
-                    },
-                    transaction: options.transaction || null
+              if (
+                this.default_address
+                && this.default_address instanceof app.orm['Address'].Instance
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              // Some carts may not have a default address Id
+              else if (!this.default_address_id) {
+                this.default_address = app.orm['Address'].build({})
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getDefault_address({transaction: options.transaction || null})
+                  .then(address => {
+                    address = address || null
+                    this.default_address = address
+                    this.setDataValue('default_address', address)
+                    this.set('default_address', address)
+                    return this
                   })
-                }
-                else {
-                  return source
-                }
-              })
-              .then(source => {
-                return source
-              })
+              }
+            },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
+            resolveShippingAddress: function(options) {
+              options = options || {}
+              if (
+                this.shipping_address
+                && this.shipping_address instanceof app.orm['Address'].Instance
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              // Some carts may not have a shipping address Id
+              else if (!this.shipping_address_id) {
+                this.shipping_address = app.orm['Address'].build({})
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getShipping_address({transaction: options.transaction || null})
+                  .then(address => {
+                    address = address || null
+                    this.shipping_address = address
+                    this.setDataValue('shipping_address', address)
+                    this.set('shipping_address', address)
+                    return this
+                  })
+              }
+            },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
+            resolveBillingAddress: function(options) {
+              options = options || {}
+              if (
+                this.billing_address
+                && this.billing_address instanceof app.orm['Address'].Instance
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              // Some carts may not have a billing address Id
+              else if (!this.billing_address_id) {
+                this.billing_address = app.orm['Address'].build({})
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getBilling_address({transaction: options.transaction || null})
+                  .then(address => {
+                    address = address || null
+                    this.billing_address = address
+                    this.setDataValue('billing_address', address)
+                    this.set('billing_address', address)
+                    return this
+                  })
+              }
             },
             // TODO
             resolvePaymentDetailsToSources: function(options) {
               options = options || {}
+            },
+
+            /**
+             *
+             * @param address
+             * @param options
+             * @returns {Promise.<TResult>|*}
+             */
+            updateDefaultAddress(address, options) {
+              options = options || {}
+              const Address = app.orm['Address']
+              const defaultUpdate = Address.cleanAddress(address)
+
+              return this.resolveDefaultAddress({transaction: options.transaction || null})
+                .then(() => {
+                  // If this address has an ID, thenw e should try and update it
+                  if (address.id || address.token) {
+                    return Address.resolve(address, {transaction: options.transaction || null})
+                      .then(address => {
+                        return address.update(defaultUpdate, {transaction: options.transaction || null})
+                      })
+                  }
+                  else {
+                    return this.default_address
+                      .merge(defaultUpdate)
+                      .save({transaction: options.transaction || null})
+                  }
+                })
+                .then(defaultAddress => {
+                  if (this.default_address_id !== defaultAddress.id) {
+                    return this.setDefault_address(defaultAddress.id, {transaction: options.transaction || null})
+                  }
+                  return this
+                })
+            },
+            /**
+             *
+             * @param address
+             * @param options
+             * @returns {Promise.<TResult>|*}
+             */
+            updateShippingAddress(address, options) {
+              options = options || {}
+              const Address = app.orm['Address']
+              const shippingUpdate = Address.cleanAddress(address)
+
+              return this.resolveShippingAddress({transaction: options.transaction || null})
+                .then(() => {
+                  // If this address has an ID, thenw e should try and update it
+                  if (address.id || address.token) {
+                    return Address.resolve(address, {transaction: options.transaction || null})
+                      .then(address => {
+                        return address.update(shippingUpdate, {transaction: options.transaction || null})
+                      })
+                  }
+                  else {
+                    return this.shipping_address
+                      .merge(shippingUpdate)
+                      .save({transaction: options.transaction || null})
+                  }
+                })
+                .then(shippingAddress => {
+                  if (this.shipping_address_id !== shippingAddress.id) {
+                    return this.setShipping_address(shippingAddress.id, {transaction: options.transaction || null})
+                  }
+                  return this
+                })
+            },
+            /**
+             *
+             * @param address
+             * @param options
+             * @returns {Promise.<TResult>|*}
+             */
+            updateBillingAddress(address, options) {
+              options = options || {}
+              const Address = app.orm['Address']
+              const billingUpdate = Address.cleanAddress(address)
+
+              return this.resolveBillingAddress({transaction: options.transaction || null})
+                .then(() => {
+                  // If this address has an ID, thenw e should try and update it
+                  if (address.id || address.token) {
+                    return Address.resolve(address, {transaction: options.transaction || null})
+                      .then(address => {
+                        return address.update(billingUpdate, {transaction: options.transaction || null})
+                      })
+                  }
+                  else {
+                    return this.billing_address
+                      .merge(billingUpdate)
+                      .save({transaction: options.transaction || null})
+                  }
+                })
+                .then(billingAddress => {
+                  if (this.billing_address_id !== billingAddress.id) {
+                    return this.setBilling_address(billingAddress.id, {transaction: options.transaction || null})
+                  }
+                  return this
+                })
             },
             /**
              *

@@ -1351,7 +1351,7 @@ module.exports = class Order extends Model {
                 fulfillment_service: item.fulfillment_service,
                 gift_card: item.gift_card,
                 requires_shipping: item.requires_shipping,
-                taxable: item.requires_tax,
+                requires_taxes: item.requires_taxes,
                 tax_code: item.tax_code,
                 tax_lines: item.tax_lines || [],
                 shipping_lines: item.shipping_lines || [],
@@ -1806,6 +1806,11 @@ module.exports = class Order extends Model {
         },
         // If this order contains an item that requires shipping
         has_shipping: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        // If this order contains an item that requires taxes and customer is not exempt
+        has_taxes: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },

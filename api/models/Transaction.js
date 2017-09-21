@@ -9,6 +9,7 @@ const shortId = require('shortid')
 const TRANSACTION_ERRORS = require('../utils/enums').TRANSACTION_ERRORS
 const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
+const TRANSACTION_DEFAULTS = require('../utils/enums').TRANSACTION_DEFAUTLS
 const _ = require('lodash')
 
 /**
@@ -32,6 +33,30 @@ module.exports = class Transaction extends Model {
             live: {
               where: {
                 live_mode: true
+              }
+            },
+            authorized: {
+              where: {
+                kind: 'authorize',
+                status: 'success'
+              }
+            },
+            captured: {
+              where: {
+                kind: ['capture','sale'],
+                status: 'success'
+              }
+            },
+            voided: {
+              where: {
+                kind: 'void',
+                status: 'success'
+              }
+            },
+            refunded: {
+              where: {
+                kind: 'refund',
+                status: 'success'
               }
             }
           },
@@ -65,6 +90,7 @@ module.exports = class Transaction extends Model {
             TRANSACTION_ERRORS: TRANSACTION_ERRORS,
             TRANSACTION_STATUS: TRANSACTION_STATUS,
             TRANSACTION_KIND: TRANSACTION_KIND,
+            TRANSACTION_DEFAULTS: TRANSACTION_DEFAULTS,
             /**
              * Associate the Model
              * @param models
@@ -118,6 +144,12 @@ module.exports = class Transaction extends Model {
               }
               return recursiveQuery(options)
             },
+            /**
+             *
+             * @param transaction
+             * @param options
+             * @returns {*}
+             */
             resolve: function(transaction, options){
               const Transaction =  this
               if (transaction instanceof Transaction.Instance){
@@ -128,6 +160,20 @@ module.exports = class Transaction extends Model {
                   .then(resTransaction => {
                     if (!resTransaction) {
                       throw new Errors.FoundError(Error(`Transaction ${transaction.id} not found`))
+                    }
+                    return resTransaction
+                  })
+              }
+              else if (transaction && _.isObject(transaction) && transaction.token) {
+                return Transaction.findOne({
+                  where: {
+                    token: transaction.token
+                  },
+                  transaction: options.transaction || null
+                })
+                  .then(resTransaction => {
+                    if (!resTransaction) {
+                      throw new Errors.FoundError(Error(`Transaction ${transaction.token} not found`))
                     }
                     return resTransaction
                   })
@@ -314,7 +360,7 @@ module.exports = class Transaction extends Model {
         // The origin of the transaction.
         source_name: {
           type: Sequelize.STRING,
-          defaultValue: 'web'
+          defaultValue: TRANSACTION_DEFAULTS.SOURCE_NAME
         },
         // An object containing information about the credit card used for this transaction. Normally It has the following properties:
         // type: The type of Source: credit_card, debit_card, prepaid_card, apple_pay, bitcoin
@@ -352,7 +398,7 @@ module.exports = class Transaction extends Model {
         // The three letter code (ISO 4217) for the currency used for the payment.
         currency: {
           type: Sequelize.STRING,
-          defaultValue: app.config.proxyCart.default_currency || 'USD'
+          defaultValue: app.config.proxyCart.default_currency || TRANSACTION_DEFAULTS.CURRENCY
         },
         // A description of the Transaction
         description: {

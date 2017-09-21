@@ -259,7 +259,7 @@ module.exports = class Cart extends Model {
                 fulfillment_service: data.fulfillment_service,
                 gift_card: data.gift_card,
                 requires_shipping: data.requires_shipping,
-                taxable: data.requires_tax,
+                requires_taxes: data.requires_taxes,
                 tax_code: data.tax_code,
                 tax_lines: [],
                 shipping_lines: [],
@@ -437,7 +437,7 @@ module.exports = class Cart extends Model {
               options = options || {}
               const buildOrder = {
                 // Request info
-                client_details: options.client_details || this.client_details,
+                client_details: options.client_details || this.client_details || {},
                 ip: options.ip || null,
                 payment_details: options.payment_details,
                 payment_kind: options.payment_kind || app.config.proxyCart.orders.payment_kind,
@@ -457,11 +457,11 @@ module.exports = class Cart extends Model {
                 // Cart Info
                 cart_token: this.token,
                 currency: this.currency,
-                line_items: this.line_items,
-                tax_lines: this.tax_lines,
-                shipping_lines: this.shipping_lines,
-                discounted_lines: this.discounted_lines,
-                coupon_lines: this.coupon_lines,
+                line_items: this.line_items || [],
+                tax_lines: this.tax_lines || [],
+                shipping_lines: this.shipping_lines || [],
+                discounted_lines: this.discounted_lines || [],
+                coupon_lines: this.coupon_lines || [],
                 subtotal_price: this.subtotal_price,
                 taxes_included: this.taxes_included,
                 total_discounts: this.total_discounts,
@@ -474,6 +474,7 @@ module.exports = class Cart extends Model {
                 total_items: this.total_items,
                 shop_id: this.shop_id,
                 has_shipping: this.has_shipping,
+                has_taxes: this.has_taxes,
                 has_subscription: this.has_subscription,
                 notes: this.notes,
 
@@ -611,7 +612,148 @@ module.exports = class Cart extends Model {
 
                   return this
                 })
+            },
+            resolveCustomer: function(options) {
+              options = options || {}
+              if (
+                this.Customer
+                && this.Customer instanceof app.orm['Customer'].Instance
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              // Some orders may not have a customer Id
+              else if (!this.customer_id) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getCustomer({transaction: options.transaction || null})
+                  .then(customer => {
+                    customer = customer || null
+                    this.Customer = customer
+                    this.setDataValue('Customer', customer)
+                    this.set('Customer', customer)
+                    return this
+                  })
+              }
+            },
+            resolveShippingAddress: function(options) {
+              options = options || {}
+              if (
+                this.shipping_address
+                && this.shipping_address instanceof app.orm['Address'].Instance
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              // Some carts may not have a shipping address Id
+              else if (!this.shipping_address_id) {
+                this.shipping_address = app.orm['Address'].build({})
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getShipping_address({transaction: options.transaction || null})
+                  .then(address => {
+                    address = address || null
+                    this.shipping_address = address
+                    this.setDataValue('shipping_address', address)
+                    this.set('shipping_address', address)
+                    return this
+                  })
+              }
+            },
+            resolveBillingAddress: function(options) {
+              options = options || {}
+              if (
+                this.billing_address
+                && this.billing_address instanceof app.orm['Address'].Instance
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              // Some carts may not have a billing address Id
+              else if (!this.billing_address_id) {
+                this.billing_address = app.orm['Address'].build({})
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getBilling_address({transaction: options.transaction || null})
+                  .then(address => {
+                    address = address || null
+                    this.billing_address = address
+                    this.setDataValue('billing_address', address)
+                    this.set('billing_address', address)
+                    return this
+                  })
+              }
+            },
+            /**
+             *
+             * @param address
+             * @param options
+             * @returns {Promise.<TResult>|*}
+             */
+            updateShippingAddress(address, options) {
+              options = options || {}
+              const Address = app.orm['Address']
+              const shippingUpdate = Address.cleanAddress(address)
+
+              return this.resolveShippingAddress({transaction: options.transaction || null})
+                .then(() => {
+                  // If this address has an ID, then we should try and update it
+                  if (address.id || address.token) {
+                    return Address.resolve(address, {transaction: options.transaction || null})
+                      .then(address => {
+                        return address.update(shippingUpdate, {transaction: options.transaction || null})
+                      })
+                  }
+                  else {
+                    return this.shipping_address
+                      .merge(shippingUpdate)
+                      .save({transaction: options.transaction || null})
+                  }
+                })
+                .then(shippingAddress => {
+                  if (this.shipping_address_id !== shippingAddress.id) {
+                    return this.setShipping_address(shippingAddress.id, {transaction: options.transaction || null})
+                  }
+                  return this
+                })
+            },
+            /**
+             *
+             * @param address
+             * @param options
+             * @returns {Promise.<TResult>|*}
+             */
+            updateBillingAddress(address, options) {
+              options = options || {}
+              const Address = app.orm['Address']
+              const billingUpdate = Address.cleanAddress(address)
+
+              return this.resolveBillingAddress({transaction: options.transaction || null})
+                .then(() => {
+                  // If this address has an ID, then we should try and update it
+                  if (address.id || address.token) {
+                    return Address.resolve(address, {transaction: options.transaction || null})
+                      .then(address => {
+                        return address.update(billingUpdate, {transaction: options.transaction || null})
+                      })
+                  }
+                  else {
+                    return this.billing_address
+                      .merge(billingUpdate)
+                      .save({transaction: options.transaction || null})
+                  }
+                })
+                .then(billingAddress => {
+                  if (this.billing_address_id !== billingAddress.id) {
+                    return this.setBilling_address(billingAddress.id, {transaction: options.transaction || null})
+                  }
+                  return this
+                })
             }
+
             // toJSON: function() {
             //   // Make JSON
             //   const resp = this.get({plain: true})
@@ -708,6 +850,11 @@ module.exports = class Cart extends Model {
         },
         // If this cart contains an item that requires shipping
         has_shipping: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        // If this cart contains an item that requires taxes
+        has_taxes: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },

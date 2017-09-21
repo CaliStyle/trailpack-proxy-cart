@@ -14,20 +14,19 @@ module.exports = class CustomerService extends Service {
   /**
    *
    * @param customer
+   * @param options
    * @returns {Promise}
    */
   create(customer, options) {
-    const Customer = this.app.orm.Customer
-    const Tag = this.app.orm.Tag
-    const Cart = this.app.orm.Cart
-    const Metadata = this.app.orm.Metadata
-    const Address = this.app.orm.Address
-    const Account = this.app.orm.Account
-    const User = this.app.orm.User
+    options = options || {}
+    const Account = this.app.orm['Account']
+    const Address = this.app.orm['Address']
+    const Cart = this.app.orm['Cart']
+    const Customer = this.app.orm['Customer']
+    const Metadata = this.app.orm['Metadata']
+    const Tag = this.app.orm['Tag']
+    const User = this.app.orm['User']
 
-    if (!options) {
-      options = {}
-    }
     if (customer.cart) {
       customer.default_cart = customer.cart
       delete customer.cart
@@ -55,24 +54,9 @@ module.exports = class CustomerService extends Service {
       tax_exempt: customer.tax_exempt,
       verified_email: customer.verified_email,
       metadata: Metadata.transform(customer.metadata || {}),
-      account_balance: customer.account_balance,
-      shipping_address: customer.shipping_address || null,
-      billing_address: customer.billing_address || null,
-      default_address: customer.default_address || null
+      account_balance: customer.account_balance
     },{
       include: [
-        {
-          model: Cart,
-          as: 'default_cart'
-        },
-        // {
-        //   model: Cart,
-        //   as: 'carts'
-        // },
-        {
-          model: Address,
-          as: 'default_address'
-        },
         {
           model: Address,
           as: 'shipping_address'
@@ -80,6 +64,14 @@ module.exports = class CustomerService extends Service {
         {
           model: Address,
           as: 'billing_address'
+        },
+        {
+          model: Address,
+          as: 'default_address'
+        },
+        {
+          model: Cart,
+          as: 'default_cart'
         },
         {
           model: Tag,
@@ -95,7 +87,42 @@ module.exports = class CustomerService extends Service {
 
     return create.save({transaction: options.transaction || null})
       .then(createdCustomer => {
+        if (!createdCustomer) {
+          throw new Error('Customer could not be created')
+        }
         resCustomer = createdCustomer
+
+        // Shipping Address
+        if (customer.shipping_address && !_.isEmpty(customer.shipping_address)) {
+          return resCustomer.updateShippingAddress(
+            customer.shipping_address,
+            {transaction: options.transaction || null}
+          )
+        }
+        return
+      })
+      .then(() => {
+        // Billing Address
+        if (customer.billing_address && !_.isEmpty(customer.billing_address)) {
+          return resCustomer.updateBillingAddress(
+            customer.billing_address,
+            {transaction: options.transaction || null}
+          )
+        }
+        return
+      })
+      .then(() => {
+        // Default Address
+        if (customer.default_address && !_.isEmpty(customer.default_address)) {
+          return resCustomer.updateDefaultAddress(
+            customer.default_address,
+            {transaction: options.transaction || null}
+          )
+        }
+        return
+      })
+      .then(() => {
+        // Tags
         if (customer.tags && customer.tags.length > 0) {
           customer.tags = _.sortedUniq(customer.tags.filter(n => n))
           return Tag.transformTags(customer.tags, {transaction: options.transaction || null})
@@ -112,7 +139,6 @@ module.exports = class CustomerService extends Service {
       .then(tags => {
         if (customer.default_cart) {
           // Resolve the Cart
-          // console.log('DEFAULT CART', customer.default_cart)
           return Cart.resolve(customer.default_cart, {transaction: options.transaction || null})
         }
         return
@@ -160,7 +186,7 @@ module.exports = class CustomerService extends Service {
                     }],
                     type: 'customer.account.created',
                     message: `Customer account ${account.foreign_id} created on ${ account.gateway }`,
-                    data: account
+                    data: _.omit(account, ['events'])
                   }
                   this.app.services.ProxyEngineService.publish(event.type, event, {
                     save: true,
@@ -221,7 +247,7 @@ module.exports = class CustomerService extends Service {
           }],
           type: 'customer.created',
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id} created`,
-          data: resCustomer
+          data: _.omit(resCustomer, ['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -237,6 +263,7 @@ module.exports = class CustomerService extends Service {
   /**
    *
    * @param customer
+   * @param options
    * @returns {Promise}
    */
   update(customer, options) {
@@ -272,7 +299,7 @@ module.exports = class CustomerService extends Service {
         }
         return
       })
-      .then(tags => {
+      .then(() => {
         // Save Changes to metadata
         if (customer.metadata) {
           resCustomer.metadata.data = customer.metadata || {}
@@ -280,39 +307,30 @@ module.exports = class CustomerService extends Service {
         }
         return
       })
-      .then(metadata => {
+      .then(() => {
         if (customer.shipping_address) {
-          if (customer.shipping_address.id) {
-            return resCustomer.setShipping_address(customer.shipping_address.id, {transaction: options.transaction || null})
-          }
-          else {
-            resCustomer.shipping_address = _.extend(resCustomer.shipping_address, customer.shipping_address)
-            return resCustomer.shipping_address.save({transaction: options.transaction || null})
-          }
+          return resCustomer.updateShippingAddress(
+            customer.shipping_address,
+            {transaction: options.transaction || null}
+          )
         }
         return
       })
-      .then(shippingAddress => {
+      .then(() => {
         if (customer.billing_address) {
-          if (customer.billing_address.id) {
-            return resCustomer.setBilling_address(customer.billing_address.id, {transaction: options.transaction || null})
-          }
-          else {
-            resCustomer.billing_address = _.extend(resCustomer.billing_address, customer.billing_address)
-            return resCustomer.billing_address.save({transaction: options.transaction || null})
-          }
+          return resCustomer.updateBillingAddress(
+            customer.billing_address,
+            {transaction: options.transaction || null}
+          )
         }
         return
       })
-      .then(billingAddress => {
+      .then(() => {
         if (customer.default_address) {
-          if (customer.default_address.id) {
-            return resCustomer.setDefault_address(customer.default_address.id, {transaction: options.transaction || null})
-          }
-          else {
-            resCustomer.default_address = _.extend(resCustomer.default_address, customer.default_address)
-            return resCustomer.default_address.save({transaction: options.transaction || null})
-          }
+          return resCustomer.updateDefaultAddress(
+            customer.default_address,
+            {transaction: options.transaction || null}
+          )
         }
         return
       })
@@ -326,7 +344,7 @@ module.exports = class CustomerService extends Service {
           }],
           type: 'customer.updated',
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } updated`,
-          data: resCustomer
+          data: _.omit(resCustomer, ['events'])
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -626,41 +644,46 @@ module.exports = class CustomerService extends Service {
    *
    * @param customer
    * @param address
+   * @param type
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  addAddress(customer, address, type) {
+  addAddress(customer, address, type, options) {
+    options = options || {}
     const Customer = this.app.orm['Customer']
+    const Address = this.app.orm['Address']
+
     let resCustomer, resAddress
-    return Customer.resolve(customer)
+    return Customer.resolve(customer, {transaction: options.transaction || null})
       .then(customer => {
         resCustomer = customer
-        return this.app.orm['Address'].create(address)
+        return Address.create(address, {transaction: options.transaction || null})
       })
       .then(address => {
         resAddress = address
-        if (type == 'shipping' || !resCustomer.shipping_address_id) {
-          return resCustomer.setShipping_address(resAddress.id)
+        if (type === 'shipping' || !resCustomer.shipping_address_id) {
+          return resCustomer.setShipping_address(resAddress.id, {transaction: options.transaction || null})
         }
       })
       .then(shippingAddress => {
-        if (type == 'billing' || !resCustomer.billing_address_id) {
-          return resCustomer.setBilling_address(resAddress.id)
+        if (type === 'billing' || !resCustomer.billing_address_id) {
+          return resCustomer.setBilling_address(resAddress.id, {transaction: options.transaction || null})
         }
         return
       })
       .then(billingAddress => {
-        if (type == 'default' || !resCustomer.default_address_id) {
-          return resCustomer.setDefault_address(resAddress.id)
+        if (type === 'default' || !resCustomer.default_address_id) {
+          return resCustomer.setDefault_address(resAddress.id, {transaction: options.transaction || null})
         }
         return
       })
       .then(defaultAddress => {
         if (!type) {
-          return resCustomer.addAddress(resAddress.id)
+          return resCustomer.addAddress(resAddress.id, {transaction: options.transaction || null})
         }
       })
       .then(address => {
-        return resCustomer.save()
+        return resCustomer.save({transaction: options.transaction || null})
       })
       .then(customer => {
         return resAddress
@@ -671,29 +694,34 @@ module.exports = class CustomerService extends Service {
    *
    * @param customer
    * @param address
+   * @param type
+   * @param options
    * @returns {Promise.<TResult>}
    */
-  updateAddress(customer, address, type) {
+  updateAddress(customer, address, type, options) {
+    options = options || {}
     const Customer = this.app.orm['Customer']
+    const Address = this.app.orm['Address']
+
     let resCustomer, resAddress
-    return Customer.resolve(customer)
+    return Customer.resolve(customer, {transaction: options.transaction || null})
       .then(customer => {
         resCustomer = customer
-        return this.app.orm['Address'].findById(address.id)
+        return Address.resolve(address, {transaction: options.transaction || null})
       })
       .then(foundAddress => {
-        resAddress = _.extend(foundAddress, address)
-        return resAddress.save()
+        resAddress = foundAddress.merge(address)
+        return resAddress.save({transaction: options.transaction || null})
       })
       .then(address => {
-        if (type == 'shipping') {
-          return resCustomer.setShipping_address(address.id)
+        if (type === 'shipping') {
+          return resCustomer.setShipping_address(address.id, {transaction: options.transaction || null})
         }
-        else if (type == 'billing') {
-          return resCustomer.setBilling_address(address.id)
+        else if (type === 'billing') {
+          return resCustomer.setBilling_address(address.id, {transaction: options.transaction || null})
         }
-        else if (type == 'default') {
-          return resCustomer.setDefault_address(address.id)
+        else if (type === 'default') {
+          return resCustomer.setDefault_address(address.id, {transaction: options.transaction || null})
         }
         else {
           return resCustomer
@@ -708,25 +736,34 @@ module.exports = class CustomerService extends Service {
    *
    * @param customer
    * @param address
+   * @param options
    * @returns {*}
    */
-  removeAddress(customer, address) {
+  removeAddress(customer, address, options) {
+    options = options || {}
     const Customer = this.app.orm['Customer']
+    const Address = this.app.orm['Address']
     let resCustomer, resAddress
-    return Customer.resolve(customer)
+    return Customer.resolve(customer, {transaction: options.transaction || null})
       .then(customer => {
         resCustomer = customer
-        return this.app.orm['Address'].findById(address.id)
+        return Address.resolve(address, {transaction: options.transaction || null})
       })
       .then(foundAddress => {
         resAddress = foundAddress
-        return resCustomer.removeAddress(resAddress.id)
+        return resCustomer.removeAddress(resAddress.id, {transaction: options.transaction || null})
       })
       .then(destroyedAddress => {
         return resAddress
       })
   }
 
+  /**
+   *
+   * @param customer
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
   setAddresses(customer, options) {
     options = options || {}
     const Customer = this.app.orm['Customer']

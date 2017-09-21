@@ -22,7 +22,8 @@ module.exports = class CartService extends Service {
   create(cart, options){
     options = options || {}
 
-    const Cart = this.app.orm.Cart
+    const Cart = this.app.orm['Cart']
+
     // If line items is empty
     if (!cart.line_items) {
       cart.line_items = []
@@ -32,7 +33,25 @@ module.exports = class CartService extends Service {
     const items = cart.line_items
     delete cart.line_items
 
-    const resCart = Cart.build(cart, {
+    // Resolve given addresses
+    if (cart.shipping_address && !cart.billing_address) {
+      cart.billing_address = cart.shipping_address
+    }
+    if (cart.billing_address && !cart.shipping_address) {
+      cart.shipping_address = cart.billing_address
+    }
+
+    const resCart = Cart.build({
+      email: cart.email,
+      shop_id: cart.shop_id,
+      customer_id: cart.customer_id,
+      currency: cart.currency,
+      notes: cart.notes,
+      owners: cart.owners,
+      ip: cart.ip,
+      client_details: cart.client_details,
+      user_id: cart.user_id
+    }, {
       include: [
         {
           model: this.app.orm['Address'],
@@ -44,36 +63,35 @@ module.exports = class CartService extends Service {
         }
       ]
     })
-
-    return Cart.sequelize.Promise.mapSeries(items, item => {
-      return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
-    })
+    return resCart.save({transaction: options.transaction || null})
+      .then(() => {
+        return Cart.sequelize.Promise.mapSeries(items, item => {
+          return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
+        })
+      })
       .then(resolvedItems => {
         return Cart.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
           return resCart.addLine(item, items[index].quantity, items[index].properties)
         })
       })
+      // .then(() => {
+      //   return resCart.save({transaction: options.transaction || null})
+      // })
       .then(() => {
-        if (cart.shipping_address) {
-          if (cart.shipping_address.id) {
-            return resCart.setShipping_address(cart.shipping_address.id, {transaction: options.transaction || null})
-          }
-          else {
-            resCart.shipping_address = _.extend(resCart.shipping_address, cart.shipping_address)
-            return resCart.shipping_address.save({transaction: options.transaction || null})
-          }
+        if (cart.shipping_address && !_.isEmpty(cart.shipping_address)) {
+          return resCart.updateShippingAddress(
+            cart.shipping_address,
+            {transaction: options.transaction || null}
+          )
         }
         return
       })
       .then(() => {
         if (cart.billing_address) {
-          if (cart.billing_address.id) {
-            return resCart.setBilling_address(cart.billing_address.id, {transaction: options.transaction || null})
-          }
-          else {
-            resCart.billing_address = _.extend(resCart.billing_address, cart.billing_address)
-            return resCart.billing_address.save({transaction: options.transaction || null})
-          }
+          return resCart.updateBillingAddress(
+            cart.billing_address,
+            {transaction: options.transaction || null}
+          )
         }
         return
       })
@@ -81,27 +99,25 @@ module.exports = class CartService extends Service {
         return resCart.save({transaction: options.transaction || null})
       })
       .then(() => {
-        return resCart
+        return resCart.reload({transaction: options.transaction || null})
       })
   }
 
   /**
    *
+   * @param identifier
    * @param cart
    * @param options
    * @returns {Promise<T>|Cart}
    */
-  update(cart, options){
+  update(identifier, cart, options){
     options = options || {}
     const Cart = this.app.orm['Cart']
-    if (!cart.id) {
-      const err = new Errors.FoundError(Error('Cart is missing id'))
-      return Promise.reject(err)
-    }
+
     let resCart
     // Only allow a few values for update since this can be done from the client side
     const update = _.pick(cart, ['customer_id', 'host', 'ip', 'update_ip', 'client_details'])
-    return Cart.resolve(cart.id, {transaction: options.transaction || null})
+    return Cart.resolve(identifier, {transaction: options.transaction || null})
       .then(foundCart => {
         if (!foundCart) {
           throw new Error('Could not resolve Cart')
@@ -109,26 +125,21 @@ module.exports = class CartService extends Service {
         // Extend DAO with updates
         resCart = _.extend(foundCart, update)
 
+        // Shipping Address
         if (cart.shipping_address) {
-          if (cart.shipping_address.id) {
-            return resCart.setShipping_address(cart.shipping_address.id, {transaction: options.transaction || null})
-          }
-          else {
-            resCart.shipping_address = _.extend(resCart.shipping_address, cart.shipping_address)
-            return resCart.shipping_address.save({transaction: options.transaction || null})
-          }
+          return resCart.updateShippingAddress(
+            cart.shipping_address,
+            {transaction: options.transaction || null}
+          )
         }
         return
       })
       .then(() => {
         if (cart.billing_address) {
-          if (cart.billing_address.id) {
-            return resCart.setBilling_address(cart.billing_address.id, {transaction: options.transaction || null})
-          }
-          else {
-            resCart.billing_address = _.extend(resCart.billing_address, cart.billing_address)
-            return resCart.billing_address.save({transaction: options.transaction || null})
-          }
+          return resCart.updateBillingAddress(
+            cart.billing_address,
+            {transaction: options.transaction || null}
+          )
         }
         return
       })
@@ -143,8 +154,10 @@ module.exports = class CartService extends Service {
   /**
    *
    * @param req
+   * @param options
    * @returns {Promise.<*>}
    */
+  // TODO use any provided shipping/billing addresses and add them to customer address history
   checkout(req, options){
     options = options || {}
     // const Cart = this.app.orm['Cart']
@@ -155,7 +168,7 @@ module.exports = class CartService extends Service {
     }
 
     let resOrder
-    return this.app.orm.Cart.sequelize.transaction(t => {
+    return this.app.orm['Cart'].sequelize.transaction(t => {
       options.transaction = t
 
       return this.prepareForOrder(req, {transaction: options.transaction || null})
@@ -236,7 +249,8 @@ module.exports = class CartService extends Service {
     options = options || {}
     const AccountService = this.app.services.AccountService
     const Cart = this.app.orm['Cart']
-    let resCart, resCustomer, customerID, userID
+    const Customer = this.app.orm['Customer']
+    let resCart, userID
 
     // Establish who placed the order
     if (req.user && req.user.id) {
@@ -255,36 +269,88 @@ module.exports = class CartService extends Service {
         }
 
         resCart = foundCart
-        resCart.close(CART_STATUS.CLOSED)
-        return resCart.recalculate({transaction: options.transaction || null})
-        // return resCart.save()
-      })
-      .then(cart => {
-        if (req.body.customer && req.body.customer.id) {
-          customerID = req.body.customer.id
-        }
-        else if (req.body.customer_id) {
-          customerID = req.body.customer_id
-        }
-        else {
-          customerID = resCart.customer_id
+
+        // if email is set, set email for the cart
+        if (req.body.email) {
+          resCart.email = req.body.email
         }
 
-        if (customerID) {
-          return this.app.orm['Customer'].findById(customerID, {
-            attributes: ['id', 'email'],
-            transaction: options.transaction || null
-          })
+        // Override the previous customer id if one was provided
+        if (req.body.customer && req.body.customer.id) {
+          return resCart.setCustomer(req.body.customer.id, {transaction: options.transaction || null})
+        }
+        else if (req.body.customer_id) {
+          resCart.customer_id = req.body.customer_id
+          return resCart.setCustomer(req.body.customer_id, {transaction: options.transaction || null})
         }
         else {
           return
         }
       })
-      .then(customer => {
-        resCustomer = customer
-        if (resCustomer && (req.body.payment_details && req.body.payment_details.length > 0)) {
+      .then(() => {
+        if (req.body.shipping_address && !_.isEmpty(req.body.billing_address)) {
+          return resCart.updateShippingAddress(req.body.shipping_address, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        // Resolve if there is a shipping address on the cart
+        return resCart.resolveShippingAddress({transaction: options.transaction || null})
+      })
+      .then(() => {
+        if (req.body.billing_address && !_.isEmpty(req.body.billing_address)) {
+          return resCart.updateBillingAddress(req.body.billing_address, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        // Resolve if there is a billing address on the cart
+        return resCart.resolveBillingAddress({transaction: options.transaction || null})
+      })
+      .then(() => {
+        // Create a customer
+        if (resCart.email && !resCart.customer_id) {
+          return Customer.resolve({
+            email: req.body.email,
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            shipping_address: resCart.shipping_address,
+            billing_address: resCart.billing_address,
+            cart: resCart
+          }, {
+            transaction: options.transaction || null
+          })
+            .then(customer => {
+              resCart.customer_id = customer.id
+            })
+        }
+        else {
+          return
+        }
+      })
+      .then(() => {
+        // Resolve if there is a customer on the cart
+        return resCart.resolveCustomer({transaction: options.transaction || null})
+      })
+      .then(() => {
+        // Set email possibilities
+        if (!resCart.email && resCart.Customer) {
+          resCart.email = resCart.Customer.email
+        }
+
+        if (!resCart.email && !resCart.Customer) {
+          throw new Error('Order Missing Identifier (customer and email), please provide an email address')
+        }
+
+        // Close this cart and recalculate it
+        resCart.close(CART_STATUS.CLOSED)
+        return resCart.recalculate({transaction: options.transaction || null})
+      })
+      .then(cart => {
+
+        if (resCart.Customer && (req.body.payment_details && req.body.payment_details.length > 0)) {
           return AccountService.resolvePaymentDetailsToSources(
-              resCustomer,
+              resCart.Customer,
               req.body.payment_details,
               {transaction: options.transaction || null}
             )
@@ -292,8 +358,8 @@ module.exports = class CartService extends Service {
               return paymentDetails
             })
         }
-        else if (resCustomer && (req.body.payment_details && req.body.payment_details.length == 0)) {
-          return resCustomer.getDefaultSource({ transaction: options.transaction || null})
+        else if (resCart.Customer && (req.body.payment_details && req.body.payment_details.length == 0)) {
+          return resCart.Customer.getDefaultSource({ transaction: options.transaction || null})
             .then(source => {
               if (!source) {
                 return []
@@ -305,7 +371,6 @@ module.exports = class CartService extends Service {
             })
         }
         else {
-          resCustomer = {}
           return req.body.payment_details
         }
       })
@@ -323,11 +388,12 @@ module.exports = class CartService extends Service {
           shipping_address: req.body.shipping_address,
           billing_address: req.body.billing_address,
           // Customer Info
-          customer_id: customerID,
-          email: req.body['email'] || resCustomer['email'] || null,
+          customer_id: resCart.customer_id,
+          email: resCart.email || null,
           // User ID
           user_id: userID || null,
         })
+
         return newOrder
       })
   }
@@ -388,34 +454,35 @@ module.exports = class CartService extends Service {
    * @returns {Cart} // An instance of the Cart
    */
   //TODO
-  addDiscountToCart(data, options){
-    return Promise.resolve(data)
+  addDiscountToCart(cart, options){
+    return Promise.resolve(cart)
   }
   //TODO
-  removeDiscountFromCart(data, options){
-    return Promise.resolve(data)
+  removeDiscountFromCart(cart, options){
+    return Promise.resolve(cart)
   }
   //TODO
-  addCouponToCart(data, options){
-    return Promise.resolve(data)
+  addCouponToCart(cart, options){
+    return Promise.resolve(cart)
   }
   //TODO
-  removeCouponFromCart(data, options){
-    return Promise.resolve(data)
+  removeCouponFromCart(cart, options){
+    return Promise.resolve(cart)
   }
   //TODO
-  addGiftCardToCart(data, options){
-    return Promise.resolve(data)
+  addGiftCardToCart(cart, options){
+    return Promise.resolve(cart)
   }
   //TODO
-  removeGiftCardFromCart(data, options){
-    return Promise.resolve(data)
+  removeGiftCardFromCart(cart, options){
+    return Promise.resolve(cart)
   }
 
   /**
    *
    * @param items
    * @param cart
+   * @param options
    * @returns {Promise}
    */
   addItemsToCart(items, cart, options){
@@ -460,6 +527,7 @@ module.exports = class CartService extends Service {
    *
    * @param items
    * @param cart
+   * @param options
    * @returns {Promise}
    */
   removeItemsFromCart(items, cart, options){
@@ -524,6 +592,7 @@ module.exports = class CartService extends Service {
   /**
    *
    * @param req
+   * @param options
    */
   createAndSwitch(req, options){
     options = options || {}
@@ -569,8 +638,26 @@ module.exports = class CartService extends Service {
           })
         })
       })
-
   }
+
+  // switchCart(user, cart) {
+  //   const User = this.app.orm['User']
+  //   const Cart = this.app.orm['Cart']
+  //
+  //   return User.findById(user.id)
+  //     .then(user => {
+  //       user.current_cart_id = cart.id
+  //       return user.save()
+  //     })
+  //     .then(user => {
+  //       req.user.current_cart_id = cartId
+  //       return Cart.findById(cartId)
+  //     })
+  //     .then(cart => {
+  //       cart.customer_id = req.user.current_customer_id
+  //       return cart.save()
+  //     })
+  // }
   /**
    *
    * @param cart

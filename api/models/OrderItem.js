@@ -383,6 +383,11 @@ module.exports = class OrderItem extends Model {
           type: Sequelize.INTEGER
         },
         // States whether or not the fulfillment requires shipping. Values are: true or false.
+        requires_taxes: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: true
+        },
+        // States whether or not the fulfillment requires shipping. Values are: true or false.
         requires_shipping: {
           type: Sequelize.BOOLEAN,
           defaultValue: true

@@ -735,9 +735,8 @@ module.exports = class SubscriptionService extends Service {
   prepareForOrder(subscription, options) {
     options = options || {}
     const Subscription = this.app.orm['Subscription']
-    const Customer = this.app.orm['Customer']
 
-    let resSubscription, resCustomer
+    let resSubscription
 
     return Subscription.resolve(subscription, {transaction: options.transaction || null})
       .then(foundSubscription => {
@@ -745,17 +744,22 @@ module.exports = class SubscriptionService extends Service {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
         resSubscription = foundSubscription
-        return Customer.findById(resSubscription.customer_id, {
-          attributes: ['id', 'email'],
-          transaction: options.transaction || null
-        })
+        return resSubscription.resolveCustomer({transaction: options.transaction || null})
       })
-      .then(customer => {
-        if (!customer) {
+      .then(() => {
+        if (!resSubscription.Customer) {
           throw new Errors.FoundError(Error('Subscription Customer Not Found'))
         }
-        resCustomer = customer
-        return resCustomer.getDefaultSource({transaction: options.transaction || null})
+        // Resolve Shipping Address
+        return resSubscription.Customer.resolveShippingAddress({transaction: options.transaction || null})
+      })
+      .then(() => {
+        // Resolve Billing Address
+        return resSubscription.Customer.resolveBillingAddress({transaction: options.transaction || null})
+      })
+      .then(() => {
+        // Get Default Billing Source
+        return resSubscription.Customer.getDefaultSource({transaction: options.transaction || null})
           .then(source => {
             if (!source) {
               return {
@@ -767,8 +771,8 @@ module.exports = class SubscriptionService extends Service {
             }
             else {
               return {
-                transaction_kind: 'sale' || this.app.config.proxyCart.orders.transaction_kind,
                 payment_kind: 'immediate' || this.app.config.proxyCart.orders.payment_kind,
+                transaction_kind: 'sale' || this.app.config.proxyCart.orders.transaction_kind,
                 payment_details: [
                   {
                     gateway: source.gateway,
@@ -788,11 +792,11 @@ module.exports = class SubscriptionService extends Service {
           payment_kind: paymentDetails.payment_kind || this.app.config.proxyCart.orders.payment_kind,
           fulfillment_kind: paymentDetails.fulfillment_kind || this.app.config.proxyCart.orders.fulfillment_kind,
           processing_method: PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
-          shipping_address: resCustomer.shipping_address,
-          billing_address: resCustomer.billing_address,
+          shipping_address: resSubscription.Customer.shipping_address,
+          billing_address: resSubscription.Customer.billing_address,
           // Customer Info
-          customer_id: resCustomer.id,
-          email: resCustomer.email
+          customer_id: resSubscription.Customer.id,
+          email: resSubscription.Customer.email
         })
         return newOrder
       })

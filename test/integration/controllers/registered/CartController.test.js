@@ -4,33 +4,35 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Admin User CartController', () => {
-  let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID
+describe('Registered User CartController', () => {
+  let registeredUser, userID, customerID, cartToken, shopID, shopProducts, orderID
 
   before((done) => {
     shopID = global.app.shopID
     shopProducts = global.app.shopProducts
 
-    adminUser = supertest.agent(global.app.packs.express.server)
-    // Login as Admin
-    adminUser
-      .post('/auth/local')
-      .set('Accept', 'application/json') //set header for this test
-      .send({username: 'admin', password: 'admin1234'})
-      .expect(200)
-      .end((err, res) => {
-        assert.ok(res.body.user.id)
-        assert.ok(res.body.user.current_customer_id)
-        userID = res.body.user.id
-        customerID = res.body.user.current_customer_id
-        done(err)
-      })
+    registeredUser = supertest.agent(global.app.packs.express.server)
+
+    registeredUser.post('/auth/local/register')
+    .send({
+      email: 'scott+1@cali-style.com',
+      password: 'admin1234'
+    })
+    .set('Accept', 'application/json')
+    .expect(200)
+    .end((err, res) => {
+      assert.ok(res.body.user.id)
+      assert.ok(res.body.user.current_customer_id)
+      userID = res.body.user.id
+      customerID = res.body.user.current_customer_id
+      done(err)
+    })
   })
   it('should exist', () => {
     assert(global.app.api.controllers['CartController'])
   })
   it('should create a cart with no items and a shipping address', (done) => {
-    adminUser
+    registeredUser
       .post('/cart')
       .send({
         shipping_address: {
@@ -48,8 +50,8 @@ describe('Admin User CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        assert.ok(res.body.id)
-        cartID = res.body.id
+        assert.ok(res.body.token)
+        cartToken = res.body.token
         assert.equal(res.body.total_items, 0)
         assert.equal(res.body.shipping_address.first_name, 'Scotty')
         assert.equal(res.body.shipping_address.last_name, 'W')
@@ -67,7 +69,7 @@ describe('Admin User CartController', () => {
       })
   })
   it('should update a cart with no items and a shipping address', (done) => {
-    adminUser
+    registeredUser
       .put('/cart')
       .send({
         shipping_address: {
@@ -85,8 +87,9 @@ describe('Admin User CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        assert.ok(res.body.id)
-        assert.equal(res.body.id, cartID)
+        assert.ok(res.body.token)
+        assert.equal(res.body.customer_id, customerID)
+        assert.equal(res.body.token, cartToken)
         assert.equal(res.body.total_items, 0)
         assert.equal(res.body.shipping_address.first_name, 'Scottie')
         assert.equal(res.body.shipping_address.last_name, 'W')
@@ -103,12 +106,12 @@ describe('Admin User CartController', () => {
       })
   })
   it('should get a cart with no items and a shipping address', (done) => {
-    adminUser
+    registeredUser
       .get('/cart')
       .expect(200)
       .end((err, res) => {
-        assert.ok(res.body.id)
-        assert.equal(res.body.id, cartID)
+        assert.ok(res.body.token)
+        assert.equal(res.body.token, cartToken)
         assert.equal(res.body.total_items, 0)
         assert.equal(res.body.shipping_address.first_name, 'Scottie')
         assert.equal(res.body.shipping_address.last_name, 'W')
@@ -124,8 +127,8 @@ describe('Admin User CartController', () => {
         done(err)
       })
   })
-  it('should create a cart with default item and address', (done) => {
-    adminUser
+  it('should create a cart with default item', (done) => {
+    registeredUser
       .post('/cart')
       .send({
         shipping_address: {
@@ -148,8 +151,8 @@ describe('Admin User CartController', () => {
       })
       .expect(200)
       .end((err, res) => {
-        assert.ok(res.body.id)
-        cartID = res.body.id
+        assert.ok(res.body.token)
+        cartToken = res.body.token
         assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.line_items.length, 1)
         assert.equal(res.body.line_items[0].product_id, shopProducts[1].id)
@@ -166,7 +169,6 @@ describe('Admin User CartController', () => {
         //assert.equal(res.body.total_weight, 9072)
         assert.equal(_.isNumber(res.body.total_weight), true)
         assert.equal(res.body.has_shipping, true)
-
         // TODO
         // assert.equal(res.body.has_taxes, true)
 
@@ -187,7 +189,7 @@ describe('Admin User CartController', () => {
       })
   })
   it('should make addItems post request with just a product_id', (done) => {
-    adminUser
+    registeredUser
       .post('/cart/addItems')
       .send([
         {
@@ -196,7 +198,7 @@ describe('Admin User CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.token, cartToken)
         assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.status, 'open')
         assert.equal(res.body.line_items.length, 2)
@@ -208,13 +210,11 @@ describe('Admin User CartController', () => {
 
         assert.equal(_.isNumber(res.body.total_weight), true)
         assert.equal(res.body.has_shipping, true)
-        // TODO
-        // assert.equal(res.body.has_taxes, true)
         done(err)
       })
   })
   it('should make removeItems post request with just a product_id', (done) => {
-    adminUser
+    registeredUser
       .post('/cart/removeItems')
       .send([
         {
@@ -223,7 +223,7 @@ describe('Admin User CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.token, cartToken)
         assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.status, 'open')
         assert.equal(res.body.line_items.length, 1)
@@ -237,12 +237,12 @@ describe('Admin User CartController', () => {
       })
   })
   it('should make clearCart post request', (done) => {
-    adminUser
+    registeredUser
       .post('/cart/clear')
       .send({})
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.token, cartToken)
         assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.status, 'open')
         assert.equal(res.body.line_items.length, 0)
@@ -251,11 +251,13 @@ describe('Admin User CartController', () => {
         assert.equal(res.body.subtotal_price, 0)
         assert.equal(_.isNumber(res.body.total_weight), true)
         assert.equal(res.body.has_shipping, false)
+        // TODO
+        // assert.equal(res.body.has_taxes, true)
         done(err)
       })
   })
   it('should make addItems post for multiple items', (done) => {
-    adminUser
+    registeredUser
       .post('/cart/addItems')
       .send([
         {
@@ -271,13 +273,12 @@ describe('Admin User CartController', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.token, cartToken)
         assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.total_items, 4)
         assert.equal(res.body.line_items.length, 3)
         assert.equal(_.isNumber(res.body.total_weight), true)
         assert.equal(res.body.has_shipping, true)
-
         // TODO
         // assert.equal(res.body.has_taxes, true)
 
@@ -323,7 +324,7 @@ describe('Admin User CartController', () => {
   })
   // TODO
   it.skip('should make addCoupon request', (done) => {
-    adminUser
+    registeredUser
       .post('/cart/addCoupon')
       .send({
 
@@ -336,7 +337,7 @@ describe('Admin User CartController', () => {
   })
   // TODO
   it.skip('should make addDiscount request', (done) => {
-    adminUser
+    registeredUser
       .post('/cart/addDiscount')
       .send({
 
@@ -348,7 +349,7 @@ describe('Admin User CartController', () => {
       })
   })
   it('should make checkout post request', (done) => {
-    adminUser
+    registeredUser
       .post('/cart/checkout')
       .send({
         payment_kind: 'immediate',
@@ -391,6 +392,7 @@ describe('Admin User CartController', () => {
         assert.equal(res.body.order.order_items[0].fulfillment_status, 'sent')
         assert.equal(res.body.order.order_items[1].fulfillment_status, 'sent')
         assert.equal(res.body.order.order_items[2].fulfillment_status, 'sent')
+
         // Fulfillment
         assert.equal(res.body.order.fulfillments.length, 1)
         assert.equal(res.body.order.fulfillments[0].status, 'sent')
@@ -430,42 +432,28 @@ describe('Admin User CartController', () => {
       })
   })
   it('should get checked out cart and status should be ordered', (done) => {
-    adminUser
-      .get(`/cart/${cartID}`)
+    registeredUser
+      .get(`/cart/${cartToken}`)
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.token, cartToken)
         assert.equal(res.body.status, 'ordered')
         done(err)
       })
   })
-  it('should count all carts', (done) => {
-    adminUser
+  it.skip('should not count all carts', (done) => {
+    registeredUser
       .get('/cart/count')
-      .expect(200)
+      .expect(401)
       .end((err, res) => {
-        assert.ok(res.body.carts)
-        assert.equal(_.isNumber(res.body.carts), true)
         done(err)
       })
   })
-  it('should get all carts', (done) => {
-    adminUser
+  it.skip('should not get all carts', (done) => {
+    registeredUser
       .get('/carts')
-      .expect(200)
+      .expect(401)
       .end((err, res) => {
-        assert.ok(res.headers['x-pagination-total'])
-        assert.ok(res.headers['x-pagination-pages'])
-        assert.ok(res.headers['x-pagination-page'])
-        assert.ok(res.headers['x-pagination-limit'])
-        assert.ok(res.headers['x-pagination-offset'])
-
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-total'])), true)
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-offset'])), true)
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
-        assert.ok(res.body)
         done(err)
       })
   })

@@ -1555,8 +1555,8 @@ module.exports = class ProductService extends Service {
     if (_.isNil(product.requires_shipping)) {
       product.requires_shipping = VARIANT_DEFAULTS.REQUIRES_SHIPPING
     }
-    if (_.isNil(product.requires_tax)) {
-      product.requires_tax = VARIANT_DEFAULTS.REQUIRES_TAX
+    if (_.isNil(product.requires_taxes)) {
+      product.requires_taxes = VARIANT_DEFAULTS.REQUIRES_TAX
     }
     if (_.isNil(product.inventory_policy)) {
       product.inventory_policy = VARIANT_DEFAULTS.INVENTORY_POLICY
@@ -1620,8 +1620,8 @@ module.exports = class ProductService extends Service {
       variant.requires_shipping = product.requires_shipping
     }
     // If the requires_shipping is set on parent
-    if (_.isBoolean(product.requires_tax)  && _.isNil(variant.requires_tax)) {
-      variant.requires_tax = product.requires_tax
+    if (_.isBoolean(product.requires_taxes)  && _.isNil(variant.requires_taxes)) {
+      variant.requires_taxes = product.requires_taxes
     }
     // If the requires_subscription set on parent
     if (_.isBoolean(product.requires_subscription) && _.isNil(variant.requires_subscription)) {

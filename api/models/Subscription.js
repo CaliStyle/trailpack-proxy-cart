@@ -334,7 +334,7 @@ module.exports = class Subscription extends Model {
                 fulfillment_service: data.fulfillment_service,
                 gift_card: data.gift_card,
                 requires_shipping: data.requires_shipping,
-                taxable: data.requires_tax,
+                requires_taxes: data.requires_taxes,
                 tax_code: data.tax_code,
                 tax_lines: [],
                 shipping_lines: [],
