@@ -1011,6 +1011,7 @@ describe('ProductController', () => {
       .get('/product/collection/bottles')
       .expect(200)
       .end((err, res) => {
+        console.log('Products By Collection',res.body)
         assert.ok(res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])
@@ -1022,6 +1023,15 @@ describe('ProductController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '2')
+
+        res.body.forEach(product => {
+          let imagePos = 0
+          product.images.forEach(image => {
+            imagePos++
+            assert.equal(image.position, imagePos)
+          })
+        })
+
         assert.equal(res.body.length, 10)
         done()
       })
@@ -1042,6 +1052,15 @@ describe('ProductController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '2')
         assert.equal(res.headers['x-pagination-pages'], '2')
+
+        res.body.forEach(product => {
+          let imagePos = 0
+          product.images.forEach(image => {
+            imagePos++
+            assert.equal(image.position, imagePos)
+          })
+        })
+
         assert.equal(res.body.length, 5)
         done()
       })
@@ -1063,11 +1082,30 @@ describe('ProductController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
+
+        res.body.forEach(product => {
+          let imagePos = 0
+          product.images.forEach(image => {
+            imagePos++
+            assert.equal(image.position, imagePos)
+          })
+        })
+
         assert.equal(res.body.length, 1)
         done()
       })
   })
-  it('It should get product by handle', (done) => {
+  it.skip('It should get product by handle', (done) => {
+    request
+      .get('/product/discount-test')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body)
+        assert.equal(res.body.handle, 'discount-test')
+        done()
+      })
+  })
+  it('It should get product by handle alias', (done) => {
     request
       .get('/product/handle/discount-test')
       .expect(200)
@@ -1093,6 +1131,15 @@ describe('ProductController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
+
+        res.body.forEach(product => {
+          let imagePos = 0
+          product.images.forEach(image => {
+            imagePos++
+            assert.equal(image.position, imagePos)
+          })
+        })
+
         assert.equal(res.body.length, 1)
         done()
       })

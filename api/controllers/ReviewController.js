@@ -72,7 +72,7 @@ module.exports = class ReviewController extends Controller {
     const Review = orm['Review']
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Review.findAndCount({

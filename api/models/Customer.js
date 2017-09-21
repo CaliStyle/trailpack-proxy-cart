@@ -153,46 +153,13 @@ module.exports = class Customer extends Model {
                 constraints: false
               })
               models.Customer.belongsTo(models.Address, {
-                as: 'shipping_address',
-                // through: {
-                //   model: models.ItemAddress,
-                //   targetKey: 'address_id',
-                //   foreignKey: 'model_id',
-                //   unique: true,
-                //   scope: {
-                //     address: 'shipping_address',
-                //     model: 'customer'
-                //   },
-                //   constraints: false
-                // }
+                as: 'shipping_address'
               })
               models.Customer.belongsTo(models.Address, {
-                as: 'billing_address',
-                // through: {
-                //   model: models.ItemAddress,
-                //   targetKey: 'address_id',
-                //   foreignKey: 'model_id',
-                //   unique: true,
-                //   scope: {
-                //     address: 'billing_address',
-                //     model: 'customer'
-                //   },
-                //   constraints: false
-                // }
+                as: 'billing_address'
               })
               models.Customer.belongsTo(models.Address, {
-                as: 'default_address',
-                // through: {
-                //   model: models.ItemAddress,
-                //   targetKey: 'address_id',
-                //   foreignKey: 'model_id',
-                //   unique: true,
-                //   scope: {
-                //     address: 'default_address',
-                //     model: 'customer'
-                //   },
-                //   constraints: false
-                // }
+                as: 'default_address'
               })
               models.Customer.belongsToMany(models.Order, {
                 as: 'orders',
@@ -287,14 +254,6 @@ module.exports = class Customer extends Model {
                 foreignKey: 'customer_id'
                 // constraints: false
               })
-              models.Customer.hasMany(models.Event, {
-                as: 'events',
-                foreignKey: 'object_id',
-                scope: {
-                  object: 'customer'
-                },
-                constraints: false
-              })
               models.Customer.belongsToMany(models.Discount, {
                 as: 'discount_codes',
                 through: {
@@ -319,6 +278,14 @@ module.exports = class Customer extends Model {
                 foreignKey: 'model_id',
                 constraints: false
               })
+              models.Customer.hasMany(models.Event, {
+                as: 'events',
+                foreignKey: 'object_id',
+                scope: {
+                  object: 'customer'
+                },
+                constraints: false
+              })
               models.Customer.belongsToMany(models.Event, {
                 as: 'event_items',
                 through: {
@@ -329,6 +296,19 @@ module.exports = class Customer extends Model {
                   }
                 },
                 foreignKey: 'object_id',
+                constraints: false
+              })
+              models.Customer.belongsToMany(models.Image, {
+                as: 'images',
+                through: {
+                  model: models.ItemImage,
+                  unique: false,
+                  scope: {
+                    model: 'customer'
+                  },
+                  constraints: false
+                },
+                foreignKey: 'model_id',
                 constraints: false
               })
               // models.Customer.hasOne(models.Order, {

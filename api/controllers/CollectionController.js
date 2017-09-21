@@ -109,7 +109,7 @@ module.exports = class CollectionController extends Controller {
     const Collection = orm['Collection']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     Collection.findAndCountDefault({
       where: where,
@@ -140,7 +140,7 @@ module.exports = class CollectionController extends Controller {
     const Collection = orm['Collection']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const term = req.query.term
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     const defaults = _.defaultsDeep(where, {
@@ -280,7 +280,7 @@ module.exports = class CollectionController extends Controller {
     const collectionId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     if (!collectionId) {
       const err = new Error('A collection id is required')
@@ -369,7 +369,7 @@ module.exports = class CollectionController extends Controller {
     const collectionId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     if (!collectionId) {
       const err = new Error('A collection id is required')
@@ -455,7 +455,7 @@ module.exports = class CollectionController extends Controller {
     const collectionId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     if (!collectionId) {
       const err = new Error('A collection id is required')
@@ -541,7 +541,7 @@ module.exports = class CollectionController extends Controller {
     const collectionId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     if (!collectionId) {
       const err = new Error('A collection id is required')

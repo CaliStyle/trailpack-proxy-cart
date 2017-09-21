@@ -59,7 +59,7 @@ module.exports = class UserController extends ModelPermissions {
 
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     // this.app.orm['User'].findById(userId)
     //   .then(user => {
     //     return user.getCustomers()

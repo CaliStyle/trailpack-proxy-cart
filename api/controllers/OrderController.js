@@ -113,7 +113,7 @@ module.exports = class OrderController extends Controller {
     const Order = orm['Order']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Order.findAndCountDefault({
@@ -145,7 +145,7 @@ module.exports = class OrderController extends Controller {
     const Order = orm['Order']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const term = req.query.term
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     const defaults = _.defaults(where, {
@@ -415,7 +415,7 @@ module.exports = class OrderController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Refund.findAndCount({
       order: sort,
@@ -766,7 +766,7 @@ module.exports = class OrderController extends Controller {
 
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Event.findAndCount({
       order: sort,
@@ -806,7 +806,7 @@ module.exports = class OrderController extends Controller {
 
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Transaction.findAndCount({
       order: sort,
@@ -844,7 +844,7 @@ module.exports = class OrderController extends Controller {
 
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Fulfillment.findAndCount({
       order: sort,

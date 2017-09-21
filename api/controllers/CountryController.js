@@ -75,7 +75,7 @@ module.exports = class CountryController extends Controller {
     const Country  = this.app.orm['Country']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Country.findAndCount({
@@ -113,7 +113,7 @@ module.exports = class CountryController extends Controller {
     const City  = this.app.orm['City']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     City.findAndCount({
@@ -295,7 +295,7 @@ module.exports = class CountryController extends Controller {
     const County  = this.app.orm['County']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     County.findAndCount({
@@ -441,7 +441,7 @@ module.exports = class CountryController extends Controller {
     const Province  = this.app.orm['Province']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Province.findAndCount({

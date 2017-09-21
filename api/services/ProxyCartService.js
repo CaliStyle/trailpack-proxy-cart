@@ -652,6 +652,9 @@ module.exports = class ProxyCartService extends Service {
    * @returns {*|{}}
    */
   mergeOptionDefaults(...options) {
+    let wheres = {}
+    let limits
+    let offsets
     let includes = []
     let orders = []
     let newOptions
@@ -662,6 +665,9 @@ module.exports = class ProxyCartService extends Service {
       }
       includes = this.mergeOptionIncludes(includes, option.include)
       orders = this.mergeOptionOrders(orders, option.order)
+      wheres = this.mergeOptionWheres(wheres, option.where)
+      limits = this.mergeOptionLimits(limits, option.limit)
+      offsets = this.mergeOptionOffsets(offsets, option.offset)
     }
     newOptions = {include: includes, order: orders}
 
@@ -704,23 +710,53 @@ module.exports = class ProxyCartService extends Service {
    * @param overrides
    * @returns {*|Array}
    */
-  // TODO
+
   mergeOptionOrders(defaults, overrides) {
     defaults = defaults || []
     overrides = overrides || []
-    const order = defaults
 
-    // if (_.isString(overrides)) {
-    //   order.push(overrides)
-    // }
-    // else if (_.isObject(overrides)) {
-    //   order.push(overrides)
-    // }
-    // else if (_.isArray(overrides)) {
-    //   order = _.merge(order, overrides)
-    // }
+    if (_.isString(defaults)) {
+      defaults = [defaults.trim().split(' ')]
+    }
+
+    let order = defaults
+
+    if (_.isString(overrides)) {
+      order.push(overrides.trim().split(' '))
+    }
+    else if (_.isArray(overrides)) {
+      order = _.merge(order, overrides)
+    }
+    else if (_.isObject(overrides)) {
+      console.log('ORDER Obj',overrides)
+      order.push([overrides])
+    }
+
 
     return order // = _.defaultsDeep(order, overrides)
+  }
+
+  mergeOptionWheres(defaults, overrides) {
+    defaults = defaults || {}
+    overrides = overrides || {}
+    const where = _.merge(defaults, overrides)
+    return where
+  }
+
+  mergeOptionOffsets(defaults, overrides) {
+    let offset = defaults
+    if (overrides) {
+      offset = overrides
+    }
+    return offset
+  }
+
+  mergeOptionLimits(defaults, overrides) {
+    let limit = defaults
+    if (overrides) {
+      limit = overrides
+    }
+    return limit
   }
 
 }

@@ -6,12 +6,13 @@ const _ = require('lodash')
 const customers = require('../../../fixtures/customers')
 
 describe('Public User CartController', () => {
-  let publicUser, cartToken, shopID, shopProducts, orderID
+  let publicUser, publicUser2, cartToken, shopID, shopProducts, orderID
 
   before((done) => {
     shopID = global.app.shopID
     shopProducts = global.app.shopProducts
     publicUser = supertest.agent(global.app.packs.express.server)
+    publicUser2 = supertest.agent(global.app.packs.express.server)
     done()
   })
   it('should exist', () => {
@@ -450,4 +451,5 @@ describe('Public User CartController', () => {
         done(err)
       })
   })
+
 })

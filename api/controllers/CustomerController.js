@@ -58,7 +58,7 @@ module.exports = class CustomerController extends Controller {
     const Customer = orm['Customer']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'last_name DESC'
+    const sort = req.query.sort || [['last_name', 'ASC']]
     const term = req.query.term
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     const defaults = _.defaults(where, {
@@ -170,7 +170,7 @@ module.exports = class CustomerController extends Controller {
     const Customer = orm['Customer']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
 
     Customer.findAndCount({
@@ -201,7 +201,7 @@ module.exports = class CustomerController extends Controller {
     const Customer = orm['Customer']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     Customer.findAndCountDefault({
       where: {
         '$tags.name$': req.params.tag
@@ -240,7 +240,7 @@ module.exports = class CustomerController extends Controller {
     const Customer = orm['Customer']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     Customer.findAndCountDefault({
       where: {
         '$collections.handle$': req.params.handle
@@ -563,7 +563,7 @@ module.exports = class CustomerController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Account.findAndCount({
       account: sort,
@@ -633,7 +633,7 @@ module.exports = class CustomerController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Order.findAndCount({
       order: sort,
@@ -704,7 +704,7 @@ module.exports = class CustomerController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Subscription.findAndCount({
       subscription: sort,
@@ -791,7 +791,7 @@ module.exports = class CustomerController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Address.findAndCount({
       order: sort,
@@ -1028,7 +1028,7 @@ module.exports = class CustomerController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Source.findAndCount({
       order: sort,
@@ -1223,7 +1223,7 @@ module.exports = class CustomerController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     // this.app.orm['Customer'].findById(customerId)
     //   .then(customer => {
     //     return customer.getUsers()
@@ -1379,7 +1379,7 @@ module.exports = class CustomerController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Event.findAndCount({
       order: sort,
@@ -1446,7 +1446,7 @@ module.exports = class CustomerController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
 
     Review.findAndCount({
       order: sort,

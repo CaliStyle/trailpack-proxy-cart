@@ -103,7 +103,7 @@ module.exports = class TagController extends Controller {
     const Tag = orm['Tag']
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
     Tag.findAndCount({
       where: where,
@@ -134,7 +134,7 @@ module.exports = class TagController extends Controller {
     const Tag = orm['Tag']
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at', 'DESC']]
     const term = req.query.term
     Tag.findAndCount({
       where: {

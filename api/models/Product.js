@@ -362,7 +362,7 @@ module.exports = class Product extends Model {
              */
             findAllDefault: function(options) {
               options = app.services.ProxyCartService.mergeOptionDefaults(
-                queryDefaults.Product.default(app),
+                queryDefaults.Product.findAllDefault(app),
                 options || {}
               )
               return this.findAll(options)
@@ -374,7 +374,7 @@ module.exports = class Product extends Model {
              */
             findAndCountDefault: function(options) {
               options = app.services.ProxyCartService.mergeOptionDefaults(
-                queryDefaults.Product.findAndCountDefault(app),
+                queryDefaults.Product.findAllDefault(app),
                 options || {}
               )
               return this.findAndCount(options)

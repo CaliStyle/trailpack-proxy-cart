@@ -64,6 +64,29 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
+  resolve(req, res){
+    const Product = this.app.orm['Product']
+    // console.log('ProductController.findByHandle', req.params.handle)
+    Product.resolve(req.params.id, {req: req})
+      .then(product => {
+        if (!product) {
+          throw new Errors.FoundError(Error(`Product ${ req.params.id } not found`))
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   search(req, res) {
     const orm = this.app.orm
     const Product = orm['Product']
