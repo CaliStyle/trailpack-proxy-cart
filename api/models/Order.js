@@ -227,22 +227,29 @@ module.exports = class Order extends Model {
               })
             },
             findByIdDefault: function(id, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Order.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Order.default(app),
+                options || {}
+              )
               return this.findById(id, options)
             },
             findByTokenDefault: function(token, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Order.default(app), {
-                where: {
-                  token: token
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Order.default(app),
+                options || {},
+                {
+                  where: {
+                    token: token
+                  }
                 }
-              })
+              )
               return this.findOne(options)
             },
             findAndCountDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Order.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Order.default(app),
+                options || {}
+              )
               return this.findAndCount(options)
             },
             /**

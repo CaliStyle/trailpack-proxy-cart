@@ -99,11 +99,14 @@ module.exports = class Source extends Model {
                   })
               }
               else if (source && _.isObject(source) && source.token) {
-                return Source.findOne(_.defaultsDeep({
-                  where: {
-                    token: source.token
+                return Source.findOne(app.services.ProxyEngineService.mergeOptionDefaults(
+                  options || {},
+                  {
+                    where: {
+                      token: source.token
+                    }
                   }
-                }, options))
+                ))
                   .then(resSource => {
                     if (!resSource) {
                       throw new Errors.FoundError(Error(`Source ${source.token} not found`))
@@ -121,11 +124,14 @@ module.exports = class Source extends Model {
                   })
               }
               else if (source && _.isString(source)) {
-                return Source.findOne(_.defaultsDeep({
-                  where: {
-                    token: source
+                return Source.findOne(app.services.ProxyEngineService.mergeOptionDefaults(
+                  options || {},
+                  {
+                    where: {
+                      token: source
+                    }
                   }
-                }, options))
+                ))
                   .then(resSource => {
                     if (!resSource) {
                       throw new Errors.FoundError(Error(`Source ${source} not found`))

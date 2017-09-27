@@ -124,13 +124,17 @@ module.exports = class Fulfillment extends Model {
               })
             },
             findByIdDefault: function(id, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Fulfillment.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Fulfillment.default(app),
+                options || {}
+              )
               return this.findById(id, options)
             },
             findAndCountDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Fulfillment.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Fulfillment.default(app),
+                options || {}
+              )
               return this.findAndCount(options)
             },
             resolve: function(fulfillment, options){

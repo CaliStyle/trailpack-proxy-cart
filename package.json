@@ -42,6 +42,9 @@
     "trailpack-proxy-permissions": "^1.0.11",
     "utf8": "^2.1.2"
   },
+  "peerDependencies": {
+    "trailpack-proxy-engine": "^1.0.16"
+  },
   "devDependencies": {
     "eslint": "^3.17.1",
     "eslint-config-trails": "^2.0.8",
@@ -53,7 +56,6 @@
     "smokesignals": "^2.0.0",
     "supertest": "^2.0.1",
     "trailpack-express": "^2.0.3",
-    "trailpack-proxy-engine": "^1.0.14",
     "trailpack-router": "^2.0.0",
     "trailpack-sequelize": "^2.0.0",
     "trails": "^2.0.0"

@@ -375,35 +375,33 @@ describe('Public User CartController', () => {
         // Order Items
         assert.equal(res.body.order.order_items.length, 3)
         assert.equal(res.body.order.total_items, 4)
-        assert.equal(res.body.order.order_items[0].order_id, orderID)
-        assert.equal(res.body.order.order_items[1].order_id, orderID)
-        assert.equal(res.body.order.order_items[2].order_id, orderID)
-
-        // Order Item Fulfillments
-        assert.equal(res.body.order.order_items[0].fulfillment_id, res.body.order.fulfillments[0].id)
-        assert.equal(res.body.order.order_items[1].fulfillment_id, res.body.order.fulfillments[0].id)
-        assert.equal(res.body.order.order_items[2].fulfillment_id, res.body.order.fulfillments[0].id)
-        assert.equal(res.body.order.order_items[0].fulfillment_status, 'sent')
-        assert.equal(res.body.order.order_items[1].fulfillment_status, 'sent')
-        assert.equal(res.body.order.order_items[2].fulfillment_status, 'sent')
+        res.body.order.order_items.forEach(item => {
+          assert.equal(item.order_id, orderID)
+          assert.equal(item.fulfillment_status, 'sent')
+          assert.equal(item.fulfillment_id, res.body.order.fulfillments[0].id)
+        })
 
         // Fulfillment
         assert.equal(res.body.order.fulfillments.length, 1)
-        assert.equal(res.body.order.fulfillments[0].status, 'sent')
-        assert.equal(res.body.order.fulfillments[0].order_id, orderID)
+        res.body.order.fulfillments.forEach(fulfillment => {
+          assert.equal(fulfillment.status, 'sent')
+          assert.equal(fulfillment.order_id, orderID)
+        })
 
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
-        assert.equal(res.body.order.transactions[0].kind, 'sale')
-        assert.equal(res.body.order.transactions[0].status, 'success')
-        assert.equal(res.body.order.transactions[0].source_name, 'web')
-        assert.equal(res.body.order.transactions[0].order_id, orderID)
-
-        // Events
-        assert.equal(res.body.order.events.length, 4)
-        res.body.order.events.forEach(event => {
-          assert.equal(event.object_id, orderID)
+        res.body.order.transactions.forEach(transaction => {
+          assert.equal(transaction.kind, 'sale')
+          assert.equal(transaction.status, 'success')
+          assert.equal(transaction.source_name, 'web')
+          assert.equal(transaction.order_id, orderID)
         })
+
+        // Events: Removed from the default query
+        // assert.equal(res.body.order.events.length, 4)
+        // res.body.order.events.forEach(event => {
+        //   assert.equal(event.object_id, orderID)
+        // })
 
         // Shipping Address
         assert.equal(res.body.order.shipping_address.first_name, 'Scottie')
@@ -418,7 +416,7 @@ describe('Public User CartController', () => {
         assert.equal(res.body.order.shipping_address.country_code, 'US')
         assert.equal(res.body.order.shipping_address.postal_code, '20500')
 
-        // Cart
+        // Cart: New Cart (old cart is retired)
         assert.equal(res.body.cart.status, 'open')
         assert.ok(res.body.cart.token)
         cartToken = res.body.cart.token // New Cart, Reset Token
@@ -451,5 +449,4 @@ describe('Public User CartController', () => {
         done(err)
       })
   })
-
 })

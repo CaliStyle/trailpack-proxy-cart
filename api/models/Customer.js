@@ -327,8 +327,10 @@ module.exports = class Customer extends Model {
              * @returns {*|Promise.<Instance>}
              */
             findByIdDefault: function(id, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Customer.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Customer.default(app),
+                options || {}
+              )
               return this.findById(id, options)
             },
             /**
@@ -338,12 +340,15 @@ module.exports = class Customer extends Model {
              * @returns {*|Promise.<Instance>}
              */
             findByTokenDefault: function(token, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Customer.default(app), {
-                where: {
-                  token: token
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Customer.default(app),
+                options || {},
+                {
+                  where: {
+                    token: token
+                  }
                 }
-              })
+              )
               return this.findOne(options)
             },
             /**
@@ -352,8 +357,11 @@ module.exports = class Customer extends Model {
              * @returns {Promise.<Object>}
              */
             findAndCountDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, {distinct: true})
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Customer.default(app),
+                options || {},
+                {distinct: true}
+              )
               return this.findAndCount(options)
             },
             resolve: function(customer, options){

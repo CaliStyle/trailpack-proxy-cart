@@ -627,25 +627,6 @@ module.exports = class ProxyCartService extends Service {
       })
   }
 
-  // /**
-  //  *
-  //  * @param defaults
-  //  * @param overrides
-  //  * @param others
-  //  * @returns {*|{}}
-  //  */
-  // mergeOptionDefaults(defaults, overrides, ...others) {
-  //   defaults = defaults || {}
-  //   overrides = overrides || {}
-  //
-  //   const include = this.mergeIncludes(defaults, overrides)
-  //   const order =  this.mergeOrder(defaults, overrides)
-  //
-  //   const newOptions = _.defaults({include: include, order: order}, overrides, defaults)
-  //
-  //   return newOptions
-  // }
-
   /**
    *
    * @param options
@@ -669,7 +650,13 @@ module.exports = class ProxyCartService extends Service {
       limits = this.mergeOptionLimits(limits, option.limit)
       offsets = this.mergeOptionOffsets(offsets, option.offset)
     }
-    newOptions = {include: includes, order: orders}
+    newOptions = {
+      include: includes,
+      order: orders,
+      where: wheres,
+      limit: limits,
+      offset: offsets
+    }
 
     for (const option of options.reverse()) {
       newOptions = _.defaults(newOptions, option)

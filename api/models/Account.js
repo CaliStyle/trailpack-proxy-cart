@@ -7,6 +7,7 @@ const helpers = require('proxy-engine-helpers')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 const shortId = require('shortid')
+const queryDefaults = require('../utils/queryDefaults')
 
 /**
  * @module Account
@@ -61,6 +62,13 @@ module.exports = class Account extends Model {
                 foreignKey: 'account_id'
                 // constraints: false
               })
+            },
+            findByIdDefault: function(id, options) {
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Account.default(app),
+                options || {}
+              )
+              return this.findById(id, options)
             },
             resolve: function (account, options) {
               options = options || {}

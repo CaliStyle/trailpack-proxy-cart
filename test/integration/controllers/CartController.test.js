@@ -388,10 +388,10 @@ describe('CartController', () => {
         assert.equal(res.body.order.fulfillments[0].order_id, orderID)
 
         // Events
-        assert.equal(res.body.order.events.length, 4)
-        res.body.order.events.forEach(event => {
-          assert.equal(event.object_id, orderID)
-        })
+        // assert.equal(res.body.order.events.length, 4)
+        // res.body.order.events.forEach(event => {
+        //   assert.equal(event.object_id, orderID)
+        // })
 
         // Cart
         assert.equal(res.body.cart.status, 'open')

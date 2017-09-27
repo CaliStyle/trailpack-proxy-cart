@@ -375,5 +375,10 @@ module.exports = class SubscriptionController extends Controller {
   exportSubscriptions(req, res) {
     //
   }
+
+  // TODO
+  customerIsSubscribed(req, res) {
+
+  }
 }
 

@@ -157,14 +157,14 @@ module.exports = class Collection extends Model {
               })
             },
             findByIdDefault: function(id, options) {
-              options = app.services.ProxyCartService.mergeOptionDefaults(
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Collection.default(app),
                 options || {}
               )
               return this.findById(id, options)
             },
             findByHandleDefault: function(handle, options) {
-              options = app.services.ProxyCartService.mergeOptionDefaults(
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Collection.default(app),
                 {
                   where: {
@@ -176,21 +176,21 @@ module.exports = class Collection extends Model {
               return this.findOne(options)
             },
             findOneDefault: function(options) {
-              options = app.services.ProxyCartService.mergeOptionDefaults(
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Collection.default(app),
                 options || {}
               )
               return this.findOne(options)
             },
             findAllDefault: function(options) {
-              options = app.services.ProxyCartService.mergeOptionDefaults(
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Collection.default(app),
                 options || {}
               )
               return this.findAll(options)
             },
             findAndCountDefault: function(options) {
-              options = app.services.ProxyCartService.mergeOptionDefaults(
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Collection.findAndCountDefault(app),
                 options || {}
               )

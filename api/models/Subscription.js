@@ -149,8 +149,10 @@ module.exports = class Subscription extends Model {
              * @returns {*|Promise.<Instance>}
              */
             findByIdDefault: function(criteria, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Subscription.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Subscription.default(app),
+                options || {}
+              )
               return this.findById(criteria, options)
             },
             /**
@@ -160,12 +162,15 @@ module.exports = class Subscription extends Model {
              * @returns {*|Promise.<Instance>}
              */
             findByTokenDefault: function(token, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Subscription.default(app), {
-                where: {
-                  token: token
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Subscription.default(app),
+                options || {},
+                {
+                  where: {
+                    token: token
+                  }
                 }
-              })
+              )
               return this.findOne(options)
             },
             /**

@@ -148,8 +148,10 @@ module.exports = class Cart extends Model {
              * @returns {*|Promise.<Instance>}
              */
             findByIdDefault: function(criteria, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Cart.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Cart.default(app),
+                options || {}
+              )
               return this.findById(criteria, options)
             },
             /**
@@ -158,8 +160,10 @@ module.exports = class Cart extends Model {
              * @returns {*|Promise.<Instance>}
              */
             findOneDefault: function(options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Cart.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Cart.default(app),
+                options || {}
+              )
               return this.findOne(options)
             },
             /**
@@ -169,12 +173,16 @@ module.exports = class Cart extends Model {
              * @returns {*|Promise.<Instance>}
              */
             findByTokenDefault: function(token, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Cart.default(app), {
-                where: {
-                  token: token
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Cart.default(app),
+                options || {},
+                {
+                  where: {
+                    token: token
+                  }
                 }
-              })
+              )
+
               return this.findOne(options)
             },
             resolve: function(cart, options){

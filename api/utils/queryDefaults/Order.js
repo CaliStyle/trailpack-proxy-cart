@@ -29,10 +29,10 @@ module.exports = {
           model: app.orm['Refund'],
           as: 'refunds'
         },
-        {
-          model: app.orm['Event'],
-          as: 'events'
-        },
+        // {
+        //   model: app.orm['Event'],
+        //   as: 'events'
+        // },
         {
           model: app.orm['Tag'],
           as: 'tags'
@@ -53,13 +53,13 @@ module.exports = {
           },
           'amount', 'DESC'
         ],
-        [
-          {
-            model: app.orm['Event'],
-            as: 'events'
-          },
-          'created_at', 'DESC'
-        ]
+        // [
+        //   {
+        //     model: app.orm['Event'],
+        //     as: 'events'
+        //   },
+        //   'created_at', 'DESC'
+        // ]
       ]
     }
   },
@@ -79,6 +79,13 @@ module.exports = {
           model: app.orm['Event'],
           as: 'events'
         }
+      ],
+      order: [
+        {
+          model: app.orm['Event'],
+          as: 'events'
+        },
+        'created_at', 'DESC'
       ]
     }
   },
@@ -106,10 +113,17 @@ module.exports = {
           model: app.orm['OrderItem'],
           as: 'order_items'
         }
+      ],
+      order: [
+        {
+          model: app.orm['OrderItem'],
+          as: 'order_items'
+        },
+        'calculated_price'
       ]
     }
   },
-  refund: (app) => {
+  refunds: (app) => {
     return {
       include: [
         {
@@ -145,6 +159,13 @@ module.exports = {
           model: app.orm['Transaction'],
           as: 'transactions'
         }
+      ],
+      order: [
+        {
+          model: app.orm['Transaction'],
+          as: 'transactions'
+        },
+        'amount', 'DESC'
       ]
     }
   }

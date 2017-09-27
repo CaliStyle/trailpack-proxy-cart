@@ -240,8 +240,10 @@ module.exports = class Product extends Model {
               })
             },
             findByIdDefault: function(criteria, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Product.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Product.default(app),
+                options || {}
+              )
               // console.log('Product.findByIdDefault', options)
               // console.log(criteria, options)
               let resProduct
@@ -277,12 +279,15 @@ module.exports = class Product extends Model {
                 })
             },
             findByHandleDefault: function(handle, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Product.default(app), {
-                where: {
-                  handle: handle
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Product.default(app),
+                options || {},
+                {
+                  where: {
+                    handle: handle
+                  }
                 }
-              })
+              )
               let resProduct
               return this.findOne(options)
                 .then(product => {
@@ -316,8 +321,10 @@ module.exports = class Product extends Model {
                 })
             },
             findOneDefault: function(criteria, options) {
-              options = options || {}
-              options = _.defaultsDeep(options, queryDefaults.Product.default(app))
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
+                queryDefaults.Product.default(app),
+                options || {}
+              )
               // console.log('Product.findOneDefault', options)
               let resProduct
               return this.findOne(criteria, options)
@@ -361,7 +368,7 @@ module.exports = class Product extends Model {
              * @returns {*|Promise.<Array.<Instance>>}
              */
             findAllDefault: function(options) {
-              options = app.services.ProxyCartService.mergeOptionDefaults(
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Product.findAllDefault(app),
                 options || {}
               )
@@ -373,7 +380,7 @@ module.exports = class Product extends Model {
              * @returns {Promise.<Object>}
              */
             findAndCountDefault: function(options) {
-              options = app.services.ProxyCartService.mergeOptionDefaults(
+              options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Product.findAllDefault(app),
                 options || {}
               )
@@ -402,7 +409,7 @@ module.exports = class Product extends Model {
                   })
               }
               else if (product && _.isObject(product) && product.handle) {
-                return Product.findOne(app.services.ProxyCartService.mergeOptionDefaults({
+                return Product.findOne(app.services.ProxyEngineService.mergeOptionDefaults({
                   where: { handle: product.handle }
                 }, options))
                   .then(resProduct => {
@@ -422,7 +429,7 @@ module.exports = class Product extends Model {
                   })
               }
               else if (product && _.isString(product)) {
-                return Product.findOne(app.services.ProxyCartService.mergeOptionDefaults({
+                return Product.findOne(app.services.ProxyEngineService.mergeOptionDefaults({
                   where: { handle: product.handle }
                 }, options))
                   .then(resProduct => {
