@@ -383,7 +383,7 @@ module.exports = class ProxyCartService extends Service {
    * @returns number
    */
   normalizeCurrency(amount) {
-    if (!amount || !_.isNumber(amount)) {
+    if (!_.isNumber(amount) || _.isNil(amount)) {
       throw new Error('Amount must be a number')
     }
     const amountString = amount.toString().split('.')

@@ -3,7 +3,7 @@
 const assert = require('assert')
 const supertest = require('supertest')
 
-describe('Registered User SubscriptionController', () => {
+describe('Registered User ProxyCartController', () => {
   let registeredUser, userID, customerID
 
   before((done) => {
@@ -14,7 +14,7 @@ describe('Registered User SubscriptionController', () => {
       .post('/auth/local/register')
       .set('Accept', 'application/json') //set header for this test
       .send({
-        email: 'subscriptioncontroller@example.com',
+        email: 'proxycartcontroller@example.com',
         password: 'registered1234'
       })
       .expect(200)
@@ -27,49 +27,41 @@ describe('Registered User SubscriptionController', () => {
       })
   })
   it('should exist', () => {
-    assert(global.app.api.controllers['SubscriptionController'])
+    assert(global.app.api.controllers['ProxyCartController'])
   })
-
-
   it.skip('should not get general stats', (done) => {
     registeredUser
-      .get('/subscription/generalStats')
+      .get('/generalStats')
       .expect(401)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('should not count all subscriptions', (done) => {
+  it('should get countries with provinces', (done) => {
     registeredUser
-      .get('/subscription/count')
-      .expect(401)
-      .end((err, res) => {
-        done(err)
-      })
-  })
-  it.skip('It should get subscriptions', (done) => {
-    registeredUser
-      .get('/subscriptions')
+      .get('/countries')
       .expect(200)
       .end((err, res) => {
+        // console.log('THIS COUNTRY', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.equal(res.body[0].name, 'United States')
+        assert.equal(res.body[0].code, 'US')
+        assert.equal(res.body[0].provinces.length, 57)
         done(err)
       })
   })
-  it.skip('It should not upload subscription_upload.csv', (done) => {
+  it('should get provinces', (done) => {
     registeredUser
-      .post('/subscription/uploadCSV')
-      .attach('file', 'test/fixtures/subscription_upload.csv')
-      .expect(401)
-      .end((err, res) => {
-        done(err)
+      .get('/provinces')
+      .query({
+        limit: 57
       })
-  })
-  it.skip('It should not process upload', (done) => {
-    registeredUser
-      .post('/subscription/processUpload/1')
-      .send({})
-      .expect(401)
+      .expect(200)
       .end((err, res) => {
+        // console.log('THIS Provinces', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 57)
         done(err)
       })
   })

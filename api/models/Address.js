@@ -229,6 +229,64 @@ module.exports = class Address extends Model {
               this.latitude = updates.latitude || this.latitude
               this.longitude = updates.longitude || this.longitude
 
+              if (this.address_1 === '') {
+                this.address_1 = null
+              }
+              if (this.address_2 === '') {
+                this.address_2 = null
+              }
+              if (this.address_3 === '') {
+                this.address_3 = null
+              }
+              if (this.company === '') {
+                this.company = null
+              }
+              if (this.city === '') {
+                this.city = null
+              }
+              if (this.prefix === '') {
+                this.prefix = null
+              }
+              if (this.first_name === '') {
+                this.first_name = null
+              }
+              if (this.last_name === '') {
+                this.last_name = null
+              }
+              if (this.suffix === '') {
+                this.suffix = null
+              }
+              if (this.phone === '') {
+                this.phone = null
+              }
+              if (this.province === '') {
+                this.province = null
+              }
+              if (this.province_code === '') {
+                this.province_code = null
+              }
+              if (this.country === '') {
+                this.country = null
+              }
+              if (this.country_code === '') {
+                this.country_code = null
+              }
+              if (this.country_name === '') {
+                this.country_name = null
+              }
+              if (this.postal_code === '') {
+                this.postal_code = null
+              }
+              if (this.formatted_address === '') {
+                this.formatted_address = null
+              }
+              if (this.latitude === '') {
+                this.latitude = null
+              }
+              if (this.longitude === '') {
+                this.longitude = null
+              }
+
               return this
             }
           }

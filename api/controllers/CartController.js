@@ -462,18 +462,20 @@ module.exports = class CartController extends Controller {
    * @param res
    */
   login(req, res) {
+    const Cart = this.app.orm['Cart']
+
     let cartId = req.params.id
     let customerId
-    const Cart = this.app.orm['Cart']
 
     if (!cartId && req.user) {
       cartId = req.user.current_cart_id
     }
+
     if (req.user) {
       customerId = req.user.current_customer_id
     }
 
-    Cart.findById(cartId)
+    Cart.resolve(cartId)
       .then(cart => {
         if (!cart) {
           throw new Error('Unexpected Error while authenticating cart')
@@ -523,26 +525,31 @@ module.exports = class CartController extends Controller {
       const err = new Error('A cart id and a user in session are required')
       return res.serverError(err)
     }
-    User.findById(req.user.id)
+    let resCart
+    Cart.resolve(cartId)
+      .then(foundCart => {
+        if (!foundCart) {
+          throw new Error('Unable to resolve cart')
+        }
+        resCart = foundCart
+        return User.findById(req.user.id)
+      })
       .then(user => {
-        user.current_cart_id = cartId
+        user.current_cart_id = resCart.id
         return user.save()
       })
       .then(user => {
-        req.user.current_cart_id = cartId
-        return Cart.findById(cartId)
+        req.user.current_cart_id = resCart.id
+        resCart.customer_id = req.user.current_customer_id
+        return resCart.save()
       })
-      .then(cart => {
-        cart.customer_id = req.user.current_customer_id
-        return cart.save()
-      })
-      .then(cart => {
+      .then(() => {
         return new Promise((resolve, reject) => {
-          req.loginCart(cart, (err) => {
+          req.loginCart(resCart, (err) => {
             if (err) {
               return reject(err)
             }
-            return resolve(cart)
+            return resolve(resCart)
           })
         })
       })

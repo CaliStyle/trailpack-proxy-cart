@@ -165,14 +165,17 @@ module.exports = class SubscriptionService extends Service {
 
   /**
    *
+   * @param update
    * @param subscription
    * @param options
    * @returns {*}
    */
-  update(subscription, options){
+  update(update, subscription, options){
     options = options || {}
     const Subscription =  this.app.orm.Subscription
-    const update = _.omit(subscription,['id','created_at','updated_at'])
+
+    update = _.omit(update,['id','created_at','updated_at'])
+
     let resSubscription
     return Subscription.resolve(subscription, options)
       .then(foundSubscription => {

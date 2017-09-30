@@ -288,7 +288,7 @@ module.exports = class CartService extends Service {
         }
       })
       .then(() => {
-        if (req.body.shipping_address && !_.isEmpty(req.body.billing_address)) {
+        if (req.body.shipping_address && !_.isEmpty(req.body.shipping_address)) {
           return resCart.updateShippingAddress(req.body.shipping_address, {transaction: options.transaction || null})
         }
         return
@@ -321,7 +321,7 @@ module.exports = class CartService extends Service {
             transaction: options.transaction || null
           })
             .then(customer => {
-              resCart.customer_id = customer.id
+              return resCart.setCustomer(customer.id, {transaction: options.transaction || null})
             })
         }
         else {

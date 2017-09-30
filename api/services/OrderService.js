@@ -763,7 +763,6 @@ module.exports = class OrderService extends Service {
     authorizations = authorizations || []
     options = options || {}
     const Order = this.app.orm['Order']
-    const Sequelize = Order.sequelize
     let resOrder
     return Order.resolve(order, options)
       .then(order => {
@@ -784,14 +783,14 @@ module.exports = class OrderService extends Service {
             const authorizeTransaction = resOrder.transactions.find(transaction => transaction.id == authorize.transaction)
             if (
               authorizeTransaction
-              && authorizeTransaction.kind == TRANSACTION_KIND.AUTHORIZE
-              && authorizeTransaction.status == TRANSACTION_STATUS.PENDING
+              && authorizeTransaction.kind === TRANSACTION_KIND.AUTHORIZE
+              && authorizeTransaction.status === TRANSACTION_STATUS.PENDING
             ) {
               return authorizeTransaction
             }
           })
           // Authorize the pending transactions
-          return Sequelize.Promise.mapSeries(toAuthorize, transaction => {
+          return Order.sequelize.Promise.mapSeries(toAuthorize, transaction => {
             return this.app.services.TransactionService.authorize(
               transaction,
               {transaction: options.transaction || null}
@@ -802,13 +801,13 @@ module.exports = class OrderService extends Service {
         else {
           const canAuthorize = resOrder.transactions.filter(transaction => {
             if (
-              transaction.kind == TRANSACTION_KIND.AUTHORIZE
-              && transaction.status == TRANSACTION_STATUS.PENDING
+              transaction.kind === TRANSACTION_KIND.AUTHORIZE
+              && transaction.status === TRANSACTION_STATUS.PENDING
             ) {
               return transaction
             }
           })
-          return Sequelize.Promise.mapSeries(canAuthorize, transaction => {
+          return Order.sequelize.Promise.mapSeries(canAuthorize, transaction => {
             return this.app.services.TransactionService.authorize(
               transaction,
               {transaction: options.transaction || null }

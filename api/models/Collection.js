@@ -39,29 +39,29 @@ module.exports = class Collection extends Model {
               }
               fn()
             },
+            // TODO excerpt_html
             beforeCreate(values, options, fn) {
               if (values.body) {
-                app.services.RenderGenericService.render(values.body)
-                  .then(doc => {
-                    values.html = doc.document
-                    return fn()
-                  })
+                const bodyDoc = app.services.RenderGenericService.renderSync(values.body)
+                values.body_html = bodyDoc.document
               }
-              else {
-                return fn()
+              if (values.excerpt) {
+                const excerptDoc = app.services.RenderGenericService.renderSync(values.excerpt)
+                values.excerpt_html = excerptDoc.document
               }
+              return fn()
             },
+            // TODO excerpt_html
             beforeUpdate(values, options, fn) {
               if (values.body) {
-                app.services.RenderGenericService.render(values.body)
-                  .then(doc => {
-                    values.html = doc.document
-                    return fn()
-                  })
+                const bodyDoc = app.services.RenderGenericService.renderSync(values.body)
+                values.body_html = bodyDoc.document
               }
-              else {
-                return fn()
+              if (values.excerpt) {
+                const excerptDoc = app.services.RenderGenericService.renderSync(values.excerpt)
+                values.excerpt_html = excerptDoc.document
               }
+              return fn()
             }
           },
           classMethods: {
@@ -397,12 +397,20 @@ module.exports = class Collection extends Model {
         description: {
           type: Sequelize.TEXT
         },
+        // An excerpt of the body of a collection (in markdown or html)
+        excerpt: {
+          type: Sequelize.TEXT
+        },
+        // The excerpt html of a collection (DO NOT EDIT DIRECTLY)
+        excerpt_html: {
+          type: Sequelize.TEXT
+        },
         // The body of a collection (in markdown or html)
         body: {
           type: Sequelize.TEXT
         },
         // The html of a collection (DO NOT EDIT DIRECTLY)
-        html: {
+        body_html: {
           type: Sequelize.TEXT
         },
         // If the Collection is published

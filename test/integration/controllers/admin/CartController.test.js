@@ -5,7 +5,7 @@ const supertest = require('supertest')
 const _ = require('lodash')
 
 describe('Admin User CartController', () => {
-  let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID
+  let adminUser, userID, customerID, cartID, orderedCartID, newCartID, resetCartID, shopID, shopProducts, orderID
 
   before((done) => {
     shopID = global.app.shopID
@@ -424,20 +424,76 @@ describe('Admin User CartController', () => {
         // Cart: New Cart (old cart is retired)
         assert.equal(res.body.cart.status, 'open')
         assert.equal(res.body.cart.customer_id, customerID)
+        orderedCartID = cartID
+        newCartID = res.body.cart.id
 
         done(err)
       })
   })
-  it('should get checked out cart and status should be ordered', (done) => {
+  it('should get session checked out cart and status should be ordered', (done) => {
     adminUser
-      .get(`/cart/${cartID}`)
+      .get(`/cart/${orderedCartID}`)
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, cartID)
+        assert.equal(res.body.id, orderedCartID)
         assert.equal(res.body.status, 'ordered')
         done(err)
       })
   })
+  it('should get session customer order by id', done => {
+    adminUser
+      .get(`/customer/order/${ orderID }`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, orderID)
+        done(err)
+      })
+  })
+
+  it('should initialize a new cart', (done) => {
+    adminUser
+      .post('/cart/init')
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        resetCartID = res.body.id
+        assert.ok(res.body.id)
+        assert.equal(res.body.id, resetCartID)
+        assert.equal(res.body.line_items.length, 0)
+        done(err)
+      })
+  })
+
+  // This request is already logged into cart, but just to prove they can
+  it('should login to cart', done => {
+    adminUser
+      .post('/cart/login')
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.customer_id, customerID)
+        assert.ok(res.body.id)
+        assert.equal(res.body.id, resetCartID)
+        assert.equal(res.body.line_items.length, 0)
+        done(err)
+      })
+  })
+
+  it('should switch cart', done => {
+    adminUser
+      .post(`/cart/${newCartID}/switch`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+        assert.equal(res.body.id, newCartID)
+        assert.equal(res.body.customer_id, customerID)
+        assert.equal(res.body.line_items.length, 0)
+        assert.equal(res.body.subtotal_price, 0)
+        done(err)
+      })
+  })
+
   it('should count all carts', (done) => {
     adminUser
       .get('/cart/count')

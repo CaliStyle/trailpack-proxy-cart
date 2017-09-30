@@ -511,6 +511,7 @@ module.exports = class Cart extends Model {
 
               // Reset Globals
               this.has_shipping = false
+              this.has_taxes = false
               this.has_subscription = false
 
               // Set back to default
@@ -530,10 +531,14 @@ module.exports = class Cart extends Model {
 
               // Calculate Totals
               this.line_items.forEach(item => {
-                // Check if at least one time requires shipping
+                // Check if at least one item requires shipping
                 if (item.requires_shipping) {
                   totalWeight = totalWeight + item.grams
                   this.has_shipping = true
+                }
+                // Check if at least one item requires taxes
+                if (item.requires_taxes) {
+                  this.has_taxes = true
                 }
                 // Check if at least one item requires subscription
                 if (item.requires_subscription) {
@@ -722,6 +727,9 @@ module.exports = class Cart extends Model {
                   }
                 })
                 .then(shippingAddress => {
+                  this.shipping_address = shippingAddress
+                  this.setDataValue('shipping_address', shippingAddress)
+                  this.set('shipping_address', shippingAddress)
                   if (this.shipping_address_id !== shippingAddress.id) {
                     return this.setShipping_address(shippingAddress.id, {transaction: options.transaction || null})
                   }
@@ -755,6 +763,9 @@ module.exports = class Cart extends Model {
                   }
                 })
                 .then(billingAddress => {
+                  this.billing_address = billingAddress
+                  this.setDataValue('billing_address', billingAddress)
+                  this.set('billing_address', billingAddress)
                   if (this.billing_address_id !== billingAddress.id) {
                     return this.setBilling_address(billingAddress.id, {transaction: options.transaction || null})
                   }

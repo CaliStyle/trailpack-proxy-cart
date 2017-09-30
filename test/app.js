@@ -119,7 +119,7 @@ const App = {
       packs: packs
     },
     policies: {
-      // '*': [ 'CheckPermissions.checkRoute' ]
+      '*': [ 'CheckPermissions.checkRoute' ]
     },
     log: {
       logger: new smokesignals.Logger('debug')

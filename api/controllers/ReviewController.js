@@ -25,7 +25,7 @@ module.exports = class ReviewController extends Controller {
    */
   count(req, res) {
     const ProxyEngineService = this.app.services.ProxyEngineService
-    ProxyEngineService.count('Review')
+    ProxyEngineService.count('ProductReview')
       .then(count => {
         const counts = {
           reviews: count
@@ -44,7 +44,7 @@ module.exports = class ReviewController extends Controller {
    */
   findById(req, res) {
     const orm = this.app.orm
-    const Review = orm['Review']
+    const Review = orm['ProductReview']
     const id = req.params.id
 
     Review.findById(id, {})
@@ -68,12 +68,11 @@ module.exports = class ReviewController extends Controller {
    * @param res
    */
   findAll(req, res) {
-    const orm = this.app.orm
-    const Review = orm['Review']
+    const Review = this.app.orm['ProductReview']
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
 
     Review.findAndCount({
       order: sort,
@@ -95,7 +94,29 @@ module.exports = class ReviewController extends Controller {
   }
   // TODO
   search(req, res) {
+    const Review = this.app.orm['ProductReview']
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
 
+    Review.findAndCount({
+      order: sort,
+      offset: offset,
+      limit: limit,
+      where: where
+    })
+      .then(reviews => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, reviews.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, reviews.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 
   /**

@@ -159,5 +159,76 @@
       }
     ],
     "sku": "discount-1234"
+  },
+  {
+    "handle": "subscription-no-discount-test",
+    "title": "Subscription no discount Test!",
+    "body": "<strong>Subscription no discount Test!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "subscription",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
+    "inventory_quantity": 10000,
+    "exclude_payment_types": ["Account Balance"],
+    "tags": [
+      "subscription"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "subscription-test-123"
+  },
+  {
+    "handle": "ignore-account-balance",
+    "title": "Ignore Account Balance!",
+    "body": "<strong>Ignore Account Balance!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": ["Account Balance"],
+    "tags": [
+      "account balance"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "ignore-account-balance-123"
+  },
+  {
+    "handle": "accepts-account-balance",
+    "title": "Accepts Account Balance!",
+    "body": "<strong>Accepts Account Balance!</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "account balance"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "accepts-account-balance-123"
   }
 ]

@@ -5,6 +5,7 @@ module.exports = {
     title: 'Title',
     handle: 'Handle',
     description: 'Description',
+    excerpt: 'Excerpt',
     body: 'Body',
     primary_purpose: 'Primary Purpose',
     published: 'Published',

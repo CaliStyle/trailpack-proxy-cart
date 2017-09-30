@@ -276,9 +276,34 @@ module.exports = class CustomerController extends Controller {
    */
   create(req, res) {
 
-    if (req.user && !req.body.owners) {
-      req.body.owners = [req.user]
-    }
+    // if (req.user && !req.body.owners) {
+    //   req.body.owners = [req.user]
+    // }
+
+    const CustomerService = this.app.services.CustomerService
+    lib.Validator.validateCustomer.create(req.body)
+      .then(values => {
+        return CustomerService.create(req.body)
+      })
+      .then(customer => {
+        // console.log('Customer Request', req.customer)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.create', err)
+        return res.serverError(err)
+      })
+
+  }
+
+  createAndLogin(req, res) {
+
+    // if (req.user && !req.body.owners) {
+    //   req.body.owners = [req.user]
+    // }
 
     const CustomerService = this.app.services.CustomerService
     lib.Validator.validateCustomer.create(req.body)
@@ -585,6 +610,30 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+  // TODO
+  addAccount(req, res){
+
+  }
+  // TODO
+  removeAccount(req, res){
+
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO
+  updateAccount(req, res) {
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.serverError(err)
+    }
+  }
 
   /**
    *
@@ -672,6 +721,7 @@ module.exports = class CustomerController extends Controller {
       const err = new Error('A customer id, subscription id, and a user in session are required')
       return res.forbidden(err)
     }
+
     Subscription.resolve(subscriptionId)
       .then(subscription => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
@@ -680,6 +730,269 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {*}
+   */
+  subscriptionUpdate(req, res) {
+    const SubscriptionService = this.app.services.SubscriptionService
+    const subscriptionId = req.params.subscription
+
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !subscriptionId ||  !req.user) {
+      const err = new Error('A customer id, subscription id, and a user in session are required')
+      return res.forbidden(err)
+    }
+
+    if (!req.body) {
+      req.body = {}
+    }
+
+    lib.Validator.validateSubscription.update(req.body)
+      .then(values => {
+        return SubscriptionService.update(req.body, subscriptionId)
+      })
+      .then(subscription => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('SubscriptionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {*}
+   */
+  subscriptionActivate(req, res) {
+    const SubscriptionService = this.app.services.SubscriptionService
+    const subscriptionId = req.params.subscription
+
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !subscriptionId ||  !req.user) {
+      const err = new Error('A customer id, subscription id, and a user in session are required')
+      return res.forbidden(err)
+    }
+
+    lib.Validator.validateSubscription.activate(req.body)
+      .then(values => {
+        req.body.id = subscriptionId
+        return SubscriptionService.activate(req.body, subscriptionId)
+      })
+      .then(subscription => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('SubscriptionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {*}
+   */
+  subscriptionDeactivate(req, res) {
+    const SubscriptionService = this.app.services.SubscriptionService
+    const subscriptionId = req.params.subscription
+
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !subscriptionId ||  !req.user) {
+      const err = new Error('A customer id, subscription id, and a user in session are required')
+      return res.forbidden(err)
+    }
+
+    lib.Validator.validateSubscription.deactivate(req.body)
+      .then(values => {
+        req.body.id = subscriptionId
+        return SubscriptionService.deactivate(req.body, subscriptionId)
+      })
+      .then(subscription => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('SubscriptionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {*}
+   */
+  subscriptionRenew(req, res) {
+    const SubscriptionService = this.app.services.SubscriptionService
+    const subscriptionId = req.params.subscription
+
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+
+    if (!customerId || !subscriptionId ||  !req.user) {
+      const err = new Error('A customer id, subscription id, and a user in session are required')
+      return res.forbidden(err)
+    }
+
+    SubscriptionService.renew(subscriptionId)
+      .then(subscription => {
+        if (!subscription) {
+          throw new Error('Unexpected Error while renewing subscription')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('SubscriptionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {*}
+   */
+  subscriptionCancel(req, res) {
+    const SubscriptionService = this.app.services.SubscriptionService
+    const subscriptionId = req.params.subscription
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+
+    if (!customerId || !subscriptionId ||  !req.user) {
+      const err = new Error('A customer id, subscription id, and a user in session are required')
+      return res.forbidden(err)
+    }
+
+    lib.Validator.validateSubscription.cancel(req.body)
+      .then(values => {
+        return SubscriptionService.cancel(req.body, subscriptionId)
+      })
+      .then(subscription => {
+        if (!subscription) {
+          throw new Error('Unexpected Error while Cancelling Subscription')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('SubscriptionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  subscriptionAddItems(req, res) {
+    const SubscriptionService = this.app.services.SubscriptionService
+    const subscriptionId = req.params.subscription
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+
+    if (!customerId || !subscriptionId ||  !req.user) {
+      const err = new Error('A customer id, subscription id, and a user in session are required')
+      return res.forbidden(err)
+    }
+
+
+    lib.Validator.validateSubscription.addItems(req.body)
+      .then(values => {
+        return SubscriptionService.addItems(req.body, subscriptionId)
+      })
+      .then(subscription => {
+        // console.log('ProductController.addItemsToSubscription',data)
+        if (!subscription) {
+          throw new Error('Unexpected Error while adding items')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('ProductController.addItemsToSubscription', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  subscriptionRemoveItems(req, res) {
+    const SubscriptionService = this.app.services.SubscriptionService
+    const subscriptionId = req.params.subscription
+
+    let customerId = req.params.id
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId || !subscriptionId ||  !req.user) {
+      const err = new Error('A customer id, subscription id, and a user in session are required')
+      return res.forbidden(err)
+    }
+
+    lib.Validator.validateSubscription.removeItems(req.body)
+      .then(values => {
+        return SubscriptionService.removeItems(req.body, subscriptionId)
+      })
+      .then(subscription => {
+        if (!subscription) {
+          throw new Error('Unexpected Error while removing items')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeItemsFromSubscription', err)
         return res.serverError(err)
       })
   }
@@ -731,35 +1044,20 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
-  // TODO
-  updateAccount(req, res) {
-    let customerId = req.params.id
-    if (!customerId && req.user) {
-      customerId = req.user.current_customer_id
-    }
-    if (!customerId && !req.user) {
-      const err = new Error('A customer id and a user in session are required')
-      return res.serverError(err)
-    }
-  }
-
-  /**
-   *
-   * @param req
-   * @param res
-   */
   address(req, res) {
     const Address = this.app.orm['Address']
     const addressId = req.params.address
     let customerId = req.params.id
+
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
+
     if (!customerId || !addressId || !req.user) {
       const err = new Error('A customer id and a user in session are required')
       res.send(401, err)
-
     }
+
     Address.resolve(addressId)
       .then(address => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, address)
@@ -784,6 +1082,7 @@ module.exports = class CustomerController extends Controller {
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
+
     if (!customerId && !req.user) {
       const err = new Error('A customer id and a user in session are required')
       return res.send(401, err)
@@ -831,6 +1130,8 @@ module.exports = class CustomerController extends Controller {
   addAddress(req, res) {
     const CustomerService = this.app.services.CustomerService
     let customerId = req.params.id
+    const addressId = req.params.address
+
     let type = null
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
@@ -850,14 +1151,22 @@ module.exports = class CustomerController extends Controller {
     if (req.body.shipping_address) {
       type = 'shipping'
       req.body.address = req.body.shipping_address
+      delete req.body.shipping_address
     }
-    if (req.body.billing_address) {
+    else if (req.body.billing_address) {
       type = 'billing'
       req.body.address = req.body.billing_address
+      delete req.body.billing_address
     }
-    if (req.body.default_address) {
+    else if (req.body.default_address) {
       type = 'default'
       req.body.address = req.body.default_address
+      delete req.body.default_address
+    }
+
+    // If an addressId param was passed, set it as the id
+    if (addressId) {
+      req.body.address.id = addressId
     }
 
     // Set body variables just in case
@@ -885,40 +1194,51 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  // TODO, resolve the address by id or token
   updateAddress(req, res) {
     const CustomerService = this.app.services.CustomerService
     const addressId = req.params.address
     let customerId = req.params.id
     let type = null
+
     if (!customerId && req.user) {
       customerId = req.user.current_customer_id
     }
+
     if (!customerId || !addressId) {
       const err = new Error('A customer id, and an address id are required')
       return res.serverError(err)
     }
+
     if (!req.body.customer) {
       req.body.customer = {}
     }
     if (!req.body.address) {
       req.body.address = {}
     }
+
     if (req.body.shipping_address) {
       type = 'shipping'
       req.body.address = req.body.shipping_address
+      delete req.body.shipping_address
     }
-    if (req.body.billing_address) {
+    else if (req.body.billing_address) {
       type = 'billing'
       req.body.address = req.body.billing_address
+      delete req.body.billing_address
     }
-    if (req.body.default_address) {
+    else if (req.body.default_address) {
       type = 'default'
       req.body.address = req.body.default_address
+      delete req.body.default_address
     }
 
     // Set body variables just in case
     req.body.customer.id = customerId
-    req.body.address.id = addressId
+
+    if (addressId) {
+      req.body.address.id = addressId
+    }
 
     lib.Validator.validateAddress.update(req.body.address)
       .then(values => {
@@ -962,7 +1282,10 @@ module.exports = class CustomerController extends Controller {
 
     // Set body variables just in case
     req.body.customer.id = customerId
-    req.body.address.id = addressId
+
+    if (addressId) {
+      req.body.address.id = addressId
+    }
 
     lib.Validator.validateAddress.remove(req.body.address)
       .then(values => {
@@ -1224,13 +1547,6 @@ module.exports = class CustomerController extends Controller {
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    // this.app.orm['Customer'].findById(customerId)
-    //   .then(customer => {
-    //     return customer.getUsers()
-    //   })
-    //   .then(users => {
-    //     return res.json(users)
-    //   })
     User.findAndCount({
       // TODO fix for sqlite
       // order: sort,
@@ -1278,6 +1594,49 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  tags(req, res) {
+    const Tag = this.app.orm['Tag']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id or a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+    Tag.findAndCount({
+      // TODO fix for sqlite
+      include: [{
+        model: this.app.orm['Customer'],
+        as: 'customers',
+        attributes: ['id'],
+        where: {
+          id: customerId
+        }
+      }],
+      offset: offset,
+      // TODO sequelize breaks if limit is set here
+      limit: limit,
+      order: sort
+    })
+      .then(tags => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, tags.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, tags.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    *
    * @param req
@@ -1313,6 +1672,54 @@ module.exports = class CustomerController extends Controller {
       })
       .catch(err => {
         // console.log('CustomerController.addCollection', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  collections(req, res) {
+    const Collection = this.app.orm['Collection']
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id or a collection in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+    Collection.findAndCount({
+      // TODO fix for sqlite
+      include: [{
+        model: this.app.orm['Customer'],
+        as: 'customers',
+        attributes: ['id'],
+        where: {
+          id: customerId
+        }
+      }],
+      offset: offset,
+      // TODO sequelize breaks if limit is set here
+      limit: limit,
+      order: sort
+    })
+      .then(collections => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
         return res.serverError(err)
       })
   }

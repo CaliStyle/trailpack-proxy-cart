@@ -626,6 +626,10 @@ module.exports = class Customer extends Model {
                   }
                 })
                 .then(defaultAddress => {
+                  this.default_address = defaultAddress
+                  this.setDataValue('default_address', defaultAddress)
+                  this.set('default_address', defaultAddress)
+
                   if (this.default_address_id !== defaultAddress.id) {
                     return this.setDefault_address(defaultAddress.id, {transaction: options.transaction || null})
                   }
@@ -659,6 +663,10 @@ module.exports = class Customer extends Model {
                   }
                 })
                 .then(shippingAddress => {
+                  this.shipping_address = shippingAddress
+                  this.setDataValue('shipping_address', shippingAddress)
+                  this.set('shipping_address', shippingAddress)
+
                   if (this.shipping_address_id !== shippingAddress.id) {
                     return this.setShipping_address(shippingAddress.id, {transaction: options.transaction || null})
                   }
@@ -692,6 +700,10 @@ module.exports = class Customer extends Model {
                   }
                 })
                 .then(billingAddress => {
+                  this.billing_address = billingAddress
+                  this.setDataValue('billing_address', billingAddress)
+                  this.set('billing_address', billingAddress)
+
                   if (this.billing_address_id !== billingAddress.id) {
                     return this.setBilling_address(billingAddress.id, {transaction: options.transaction || null})
                   }

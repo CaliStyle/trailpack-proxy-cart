@@ -597,6 +597,11 @@ module.exports = class Subscription extends Model {
                   this.has_shipping = true
                 }
 
+                // Check if at least one item requires taxes
+                if (item.requires_taxes) {
+                  this.has_taxes = true
+                }
+
                 totalItems = totalItems + item.quantity
                 subtotalPrice = subtotalPrice + item.price * item.quantity
                 totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
@@ -790,11 +795,17 @@ module.exports = class Subscription extends Model {
         shipping_rates: helpers.JSONB('Subscription', app, Sequelize, 'shipping_rates', {
           defaultValue: []
         }),
-        // If this cart contains an item that requires shipping
+        // If this subscription contains an item that requires shipping
         has_shipping: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },
+        // If this subscription contains an item that requires taxes
+        has_taxes: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
+        // Total quantity of items in the subscription
         total_items: {
           type: Sequelize.INTEGER,
           defaultValue: 0

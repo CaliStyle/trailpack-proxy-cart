@@ -154,19 +154,15 @@ module.exports = class SubscriptionController extends Controller {
    */
   update(req, res) {
     const SubscriptionService = this.app.services.SubscriptionService
-    let id = req.params.id
-    if (!id && req.subscription) {
-      id = req.subscription.id
-    }
+    const id = req.params.id
+
     if (!req.body) {
       req.body = {}
     }
-    if (!req.body.id) {
-      req.body.id = id
-    }
+
     lib.Validator.validateSubscription.update(req.body)
       .then(values => {
-        return SubscriptionService.update(req.body)
+        return SubscriptionService.update(req.body, id)
       })
       .then(subscription => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscription)
@@ -244,10 +240,8 @@ module.exports = class SubscriptionController extends Controller {
 
   cancel(req, res) {
     const SubscriptionService = this.app.services.SubscriptionService
-    let id = req.params.id
-    if (!id && req.subscription) {
-      id = req.subscription.id
-    }
+    const id = req.params.id
+
     lib.Validator.validateSubscription.cancel(req.body)
       .then(values => {
         req.body.id = id
@@ -276,6 +270,7 @@ module.exports = class SubscriptionController extends Controller {
   addItems(req, res) {
     const SubscriptionService = this.app.services.SubscriptionService
     const id = req.params.id
+
     lib.Validator.validateSubscription.addItems(req.body)
       .then(values => {
         return SubscriptionService.addItems(req.body, id)

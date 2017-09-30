@@ -2,9 +2,9 @@
 /* global describe, it */
 const assert = require('assert')
 const supertest = require('supertest')
-const _ = require('lodash')
+// const _ = require('lodash')
 
-describe('Admin User ReviewController', () => {
+describe('ProxyCartController', () => {
   let adminUser, userID, customerID
 
   before((done) => {
@@ -25,36 +25,42 @@ describe('Admin User ReviewController', () => {
       })
   })
   it('should exist', () => {
-    assert(global.app.api.controllers['ReviewController'])
+    assert(global.app.api.controllers['ProxyCartController'])
   })
   it('should get general stats', (done) => {
     adminUser
-      .get('/review/generalStats')
+      .get('/generalStats')
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body)
         done(err)
       })
   })
-  it('It should get reviews', (done) => {
+  it('should get countries with provinces', (done) => {
     adminUser
-      .get('/reviews')
+      .get('/countries')
       .expect(200)
       .end((err, res) => {
-        assert.ok(res.headers['x-pagination-total'])
-        assert.ok(res.headers['x-pagination-pages'])
-        assert.ok(res.headers['x-pagination-page'])
-        assert.ok(res.headers['x-pagination-limit'])
-        assert.ok(res.headers['x-pagination-offset'])
-        assert.ok(res.headers['x-pagination-sort'])
-
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-total'])), true)
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-offset'])), true)
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
-        assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
-
+        // console.log('THIS COUNTRY', res.body)
         assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        assert.equal(res.body[0].name, 'United States')
+        assert.equal(res.body[0].code, 'US')
+        assert.equal(res.body[0].provinces.length, 57)
+        done(err)
+      })
+  })
+  it('should get provinces', (done) => {
+    adminUser
+      .get('/provinces')
+      .query({
+        limit: 57
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('THIS Provinces', res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.length, 57)
         done(err)
       })
   })

@@ -180,7 +180,6 @@ module.exports = class CollectionController extends Controller {
    */
   create(req, res) {
     const CollectionService = this.app.services.CollectionService
-    console.log(req.body)
     lib.Validator.validateCollection.create(req.body)
       .then(values => {
         return CollectionService.create(req.body)
@@ -549,7 +548,6 @@ module.exports = class CollectionController extends Controller {
     }
 
     Customer.findAndCount({
-      order: sort,
       include: [
         {
           model: this.app.orm['Collection'],
@@ -559,6 +557,7 @@ module.exports = class CollectionController extends Controller {
           }
         }
       ],
+      order: sort,
       offset: offset,
       limit: limit
     })

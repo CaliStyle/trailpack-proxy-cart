@@ -26,6 +26,9 @@ module.exports = class ProductReview extends Model {
               models.ProductReview.belongsTo(models.Product, {
                 // as: 'product_id'
               })
+              models.ProductReview.belongsTo(models.User, {
+                // as: 'product_id'
+              })
               models.ProductReview.hasOne(models.Metadata, {
                 as: 'metadata',
                 // through: {
@@ -50,6 +53,14 @@ module.exports = class ProductReview extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
+        // The ID of the customer who Reviewed
+        customer_id: {
+          type: Sequelize.INTEGER
+        },
+        // The ID of the user who reviewed
+        user_id: {
+          type: Sequelize.INTEGER
+        },
         // The ID of the product Reviewed
         product_id: {
           type: Sequelize.INTEGER

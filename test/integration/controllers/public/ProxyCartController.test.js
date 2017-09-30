@@ -2,28 +2,27 @@
 /* global describe, it */
 const assert = require('assert')
 const supertest = require('supertest')
-// const _ = require('lodash')
 
-describe('ProxyCartController', () => {
-  let request
+describe('Public User ProxyCartController', () => {
+  let publicUser //, userID, customerID
 
-  before(() => {
-    request = supertest('http://localhost:3000')
+  before((done) => {
+    publicUser = supertest.agent(global.app.packs.express.server)
+    done()
   })
   it('should exist', () => {
     assert(global.app.api.controllers['ProxyCartController'])
   })
-  it('should get general stats', (done) => {
-    request
+  it.skip('should not get general stats', (done) => {
+    publicUser
       .get('/generalStats')
-      .expect(200)
+      .expect(401)
       .end((err, res) => {
-        assert.ok(res.body)
         done(err)
       })
   })
   it('should get countries with provinces', (done) => {
-    request
+    publicUser
       .get('/countries')
       .expect(200)
       .end((err, res) => {
@@ -37,7 +36,7 @@ describe('ProxyCartController', () => {
       })
   })
   it('should get provinces', (done) => {
-    request
+    publicUser
       .get('/provinces')
       .query({
         limit: 57

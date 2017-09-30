@@ -6,7 +6,7 @@ const _ = require('lodash')
 const customers = require('../../../fixtures/customers')
 
 describe('Public User CartController', () => {
-  let publicUser, publicUser2, cartToken, shopID, shopProducts, orderID
+  let publicUser, publicUser2, cartToken, orderedCartToken, newCartToken, resetCartToken, shopID, shopProducts, orderID, orderToken
 
   before((done) => {
     shopID = global.app.shopID
@@ -359,6 +359,7 @@ describe('Public User CartController', () => {
       .expect(200)
       .end((err, res) => {
         orderID = res.body.order.id
+        orderToken = res.body.order.token
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
         assert.equal(res.body.order.customer_id, null)
@@ -419,7 +420,8 @@ describe('Public User CartController', () => {
         // Cart: New Cart (old cart is retired)
         assert.equal(res.body.cart.status, 'open')
         assert.ok(res.body.cart.token)
-        cartToken = res.body.cart.token // New Cart, Reset Token
+        orderedCartToken = cartToken
+        newCartToken = res.body.cart.token // New Cart, Reset Token
         assert.equal(res.body.cart.customer_id, null)
 
         done(err)
@@ -427,24 +429,75 @@ describe('Public User CartController', () => {
   })
   it.skip('should not be able to retrieve the cart that closed', (done) => {
     publicUser
-      .get(`/cart/${cartToken}`)
+      .get(`/cart/${orderedCartToken}`)
       .expect(401)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('should not count all carts', (done) => {
+
+  // // TODO get order by token
+  // it('should get session customer order by id', done => {
+  //   publicUser
+  //     .get(`/customer/order/${ orderToken }`)
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.equal(res.body.id, orderID)
+  //       done(err)
+  //     })
+  // })
+
+  it('should initialize a new cart', (done) => {
+    publicUser
+      .post('/cart/init')
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        resetCartToken = res.body.token
+        assert.ok(res.body.token)
+        assert.equal(res.body.token, resetCartToken)
+        assert.equal(res.body.line_items.length, 0)
+        done(err)
+      })
+  })
+
+  it.skip('should not login to cart', done => {
+    publicUser
+      .post(`/cart/${resetCartToken}/login`)
+      .send({ })
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+
+  it.skip('should not switch cart', done => {
+    publicUser
+      .post(`/cart/${newCartToken}/switch`)
+      .send({})
+      .expect(403)
+      .end((err, res) => {
+        // assert.ok(res.body.id)
+        // assert.equal(res.body.token, newCartToken)
+        // assert.equal(res.body.customer_id, customerID)
+        // assert.equal(res.body.line_items.length, 0)
+        // assert.equal(res.body.subtotal_price, 0)
+        done(err)
+      })
+  })
+
+  it('should not count all carts', (done) => {
     publicUser
       .get('/cart/count')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('should not get all carts', (done) => {
+  it('should not get all carts', (done) => {
     publicUser
       .get('/carts')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })

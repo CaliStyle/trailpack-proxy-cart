@@ -653,39 +653,58 @@ module.exports = class CustomerService extends Service {
     const Customer = this.app.orm['Customer']
     const Address = this.app.orm['Address']
 
-    let resCustomer, resAddress
+    let resCustomer
     return Customer.resolve(customer, {transaction: options.transaction || null})
       .then(customer => {
-        resCustomer = customer
-        return Address.create(address, {transaction: options.transaction || null})
-      })
-      .then(address => {
-        resAddress = address
-        if (type === 'shipping' || !resCustomer.shipping_address_id) {
-          return resCustomer.setShipping_address(resAddress.id, {transaction: options.transaction || null})
+        if (!customer) {
+          throw new Error('Unable to resolve Customer')
         }
+        resCustomer = customer
+
+        if (type === 'shipping'){// || !resCustomer.shipping_address_id) {
+          return resCustomer.updateShippingAddress(address, {transaction: options.transaction || null})
+            .then(update => {
+              return update.shipping_address
+            })
+        }
+        return address
       })
       .then(shippingAddress => {
-        if (type === 'billing' || !resCustomer.billing_address_id) {
-          return resCustomer.setBilling_address(resAddress.id, {transaction: options.transaction || null})
+        if (type === 'billing'){// || !resCustomer.billing_address_id) {
+          return resCustomer.updateBillingAddress(shippingAddress, {transaction: options.transaction || null})
+            .then(update => {
+              return update.billing_address
+            })
         }
-        return
+        return shippingAddress
       })
       .then(billingAddress => {
-        if (type === 'default' || !resCustomer.default_address_id) {
-          return resCustomer.setDefault_address(resAddress.id, {transaction: options.transaction || null})
+        if (type === 'default'){// || !resCustomer.default_address_id) {
+          return resCustomer.updateDefaultAddress(billingAddress, {transaction: options.transaction || null})
+            .then(update => {
+              return update.default_address
+            })
         }
-        return
+        return billingAddress
       })
       .then(defaultAddress => {
         if (!type) {
-          return resCustomer.addAddress(resAddress.id, {transaction: options.transaction || null})
+          if (defaultAddress.id || defaultAddress.token) {
+            return Address.resolve(defaultAddress, {transaction: options.transaction || null})
+              .then(foundAddress => {
+                return resCustomer.addAddress(foundAddress.id, {transaction: options.transaction || null})
+                  .then(() => {
+                    return foundAddress
+                  })
+              })
+          }
+          else {
+            return resCustomer.createAddress(defaultAddress, {transaction: options.transaction || null})
+          }
         }
+        return defaultAddress
       })
-      .then(address => {
-        return resCustomer.save({transaction: options.transaction || null})
-      })
-      .then(customer => {
+      .then(resAddress => {
         return resAddress
       })
   }
@@ -703,31 +722,69 @@ module.exports = class CustomerService extends Service {
     const Customer = this.app.orm['Customer']
     const Address = this.app.orm['Address']
 
-    let resCustomer, resAddress
+    // address = Address.cleanAddress(address)
+
+    let resCustomer
     return Customer.resolve(customer, {transaction: options.transaction || null})
       .then(customer => {
+        if (!customer){
+          throw new Error('Unable to resolve Customer')
+        }
         resCustomer = customer
+
         return Address.resolve(address, {transaction: options.transaction || null})
       })
       .then(foundAddress => {
-        resAddress = foundAddress.merge(address)
-        return resAddress.save({transaction: options.transaction || null})
+        if (!foundAddress) {
+          throw new Error('Address could not resolve')
+        }
+        return foundAddress.merge(address).save({transaction: options.transaction || null})
       })
-      .then(address => {
-        if (type === 'shipping') {
-          return resCustomer.setShipping_address(address.id, {transaction: options.transaction || null})
+      .then(updatedAddress => {
+        if (type === 'shipping'){// || !resCustomer.shipping_address_id) {
+          return resCustomer.updateShippingAddress(updatedAddress, {transaction: options.transaction || null})
+            .then(update => {
+              return update.shipping_address
+            })
         }
-        else if (type === 'billing') {
-          return resCustomer.setBilling_address(address.id, {transaction: options.transaction || null})
-        }
-        else if (type === 'default') {
-          return resCustomer.setDefault_address(address.id, {transaction: options.transaction || null})
-        }
-        else {
-          return resCustomer
-        }
+        return updatedAddress
       })
-      .then(customer => {
+      .then(shippingAddress => {
+        if (type === 'billing'){// || !resCustomer.billing_address_id) {
+          return resCustomer.updateBillingAddress(shippingAddress, {transaction: options.transaction || null})
+            .then(update => {
+              return update.billing_address
+            })
+        }
+        return shippingAddress
+      })
+      .then(billingAddress => {
+        if (type === 'default'){// || !resCustomer.default_address_id) {
+          return resCustomer.updateDefaultAddress(billingAddress, {transaction: options.transaction || null})
+            .then(update => {
+              return update.default_address
+            })
+        }
+        return billingAddress
+      })
+      .then(defaultAddress => {
+        if (!type) {
+          if (defaultAddress.id || defaultAddress.token) {
+            return Address.resolve(defaultAddress, {transaction: options.transaction || null})
+              .then(foundAddress => {
+                return resCustomer.addAddress(foundAddress.id, {transaction: options.transaction || null})
+                  .then(() => {
+                    return foundAddress
+                  })
+              })
+          }
+          else {
+            return resCustomer.createAddress(defaultAddress, {transaction: options.transaction || null})
+          }
+        }
+        return defaultAddress
+      })
+      .then(resAddress => {
         return resAddress
       })
   }
@@ -745,11 +802,17 @@ module.exports = class CustomerService extends Service {
     const Address = this.app.orm['Address']
     let resCustomer, resAddress
     return Customer.resolve(customer, {transaction: options.transaction || null})
-      .then(customer => {
-        resCustomer = customer
+      .then(foundCustomer => {
+        if (!foundCustomer) {
+          throw new Error('Customer could not resolve')
+        }
+        resCustomer = foundCustomer
         return Address.resolve(address, {transaction: options.transaction || null})
       })
       .then(foundAddress => {
+        if (!foundAddress) {
+          throw new Error('Address could not resolve')
+        }
         resAddress = foundAddress
         return resCustomer.removeAddress(resAddress.id, {transaction: options.transaction || null})
       })
@@ -768,41 +831,71 @@ module.exports = class CustomerService extends Service {
     options = options || {}
     const Customer = this.app.orm['Customer']
     let resCustomer
-    return Customer.resolve(customer)
+    return Customer.resolve(customer, {transaction: options.transaction || null})
       .then(customer => {
         resCustomer = customer
-        if (resCustomer.shipping_address_id) {
-          return resCustomer.hasAddress(resCustomer.shipping_address_id, {address: 'shipping'})
+        if (resCustomer.shipping_address_id && resCustomer.changed('shipping_address_id')) {
+          return resCustomer.hasAddress(resCustomer.shipping_address_id, {
+            // through: {
+            address: 'shipping',
+            // },
+            transaction: options.transaction || null
+          })
         }
         return false
       })
       .then(hasShipping => {
-        if (!hasShipping && resCustomer.shipping_address_id) {
-          return resCustomer.addAddress(resCustomer.shipping_address_id, {address: 'shipping'})
+        if (!hasShipping && resCustomer.shipping_address_id && resCustomer.changed('shipping_address_id')) {
+          return resCustomer.addAddress(resCustomer.shipping_address_id, {
+            // through: {
+            address: 'shipping',
+            // },
+            transaction: options.transaction || null
+          })
         }
         return
       })
       .then(() => {
-        if (resCustomer.billing_address_id) {
-          return resCustomer.hasAddress(resCustomer.billing_address_id, {address: 'billing'})
+        if (resCustomer.billing_address_id && resCustomer.changed('billing_address_id')) {
+          return resCustomer.hasAddress(resCustomer.billing_address_id, {
+            // through: {
+            address: 'billing',
+            // },
+            transaction: options.transaction || null
+          })
         }
         return false
       })
       .then(hasBilling => {
-        if (!hasBilling && resCustomer.billing_address_id) {
-          return resCustomer.addAddress(resCustomer.billing_address_id, {address: 'billing'})
+        if (!hasBilling && resCustomer.billing_address_id && resCustomer.changed('billing_address_id')) {
+          return resCustomer.addAddress(resCustomer.billing_address_id, {
+            // through: {
+            address: 'billing',
+            // },
+            transaction: options.transaction || null
+          })
         }
         return
       })
       .then(() => {
-        if (resCustomer.default_address_id) {
-          return resCustomer.hasAddress(resCustomer.default_address_id, {address: 'default'})
+        if (resCustomer.default_address_id && resCustomer.changed('default_address_id')) {
+          return resCustomer.hasAddress(resCustomer.default_address_id, {
+            // through: {
+            address: 'default',
+            // },
+            transaction: options.transaction || null
+          })
         }
         return false
       })
       .then(hasDefault => {
-        if (!hasDefault && resCustomer.default_address_id) {
-          return resCustomer.addAddress(resCustomer.default_address_id, {address: 'default'})
+        if (!hasDefault && resCustomer.default_address_id && resCustomer.changed('default_address_id')) {
+          return resCustomer.addAddress(resCustomer.default_address_id, {
+            // through: {
+            address: 'default',
+            // },
+            transaction: options.transaction || null
+          })
         }
         return
       })

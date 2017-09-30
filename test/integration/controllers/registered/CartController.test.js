@@ -5,7 +5,7 @@ const supertest = require('supertest')
 const _ = require('lodash')
 
 describe('Registered User CartController', () => {
-  let registeredUser, userID, customerID, cartToken, shopID, shopProducts, orderID
+  let registeredUser, userID, customerID, cartToken, orderedCartToken, newCartToken, resetCartToken, shopID, shopProducts, orderID, orderToken
 
   before((done) => {
     shopID = global.app.shopID
@@ -365,6 +365,7 @@ describe('Registered User CartController', () => {
       .expect(200)
       .end((err, res) => {
         orderID = res.body.order.id
+        orderToken = res.body.order.token
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
         assert.equal(res.body.order.customer_id, customerID)
@@ -426,31 +427,90 @@ describe('Registered User CartController', () => {
         assert.equal(res.body.cart.status, 'open')
         assert.equal(res.body.cart.customer_id, customerID)
 
+        orderedCartToken = cartToken
+        newCartToken = res.body.cart.token
+
         done(err)
       })
   })
   it('should get checked out cart and status should be ordered', (done) => {
     registeredUser
-      .get(`/cart/${cartToken}`)
+      .get(`/cart/${orderedCartToken}`)
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.token, cartToken)
+        assert.equal(res.body.token, orderedCartToken)
         assert.equal(res.body.status, 'ordered')
         done(err)
       })
   })
-  it.skip('should not count all carts', (done) => {
+  // TODO get order by token
+  it('should get session customer order by id', done => {
+    registeredUser
+      .get(`/customer/order/${ orderToken }`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, orderID)
+        done(err)
+      })
+  })
+
+  it('should initialize a new cart', (done) => {
+    registeredUser
+      .post('/cart/init')
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        resetCartToken = res.body.token
+        assert.ok(res.body.token)
+        assert.equal(res.body.token, resetCartToken)
+        assert.equal(res.body.line_items.length, 0)
+        done(err)
+      })
+  })
+
+  // This request is already logged into cart, but just to prove they can
+  it('should login to cart', done => {
+    registeredUser
+      .post('/cart/login')
+      .send({ })
+      .expect(200)
+      .end((err, res) => {
+        // assert.equal(res.body.customer_id, customerID)
+        assert.ok(res.body.token)
+        assert.equal(res.body.token, resetCartToken)
+        assert.equal(res.body.line_items.length, 0)
+        done(err)
+      })
+  })
+
+  it('should switch cart', done => {
+    registeredUser
+      .post(`/cart/${newCartToken}/switch`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        // assert.ok(res.body.id)
+        assert.equal(res.body.token, newCartToken)
+        assert.equal(res.body.customer_id, customerID)
+        assert.equal(res.body.line_items.length, 0)
+        assert.equal(res.body.subtotal_price, 0)
+        done(err)
+      })
+  })
+
+
+  it('should not count all carts', (done) => {
     registeredUser
       .get('/cart/count')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('should not get all carts', (done) => {
+  it('should not get all carts', (done) => {
     registeredUser
       .get('/carts')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
