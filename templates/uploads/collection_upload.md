@@ -7,8 +7,11 @@ The unique handle of the collection.
 ## Title
 The title of your collection. Example: Women's Snowboards
 
+## Excerpt (Markdown or HTML)
+The small description of the collection in Markdown or HTML format. This can also be plain text without any formatting which defaults to Markdown. This creates the field `excerpt_html`.
+
 ## Body (Markdown or HTML)
-The description of the collection in Markdown or HTML format. This can also be plain text without any formatting which defaults to Markdown.
+The description of the collection in Markdown or HTML format. This can also be plain text without any formatting which defaults to Markdown. This creates the field `body_html`.
 
 ## Primary Purpose
 The Primary Purpose of the Collection. Valid Values are:

@@ -6,7 +6,7 @@ describe('Collection Model', () => {
   let Collection
   it('should exist', () => {
     assert(global.app.api.models['Collection'])
-    Collection = global.app.services.ProxyEngineService.getModel('Collection')
+    Collection = global.app.orm['Collection']
   })
   it('should resolve a collection instance', (done) => {
     Collection.resolve(Collection.build({}))

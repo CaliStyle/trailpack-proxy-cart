@@ -511,6 +511,7 @@ module.exports = class OrderService extends Service {
   /**
    * Pay multiple orders
    * @param orders
+   * @param options
    * @returns {Promise.<*>}
    */
   payOrders(orders, options) {
@@ -555,7 +556,7 @@ module.exports = class OrderService extends Service {
           ORDER_FINANCIAL.PARTIALLY_REFUNDED
         ]
 
-        if (allowedStatuses.indexOf(order.financial_status) == -1) {
+        if (allowedStatuses.indexOf(order.financial_status) === -1) {
           throw new Error(
             `Order status is ${order.financial_status} not 
             '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`
@@ -632,7 +633,7 @@ module.exports = class OrderService extends Service {
           throw new Errors.FoundError(Error('Order not found'))
         }
         const allowedStatuses = [ORDER_FINANCIAL.PAID, ORDER_FINANCIAL.PARTIALLY_PAID, ORDER_FINANCIAL.PARTIALLY_REFUNDED]
-        if (allowedStatuses.indexOf(order.financial_status) == -1) {
+        if (allowedStatuses.indexOf(order.financial_status) === -1) {
           throw new Error(
             `Order status is ${order.financial_status} not 
             '${ORDER_FINANCIAL.PAID}, ${ORDER_FINANCIAL.PARTIALLY_PAID}' or '${ORDER_FINANCIAL.PARTIALLY_REFUNDED}'`
@@ -650,14 +651,14 @@ module.exports = class OrderService extends Service {
       .then(() => {
         // Partially Refund because refunds was sent to method
         if (refunds.length > 0) {
-          return Promise.all(refunds.map(refund => {
+          return Sequelize.Promise.mapSeries(refunds, refund => {
             const refundTransaction = resOrder.transactions.find(transaction => transaction.id == refund.transaction)
             if (
               [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(refundTransaction.kind) > -1
-              && refundTransaction.status == TRANSACTION_STATUS.SUCCESS
+              && refundTransaction.status === TRANSACTION_STATUS.SUCCESS
             ) {
               // If this is a full Transaction refund
-              if (refund.amount == refundTransaction.amount) {
+              if (refund.amount === refundTransaction.amount) {
                 return this.app.services.TransactionService.refund(refundTransaction, { transaction: options.transaction || null })
               }
               // If this is a partial refund
@@ -665,21 +666,22 @@ module.exports = class OrderService extends Service {
                 return this.app.services.TransactionService.partiallyRefund(refundTransaction, refund.amount, { transaction: options.transaction || null })
               }
             }
-          }))
+          })
         }
         // Completely Refund the order
         else {
           const canRefund = resOrder.transactions.filter(transaction => {
             if (
               [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
-              && transaction.status == TRANSACTION_STATUS.SUCCESS
+              && transaction.status === TRANSACTION_STATUS.SUCCESS
             ) {
               return transaction
             }
           })
           return Sequelize.Promise.mapSeries(canRefund, transaction => {
             return this.app.services.TransactionService.refund(
-              transaction, { transaction: options.transaction || null }
+              transaction,
+              { transaction: options.transaction || null }
             )
           })
         }
@@ -687,7 +689,8 @@ module.exports = class OrderService extends Service {
       .then(refundedTransactions => {
         // Filter the successes
         const newRefunds = refundedTransactions.filter(transaction =>
-          transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS)
+          transaction.kind === TRANSACTION_KIND.REFUND
+          && transaction.status === TRANSACTION_STATUS.SUCCESS)
         // Create the refunds
         return Sequelize.Promise.mapSeries(newRefunds, transaction => {
           return resOrder.createRefund({
@@ -764,7 +767,7 @@ module.exports = class OrderService extends Service {
     options = options || {}
     const Order = this.app.orm['Order']
     let resOrder
-    return Order.resolve(order, options)
+    return Order.resolve(order, { transaction: options.transaction || null })
       .then(order => {
         if (!order) {
           throw new Errors.FoundError(Error('Order not found'))
@@ -779,8 +782,9 @@ module.exports = class OrderService extends Service {
         // Partially Authorize
         if (authorizations.length > 0) {
           // Filter the authorizations
-          const toAuthorize = authorizations.filter(authorize => {
-            const authorizeTransaction = resOrder.transactions.find(transaction => transaction.id == authorize.transaction)
+          const toAuthorize = authorizations.map(authorize => {
+            const authorizeTransaction = resOrder.transactions.find(transaction => transaction.id === authorize.transaction)
+
             if (
               authorizeTransaction
               && authorizeTransaction.kind === TRANSACTION_KIND.AUTHORIZE
@@ -788,7 +792,7 @@ module.exports = class OrderService extends Service {
             ) {
               return authorizeTransaction
             }
-          })
+          }).filter(n => n)
           // Authorize the pending transactions
           return Order.sequelize.Promise.mapSeries(toAuthorize, transaction => {
             return this.app.services.TransactionService.authorize(
@@ -850,16 +854,16 @@ module.exports = class OrderService extends Service {
         // Partially Capture
         if (captures.length > 0) {
           // Filter the captures
-          const toCapture = captures.filter(capture => {
-            const captureTransaction = resOrder.transactions.find(transaction => transaction.id == capture.transaction)
+          const toCapture = captures.map(capture => {
+            const captureTransaction = resOrder.transactions.find(transaction => transaction.id === capture.transaction)
             if (
               captureTransaction
-              && captureTransaction.kind == TRANSACTION_KIND.AUTHORIZE
-              && captureTransaction.status == TRANSACTION_STATUS.SUCCESS
+              && captureTransaction.kind === TRANSACTION_KIND.AUTHORIZE
+              && captureTransaction.status === TRANSACTION_STATUS.SUCCESS
             ) {
               return captureTransaction
             }
-          })
+          }).filter(n => n)
           // Capture the authorized transactions
           return Sequelize.Promise.mapSeries(toCapture, transaction => {
             return this.app.services.TransactionService.capture(
@@ -872,8 +876,8 @@ module.exports = class OrderService extends Service {
         else {
           const canCapture = resOrder.transactions.filter(transaction => {
             if (
-              transaction.kind == TRANSACTION_KIND.AUTHORIZE
-              && transaction.status == TRANSACTION_STATUS.SUCCESS
+              transaction.kind === TRANSACTION_KIND.AUTHORIZE
+              && transaction.status === TRANSACTION_STATUS.SUCCESS
             ) {
               return transaction
             }
@@ -898,6 +902,7 @@ module.exports = class OrderService extends Service {
    *
    * @param order
    * @param voids
+   * @params options
    * @returns {Promise.<TResult>}
    */
   void(order, voids, options) {
@@ -920,16 +925,16 @@ module.exports = class OrderService extends Service {
         // Partially Void
         if (voids.length > 0) {
           // Filter the voids
-          const toVoid = voids.filter(tVoid => {
-            const voidTransaction = resOrder.transactions.find(transaction => transaction.id == tVoid.transaction)
+          const toVoid = voids.map(tVoid => {
+            const voidTransaction = resOrder.transactions.find(transaction => transaction.id === tVoid.transaction)
             if (
               voidTransaction
-              && voidTransaction.kind == TRANSACTION_KIND.AUTHORIZE
-              && voidTransaction.status == TRANSACTION_STATUS.SUCCESS
+              && voidTransaction.kind === TRANSACTION_KIND.AUTHORIZE
+              && voidTransaction.status === TRANSACTION_STATUS.SUCCESS
             ) {
               return voidTransaction
             }
-          })
+          }).filter(n => n)
           // Void the authorized transactions
           return Sequelize.Promise.mapSeries(toVoid, transaction => {
             return this.app.services.TransactionService.void(
@@ -942,8 +947,8 @@ module.exports = class OrderService extends Service {
         else {
           const canVoid = resOrder.transactions.filter(transaction => {
             if (
-              transaction.kind == TRANSACTION_KIND.AUTHORIZE
-              && transaction.status == TRANSACTION_STATUS.SUCCESS
+              transaction.kind === TRANSACTION_KIND.AUTHORIZE
+              && transaction.status === TRANSACTION_STATUS.SUCCESS
             ) {
               return transaction
             }
@@ -968,6 +973,7 @@ module.exports = class OrderService extends Service {
    *
    * @param order
    * @param retries
+   * @param options
    * @returns {Promise.<T>}
    */
   retry(order, retries, options) {
@@ -990,15 +996,15 @@ module.exports = class OrderService extends Service {
       .then(() => {
         // Partially retry
         if (retries.length > 0) {
-          const toRetry = retries.filter(tRetry => {
-            const retryTransaction = resOrder.transactions.find(transaction => transaction.id == tRetry.transaction)
+          const toRetry = retries.map(tRetry => {
+            const retryTransaction = resOrder.transactions.find(transaction => transaction.id === tRetry.transaction)
             if (
               retryTransaction
               && [TRANSACTION_STATUS.FAILURE, TRANSACTION_STATUS.PENDING].indexOf(retryTransaction.status) !== -1
             ) {
               return retryTransaction
             }
-          })
+          }).filter(n => n)
           // Retry the authorized transactions
           return Sequelize.Promise.mapSeries(toRetry, transaction => {
             return this.app.services.TransactionService.retry(
@@ -1054,15 +1060,15 @@ module.exports = class OrderService extends Service {
         // Transactions that can be refunded
         canRefund = resOrder.transactions.filter(transaction =>
           [TRANSACTION_KIND.SALE, TRANSACTION_KIND.CAPTURE].indexOf(transaction.kind) > -1
-          && transaction.status == TRANSACTION_STATUS.SUCCESS
+          && transaction.status === TRANSACTION_STATUS.SUCCESS
         )
         // Transactions that can be voided
         canVoid = resOrder.transactions.filter(transaction =>
-          transaction.kind == TRANSACTION_KIND.AUTHORIZE
-          && transaction.status == TRANSACTION_STATUS.SUCCESS
+          transaction.kind === TRANSACTION_KIND.AUTHORIZE
+          && transaction.status === TRANSACTION_STATUS.SUCCESS
         )
         // Transactions that can be cancelled
-        canCancel = resOrder.transactions.filter(transaction => transaction.status == TRANSACTION_STATUS.PENDING)
+        canCancel = resOrder.transactions.filter(transaction => transaction.status === TRANSACTION_STATUS.PENDING)
 
         // Start Refunds
         return Sequelize.Promise.mapSeries(canRefund, transaction => {

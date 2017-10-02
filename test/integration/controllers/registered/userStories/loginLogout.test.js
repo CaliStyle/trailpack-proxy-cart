@@ -4,7 +4,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Registered User Login and Logout', () => {
+describe('Registered User Login, Logout, recover, and log back in', () => {
   let registeredUser, userID, customerID, cartID, shopID,
     shopProducts, recovery
 

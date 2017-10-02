@@ -9,7 +9,7 @@ describe('CustomerService', () => {
     assert(global.app.api.services['CustomerService'])
 
     CustomerService = global.app.services['CustomerService']
-    Customer = global.app.services.ProxyEngineService.getModel('Customer')
+    Customer = global.app.orm['Customer']
   })
   it('should resolve a customer instance', (done) => {
     Customer.resolve(Customer.build({}))

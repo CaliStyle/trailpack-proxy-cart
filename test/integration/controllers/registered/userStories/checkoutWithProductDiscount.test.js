@@ -4,7 +4,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Registered User Checkout With Collection Discount', () => {
+describe('Registered User Checkout With Product Discount', () => {
   let registeredUser, userID, customerID, cartToken, orderedCartToken, newCartToken, resetCartToken, shopID,
     shopProducts, orderID, orderToken
 

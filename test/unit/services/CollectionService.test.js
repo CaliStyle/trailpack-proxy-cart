@@ -8,7 +8,7 @@ describe('CollectionService', () => {
   it('should exist', () => {
     assert(global.app.api.services['CollectionService'])
     CollectionService = global.app.services['CollectionService']
-    Collection = global.app.services.ProxyEngineService.getModel('Collection')
+    Collection = global.app.orm['Collection']
   })
   it('should resolve a collection instance', (done) => {
     Collection.resolve(Collection.build({}))

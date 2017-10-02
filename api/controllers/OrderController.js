@@ -298,10 +298,15 @@ module.exports = class OrderController extends Controller {
    * @param res
    */
   authorize(req, res) {
+    const orderId = req.params.id
+    if (!orderId) {
+      const err = new Error('Order Id is required')
+      return res.serverError(err)
+    }
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.authorize(req.body)
       .then(values => {
-        return OrderService.authorize(req.params.id, req.body)
+        return OrderService.authorize(orderId, req.body)
       })
       .then(order => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
@@ -320,10 +325,16 @@ module.exports = class OrderController extends Controller {
    * @param res
    */
   capture(req, res) {
+    const orderId = req.params.id
+    if (!orderId) {
+      const err = new Error('Order Id is required')
+      return res.serverError(err)
+    }
+
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.capture(req.body)
       .then(values => {
-        return OrderService.capture(req.params.id, req.body)
+        return OrderService.capture(orderId, req.body)
       })
       .then(order => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
@@ -342,10 +353,16 @@ module.exports = class OrderController extends Controller {
    * @param res
    */
   void(req, res) {
+    const orderId = req.params.id
+    if (!orderId) {
+      const err = new Error('Order Id is required')
+      return res.serverError(err)
+    }
+
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.void(req.body)
       .then(values => {
-        return OrderService.void(req.params.id, req.body)
+        return OrderService.void(orderId, req.body)
       })
       .then(order => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
@@ -363,10 +380,16 @@ module.exports = class OrderController extends Controller {
    * @param res
    */
   retry(req, res) {
+    const orderId = req.params.id
+    if (!orderId) {
+      const err = new Error('Order Id is required')
+      return res.serverError(err)
+    }
+
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.retry(req.body)
       .then(values => {
-        return OrderService.retry(req.params.id, req.body)
+        return OrderService.retry(orderId, req.body)
       })
       .then(order => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
@@ -384,10 +407,16 @@ module.exports = class OrderController extends Controller {
    * @param res
    */
   refund(req, res) {
+    const orderId = req.params.id
+    if (!orderId) {
+      const err = new Error('Order Id is required')
+      return res.serverError(err)
+    }
+
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.refund(req.body)
       .then(values => {
-        return OrderService.refund(req.params.id, req.body)
+        return OrderService.refund(orderId, req.body)
       })
       .then(order => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
@@ -436,6 +465,21 @@ module.exports = class OrderController extends Controller {
       .catch(err => {
         return res.serverError(err)
       })
+  }
+
+  /**
+   * Send Order Fulfillment
+   * @param req
+   * @param res
+   */
+  // TODO
+  send(req, res) {
+    const orderId = req.params.id
+    if (!orderId) {
+      const err = new Error('Order Id is required')
+      return res.serverError(err)
+    }
+    res.json({})
   }
 
   /**

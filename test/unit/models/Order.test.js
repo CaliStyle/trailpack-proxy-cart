@@ -44,6 +44,7 @@ describe('Order Model', () => {
         amount: 5
       }
     ])
+
     resOrder.save()
       .then(() => {
         return resOrder.resolveSendImmediately()

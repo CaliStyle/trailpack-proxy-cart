@@ -247,7 +247,7 @@
     "inventory_quantity": 10000,
     "exclude_payment_types": [],
     "tags": [
-      "account balance"
+      "discount collection"
     ],
     "collections": [
       "Dummy Collection",
@@ -262,5 +262,51 @@
       }
     ],
     "sku": "discount-collection-123"
+  },
+  {
+    "handle": "product-with-manual-fulfillment",
+    "title": "Product with Manual Fulfillment",
+    "body": "<strong>Product with Manual Fulfillment</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "manual fulfillment"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "manual-fulfillment-123"
+  },
+  {
+    "handle": "product-with-manual-payment",
+    "title": "Product with Manual Payment",
+    "body": "<strong>Product with Manual Payment</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "manual payment"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "manual-payment-123"
   }
 ]

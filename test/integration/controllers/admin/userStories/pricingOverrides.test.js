@@ -4,7 +4,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Admin User CartController', () => {
+describe('Admin User Pricing Override', () => {
   let adminUser, userID, customerID, cartID, orderedCartID, newCartID, resetCartID, shopID, shopProducts, orderID
 
   before((done) => {
@@ -144,6 +144,9 @@ describe('Admin User CartController', () => {
         assert.equal(res.body.order.source_name, 'api')
         assert.equal(res.body.order.processing_method, 'checkout')
         assert.equal(res.body.order.financial_status, 'paid')
+        assert.equal(res.body.order.payment_kind, 'immediate')
+        assert.equal(res.body.order.transaction_kind, 'sale')
+        assert.equal(res.body.order.fulfillment_kind, 'immediate')
 
         // This is a digital good, so it's fulfilled and closed
         assert.equal(res.body.order.fulfillment_status, 'fulfilled')
@@ -159,7 +162,6 @@ describe('Admin User CartController', () => {
         assert.equal(res.body.order.total_price, shopProducts[6].price - 1000) // TODO is this right?!
         assert.equal(res.body.order.total_due, 0)
         assert.equal(res.body.order.total_discounts, 0)
-        assert.equal(res.body.order.total_captured, shopProducts[6].price - 1000)
 
         // Order Items
         assert.equal(res.body.order.order_items.length, 1)
@@ -181,6 +183,10 @@ describe('Admin User CartController', () => {
           assert.equal(fulfillment.status, 'fulfilled')
           assert.equal(fulfillment.order_id, orderID)
         })
+        assert.equal(res.body.order.total_fulfilled_fulfillments, 1)
+        assert.equal(res.body.order.total_sent_fulfillments, 0)
+        assert.equal(res.body.order.total_pending_fulfillments, 0)
+        assert.equal(res.body.order.total_partial_fulfillments, 0)
 
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
@@ -190,6 +196,12 @@ describe('Admin User CartController', () => {
           assert.equal(transaction.source_name, 'web')
           assert.equal(transaction.order_id, orderID)
         })
+        assert.equal(res.body.order.total_captured, shopProducts[6].price - 1000)
+        assert.equal(res.body.order.total_authorized, 0)
+        assert.equal(res.body.order.total_voided, 0)
+        assert.equal(res.body.order.total_pending, 0)
+        assert.equal(res.body.order.total_cancelled, 0)
+        assert.equal(res.body.order.total_refunds, 0)
 
         // Events: Removed from the default query
         // assert.equal(res.body.order.events.length, 4)
