@@ -15,44 +15,44 @@ describe('Public User SubscriptionController', () => {
   })
 
 
-  it.skip('should not get general stats', (done) => {
+  it('should not get general stats', (done) => {
     publicUser
       .get('/subscription/generalStats')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('should not count all subscriptions', (done) => {
+  it('should not count all subscriptions', (done) => {
     publicUser
       .get('/subscription/count')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('It should get subscriptions', (done) => {
+  it('should not get subscriptions', (done) => {
     publicUser
       .get('/subscriptions')
-      .expect(200)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('It should not upload subscription_upload.csv', (done) => {
+  it.skip('should not upload subscription_upload.csv', (done) => {
     publicUser
       .post('/subscription/uploadCSV')
       .attach('file', 'test/fixtures/subscription_upload.csv')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('It should not process upload', (done) => {
+  it('should not process upload', (done) => {
     publicUser
       .post('/subscription/processUpload/1')
       .send({})
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })

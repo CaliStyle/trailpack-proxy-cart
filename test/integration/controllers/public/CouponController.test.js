@@ -13,4 +13,12 @@ describe('Public User CouponController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['CouponController'])
   })
+  it('should  not get coupons', (done) => {
+    publicUser
+      .get('/coupons')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

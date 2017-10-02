@@ -94,5 +94,14 @@ module.exports = class UserController extends ModelPermissions {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  reviews(req, res) {
+
+  }
 }
 

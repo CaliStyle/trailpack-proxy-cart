@@ -29,4 +29,12 @@ describe('Registered User OrderController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['OrderController'])
   })
+  it('should not get orders', (done) => {
+    registeredUser
+      .get('/orders')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

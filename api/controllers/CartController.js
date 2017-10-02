@@ -150,8 +150,7 @@ module.exports = class CartController extends Controller {
    * @param res
    */
   findAll(req, res){
-    const orm = this.app.orm
-    const Cart = orm['Cart']
+    const Cart = this.app.orm['Cart']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]

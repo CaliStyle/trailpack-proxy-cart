@@ -54,4 +54,12 @@ describe('Registered User UserController', () => {
         done(err)
       })
   })
+  it('should not get all users', (done) => {
+    registeredUser
+      .get('/users')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

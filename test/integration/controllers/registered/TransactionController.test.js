@@ -29,4 +29,12 @@ describe('Registered User TransactionController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['TransactionController'])
   })
+  it('should not get all transactions', (done) => {
+    registeredUser
+      .get('/transactions')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

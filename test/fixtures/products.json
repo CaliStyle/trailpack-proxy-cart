@@ -230,5 +230,37 @@
       "Dummy Collection"
     ],
     "sku": "accepts-account-balance-123"
+  },
+  {
+    "handle": "product-with-discount-collection",
+    "title": "Product with Discount Collection",
+    "body": "<strong>Product with Discount Collection</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "account balance"
+    ],
+    "collections": [
+      "Dummy Collection",
+      {
+        "handle": "product-with-discount-collection-test",
+        "title": "Product with discount Collection test",
+        "discount_type": "fixed",
+        "discount_scope": "individual",
+        "discount_rate": 100,
+        "primary_purpose": "discount",
+        "published": true
+      }
+    ],
+    "sku": "discount-collection-123"
   }
 ]

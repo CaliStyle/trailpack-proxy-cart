@@ -13,4 +13,12 @@ describe('Public User ShopController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['ShopController'])
   })
+  it('should not get shops', (done) => {
+    publicUser
+      .get('/shops')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

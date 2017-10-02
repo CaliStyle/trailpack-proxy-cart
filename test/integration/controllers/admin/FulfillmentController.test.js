@@ -47,7 +47,7 @@ describe('Admin User FulfillmentController', () => {
   it.skip('should destroy a manual fulfillment',() => {
 
   })
-  it('It should get fulfillments', (done) => {
+  it('should get fulfillments', (done) => {
     adminUser
       .get('/fulfillments')
       .expect(200)

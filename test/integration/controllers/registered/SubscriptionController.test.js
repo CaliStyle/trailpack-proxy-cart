@@ -31,26 +31,26 @@ describe('Registered User SubscriptionController', () => {
   })
 
 
-  it.skip('should not get general stats', (done) => {
+  it('should not get general stats', (done) => {
     registeredUser
       .get('/subscription/generalStats')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('should not count all subscriptions', (done) => {
+  it('should not count all subscriptions', (done) => {
     registeredUser
       .get('/subscription/count')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('It should get subscriptions', (done) => {
+  it('not should get subscriptions', (done) => {
     registeredUser
       .get('/subscriptions')
-      .expect(200)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
@@ -59,16 +59,16 @@ describe('Registered User SubscriptionController', () => {
     registeredUser
       .post('/subscription/uploadCSV')
       .attach('file', 'test/fixtures/subscription_upload.csv')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
   })
-  it.skip('It should not process upload', (done) => {
+  it('It should not process upload', (done) => {
     registeredUser
       .post('/subscription/processUpload/1')
       .send({})
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })

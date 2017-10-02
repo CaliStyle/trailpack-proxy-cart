@@ -13,4 +13,12 @@ describe('Public User UserController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['UserController'])
   })
+  it('should not get all users', (done) => {
+    publicUser
+      .get('/users')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

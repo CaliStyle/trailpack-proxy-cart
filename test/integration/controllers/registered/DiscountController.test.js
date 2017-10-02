@@ -29,4 +29,12 @@ describe('Registered User DiscountController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['DiscountController'])
   })
+  it('should not get discounts', (done) => {
+    registeredUser
+      .get('/discounts')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

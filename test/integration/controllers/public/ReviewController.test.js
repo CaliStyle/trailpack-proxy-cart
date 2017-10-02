@@ -13,4 +13,12 @@ describe('Public User ReviewController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['ReviewController'])
   })
+  it('should not get reviews', (done) => {
+    publicUser
+      .get('/reviews')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

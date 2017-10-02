@@ -1,6 +1,7 @@
 'use strict'
 
 const Controller = require('trails/controller')
+const _ = require('lodash')
 
 /**
  * @module VendorController
@@ -52,6 +53,49 @@ module.exports = class VendorController extends Controller {
       offset: offset,
       limit: limit,
       req: req
+    })
+      .then(vendors => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, vendors.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, vendors.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  search(req, res) {
+    const orm = this.app.orm
+    const Vendor = orm['Vendor']
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['name', 'ASC']]
+    const term = req.query.term
+    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const defaults = _.defaults(where, {
+      $or: [
+        {
+          name: {
+            $iLike: `%${term}%`
+          }
+        }
+      ]
+    })
+    // console.log('VendorController.search', term)
+    Vendor.findAndCount({
+      where: defaults,
+      order: sort,
+      offset: offset,
+      req: req,
+      limit: limit
     })
       .then(vendors => {
         // Paginate

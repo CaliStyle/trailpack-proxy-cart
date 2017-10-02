@@ -31,19 +31,19 @@
     "sqlite3": "^3.1.4",
     "striptags": "^3.0.1",
     "trailpack": "^2.0.0",
-    "trailpack-proxy-cart-countries": "^0.0.5",
+    "trailpack-proxy-cart-countries": "^0.0.7",
     "utf8": "^2.1.2"
   },
   "peerDependencies": {
     "proxy-engine-errors": "^1.0.1",
     "proxy-engine-helpers": "^1.0.6",
     "proxy-generics-render": "^0.0.3",
-    "trailpack-proxy-engine": "^1.0.16",
+    "trailpack-proxy-engine": "^1.1.0",
     "trailpack-proxy-email": "^1.0.0",
     "trailpack-proxy-generics": "^1.2.0",
     "trailpack-proxy-notifications": "^1.0.6",
     "trailpack-proxy-passport": "^1.0.9",
-    "trailpack-proxy-permissions": "^1.0.11"
+    "trailpack-proxy-permissions": "^1.1.0"
   },
   "devDependencies": {
     "eslint": "^3.17.1",

@@ -29,10 +29,10 @@ describe('Registered User ProxyCartController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['ProxyCartController'])
   })
-  it.skip('should not get general stats', (done) => {
+  it('should not get general stats', (done) => {
     registeredUser
       .get('/generalStats')
-      .expect(401)
+      .expect(403)
       .end((err, res) => {
         done(err)
       })
