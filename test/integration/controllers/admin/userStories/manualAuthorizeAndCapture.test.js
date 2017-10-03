@@ -4,7 +4,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Admin User Manual Authorize', () => {
+describe('Admin User Manual Authorize and Capture', () => {
   let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID, transactionID
 
   before((done) => {
@@ -272,7 +272,7 @@ describe('Admin User Manual Authorize', () => {
 
         res.body.order_items.forEach(item => {
           assert.equal(item.order_id, orderID)
-          assert.equal(item.fulfillment_status, 'pending')
+          assert.equal(item.fulfillment_status, 'fulfilled')
           assert.equal(item.fulfillment_id, res.body.fulfillments[0].id)
         })
 

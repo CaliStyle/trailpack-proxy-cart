@@ -137,6 +137,12 @@ module.exports = class Fulfillment extends Model {
               )
               return this.findAndCount(options)
             },
+            /**
+             *
+             * @param fulfillment
+             * @param options
+             * @returns {*}
+             */
             resolve: function(fulfillment, options){
               options = options || {}
               const Fulfillment =  this
@@ -232,10 +238,9 @@ module.exports = class Fulfillment extends Model {
                   this.status_url = data.status_url || this.status_url
                   this.tracking_company = data.tracking_company || this.tracking_company
                   this.tracking_number = data.tracking_number || this.tracking_number
+                  this.extras = data.extras || this.extras
                   this.receipt = data.receipt || this.receipt
-                //   return this.save()
-                // })
-                // .then(() => {
+
                   return this.sequelize.Promise.mapSeries(this.order_items, item => {
                     item.fulfillment_status = this.status
                     return item.save({
@@ -270,6 +275,15 @@ module.exports = class Fulfillment extends Model {
                 .then(resOrder => {
                   if (resOrder) {
                     return resOrder.saveFulfillmentStatus({transaction: options.transaction || null})
+                  }
+                  else {
+                    return null
+                  }
+                })
+                .then(resOrder => {
+                  if (resOrder) {
+                    // Save the status changes
+                    return resOrder.saveStatus({transaction: options.transaction || null})
                   }
                   else {
                     return null

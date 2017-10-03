@@ -259,7 +259,7 @@ module.exports = class Transaction extends Model {
               if (!this.changed('status') && !this.changed('kind')) {
                 return Promise.resolve(this)
               }
-
+              let resOrder
               return Order.findById(this.order_id, {
                 // attributes: [
                 //   'id',
@@ -276,11 +276,16 @@ module.exports = class Transaction extends Model {
                 // ],
                 transaction: options.transaction || null
               })
-                .then(resOrder => {
-                  if (!resOrder) {
+                .then(foundOrder => {
+                  if (!foundOrder) {
                     throw new Error('Order could not be resolved for transaction')
                   }
+                  resOrder = foundOrder
                   return resOrder.saveFinancialStatus({transaction: options.transaction || null})
+                })
+                .then(() => {
+                  // Save the status changes
+                  return resOrder.saveStatus({transaction: options.transaction || null})
                 })
                 .then(() => {
                   return this

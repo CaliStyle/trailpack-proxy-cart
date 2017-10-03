@@ -101,9 +101,13 @@ module.exports = class Order extends Model {
               if (values.ip) {
                 values.update_ip = values.ip
               }
+
+              // values.setStatus()
+
               if (values.changed('status') && values.status == ORDER_STATUS.CLOSED) {
                 values.close()
               }
+
               fn()
             },
             /**
@@ -811,6 +815,11 @@ module.exports = class Order extends Model {
               }
               return this
             },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
             resolveStatus: function(options) {
               options = options || {}
               return this.resolveFinancialStatus({

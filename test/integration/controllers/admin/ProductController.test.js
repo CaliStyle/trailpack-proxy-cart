@@ -1057,7 +1057,7 @@ describe('Admin User ProductController', () => {
       .get('/product/collection/bottles')
       .expect(200)
       .end((err, res) => {
-        console.log('Products By Collection',res.body)
+        // console.log('Products By Collection',res.body)
         assert.ok(res.body)
         assert.ok(res.headers['x-pagination-total'])
         assert.ok(res.headers['x-pagination-pages'])

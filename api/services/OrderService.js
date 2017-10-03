@@ -411,6 +411,7 @@ module.exports = class OrderService extends Service {
 
         return resOrder.save({transaction: options.transaction || null})
       })
+
       .then(() => {
         if (resOrder.customer_id) {
           return this.app.emails.Order.updated(resOrder, {
