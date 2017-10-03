@@ -375,5 +375,71 @@ module.exports = class SubscriptionController extends Controller {
   customerIsSubscribed(req, res) {
 
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  event(req, res) {
+    const Event = this.app.orm['Event']
+    const eventId = req.params.event
+
+    if (!eventId || !req.user) {
+      const err = new Error('A order id and a user in session are required')
+      res.send(401, err)
+
+    }
+    Event.findById(eventId)
+      .then(event => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, event)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  events(req, res) {
+    const Event = this.app.orm['Event']
+    const orderId = req.params.id
+
+    if (!orderId && !req.user) {
+      const err = new Error('A order id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    Event.findAndCount({
+      order: sort,
+      where: {
+        object_id: orderId,
+        object: 'subscription'
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(events => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, events.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, events.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

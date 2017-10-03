@@ -4,7 +4,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Admin User Manual Authorize and Capture', () => {
+describe('Admin User Cancel Order', () => {
   let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID, transactionID
 
   before((done) => {
@@ -145,14 +145,14 @@ describe('Admin User Manual Authorize and Capture', () => {
         done(err)
       })
   })
-  it('should authorize pending transaction by id', (done) => {
+  it('should cancel order by id', (done) => {
     adminUser
-      .post(`/order/${orderID}/authorize`)
-      .send([{
-        transaction: transactionID
-      }])
+      .post(`/order/${orderID}/cancel`)
+      .send({})
       .expect(200)
       .end((err, res) => {
+
+        console.log('user story', res.body)
 
         assert.ok(res.body.id)
         assert.ok(res.body.token)
@@ -164,12 +164,12 @@ describe('Admin User Manual Authorize and Capture', () => {
         assert.equal(res.body.currency, 'USD')
         assert.equal(res.body.source_name, 'api')
         assert.equal(res.body.processing_method, 'checkout')
-        assert.equal(res.body.financial_status, 'authorized')
+        assert.equal(res.body.financial_status, 'cancelled')
 
         // This is a digital good
-        assert.equal(res.body.fulfillment_status, 'pending')
-        assert.equal(res.body.status, 'open')
-        assert.equal(res.body.closed_at, null)
+        assert.equal(res.body.fulfillment_status, 'cancelled')
+        assert.equal(res.body.status, 'cancelled')
+        assert.equal(_.isString(res.body.closed_at), true)
 
         // Discounts
         assert.equal(res.body.discounted_lines.length, 0)
@@ -191,115 +191,37 @@ describe('Admin User Manual Authorize and Capture', () => {
 
         res.body.order_items.forEach(item => {
           assert.equal(item.order_id, orderID)
-          assert.equal(item.fulfillment_status, 'pending')
+          assert.equal(item.fulfillment_status, 'cancelled')
           assert.equal(item.fulfillment_id, res.body.fulfillments[0].id)
         })
 
         // Fulfillment
         assert.equal(res.body.fulfillments.length, 1)
         res.body.fulfillments.forEach(fulfillment => {
-          assert.equal(fulfillment.status, 'pending')
+          assert.equal(fulfillment.status, 'cancelled')
           assert.equal(fulfillment.order_id, orderID)
+          assert.equal(fulfillment.total_cancelled, 1)
         })
-        assert.equal(res.body.total_pending_fulfillments, 1)
+        assert.equal(res.body.total_pending_fulfillments, 0)
         assert.equal(res.body.total_sent_fulfillments, 0)
         assert.equal(res.body.total_fulfilled_fulfillments, 0)
         assert.equal(res.body.total_partial_fulfillments, 0)
+        assert.equal(res.body.total_cancelled_fulfillments, 1)
 
         // Transactions
         assert.equal(res.body.transactions.length, 1)
         transactionID = res.body.transactions[0].id
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.kind, 'authorize')
-          assert.equal(transaction.status, 'success')
-          assert.equal(transaction.source_name, 'web')
-          assert.equal(transaction.order_id, orderID)
-        })
-        assert.equal(res.body.total_pending, 0)
-        assert.equal(res.body.total_authorized, shopProducts[10].price)
-        assert.equal(res.body.total_voided, 0)
-        assert.equal(res.body.total_cancelled, 0)
-        assert.equal(res.body.total_captured, 0)
-        assert.equal(res.body.total_refunds, 0)
-
-        done(err)
-      })
-  })
-  it('should capture pending transaction by id', (done) => {
-    adminUser
-      .post(`/order/${orderID}/capture`)
-      .send([{
-        transaction: transactionID
-      }])
-      .expect(200)
-      .end((err, res) => {
-        assert.ok(res.body.id)
-        assert.ok(res.body.token)
-        assert.equal(res.body.customer_id, customerID)
-        assert.equal(res.body.payment_kind, 'manual')
-        assert.equal(res.body.transaction_kind, 'authorize')
-        assert.equal(res.body.fulfillment_kind, 'immediate')
-
-        assert.equal(res.body.currency, 'USD')
-        assert.equal(res.body.source_name, 'api')
-        assert.equal(res.body.processing_method, 'checkout')
-        assert.equal(res.body.financial_status, 'paid')
-
-        // This is a digital good
-        assert.equal(res.body.fulfillment_status, 'fulfilled')
-        assert.equal(res.body.status, 'closed')
-        assert.equal(_.isString(res.body.closed_at), true)
-
-        // Discounts
-        assert.equal(res.body.discounted_lines.length, 0)
-
-        // Pricing
-        assert.equal(res.body.total_line_items_price, shopProducts[10].price)
-        assert.equal(res.body.subtotal_price, shopProducts[10].price)
-        assert.equal(res.body.total_price, shopProducts[10].price)
-        assert.equal(res.body.total_due, 0)
-        assert.equal(res.body.total_discounts, 0)
-
-        // Order Items
-        assert.equal(res.body.order_items.length, 1)
-        assert.equal(res.body.total_items, 1)
-        assert.equal(res.body.order_items[0].price, shopProducts[10].price)
-        assert.equal(res.body.order_items[0].price_per_unit, shopProducts[10].price)
-        assert.equal(res.body.order_items[0].calculated_price, shopProducts[10].price)
-        assert.equal(res.body.order_items[0].total_discounts, 0)
-
-        res.body.order_items.forEach(item => {
-          assert.equal(item.order_id, orderID)
-          assert.equal(item.fulfillment_status, 'fulfilled')
-          assert.equal(item.fulfillment_id, res.body.fulfillments[0].id)
-        })
-
-        // Fulfillment
-        assert.equal(res.body.fulfillments.length, 1)
-        res.body.fulfillments.forEach(fulfillment => {
-          assert.equal(fulfillment.status, 'fulfilled')
-          assert.equal(fulfillment.order_id, orderID)
-        })
-        assert.equal(res.body.total_pending_fulfillments, 0)
-        assert.equal(res.body.total_sent_fulfillments, 0)
-        assert.equal(res.body.total_fulfilled_fulfillments, 1)
-        assert.equal(res.body.total_partial_fulfillments, 0)
-        assert.equal(res.body.total_cancelled_fulfillments, 0)
-
-        // Transactions
-        assert.equal(res.body.transactions.length, 1)
-        transactionID = res.body.transactions[0].id
-        res.body.transactions.forEach(transaction => {
-          assert.equal(transaction.kind, 'capture')
-          assert.equal(transaction.status, 'success')
+          assert.equal(transaction.status, 'cancelled')
           assert.equal(transaction.source_name, 'web')
           assert.equal(transaction.order_id, orderID)
         })
         assert.equal(res.body.total_pending, 0)
         assert.equal(res.body.total_authorized, 0)
         assert.equal(res.body.total_voided, 0)
-        assert.equal(res.body.total_cancelled, 0)
-        assert.equal(res.body.total_captured, shopProducts[10].price)
+        assert.equal(res.body.total_cancelled, shopProducts[10].price)
+        assert.equal(res.body.total_captured, 0)
         assert.equal(res.body.total_refunds, 0)
 
         done(err)

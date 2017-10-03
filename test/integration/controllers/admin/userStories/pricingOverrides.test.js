@@ -187,6 +187,7 @@ describe('Admin User Pricing Override', () => {
         assert.equal(res.body.order.total_sent_fulfillments, 0)
         assert.equal(res.body.order.total_pending_fulfillments, 0)
         assert.equal(res.body.order.total_partial_fulfillments, 0)
+        assert.equal(res.body.order.total_cancelled_fulfillments, 0)
 
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
