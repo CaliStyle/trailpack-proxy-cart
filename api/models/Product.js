@@ -269,7 +269,16 @@ module.exports = class Product extends Model {
                     return []
                   }
                 })
-                .then(collections => {
+                .then(() => {
+                  if (resProduct && options.req && options.req.customer) {
+                    return resProduct.getCustomerHistory(options.req.customer, {transaction: options.transaction || null})
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
+
                   if (resProduct) {
                     return resProduct.calculate({transaction: options.transaction || null})
                   }
@@ -311,7 +320,15 @@ module.exports = class Product extends Model {
                     return []
                   }
                 })
-                .then(collections => {
+                .then(() => {
+                  if (resProduct && options.req && options.req.customer) {
+                    return resProduct.getCustomerHistory(options.req.customer, {transaction: options.transaction || null})
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
                   if (resProduct) {
                     return resProduct.calculate({transaction: options.transaction || null})
                   }
@@ -352,14 +369,21 @@ module.exports = class Product extends Model {
                     return resProduct.set('collections', [], {raw: true})
                   }
                 })
-                .then(collections => {
+                .then(() => {
+                  if (resProduct && options.req && options.req.customer) {
+                    return resProduct.getCustomerHistory(options.req.customer, {transaction: options.transaction || null})
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
                   if (resProduct) {
                     return resProduct.calculate({transaction: options.transaction || null})
                   }
                   else {
                     return resProduct
                   }
-
                 })
             },
             /**
@@ -447,6 +471,80 @@ module.exports = class Product extends Model {
             }
           },
           instanceMethods: {
+            getCustomerHistory: function(customer, options) {
+              options = options || {}
+              let hasPurchaseHistory = false, isSubscribed = false
+              return this.hasPurchaseHistory(customer.id, options)
+                .then(pHistory => {
+                  hasPurchaseHistory = pHistory
+                  return this.isSubscribed(customer.id, options)
+                })
+                .then(pHistory => {
+                  isSubscribed = pHistory
+                  this.setDataValue('has_purchase_history', hasPurchaseHistory)
+                  this.setDataValue('is_subscribed', isSubscribed)
+                  return this
+                })
+                .catch(err => {
+                  this.setDataValue('has_purchase_history', hasPurchaseHistory)
+                  this.setDataValue('is_subscribed', isSubscribed)
+                  return this
+                })
+            },
+            /**
+             *
+             * @param customerId
+             * @param options
+             * @returns {Promise.<boolean>}
+             */
+            hasPurchaseHistory: function(customerId, options) {
+              options = options || {}
+              return app.orm['OrderItem'].findOne({
+                where: {
+                  customer_id: customerId,
+                  product_id: this.id
+                },
+                attributes: ['id'],
+                transaction: options.transaction || null
+              })
+                .then(pHistory => {
+                  if (pHistory) {
+                    return true
+                  }
+                  else {
+                    return false
+                  }
+                })
+                .catch(err => {
+                  return false
+                })
+            },
+            isSubscribed: function(customerId, options) {
+              options = options || {}
+              return app.orm['Subscription'].findOne({
+                where: {
+                  customer_id: customerId,
+                  line_items: {
+                    $contains: [{
+                      product_id: this.id
+                    }]
+                  }
+                },
+                attributes: ['id'],
+                transaction: options.transaction || null
+              })
+                .then(pHistory => {
+                  if (pHistory) {
+                    return true
+                  }
+                  else {
+                    return false
+                  }
+                })
+                .catch(err => {
+                  return false
+                })
+            },
             calculate: function (options) {
               options = options || {}
               if (!this) {

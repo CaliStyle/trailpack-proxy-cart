@@ -18,6 +18,7 @@
   ],
   "dependencies": {
     "babyparse": "^0.4.6",
+    "boom": "^6.0.0",
     "currency-formatter": "^1.2.1",
     "geolib": "^2.0.22",
     "joi": "^10.2.2",
@@ -35,10 +36,10 @@
     "striptags": "^3.0.1",
     "trailpack": "^2.0.0",
     "trailpack-proxy-cart-countries": "^0.0.7",
-    "trailpack-proxy-engine": "^1.1.0",
     "trailpack-proxy-email": "^1.0.0",
+    "trailpack-proxy-engine": "^1.1.0",
     "trailpack-proxy-generics": "^1.2.0",
-    "trailpack-proxy-notifications": "^1.0.6",
+    "trailpack-proxy-notifications": "^1.1.1",
     "trailpack-proxy-passport": "^1.0.9",
     "trailpack-proxy-permissions": "^1.1.0",
     "utf8": "^2.1.2"

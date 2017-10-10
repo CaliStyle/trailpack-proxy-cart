@@ -39,7 +39,6 @@ describe('Admin User Cancel Order', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('User Story', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.total_discounts, 0)
         assert.equal(res.body.pricing_overrides.length, 0)
@@ -151,8 +150,6 @@ describe('Admin User Cancel Order', () => {
       .send({})
       .expect(200)
       .end((err, res) => {
-
-        console.log('user story', res.body)
 
         assert.ok(res.body.id)
         assert.ok(res.body.token)

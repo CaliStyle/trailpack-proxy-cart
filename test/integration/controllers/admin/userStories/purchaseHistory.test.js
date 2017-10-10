@@ -4,8 +4,8 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Admin User Manual Fulfillment', () => {
-  let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID, fulfillmentID
+describe('Admin User Purchase History', () => {
+  let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID, transactionID
 
   before((done) => {
     shopID = global.app.shopID
@@ -27,30 +27,24 @@ describe('Admin User Manual Fulfillment', () => {
         done(err)
       })
   })
-
-  it('should add product to cart that has manual fulfilment', done => {
+  it('should add product to cart', done => {
     adminUser
       .post('/cart/addItems')
       .send({
         line_items: [
           {
-            product_id: shopProducts[9].id
+            product_id: shopProducts[11].id
           }
         ]
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('User Story', res.body)
         assert.ok(res.body.id)
-        assert.equal(res.body.total_discounts, 0)
-        assert.equal(res.body.pricing_overrides.length, 0)
-        assert.equal(res.body.total_overrides, 0)
-        assert.equal(res.body.total_due, 100000)
         done(err)
       })
   })
 
-  it('should checkout and item should be pending fulfillment', (done) => {
+  it('should checkout and item', (done) => {
     adminUser
       .post('/cart/checkout')
       .send({
@@ -62,11 +56,10 @@ describe('Admin User Manual Fulfillment', () => {
             gateway_token: '123'
           }
         ],
-        fulfillment_kind: 'manual'
+        fulfillment_kind: 'immediate'
       })
       .expect(200)
       .end((err, res) => {
-
         orderID = res.body.order.id
 
         assert.ok(res.body.order.id)
@@ -74,68 +67,69 @@ describe('Admin User Manual Fulfillment', () => {
         assert.equal(res.body.order.customer_id, customerID)
         assert.equal(res.body.order.payment_kind, 'immediate')
         assert.equal(res.body.order.transaction_kind, 'sale')
-        assert.equal(res.body.order.fulfillment_kind, 'manual')
-        assert.equal(res.body.order.financial_status, 'paid')
+        assert.equal(res.body.order.fulfillment_kind, 'immediate')
 
         assert.equal(res.body.order.currency, 'USD')
         assert.equal(res.body.order.source_name, 'api')
         assert.equal(res.body.order.processing_method, 'checkout')
+        assert.equal(res.body.order.financial_status, 'paid')
 
         // This is a digital good
-        assert.equal(res.body.order.fulfillment_status, 'pending')
-        assert.equal(res.body.order.status, 'open')
-        assert.equal(res.body.order.closed_at, null)
+        assert.equal(res.body.order.fulfillment_status, 'fulfilled')
+        assert.equal(res.body.order.status, 'closed')
+        assert.equal(_.isString(res.body.order.closed_at), true)
 
         // Discounts
         assert.equal(res.body.order.discounted_lines.length, 0)
 
         // Pricing
-        assert.equal(res.body.order.total_line_items_price, shopProducts[9].price)
-        assert.equal(res.body.order.subtotal_price, shopProducts[9].price)
-        assert.equal(res.body.order.total_price, shopProducts[9].price)
+        assert.equal(res.body.order.total_line_items_price, shopProducts[11].price)
+        assert.equal(res.body.order.subtotal_price, shopProducts[11].price)
+        assert.equal(res.body.order.total_price, shopProducts[11].price)
         assert.equal(res.body.order.total_due, 0)
         assert.equal(res.body.order.total_discounts, 0)
+        assert.equal(res.body.order.total_captured, shopProducts[11].price)
 
         // Order Items
         assert.equal(res.body.order.order_items.length, 1)
         assert.equal(res.body.order.total_items, 1)
-        assert.equal(res.body.order.order_items[0].price, shopProducts[9].price)
-        assert.equal(res.body.order.order_items[0].price_per_unit, shopProducts[9].price)
-        assert.equal(res.body.order.order_items[0].calculated_price, shopProducts[9].price)
+        assert.equal(res.body.order.order_items[0].price, shopProducts[11].price)
+        assert.equal(res.body.order.order_items[0].price_per_unit, shopProducts[11].price)
+        assert.equal(res.body.order.order_items[0].calculated_price, shopProducts[11].price)
         assert.equal(res.body.order.order_items[0].total_discounts, 0)
 
         res.body.order.order_items.forEach(item => {
           assert.equal(item.order_id, orderID)
-          assert.equal(item.fulfillment_status, 'pending')
+          assert.equal(item.fulfillment_status, 'fulfilled')
           assert.equal(item.fulfillment_id, res.body.order.fulfillments[0].id)
         })
 
         // Fulfillment
         assert.equal(res.body.order.fulfillments.length, 1)
         res.body.order.fulfillments.forEach(fulfillment => {
-          assert.equal(fulfillment.status, 'pending')
+          assert.equal(fulfillment.status, 'fulfilled')
           assert.equal(fulfillment.order_id, orderID)
         })
-        assert.equal(res.body.order.total_fulfilled_fulfillments, 0)
+        assert.equal(res.body.order.total_pending_fulfillments, 0)
         assert.equal(res.body.order.total_sent_fulfillments, 0)
+        assert.equal(res.body.order.total_fulfilled_fulfillments, 1)
         assert.equal(res.body.order.total_partial_fulfillments, 0)
-        assert.equal(res.body.order.total_pending_fulfillments, 1)
-        assert.equal(res.body.order.total_cancelled_fulfillments, 0)
 
         // Transactions
         assert.equal(res.body.order.transactions.length, 1)
+        transactionID = res.body.order.transactions[0].id
         res.body.order.transactions.forEach(transaction => {
           assert.equal(transaction.kind, 'sale')
           assert.equal(transaction.status, 'success')
           assert.equal(transaction.source_name, 'web')
           assert.equal(transaction.order_id, orderID)
         })
-        assert.equal(res.body.order.total_captured, shopProducts[9].price)
+        assert.equal(res.body.order.total_pending, 0)
         assert.equal(res.body.order.total_authorized, 0)
         assert.equal(res.body.order.total_voided, 0)
-        assert.equal(res.body.order.total_pending, 0)
         assert.equal(res.body.order.total_cancelled, 0)
         assert.equal(res.body.order.total_refunds, 0)
+        assert.equal(res.body.order.total_captured, shopProducts[11].price)
 
         // Events: Removed from the default query
         // assert.equal(res.body.order.events.length, 4)
@@ -146,16 +140,14 @@ describe('Admin User Manual Fulfillment', () => {
         done(err)
       })
   })
-  it('should fulfill pending fulfillment by id', (done) => {
+  it('should have purchase history with product', done => {
     adminUser
-      .post(`/order/${orderID}/send`)
-      .send([{
-        fulfillment: fulfillmentID
-      }])
+      .get(`/product/handle/${shopProducts[11].handle}`)
       .expect(200)
       .end((err, res) => {
-        console.log('fulfillment user story',res.body)
 
+        assert.equal(res.body.has_purchase_history, true)
+        assert.equal(res.body.is_subscribed, true)
         done(err)
       })
   })

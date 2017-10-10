@@ -408,6 +408,88 @@ module.exports = class Customer extends Model {
             }
           },
           instanceMethods: {
+            /**
+             *
+             * @param product
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
+            getProductHistory(product, options) {
+              options = options || {}
+              let hasPurchaseHistory = false, isSubscribed = false
+              return this.hasPurchaseHistory(product.id, options)
+                .then(pHistory => {
+                  hasPurchaseHistory = pHistory
+                  return this.isSubscribed(product.id, options)
+                })
+                .then(pHistory => {
+                  isSubscribed = pHistory
+                  return {
+                    has_purchase_history: hasPurchaseHistory,
+                    is_subscribed: isSubscribed
+                  }
+                })
+                .catch(err => {
+                  return {
+                    has_purchase_history: hasPurchaseHistory,
+                    is_subscribed: isSubscribed
+                  }
+                })
+            },
+            /**
+             *
+             * @param productId
+             * @param options
+             * @returns {Promise.<boolean>}
+             */
+            hasPurchaseHistory: function(productId, options) {
+              options = options || {}
+              return app.orm['OrderItem'].findOne({
+                where: {
+                  customer_id: this.id,
+                  product_id: productId
+                },
+                attributes: ['id'],
+                transaction: options.transaction || null
+              })
+                .then(pHistory => {
+                  if (pHistory) {
+                    return true
+                  }
+                  else {
+                    return false
+                  }
+                })
+                .catch(err => {
+                  return false
+                })
+            },
+            isSubscribed: function(productId, options) {
+              options = options || {}
+              return app.orm['Subscription'].findOne({
+                where: {
+                  customer_id: this.id,
+                  line_items: {
+                    $contains: [{
+                      product_id: productId
+                    }]
+                  }
+                },
+                attributes: ['id'],
+                transaction: options.transaction || null
+              })
+                .then(pHistory => {
+                  if (pHistory) {
+                    return true
+                  }
+                  else {
+                    return false
+                  }
+                })
+                .catch(err => {
+                  return false
+                })
+            },
             getDefaultSource: function (options) {
               options = options || {}
               const Source = app.orm['Source']

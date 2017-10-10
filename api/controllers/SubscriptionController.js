@@ -409,9 +409,9 @@ module.exports = class SubscriptionController extends Controller {
    */
   events(req, res) {
     const Event = this.app.orm['Event']
-    const orderId = req.params.id
+    const subscriptionId = req.params.id
 
-    if (!orderId && !req.user) {
+    if (!subscriptionId && !req.user) {
       const err = new Error('A order id and a user in session are required')
       return res.send(401, err)
     }
@@ -423,7 +423,7 @@ module.exports = class SubscriptionController extends Controller {
     Event.findAndCount({
       order: sort,
       where: {
-        object_id: orderId,
+        object_id: subscriptionId,
         object: 'subscription'
       },
       offset: offset,

@@ -204,6 +204,12 @@ module.exports = class OrderService extends Service {
             // })
           })
 
+          // Make sure all order items are given the customer id
+          const lineItems = obj.line_items.map(item => {
+            item.customer_id = resCustomer.id || null
+            return item
+          })
+
           const order = Order.build({
             // Order Info
             processing_method: obj.processing_method || PAYMENT_PROCESSING_METHOD.DIRECT,
@@ -213,7 +219,7 @@ module.exports = class OrderService extends Service {
             cart_token: obj.cart_token,
             subscription_token: obj.subscription_token,
             currency: obj.currency,
-            order_items: obj.line_items,
+            order_items: lineItems,
             tax_lines: obj.tax_lines,
             shipping_lines: obj.shipping_lines,
             discounted_lines: obj.discounted_lines,

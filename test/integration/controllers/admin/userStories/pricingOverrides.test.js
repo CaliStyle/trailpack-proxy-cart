@@ -92,7 +92,6 @@ describe('Admin User Pricing Override', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('User Story', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.total_discounts, 0)
         assert.equal(res.body.pricing_overrides.length, 1)

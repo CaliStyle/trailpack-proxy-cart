@@ -308,5 +308,30 @@
       "Dummy Collection"
     ],
     "sku": "manual-payment-123"
+  },
+  {
+    "handle": "product-with-purchase-history",
+    "title": "Product with Purchase History",
+    "body": "<strong>Product with Purchase History</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "purchase-history"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "purchase-history-123"
   }
 ]

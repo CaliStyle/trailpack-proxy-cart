@@ -53,7 +53,6 @@ describe('Admin User Account Balance', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('User Story', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.total_discounts, 0)
         assert.equal(res.body.pricing_overrides.length, 0)
@@ -169,7 +168,6 @@ describe('Admin User Account Balance', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('User Story', res.body)
         assert.ok(res.body.id)
         assert.equal(res.body.total_discounts, 0)
         assert.equal(res.body.pricing_overrides.length, 1)
@@ -207,7 +205,6 @@ describe('Admin User Account Balance', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('User Story', res.body.order)
         orderID = res.body.order.id
 
         assert.ok(res.body.order.id)
@@ -288,7 +285,7 @@ describe('Admin User Account Balance', () => {
       })
   })
 
-  it('It should get customer and Account Balance should now be 0', (done) => {
+  it('should get customer and Account Balance should now be 0', (done) => {
     adminUser
       .get(`/customer/${ customerID }`)
       .expect(200)
@@ -296,5 +293,10 @@ describe('Admin User Account Balance', () => {
         assert.equal(res.body.account_balance, 0)
         done(err)
       })
+  })
+
+  // TODO
+  it.skip('should refund account balance if order is refunded', (done) => {
+
   })
 })

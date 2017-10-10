@@ -53,7 +53,6 @@ describe('Registered User Login, Logout, recover, and log back in', () => {
       .set('Accept', 'application/json')
       .expect(200)
       .end((err, res) => {
-        console.log('This User', res.body)
         assert.ok(res.body.user.id, userID)
         assert.equal(res.body.user.current_customer_id, customerID)
         assert.equal(res.body.user.current_cart_id, cartID)

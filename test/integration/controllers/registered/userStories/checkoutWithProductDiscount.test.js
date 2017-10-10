@@ -43,7 +43,6 @@ describe('Registered User Checkout With Product Discount', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('User Story', res.body.discounted_lines)
         // Cart
         assert.equal(res.body.has_shipping, false)
         // TODO taxes

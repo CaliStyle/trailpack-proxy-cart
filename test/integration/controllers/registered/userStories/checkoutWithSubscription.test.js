@@ -289,7 +289,6 @@ describe('Registered User Checkout With Subscription', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('user story', err)
         assert.equal(res.body.id, subscriptionID)
         assert.ok(res.body.token)
         assert.equal(res.body.active, true)

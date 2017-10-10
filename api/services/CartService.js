@@ -231,10 +231,15 @@ module.exports = class CartService extends Service {
           return this.createAndSwitch(req, {transaction: options.transaction || null})
         })
         .then(newCart => {
-          return {
+
+          const results = {
             cart: newCart,
-            order: resOrder
+            order: resOrder,
           }
+          if (resOrder.Customer) {
+            results.customer = resOrder.Customer
+          }
+          return results
         })
     })
   }
@@ -376,7 +381,7 @@ module.exports = class CartService extends Service {
       })
       .then(paymentDetails => {
 
-        const newOrder = resCart.buildOrder({
+        return resCart.buildOrder({
           // Request info
           client_details: req.body.client_details,
           ip: req.body.ip,
@@ -393,8 +398,6 @@ module.exports = class CartService extends Service {
           // User ID
           user_id: userID || null,
         })
-
-        return newOrder
       })
   }
 

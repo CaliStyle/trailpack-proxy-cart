@@ -1875,4 +1875,18 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  hasPuchasedProduct(req, res) {
+    if (!req.customer) {
+      const err = new Error('A customer must be logged in')
+      return res.send(401, err)
+    }
+  }
+
+  isSubscribedToProduct(req, res) {
+    if (!req.customer) {
+      const err = new Error('A customer must be logged in')
+      return res.send(401, err)
+    }
+  }
 }

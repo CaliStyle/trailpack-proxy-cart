@@ -230,6 +230,11 @@ module.exports = class Order extends Model {
                 constraints: false
               })
             },
+            /**
+             *
+             * @param id
+             * @param options
+             */
             findByIdDefault: function(id, options) {
               options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Order.default(app),
@@ -237,6 +242,12 @@ module.exports = class Order extends Model {
               )
               return this.findById(id, options)
             },
+            /**
+             *
+             * @param token
+             * @param options
+             * @returns {*|Promise.<Model>}
+             */
             findByTokenDefault: function(token, options) {
               options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Order.default(app),
@@ -249,6 +260,11 @@ module.exports = class Order extends Model {
               )
               return this.findOne(options)
             },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<{count: Integer, rows: Model[]}>}
+             */
             findAndCountDefault: function(options) {
               options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Order.default(app),
@@ -334,7 +350,7 @@ module.exports = class Order extends Model {
               return this
             },
             /**
-             *
+             * closes the order
              */
             close: function() {
               this.status = ORDER_STATUS.CLOSED
@@ -1347,6 +1363,7 @@ module.exports = class Order extends Model {
 
               return OrderItem.build({
                 order_id: this.id,
+                customer_id: this.customer_id,
                 product_id: item.product_id,
                 title: item.Product.title,
                 product_handle: item.Product.handle,

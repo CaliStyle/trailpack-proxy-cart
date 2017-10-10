@@ -88,6 +88,9 @@ module.exports = class OrderItem extends Model {
               models.OrderItem.belongsTo(models.Order, {
 
               })
+              models.OrderItem.belongsTo(models.Customer, {
+
+              })
               models.OrderItem.belongsTo(models.Fulfillment, {
 
               })
@@ -277,6 +280,14 @@ module.exports = class OrderItem extends Model {
           //   key: 'id'
           // },
           allowNull: false
+        },
+        customer_id: {
+          type: Sequelize.INTEGER,
+          // references: {
+          //   model: 'Customer',
+          //   key: 'id'
+          // }
+          // allowNull: false
         },
         fulfillment_id: {
           type: Sequelize.INTEGER,

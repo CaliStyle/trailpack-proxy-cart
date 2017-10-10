@@ -73,7 +73,6 @@ describe('Registered User Checkout With Collection Discount', () => {
       })
       .expect(200)
       .end((err, res) => {
-        // console.log('User Story', res.body.line_items)
 
         // Cart
         assert.equal(res.body.has_shipping, true)
