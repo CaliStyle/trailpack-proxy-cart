@@ -3,7 +3,7 @@
 const Model = require('trails/model')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
-const UNITS = require('../utils/enums').UNITS
+const UNITS = require('../../lib').Enums.UNITS
 
 /**
  * @module Shop

@@ -6,12 +6,12 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
 // const helpers = require('proxy-engine-helpers')
-const COLLECTION_SORT_ORDER = require('../utils/enums').COLLECTION_SORT_ORDER
-const COLLECTION_PURPOSE = require('../utils/enums').COLLECTION_PURPOSE
-const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
-const COLLECTION_DISCOUNT_TYPE = require('../utils/enums').COLLECTION_DISCOUNT_TYPE
-const COLLECTION_TAX_TYPE = require('../utils/enums').COLLECTION_TAX_TYPE
-const COLLECTION_SHIPPING_TYPE = require('../utils/enums').COLLECTION_SHIPPING_TYPE
+const COLLECTION_SORT_ORDER = require('../../lib').Enums.COLLECTION_SORT_ORDER
+const COLLECTION_PURPOSE = require('../../lib').Enums.COLLECTION_PURPOSE
+const COLLECTION_DISCOUNT_SCOPE = require('../../lib').Enums.COLLECTION_DISCOUNT_SCOPE
+const COLLECTION_DISCOUNT_TYPE = require('../../lib').Enums.COLLECTION_DISCOUNT_TYPE
+const COLLECTION_TAX_TYPE = require('../../lib').Enums.COLLECTION_TAX_TYPE
+const COLLECTION_SHIPPING_TYPE = require('../../lib').Enums.COLLECTION_SHIPPING_TYPE
 
 /**
  * @module CollectionUpload

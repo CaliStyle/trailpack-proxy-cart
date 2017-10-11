@@ -6,8 +6,8 @@ const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
-const CART_STATUS = require('../utils/enums').CART_STATUS
-const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
+const CART_STATUS = require('../../lib').Enums.CART_STATUS
+const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
 const queryDefaults = require('../utils/queryDefaults')
 
 /**

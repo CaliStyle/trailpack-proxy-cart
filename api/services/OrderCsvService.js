@@ -6,7 +6,7 @@ const csvParser = require('babyparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
-const ORDER_UPLOAD = require('../utils/enums').ORDER_UPLOAD
+const ORDER_UPLOAD = require('../../lib').Enums.ORDER_UPLOAD
 
 /**
  * @module OrderCsvService

@@ -3,9 +3,10 @@
 const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
+const discounts = require('../../../fixtures/discounts')
 
 describe('Admin User DiscountController', () => {
-  let adminUser, userID, customerID
+  let adminUser, userID, customerID, discountID
 
   before((done) => {
 
@@ -26,6 +27,78 @@ describe('Admin User DiscountController', () => {
   })
   it('should exist', () => {
     assert(global.app.api.controllers['DiscountController'])
+  })
+  it('should create a discount', (done) => {
+    const discount = discounts[0]
+    adminUser
+      .post('/discount')
+      .send(discount)
+      .expect(200)
+      .end((err, res) => {
+        discountID = res.body.id
+        assert.ok(res.body)
+        assert.equal(res.body.name, discount.name)
+        assert.equal(res.body.description, discount.description)
+        assert.equal(res.body.code, discount.code)
+        assert.equal(res.body.discount_type, discount.discount_type)
+        assert.equal(res.body.discount_rate, discount.discount_rate)
+        assert.equal(res.body.status, discount.status)
+        assert.equal(res.body.minimum_order_amount, discount.minimum_order_amount)
+        assert.equal(res.body.usage_limit, discount.usage_limit)
+        assert.equal(res.body.applies_to_id, discount.applies_to_id)
+        assert.equal(res.body.applies_to_model, discount.applies_to_model)
+        assert.equal(res.body.applies_compound, false)
+
+        done(err)
+      })
+  })
+  it('should update a discount', (done) => {
+    const discount = discounts[0]
+
+    adminUser
+      .post(`/discount/${discountID}`)
+      .send({
+        applies_compound: true
+      })
+      .expect(200)
+      .end((err, res) => {
+        console.log('Admin User DiscountController',res.body)
+        assert.ok(res.body)
+        assert.equal(res.body.name, discount.name)
+        assert.equal(res.body.description, discount.description)
+        assert.equal(res.body.code, discount.code)
+        assert.equal(res.body.discount_type, discount.discount_type)
+        assert.equal(res.body.discount_rate, discount.discount_rate)
+        assert.equal(res.body.status, discount.status)
+        assert.equal(res.body.minimum_order_amount, discount.minimum_order_amount)
+        assert.equal(res.body.usage_limit, discount.usage_limit)
+        assert.equal(res.body.applies_to_id, discount.applies_to_id)
+        assert.equal(res.body.applies_to_model, discount.applies_to_model)
+        assert.equal(res.body.applies_compound, true)
+        done(err)
+      })
+  })
+  it('should destroy a discount', (done) => {
+    const discount = discounts[0]
+
+    adminUser
+      .del(`/discount/${discountID}`)
+      .expect(200)
+      .end((err, res) => {
+        console.log('Admin User DiscountController',res.body)
+        assert.equal(res.body.name, discount.name)
+        assert.equal(res.body.description, discount.description)
+        assert.equal(res.body.code, discount.code)
+        assert.equal(res.body.discount_type, discount.discount_type)
+        assert.equal(res.body.discount_rate, discount.discount_rate)
+        assert.equal(res.body.status, discount.status)
+        assert.equal(res.body.minimum_order_amount, discount.minimum_order_amount)
+        assert.equal(res.body.usage_limit, discount.usage_limit)
+        assert.equal(res.body.applies_to_id, discount.applies_to_id)
+        assert.equal(res.body.applies_to_model, discount.applies_to_model)
+        assert.equal(res.body.applies_compound, true)
+        done(err)
+      })
   })
   it('should get discounts', (done) => {
     adminUser

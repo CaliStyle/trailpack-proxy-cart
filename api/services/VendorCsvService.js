@@ -6,7 +6,7 @@ const csvParser = require('babyparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
-const VENDOR_UPLOAD = require('../utils/enums').VENDOR_UPLOAD
+const VENDOR_UPLOAD = require('../../lib').Enums.VENDOR_UPLOAD
 
 /**
  * @module VendorCsvService

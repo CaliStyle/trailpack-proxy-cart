@@ -6,8 +6,8 @@ const csvParser = require('babyparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
-const PRODUCT_UPLOAD = require('../utils/enums').PRODUCT_UPLOAD
-const PRODUCT_META_UPLOAD = require('../utils/enums').PRODUCT_META_UPLOAD
+const PRODUCT_UPLOAD = require('../../lib').Enums.PRODUCT_UPLOAD
+const PRODUCT_META_UPLOAD = require('../../lib').Enums.PRODUCT_META_UPLOAD
 
 /**
  * @module ProductCsvService

@@ -5,8 +5,8 @@
 const Model = require('trails/model')
 const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
-const UNITS = require('../utils/enums').UNITS
-const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
+const UNITS = require('../../lib').Enums.UNITS
+const PRODUCT_DEFAULTS = require('../../lib').Enums.PRODUCT_DEFAULTS
 const queryDefaults = require('../utils/queryDefaults')
 const _ = require('lodash')
 // const Errors = require('proxy-engine-errors')

@@ -7,8 +7,8 @@ const _ = require('lodash')
 const helpers = require('proxy-engine-helpers')
 const Errors = require('proxy-engine-errors')
 const queryDefaults = require('../utils/queryDefaults')
-const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
-const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
+const FULFILLMENT_STATUS = require('../../lib').Enums.FULFILLMENT_STATUS
+const FULFILLMENT_SERVICE = require('../../lib').Enums.FULFILLMENT_SERVICE
 /**
  * @module Fulfillment
  * @description Fulfillment Model

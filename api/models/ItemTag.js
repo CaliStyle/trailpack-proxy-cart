@@ -1,7 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const TAG_MODELS = require('../utils/enums').TAG_MODELS
+const TAG_MODELS = require('../../lib').Enums.TAG_MODELS
 const _ = require('lodash')
 
 /**

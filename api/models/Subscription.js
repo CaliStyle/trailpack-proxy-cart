@@ -8,9 +8,9 @@ const moment = require('moment')
 const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const queryDefaults = require('../utils/queryDefaults')
-const INTERVALS = require('../utils/enums').INTERVALS
-const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
-const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
+const INTERVALS = require('../../lib').Enums.INTERVALS
+const SUBSCRIPTION_CANCEL = require('../../lib').Enums.SUBSCRIPTION_CANCEL
+const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
 
 /**
  * @module Subscription

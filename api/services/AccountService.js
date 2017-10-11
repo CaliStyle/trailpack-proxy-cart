@@ -4,7 +4,7 @@
 const Service = require('trails/service')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
-const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
+const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
 
 /**
  * @module AccountService

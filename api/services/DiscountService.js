@@ -5,56 +5,90 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const moment = require('moment')
-const COLLECTION_DISCOUNT_TYPE = require('../utils/enums').COLLECTION_DISCOUNT_TYPE
-const COLLECTION_DISCOUNT_SCOPE = require('../utils/enums').COLLECTION_DISCOUNT_SCOPE
+const COLLECTION_DISCOUNT_TYPE = require('../../lib').Enums.COLLECTION_DISCOUNT_TYPE
+const COLLECTION_DISCOUNT_SCOPE = require('../../lib').Enums.COLLECTION_DISCOUNT_SCOPE
 /**
  * @module DiscountService
  * @description Discount Service
  */
 module.exports = class DiscountService extends Service {
-  // TODO
-  create(data, options){
+  /**
+   *
+   * @param discount
+   * @param options
+   * @returns {Promise.<TResult>|*}
+   */
+  create(discount, options){
     options = options || {}
     const Discount = this.app.orm['Discount']
-    Discount.create(data, {transaction: options.transaction || null})
+    console.log('DiscountService.create', discount)
+    return Discount.create(discount, {transaction: options.transaction || null})
       .then(createdDiscount => {
+        if (!createdDiscount) {
+          throw new Error('Discount was not created')
+        }
         return createdDiscount
       })
   }
-  // TODO
-  update(data, options){
+
+  /**
+   * @param identifier
+   * @param discount
+   * @param options
+   * @returns {Promise.<TResult>|*}
+   */
+  update(identifier, discount, options){
     options = options || {}
     const Discount = this.app.orm['Discount']
-    Discount.resolve(data, {transaction: options.transaction || null})
+
+    let resDiscount
+    return Discount.resolve(identifier, {transaction: options.transaction || null})
       .then(foundDiscount => {
-        foundDiscount = _.extend(foundDiscount, data)
-        return foundDiscount.save({transaction: options.transaction || null})
+        if (!foundDiscount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = foundDiscount
+        return resDiscount.update(discount, {transaction: options.transaction || null})
+      })
+  }
+
+  /**
+   * @param identifier
+   * @param discount
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  destroy(identifier, options){
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    let resDiscount
+    return Discount.resolve(identifier, {transaction: options.transaction || null})
+      .then(foundDiscount => {
+        if (!foundDiscount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = foundDiscount
+        return resDiscount.destroy({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resDiscount
       })
   }
   // TODO
-  destroy(data, options){
+  start(identifier, options) {
     options = options || {}
     const Discount = this.app.orm['Discount']
-    Discount.resolve(data, {transaction: options.transaction || null})
-      .then(foundDiscount => {
-        return foundDiscount.destroy({transaction: options.transaction || null})
-      })
-  }
-  // TODO
-  start(discount, options) {
-    options = options || {}
-    const Discount = this.app.orm['Discount']
-    Discount.resolve(discount, {transaction: options.transaction || null})
+    return Discount.resolve(identifier, {transaction: options.transaction || null})
       .then(foundDiscount => {
         return foundDiscount.start({transaction: options.transaction || null})
       })
   }
 
   // TODO
-  expire(discount, options) {
+  expire(identifier, options) {
     options = options || {}
     const Discount = this.app.orm['Discount']
-    Discount.resolve(discount, {transaction: options.transaction || null})
+    return Discount.resolve(identifier, {transaction: options.transaction || null})
       .then(foundDiscount => {
         return foundDiscount.expire({transaction: options.transaction || null})
       })
@@ -118,19 +152,19 @@ module.exports = class DiscountService extends Service {
             }
             // console.log('cart checkout products', collection.products)
             // Check if Individual Scope
-            const inProducts = collection.products.some(product => product.id == item.product_id)
+            const inProducts = collection.products.some(product => product.id === item.product_id)
             // console.log('cart checkout apply individual', inProducts)
-            if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts == false){
+            if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts == false){
               return item
             }
             // const lineDiscountedLines = item.discounted_lines
             // Set the default Discounted Line
             const lineDiscountedLine = _.omit(_.clone(discountedLine),'lines')
 
-            if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.FIXED) {
+            if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.FIXED) {
               lineDiscountedLine.price =  discountedLine.rate
             }
-            else if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
+            else if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
               lineDiscountedLine.price = (item.price * discountedLine.percentage)
             }
 
@@ -161,7 +195,7 @@ module.exports = class DiscountService extends Service {
 
   calculateProduct(product, collections, options){
     options = options || {}
-    if (!product || !collections || collections.length == 0) {
+    if (!product || !collections || collections.length === 0) {
       return product
     }
     // Set the default
@@ -181,19 +215,19 @@ module.exports = class DiscountService extends Service {
         scope: collection.discount_scope,
         price: 0
       }
-      if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.FIXED) {
+      if (collection.discount_type === COLLECTION_DISCOUNT_TYPE.FIXED) {
         discountedLine.rate = collection.discount_rate
         discountedLine.type = COLLECTION_DISCOUNT_TYPE.FIXED
       }
-      else if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
+      else if (collection.discount_type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
         discountedLine.percentage = collection.discount_percentage
         discountedLine.type = COLLECTION_DISCOUNT_TYPE.PERCENTAGE
       }
 
-      if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.FIXED) {
+      if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.FIXED) {
         discountedLine.price =  discountedLine.rate
       }
-      else if (discountedLine.type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
+      else if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
         discountedLine.price = (product.price * discountedLine.percentage)
       }
 
@@ -202,9 +236,9 @@ module.exports = class DiscountService extends Service {
       }
       // console.log('cart checkout products', collection.products)
       // Check if Individual Scope
-      const inProducts = collection.products && collection.products.some(colProduct => colProduct.id == product.id)
+      const inProducts = collection.products && collection.products.some(colProduct => colProduct.id === product.id)
       // console.log('cart checkout apply individual', inProducts)
-      if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts == false){
+      if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts === false){
         return product
       }
 

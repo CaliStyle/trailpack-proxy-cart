@@ -8,16 +8,16 @@ const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 const shortId = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
-const ORDER_STATUS = require('../utils/enums').ORDER_STATUS
-const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
-const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
-const PAYMENT_KIND = require('../utils/enums').PAYMENT_KIND
-const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
-const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
-const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
-const ORDER_FULFILLMENT_KIND = require('../utils/enums').ORDER_FULFILLMENT_KIND
-const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
-const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
+const ORDER_STATUS = require('../../lib').Enums.ORDER_STATUS
+const ORDER_CANCEL = require('../../lib').Enums.ORDER_CANCEL
+const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
+const PAYMENT_KIND = require('../../lib').Enums.PAYMENT_KIND
+const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
+const TRANSACTION_KIND = require('../../lib').Enums.TRANSACTION_KIND
+const ORDER_FULFILLMENT = require('../../lib').Enums.ORDER_FULFILLMENT
+const ORDER_FULFILLMENT_KIND = require('../../lib').Enums.ORDER_FULFILLMENT_KIND
+const FULFILLMENT_STATUS = require('../../lib').Enums.FULFILLMENT_STATUS
+const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
 
 
 /**

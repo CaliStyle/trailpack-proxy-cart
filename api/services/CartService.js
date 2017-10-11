@@ -5,8 +5,8 @@ const Service = require('trails/service')
 const _ = require('lodash')
 const shortid = require('shortid')
 const Errors = require('proxy-engine-errors')
-const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
-const CART_STATUS = require('../utils/enums').CART_STATUS
+const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
+const CART_STATUS = require('../../lib').Enums.CART_STATUS
 
 /**
  * @module CartService

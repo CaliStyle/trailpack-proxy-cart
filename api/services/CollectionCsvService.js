@@ -6,7 +6,7 @@ const csvParser = require('babyparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
-const COLLECTION_UPLOAD = require('../utils/enums').COLLECTION_UPLOAD
+const COLLECTION_UPLOAD = require('../../lib').Enums.COLLECTION_UPLOAD
 
 /**
  * @module CollectionCsvService

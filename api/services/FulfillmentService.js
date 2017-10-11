@@ -4,9 +4,9 @@
 const Service = require('trails/service')
 // const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
-const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
-const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
-// const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
+const FULFILLMENT_SERVICE = require('../../lib').Enums.FULFILLMENT_SERVICE
+const FULFILLMENT_STATUS = require('../../lib').Enums.FULFILLMENT_STATUS
+// const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
 
 /**
  * @module FulfillmentService

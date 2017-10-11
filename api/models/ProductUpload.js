@@ -6,8 +6,8 @@
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
-const INTERVALS = require('../utils/enums').INTERVALS
-const INVENTORY_POLICY = require('../utils/enums').INVENTORY_POLICY
+const INTERVALS = require('../../lib').Enums.INTERVALS
+const INVENTORY_POLICY = require('../../lib').Enums.INVENTORY_POLICY
 /**
  * @module ProductUpload
  * @description Product Upload Model

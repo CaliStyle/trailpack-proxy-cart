@@ -6,10 +6,10 @@ const Model = require('trails/model')
 const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const queryDefaults = require('../utils/queryDefaults')
-const UNITS = require('../utils/enums').UNITS
-const INTERVALS = require('../utils/enums').INTERVALS
-const INVENTORY_POLICY = require('../utils/enums').INVENTORY_POLICY
-const VARIANT_DEFAULTS = require('../utils/enums').VARIANT_DEFAULTS
+const UNITS = require('../../lib').Enums.UNITS
+const INTERVALS = require('../../lib').Enums.INTERVALS
+const INVENTORY_POLICY = require('../../lib').Enums.INVENTORY_POLICY
+const VARIANT_DEFAULTS = require('../../lib').Enums.VARIANT_DEFAULTS
 const _ = require('lodash')
 
 /**

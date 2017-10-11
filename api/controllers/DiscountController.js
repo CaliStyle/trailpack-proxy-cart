@@ -1,3 +1,4 @@
+/* eslint no-console: [0] */
 'use strict'
 
 const Controller = require('trails/controller')
@@ -58,8 +59,17 @@ module.exports = class DiscountController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   create(req, res) {
     const DiscountService = this.app.services.DiscountService
+
+    req.body = req.body || {}
+
     lib.Validator.validateDiscount.create(req.body)
       .then(values => {
         return DiscountService.create(req.body)
@@ -74,11 +84,21 @@ module.exports = class DiscountController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   update(req, res) {
     const DiscountService = this.app.services.DiscountService
+
+    const discountID = req.params.id
+    req.body = req.body || {}
+
     lib.Validator.validateDiscount.update(req.body)
       .then(values => {
-        return DiscountService.update(req.body)
+        return DiscountService.update(discountID, req.body)
       })
       .then(discount => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, discount)
@@ -90,11 +110,20 @@ module.exports = class DiscountController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   destroy(req, res) {
     const DiscountService = this.app.services.DiscountService
-    lib.Validator.validateDiscount.destroy(req.body)
+
+    const discountID = req.params.id
+
+    lib.Validator.validateDiscount.destroy(discountID)
       .then(values => {
-        return DiscountService.destroy(req.body)
+        return DiscountService.destroy(discountID)
       })
       .then(discount => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, discount)

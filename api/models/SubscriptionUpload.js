@@ -5,8 +5,8 @@
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
-const INTERVALS = require('../utils/enums').INTERVALS
-// const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
+const INTERVALS = require('../../lib').Enums.INTERVALS
+// const SUBSCRIPTION_CANCEL = require('../../lib').Enums.SUBSCRIPTION_CANCEL
 
 /**
  * @module SubscriptionUpload

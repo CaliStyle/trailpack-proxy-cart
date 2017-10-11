@@ -6,9 +6,9 @@ const Model = require('trails/model')
 const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const _ = require('lodash')
-const INTERVALS = require('../utils/enums').INTERVALS
-const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
-const FULFILLMENT_SERVICE = require('../utils/enums').FULFILLMENT_SERVICE
+const INTERVALS = require('../../lib').Enums.INTERVALS
+const FULFILLMENT_STATUS = require('../../lib').Enums.FULFILLMENT_STATUS
+const FULFILLMENT_SERVICE = require('../../lib').Enums.FULFILLMENT_SERVICE
 
 /**
  * @module OrderItem

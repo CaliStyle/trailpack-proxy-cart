@@ -4,8 +4,8 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
-const PRODUCT_DEFAULTS = require('../utils/enums').PRODUCT_DEFAULTS
-const VARIANT_DEFAULTS = require('../utils/enums').VARIANT_DEFAULTS
+const PRODUCT_DEFAULTS = require('../../lib').Enums.PRODUCT_DEFAULTS
+const VARIANT_DEFAULTS = require('../../lib').Enums.VARIANT_DEFAULTS
 const fs = require('fs')
 
 /**

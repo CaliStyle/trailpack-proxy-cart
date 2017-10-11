@@ -2,8 +2,8 @@
 
 const Model = require('trails/model')
 const Errors = require('proxy-engine-errors')
-const DISCOUNT_TYPES = require('../utils/enums').DISCOUNT_TYPES
-const DISCOUNT_STATUS = require('../utils/enums').DISCOUNT_STATUS
+const DISCOUNT_TYPES = require('../../lib').Enums.DISCOUNT_TYPES
+const DISCOUNT_STATUS = require('../../lib').Enums.DISCOUNT_STATUS
 const _ = require('lodash')
 /**
  * @module Discount
@@ -189,11 +189,16 @@ module.exports = class Discount extends Model {
                   })
               }
               else if (discount && _.isObject(discount) && discount.code) {
-                return Discount.findOne(_.defaultsDeep({
-                  where: {
-                    code: discount.code
-                  }
-                }, options))
+                return Discount.findOne(
+                  app.services.ProxyEngineService.mergeOptionDefaults(
+                    options,
+                    {
+                      where: {
+                        code: discount.code
+                      }
+                    }
+                  )
+                 )
                   .then(foundDiscount => {
                     if (!foundDiscount) {
                       throw new Errors.FoundError(Error(`Discount ${discount.code} not found`))
@@ -211,11 +216,16 @@ module.exports = class Discount extends Model {
                   })
               }
               else if (discount && _.isString(discount)) {
-                return Discount.findOne(_.defaultsDeep({
-                  where: {
-                    code: discount
-                  }
-                }, options))
+                return Discount.findOne(
+                  app.services.ProxyEngineService.mergeOptionDefaults(
+                    options,
+                    {
+                      where: {
+                        code: discount
+                      }
+                    }
+                  )
+                )
                   .then(foundDiscount => {
                     if (!foundDiscount) {
                       throw new Errors.FoundError(Error(`Discount ${discount} not found`))
@@ -240,12 +250,21 @@ module.exports = class Discount extends Model {
     let schema = {}
     if (app.config.database.orm === 'sequelize') {
       schema = {
-        // The case-insensitive discount code that customers use at checkout. Required when creating a discount. Maximum length of 255 characters.
-        code: {
+        // The name of the discount
+        name: {
           type: Sequelize.STRING
         },
-        // Specify how the discount's value will be applied to the order. Valid values are: rate, percentage, shipping
-        //
+        // A description of the discount.
+        description: {
+          type: Sequelize.TEXT
+        },
+        // The case-insensitive discount code that customers use at checkout. Required when creating a discount. Maximum length of 255 characters.
+        code: {
+          type: Sequelize.STRING,
+          notNull: true
+        },
+        // Specify how the discount's value will be applied to the order.
+        // Valid values are: rate, percentage, shipping
         discount_type: {
           type: Sequelize.ENUM,
           values: _.values(DISCOUNT_TYPES),
@@ -281,11 +300,13 @@ module.exports = class Discount extends Model {
           defaultValue: DISCOUNT_STATUS.ENABLED
         },
         // The minimum value an order must reach for the discount to be allowed during checkout.
+        // Value of -1 or 0 is ignored
         minimum_order_amount: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },
         // The number of times this discount code can be redeemed. It can be redeemed by one or many customers; the usage_limit is a store-wide absolute value. Leave blank for unlimited uses.
+        // Value of -1 or 0 equates to unlimited usage
         usage_limit: {
           type: Sequelize.INTEGER,
           defaultValue: 0
@@ -295,7 +316,7 @@ module.exports = class Discount extends Model {
           type: Sequelize.STRING
         },
         // The discount code can be set to apply to only a product, variant, customer, or collection. If applies_to_resource is set, then applies_to_id should also be set.
-        applies_to_resource: {
+        applies_to_model: {
           type: Sequelize.STRING
         },
         // When a discount applies to a product or collection resource, applies_once determines whether the discount should be applied once per order, or to every applicable item in the cart.
@@ -308,7 +329,7 @@ module.exports = class Discount extends Model {
           defaultValue: 1
         },
         // if this discount can be compounded with other discounts.
-        compound: {
+        applies_compound: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
         },

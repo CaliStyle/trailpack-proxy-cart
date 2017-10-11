@@ -6,7 +6,7 @@ const csvParser = require('babyparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
-const SUBSCRIPTION_UPLOAD = require('../utils/enums').SUBSCRIPTION_UPLOAD
+const SUBSCRIPTION_UPLOAD = require('../../lib').Enums.SUBSCRIPTION_UPLOAD
 
 /**
  * @module SubscriptionCsvService

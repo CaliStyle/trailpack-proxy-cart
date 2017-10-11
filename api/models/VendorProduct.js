@@ -2,7 +2,7 @@
 
 const Model = require('trails/model')
 const _ = require('lodash')
-const INVENTORY_POLICY = require('../utils/enums').INVENTORY_POLICY
+const INVENTORY_POLICY = require('../../lib').Enums.INVENTORY_POLICY
 /**
  * @module VendorProduct
  * @description Vendor Product Join Table

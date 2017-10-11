@@ -3,7 +3,7 @@
 const Model = require('trails/model')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
-const FULFILLMENT_EVENT_STATUS = require('../utils/enums').FULFILLMENT_EVENT_STATUS
+const FULFILLMENT_EVENT_STATUS = require('../../lib').Enums.FULFILLMENT_EVENT_STATUS
 /**
  * @module FulfillmentEvent
  * @description Fulfillment Event Model

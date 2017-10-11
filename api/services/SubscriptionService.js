@@ -6,9 +6,9 @@ const _ = require('lodash')
 const shortid = require('shortid')
 const moment = require('moment')
 const Errors = require('proxy-engine-errors')
-const SUBSCRIPTION_CANCEL = require('../utils/enums').SUBSCRIPTION_CANCEL
-const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
-const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
+const SUBSCRIPTION_CANCEL = require('../../lib').Enums.SUBSCRIPTION_CANCEL
+const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
+const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
 
 /**
  * @module SubscriptionService

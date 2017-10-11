@@ -1,7 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const REFUND_MODELS = require('../utils/enums').REFUND_MODELS
+const REFUND_MODELS = require('../../lib').Enums.REFUND_MODELS
 const _ = require('lodash')
 
 /**

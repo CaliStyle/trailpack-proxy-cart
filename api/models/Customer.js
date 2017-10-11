@@ -7,7 +7,7 @@ const Model = require('trails/model')
 const _ = require('lodash')
 const shortId = require('shortid')
 const queryDefaults = require('../utils/queryDefaults')
-const CUSTOMER_STATE = require('../utils/enums').CUSTOMER_STATE
+const CUSTOMER_STATE = require('../../lib').Enums.CUSTOMER_STATE
 
 /**
  * @module Customer
@@ -364,6 +364,12 @@ module.exports = class Customer extends Model {
               )
               return this.findAndCount(options)
             },
+            /**
+             * Resolves a Customer by instance or by identifier
+             * @param customer
+             * @param options
+             * @returns {*}
+             */
             resolve: function(customer, options){
               options = options || {}
               const Customer =  this
@@ -380,11 +386,16 @@ module.exports = class Customer extends Model {
                   })
               }
               else if (customer && _.isObject(customer) && customer.email) {
-                return Customer.findOne(_.defaultsDeep({
-                  where: {
-                    email: customer.email
-                  }
-                }, options))
+                return Customer.findOne(
+                  app.services.ProxyEngineService.mergeOptionDefaults(
+                    options,
+                    {
+                      where: {
+                        email: customer.email
+                      }
+                    }
+                  )
+                )
                   .then(resCustomer => {
                     if (!resCustomer) {
                       return app.services.CustomerService.create(customer, {transaction: options.transaction || null})
@@ -396,11 +407,16 @@ module.exports = class Customer extends Model {
                 return Customer.findById(customer, options)
               }
               else if (customer && _.isString(customer)) {
-                return Customer.findById(_.defaultsDeep({
-                  where: {
-                    email: customer
-                  }
-                }, options))
+                return Customer.findOne(
+                  app.services.ProxyEngineService.mergeOptionDefaults(
+                    options,
+                    {
+                      where: {
+                        email: customer
+                      }
+                    }
+                  )
+                )
               }
               else {
                 return app.services.CustomerService.create(customer, options)

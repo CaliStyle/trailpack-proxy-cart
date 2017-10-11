@@ -1,7 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const IMAGE_MODELS = require('../utils/enums').IMAGE_MODELS
+const IMAGE_MODELS = require('../../lib').Enums.IMAGE_MODELS
 const _ = require('lodash')
 
 /**

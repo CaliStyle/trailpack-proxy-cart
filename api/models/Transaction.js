@@ -6,10 +6,10 @@ const Model = require('trails/model')
 const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const shortId = require('shortid')
-const TRANSACTION_ERRORS = require('../utils/enums').TRANSACTION_ERRORS
-const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
-const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
-const TRANSACTION_DEFAULTS = require('../utils/enums').TRANSACTION_DEFAUTLS
+const TRANSACTION_ERRORS = require('../../lib').Enums.TRANSACTION_ERRORS
+const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
+const TRANSACTION_KIND = require('../../lib').Enums.TRANSACTION_KIND
+const TRANSACTION_DEFAULTS = require('../../lib').Enums.TRANSACTION_DEFAUTLS
 const _ = require('lodash')
 
 /**

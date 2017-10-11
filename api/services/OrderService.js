@@ -4,16 +4,16 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
-const PAYMENT_PROCESSING_METHOD = require('../utils/enums').PAYMENT_PROCESSING_METHOD
-const FULFILLMENT_STATUS = require('../utils/enums').FULFILLMENT_STATUS
-const ORDER_STATUS = require('../utils/enums').ORDER_STATUS
-const ORDER_FULFILLMENT = require('../utils/enums').ORDER_FULFILLMENT
-// const PAYMENT_KIND = require('../utils/enums').PAYMENT_KIND
-// const orders.fulfillment_kind = require('../utils/enums').orders.fulfillment_kind
-const TRANSACTION_STATUS = require('../utils/enums').TRANSACTION_STATUS
-const TRANSACTION_KIND = require('../utils/enums').TRANSACTION_KIND
-const ORDER_FINANCIAL = require('../utils/enums').ORDER_FINANCIAL
-const ORDER_CANCEL = require('../utils/enums').ORDER_CANCEL
+const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
+const FULFILLMENT_STATUS = require('../../lib').Enums.FULFILLMENT_STATUS
+const ORDER_STATUS = require('../../lib').Enums.ORDER_STATUS
+const ORDER_FULFILLMENT = require('../../lib').Enums.ORDER_FULFILLMENT
+// const PAYMENT_KIND = require('../../lib').Enums.PAYMENT_KIND
+// const orders.fulfillment_kind = require('../../lib').Enums.orders.fulfillment_kind
+const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
+const TRANSACTION_KIND = require('../../lib').Enums.TRANSACTION_KIND
+const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
+const ORDER_CANCEL = require('../../lib').Enums.ORDER_CANCEL
 /**
  * @module OrderService
  * @description Order Service

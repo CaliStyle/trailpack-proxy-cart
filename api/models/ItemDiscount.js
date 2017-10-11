@@ -1,7 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const DISCOUNT_MODELS = require('../utils/enums').DISCOUNT_MODELS
+const DISCOUNT_MODELS = require('../../lib').Enums.DISCOUNT_MODELS
 const _ = require('lodash')
 
 /**

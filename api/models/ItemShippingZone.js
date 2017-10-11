@@ -1,7 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const SHIPPING_MODELS = require('../utils/enums').SHIPPING_MODELS
+const SHIPPING_MODELS = require('../../lib').Enums.SHIPPING_MODELS
 const _ = require('lodash')
 /**
  * @module ItemShippingZone

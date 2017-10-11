@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Test Discount",
+    "description": "Test Discount Description",
+    "code": "123",
+    "discount_type": "rate",
+    "discount_rate": 100,
+    "status": "enabled",
+    "minimum_order_amount": 0,
+    "usage_limit": 0,
+    "applies_to_id": 1,
+    "applies_to_model": "product"
+  }
+]

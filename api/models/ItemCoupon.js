@@ -1,7 +1,7 @@
 'use strict'
 
 const Model = require('trails/model')
-const COUPON_MODELS = require('../utils/enums').COUPON_MODELS
+const COUPON_MODELS = require('../../lib').Enums.COUPON_MODELS
 const _ = require('lodash')
 /**
  * @module ItemCoupon
