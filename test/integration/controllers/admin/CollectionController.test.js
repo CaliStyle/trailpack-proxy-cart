@@ -47,6 +47,8 @@ describe('Admin User CollectionController', () => {
         collectionID = res.body.id
         assert.equal(res.body.handle, 'have-you-seen-my-pants')
         assert.equal(res.body.title, 'Have you seen my Pants?')
+        assert.equal(res.body.excerpt, '# Lego Movie is so funny!')
+        assert.equal(res.body.excerpt_html, '<h1>Lego Movie is so funny!</h1>\n')
         assert.equal(res.body.body, '# Honey, have you seen my Pants?')
         assert.equal(res.body.body_html, '<h1>Honey, have you seen my Pants?</h1>\n')
         assert.equal(res.body.collections.length, 1)
@@ -79,6 +81,8 @@ describe('Admin User CollectionController', () => {
       .end((err, res) => {
         assert.equal(res.body.handle, 'have-you-seen-my-pants')
         assert.equal(res.body.title, 'Have you seen my Pants?')
+        assert.equal(res.body.excerpt, '# Lego Movie is so funny!')
+        assert.equal(res.body.excerpt_html, '<h1>Lego Movie is so funny!</h1>\n')
         assert.equal(res.body.body, '# Honey, have you seen my Pants?')
         assert.equal(res.body.body_html, '<h1>Honey, have you seen my Pants?</h1>\n')
         assert.equal(res.body.collections.length, 1)
@@ -93,11 +97,14 @@ describe('Admin User CollectionController', () => {
       .post(`/collection/${collectionID}`)
       .send({
         title: 'Have you seen my Pants? Again?',
-        body: '# Honey, have you seen my Pants? Again?'
+        body: '# Honey, have you seen my Pants? Again?',
+        excerpt: '# Lego Batman Movie is so funny!'
       })
       .expect(200)
       .end((err, res) => {
         assert.equal(res.body.handle, 'have-you-seen-my-pants')
+        assert.equal(res.body.excerpt, '# Lego Batman Movie is so funny!')
+        assert.equal(res.body.excerpt_html, '<h1>Lego Batman Movie is so funny!</h1>\n')
         assert.equal(res.body.title, 'Have you seen my Pants? Again?')
         assert.equal(res.body.body, '# Honey, have you seen my Pants? Again?')
         assert.equal(res.body.body_html, '<h1>Honey, have you seen my Pants? Again?</h1>\n')
@@ -316,6 +323,10 @@ describe('Admin User CollectionController', () => {
         assert.equal(res.body.handle, 'awesome')
         assert.equal(res.body.title, 'Awesome')
         assert.equal(res.body.description, 'Test Description')
+        assert.equal(res.body.excerpt, 'When you\'re part of a team')
+        assert.equal(res.body.excerpt_html, "<p>When you're part of a team</p>\n")
+        assert.equal(res.body.body, 'Everything is Awesome')
+        assert.equal(res.body.body_html, '<p>Everything is Awesome</p>\n')
         assert.equal(res.body.sort_order, 'price-asc')
         assert.equal(res.body.discount_scope, 'global')
         assert.equal(res.body.discount_type, 'fixed')

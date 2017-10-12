@@ -218,11 +218,15 @@ module.exports = class Collection extends Model {
                   })
               }
               else if (collection && _.isObject(collection) && collection.handle) {
-                return Collection.findOne(_.defaultsDeep({
-                  where: {
-                    handle: collection.handle
+                return Collection.findOne(app.services.ProxyEngineService.mergeOptionDefaults(
+                    options,
+                  {
+                    where: {
+                      handle: collection.handle
+                    }
                   }
-                }, options))
+                  )
+                )
                   .then(resCollection => {
                     if (resCollection) {
                       return resCollection
@@ -232,11 +236,15 @@ module.exports = class Collection extends Model {
                   })
               }
               else if (collection && _.isObject(collection) && collection.title) {
-                return Collection.findOne(_.defaultsDeep({
-                  where: {
-                    handle: app.services.ProxyCartService.handle(collection.title)
+                return Collection.findOne(options = app.services.ProxyEngineService.mergeOptionDefaults(
+                    options,
+                  {
+                    where: {
+                      handle: app.services.ProxyCartService.handle(collection.title)
+                    }
                   }
-                }, options))
+                  )
+                )
                   .then(resCollection => {
                     if (resCollection) {
                       return resCollection
@@ -255,11 +263,15 @@ module.exports = class Collection extends Model {
                   })
               }
               else if (collection && _.isString(collection)) {
-                return Collection.findOne(_.defaultsDeep({
-                  where: {
-                    handle: app.services.ProxyCartService.handle(collection)
+                return Collection.findOne(options = app.services.ProxyEngineService.mergeOptionDefaults(
+                    options,
+                  {
+                    where: {
+                      handle: app.services.ProxyCartService.handle(collection)
+                    }
                   }
-                }, options))
+                  )
+                )
                   .then(resCollection => {
                     if (resCollection) {
                       return resCollection

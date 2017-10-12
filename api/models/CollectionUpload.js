@@ -93,6 +93,9 @@ module.exports = class CollectionUpload extends Model {
       description: {
         type: Sequelize.STRING
       },
+      excerpt: {
+        type: Sequelize.TEXT
+      },
       body: {
         type: Sequelize.TEXT
       },
