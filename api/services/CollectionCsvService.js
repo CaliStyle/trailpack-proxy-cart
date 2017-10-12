@@ -207,6 +207,7 @@ module.exports = class CollectionCsvService extends Service {
           title: collection.title,
           description: collection.description,
           body: collection.body,
+          excerpt: collection.excerpt,
           primary_purpose: collection.primary_purpose,
           position: collection.position,
           sort_order: collection.sort_order,
