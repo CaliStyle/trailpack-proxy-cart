@@ -4,13 +4,14 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Admin User Checkout with Discount', () => {
+describe('Admin User Checkout with Product Discount', () => {
   let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID, transactionID
+  let discountService, discountID
 
   before((done) => {
     shopID = global.app.shopID
     shopProducts = global.app.shopProducts
-
+    discountService = global.app.services.DiscountService
     adminUser = supertest.agent(global.app.packs.express.server)
     // Login as Admin
     adminUser
@@ -27,19 +28,53 @@ describe('Admin User Checkout with Discount', () => {
         done(err)
       })
   })
+  it('should create a discount', done => {
+    discountService.create({
+      name: 'product with discount',
+      description: 'product with discount',
+      code: 'product-with-discount',
+      discount_type: 'rate',
+      discount_rate: 100,
+      discount_status: 'enabled',
+      applies_to_id: shopProducts[12].id,
+      applies_to_model: 'product',
+      applies_compound: false
+    })
+      .then(discount => {
+        assert.ok(discount)
+        discountID = discount.id
+        assert.equal(discount.name, 'product with discount')
+        assert.equal(discount.description, 'product with discount')
+        assert.equal(discount.code, 'product-with-discount')
+        assert.equal(discount.discount_type, 'rate')
+        assert.equal(discount.discount_rate, 100)
+        assert.equal(discount.status, 'enabled')
+        assert.equal(discount.minimum_order_amount, 0)
+        assert.equal(discount.usage_limit, 0)
+        assert.equal(discount.applies_to_id, shopProducts[12].id)
+        assert.equal(discount.applies_to_model, 'product')
+        assert.equal(discount.applies_compound, false)
+        done()
+      })
+      .catch(err => {
+        done(err)
+      })
+  })
   it('should add product to cart', done => {
     adminUser
       .post('/cart/addItems')
       .send({
         line_items: [
           {
-            product_id: shopProducts[11].id
+            product_id: shopProducts[12].id
           }
         ]
       })
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.id)
+        console.log('user story', res.body)
+
         done(err)
       })
   })
@@ -83,19 +118,19 @@ describe('Admin User Checkout with Discount', () => {
         assert.equal(res.body.order.discounted_lines.length, 0)
 
         // Pricing
-        assert.equal(res.body.order.total_line_items_price, shopProducts[11].price)
-        assert.equal(res.body.order.subtotal_price, shopProducts[11].price)
-        assert.equal(res.body.order.total_price, shopProducts[11].price)
+        assert.equal(res.body.order.total_line_items_price, shopProducts[12].price)
+        assert.equal(res.body.order.subtotal_price, shopProducts[12].price)
+        assert.equal(res.body.order.total_price, shopProducts[12].price)
         assert.equal(res.body.order.total_due, 0)
         assert.equal(res.body.order.total_discounts, 0)
-        assert.equal(res.body.order.total_captured, shopProducts[11].price)
+        assert.equal(res.body.order.total_captured, shopProducts[12].price)
 
         // Order Items
         assert.equal(res.body.order.order_items.length, 1)
         assert.equal(res.body.order.total_items, 1)
-        assert.equal(res.body.order.order_items[0].price, shopProducts[11].price)
-        assert.equal(res.body.order.order_items[0].price_per_unit, shopProducts[11].price)
-        assert.equal(res.body.order.order_items[0].calculated_price, shopProducts[11].price)
+        assert.equal(res.body.order.order_items[0].price, shopProducts[12].price)
+        assert.equal(res.body.order.order_items[0].price_per_unit, shopProducts[12].price)
+        assert.equal(res.body.order.order_items[0].calculated_price, shopProducts[12].price)
         assert.equal(res.body.order.order_items[0].total_discounts, 0)
 
         res.body.order.order_items.forEach(item => {
@@ -129,7 +164,7 @@ describe('Admin User Checkout with Discount', () => {
         assert.equal(res.body.order.total_voided, 0)
         assert.equal(res.body.order.total_cancelled, 0)
         assert.equal(res.body.order.total_refunds, 0)
-        assert.equal(res.body.order.total_captured, shopProducts[11].price)
+        assert.equal(res.body.order.total_captured, shopProducts[12].price)
 
         // Events: Removed from the default query
         // assert.equal(res.body.order.events.length, 4)
@@ -137,17 +172,6 @@ describe('Admin User Checkout with Discount', () => {
         //   assert.equal(event.object_id, orderID)
         // })
 
-        done(err)
-      })
-  })
-  it('should have purchase history with product', done => {
-    adminUser
-      .get(`/product/handle/${shopProducts[11].handle}`)
-      .expect(200)
-      .end((err, res) => {
-
-        assert.equal(res.body.has_purchase_history, true)
-        assert.equal(res.body.is_subscribed, true)
         done(err)
       })
   })

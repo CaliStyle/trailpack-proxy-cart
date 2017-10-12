@@ -502,7 +502,10 @@ module.exports = class Product extends Model {
               return app.orm['OrderItem'].findOne({
                 where: {
                   customer_id: customerId,
-                  product_id: this.id
+                  product_id: this.id,
+                  fulfillment_status: {
+                    $not: ['cancelled','pending','none']
+                  }
                 },
                 attributes: ['id'],
                 transaction: options.transaction || null
@@ -524,6 +527,7 @@ module.exports = class Product extends Model {
               return app.orm['Subscription'].findOne({
                 where: {
                   customer_id: customerId,
+                  active: true,
                   line_items: {
                     $contains: [{
                       product_id: this.id

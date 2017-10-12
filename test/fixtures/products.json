@@ -333,5 +333,28 @@
       "Dummy Collection"
     ],
     "sku": "purchase-history-123"
+  },
+  {
+    "handle": "product-with-discount",
+    "title": "Product with discount",
+    "body": "<strong>Product with discount</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "product-discount"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "product-discount-123"
   }
 ]
