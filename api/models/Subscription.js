@@ -269,7 +269,11 @@ module.exports = class Subscription extends Model {
           instanceMethods: {
             resolveCustomer: function(options) {
               options = options || {}
-              if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance && options.reload !== true) {
+              if (
+                this.Customer
+                && this.Customer instanceof app.orm['Customer'].Instance
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               // Some orders may not have a customer Id

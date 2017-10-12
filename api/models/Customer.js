@@ -510,6 +510,29 @@ module.exports = class Customer extends Model {
                   return false
                 })
             },
+            /**
+             *
+             * @param options
+             * @returns {string}
+             */
+            getSalutation: function(options) {
+              options = options || {}
+
+              let salutation = 'Customer'
+
+              if (this.full_name) {
+                salutation = this.full_name
+              }
+              else if (this.email) {
+                salutation = this.email
+              }
+              return salutation
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
             getDefaultSource: function (options) {
               options = options || {}
               const Source = app.orm['Source']
@@ -574,11 +597,16 @@ module.exports = class Customer extends Model {
               options = options || {}
               return this.resolveUsers({
                 attributes: ['id','email'],
-                transaction: options.transaction || null
+                transaction: options.transaction || null,
+                reload: options.reload || null,
               })
                 .then(() => {
-                  if (this.users || this.users.length > 0) {
+                  if (this.users && this.users.length > 0) {
                     return app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})
+                      .then(notes => {
+                        console.log('NOTIFY', notes)
+                        return notes
+                      })
                   }
                   else {
                     return
@@ -592,7 +620,11 @@ module.exports = class Customer extends Model {
              */
             resolveUsers(options) {
               options = options || {}
-              if (this.users && options.reload !== true) {
+              if (
+                this.users
+                && this.users.every(u => u instanceof app.orm['User'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {

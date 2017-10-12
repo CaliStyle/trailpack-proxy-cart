@@ -347,11 +347,11 @@ module.exports = class PaymentService extends Service {
           throw new Error('Payment Processor is unspecified')
         }
         resTransaction = foundTransaction
-
+        resTransaction = resTransaction.retry()
         return this.app.services.PaymentGenericService[resTransaction.kind](resTransaction, paymentProcessor)
       })
       .then(() => {
-        return resTransaction.retry().save({transaction: options.transaction || null})
+        return resTransaction.save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {

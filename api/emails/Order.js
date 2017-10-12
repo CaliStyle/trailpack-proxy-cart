@@ -262,7 +262,7 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `${ resOrder.name }`
+        const text = data.text || `Order ${ resOrder.name } Refunded`
         const html = data.html || this.app.templates.Order.refunded(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Refunded`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true

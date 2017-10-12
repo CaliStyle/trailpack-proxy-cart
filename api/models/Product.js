@@ -629,7 +629,11 @@ module.exports = class Product extends Model {
             },
             resolveVariants: function(options) {
               options = options || {}
-              if (this.variants && options.reload !== true) {
+              if (
+                this.variants
+                && this.variants.every(v => v instanceof app.orm['ProductVariant'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -645,7 +649,11 @@ module.exports = class Product extends Model {
             },
             resolveAssociations: function(options) {
               options = options || {}
-              if (this.associations && options.reload !== true) {
+              if (
+                this.associations
+                && this.associations.every(p => p instanceof app.orm['Product'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -661,7 +669,11 @@ module.exports = class Product extends Model {
             },
             resolveImages: function(options) {
               options = options || {}
-              if (this.images && options.reload !== true) {
+              if (
+                this.images
+                && this.images.every(i => i instanceof app.orm['ProductImage'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -677,7 +689,11 @@ module.exports = class Product extends Model {
             },
             resolveVendors: function(options) {
               options = options || {}
-              if (this.vendors && options.reload !== true) {
+              if (
+                this.vendors
+                && this.vendors.every(v => v instanceof app.orm['Vendor'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {

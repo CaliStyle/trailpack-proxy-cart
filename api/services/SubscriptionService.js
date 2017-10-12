@@ -85,7 +85,7 @@ module.exports = class SubscriptionService extends Service {
       .then(total => {
         totalDeactivatedValue = total
 
-        const stats = {
+        return {
           total: totalSubscriptions,
           total_active: totalActiveSubscriptions,
           total_deactivated: totalDeactivatedSubscriptions,
@@ -94,8 +94,6 @@ module.exports = class SubscriptionService extends Service {
           total_deactivated_value: totalDeactivatedValue,
           total_cancelled_value: totalCancelledValue
         }
-
-        return stats
       })
   }
 

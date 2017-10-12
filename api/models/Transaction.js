@@ -215,6 +215,14 @@ module.exports = class Transaction extends Model {
             retry: function() {
               this.retry_at = new Date(Date.now())
               this.total_retry_attempts++
+
+              if (this.description && Boolean(this.description.match(/retry (\d+)/g))) {
+                this.description = this.description.replace(/retry (\d+)/g, `retry ${this.total_retry_attempts}`)
+              }
+              else {
+                this.description = `${this.description || 'transaction'} retry ${this.total_retry_attempts}`
+              }
+
               return this
             },
             /**
@@ -224,6 +232,11 @@ module.exports = class Transaction extends Model {
             cancel: function() {
               this.cancelled_at = new Date(Date.now())
               this.status = TRANSACTION_STATUS.CANCELLED
+
+              if (this.description && !this.description.includes('cancelled')) {
+                this.description = `${this.description || 'transaction'} cancelled`
+              }
+
               return this
             },
             /**
@@ -234,7 +247,11 @@ module.exports = class Transaction extends Model {
             resolveOrder: function(options) {
               options = options || {}
               const Order = app.orm['Order']
-              if (this.Order && this.Order instanceof Order.Instance && options.reload !== true) {
+              if (
+                this.Order
+                && this.Order instanceof Order.Instance
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {

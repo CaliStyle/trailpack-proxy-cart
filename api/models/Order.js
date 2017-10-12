@@ -364,22 +364,27 @@ module.exports = class Order extends Model {
              */
             notifyCustomer: function(preNotification, options) {
               options = options || {}
-              return this.resolveCustomer({
-                attributes: ['id','email','company','first_name','last_name','full_name'],
-                transaction: options.transaction || null,
-                reload: options.reload || null
-              })
-                .then(() => {
-                  if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
-                    return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
-                  }
-                  else {
-                    return
-                  }
+              if (this.customer_id) {
+                return this.resolveCustomer({
+                  attributes: ['id', 'email', 'company', 'first_name', 'last_name', 'full_name'],
+                  transaction: options.transaction || null,
+                  reload: options.reload || null
                 })
-                .then(() => {
-                  return this
-                })
+                  .then(() => {
+                    if (this.Customer && this.Customer instanceof app.orm['Customer'].Instance) {
+                      return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
+                    }
+                    else {
+                      return
+                    }
+                  })
+                  .then(() => {
+                    return this
+                  })
+              }
+              else {
+                return Promise.resolve(this)
+              }
             },
             /**
              *
@@ -1604,7 +1609,11 @@ module.exports = class Order extends Model {
             },
             resolveOrderItems: function(options) {
               options = options || {}
-              if (this.order_items && options.reload !== true) {
+              if (
+                this.order_items
+                && this.order_items.every(o => o instanceof app.orm['OrderItem'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -1625,7 +1634,11 @@ module.exports = class Order extends Model {
             resolveRefunds: function(options) {
               options = options || {}
               let totalRefunds = 0
-              if (this.refunds && options.reload !== true) {
+              if (
+                this.refunds
+                && this.refunds.every(r => r instanceof app.orm['Refund'].Instance)
+                && options.reload !== true
+              ) {
                 this.refunds.forEach(refund => {
                   totalRefunds = totalRefunds + refund.amount
                 })
@@ -1655,7 +1668,11 @@ module.exports = class Order extends Model {
              */
             resolveTransactions: function(options) {
               options = options || {}
-              if (this.transactions && options.reload !== true) {
+              if (
+                this.transactions
+                && this.transactions.every(t => t instanceof app.orm['Transaction'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -1676,7 +1693,11 @@ module.exports = class Order extends Model {
              */
             resolveFulfillments: function(options) {
               options = options || {}
-              if (this.fulfillments && options.reload !== true) {
+              if (
+                this.fulfillments
+                && this.fulfillments.every(f => f instanceof app.orm['Fulfillment'].Instance)
+                && options.reload !== true
+              ) {
                 return this.sequelize.Promise.mapSeries(this.fulfillments, fulfillment => {
                   return fulfillment.resolveOrderItems({
                     transaction: options.transaction || null,

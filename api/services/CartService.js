@@ -226,7 +226,7 @@ module.exports = class CartService extends Service {
             return
           }
         })
-        .then(event => {
+        .then(email => {
           // Switch to a new cart
           return this.createAndSwitch(req, {transaction: options.transaction || null})
         })
