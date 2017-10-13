@@ -596,7 +596,7 @@ module.exports = class Customer extends Model {
             notifyUsers: function(preNotification, options) {
               options = options || {}
               return this.resolveUsers({
-                attributes: ['id','email'],
+                attributes: ['id','email','username'],
                 transaction: options.transaction || null,
                 reload: options.reload || null,
               })
@@ -604,12 +604,12 @@ module.exports = class Customer extends Model {
                   if (this.users && this.users.length > 0) {
                     return app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})
                       .then(notes => {
-                        console.log('NOTIFY', notes)
+                        app.log.debug('NOTIFY', this.id, this.email, this.users.map(u => u.id), preNotification.send_email, notes.users)
                         return notes
                       })
                   }
                   else {
-                    return
+                    return []
                   }
                 })
             },
@@ -622,6 +622,7 @@ module.exports = class Customer extends Model {
               options = options || {}
               if (
                 this.users
+                && this.users.length > 0
                 && this.users.every(u => u instanceof app.orm['User'].Instance)
                 && options.reload !== true
               ) {
@@ -629,11 +630,11 @@ module.exports = class Customer extends Model {
               }
               else {
                 return this.getUsers({transaction: options.transaction || null})
-                  .then(users => {
-                    users = users || []
-                    this.users = users
-                    this.setDataValue('users', users)
-                    this.set('users', users)
+                  .then(_users => {
+                    _users = _users || []
+                    this.users = _users
+                    this.setDataValue('users', _users)
+                    this.set('users', _users)
                     return this
                   })
               }

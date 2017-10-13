@@ -494,18 +494,7 @@ module.exports = class OrderService extends Service {
       })
       .then((event) => {
         if (resOrder.financial_status === ORDER_FINANCIAL.PAID && resOrder.customer_id) {
-          return this.app.emails.Order.paid(resOrder, {
-            send_email: this.app.config.proxyCart.emails.orderPaid
-          }, {
-            transaction: options.transaction || null
-          })
-            .then(email => {
-              return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
-            })
-            .catch(err => {
-              this.app.log.error(err)
-              return
-            })
+          return resOrder.sendPaidEmail({transaciton: options.transaction || null })
         }
         else {
           return
@@ -592,7 +581,7 @@ module.exports = class OrderService extends Service {
         )
       })
       .then(transaction => {
-        if (transaction.kind == TRANSACTION_KIND.REFUND && transaction.status == TRANSACTION_STATUS.SUCCESS) {
+        if (transaction.kind === TRANSACTION_KIND.REFUND && transaction.status === TRANSACTION_STATUS.SUCCESS) {
           return Refund.create({
             order_id: resOrder.id,
             transaction_id: transaction.id,
@@ -739,25 +728,9 @@ module.exports = class OrderService extends Service {
         })
       })
       .then(() => {
-        if (resOrder.customer_id) {
-          return this.app.emails.Order.refunded(resOrder, {
-            send_email: this.app.config.proxyCart.emails.orderRefunded
-          }, {
-            transaction: options.transaction || null
-          })
-            .then(email => {
-              return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
-            })
-            .catch(err => {
-              this.app.log.error(err)
-              return
-            })
-        }
-        else {
-          return
-        }
+        return resOrder.sendRefundedEmail({transaction: options.transaction || null})
       })
-      .then(order => {
+      .then(email => {
         return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
       })
   }
@@ -775,14 +748,12 @@ module.exports = class OrderService extends Service {
     const Order = this.app.orm['Order']
     let resOrder
     return Order.resolve(order, { transaction: options.transaction || null })
-      .then(order => {
-        if (!order) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
-        return order
-      })
-      .then(order => {
-        resOrder = order
+
+        resOrder = _order
         return resOrder.resolveTransactions({ transaction: options.transaction || null })
       })
       .then(() => {
@@ -847,14 +818,11 @@ module.exports = class OrderService extends Service {
     const Sequelize = Order.sequelize
     let resOrder
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
-        return order
-      })
-      .then(order => {
-        resOrder = order
+        resOrder = _order
         return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
@@ -909,23 +877,21 @@ module.exports = class OrderService extends Service {
    *
    * @param order
    * @param voids
-   * @params options
+   * @param options
    * @returns {Promise.<TResult>}
    */
   void(order, voids, options) {
+    options = options || {}
     voids = voids || []
     const Order = this.app.orm['Order']
     const Sequelize = Order.sequelize
     let resOrder
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
-        return order
-      })
-      .then(order => {
-        resOrder = order
+        resOrder = _order
         return resOrder.resolveTransactions({ transaction: options.transaction || null })
       })
       .then(() => {
@@ -990,14 +956,11 @@ module.exports = class OrderService extends Service {
     const Sequelize = Order.sequelize
     let resOrder
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
-        return order
-      })
-      .then(order => {
-        resOrder = order
+        resOrder = _order
         return resOrder.resolveTransactions({ transaction: options.transaction || null })
       })
       .then(() => {
@@ -1046,6 +1009,7 @@ module.exports = class OrderService extends Service {
   /**
    * Cancel an Order
    * @param order
+   * @param options
    * @returns {Promise.<TResult>}
    */
   cancel(order, options) {
@@ -1055,8 +1019,11 @@ module.exports = class OrderService extends Service {
     const reason = order.cancel_reason || ORDER_CANCEL.OTHER
     let resOrder, canRefund = [], canVoid = [], canCancel = [], canCancelFulfillment = []
     return Order.resolve(order, options)
-      .then(order => {
-        resOrder = order
+      .then(_order => {
+        if (!_order) {
+          throw new Error('Order not found')
+        }
+        resOrder = _order
         if ([ORDER_FULFILLMENT.NONE, ORDER_FULFILLMENT.PENDING, ORDER_FULFILLMENT.SENT].indexOf(resOrder.fulfillment_status) < 0) {
           throw new Error(`Order can not be cancelled because it's fulfillment status is ${resOrder.fulfillment_status} not '${ORDER_FULFILLMENT.NONE}', '${ORDER_FULFILLMENT.PENDING}', '${ORDER_FULFILLMENT.SENT}'`)
         }

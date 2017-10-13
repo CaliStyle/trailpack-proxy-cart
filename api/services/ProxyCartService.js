@@ -526,7 +526,9 @@ module.exports = class ProxyCartService extends Service {
       email: user.email,
       accepts_marketing: user.accepts_marketing,
       users: [user]
-    }, { transaction: options.transaction || null })
+    }, {
+      transaction: options.transaction || null
+    })
       .then(customer => {
         if (!customer) {
           return {
@@ -539,13 +541,18 @@ module.exports = class ProxyCartService extends Service {
         if (!customer.email && user.email) {
           customer.email = user.email
         }
-        return customer.save({transaction: options.transaction || null})
+        return this.app.services.CustomerService.addUser(customer, user, {transaction: options.transaction || null})
+          .then(() => {
+            return customer.save({transaction: options.transaction || null})
+          })
       })
       .then(customer => {
         return Cart.resolve({
           id: user.current_cart_id,
           customer: customer.id
-        }, { transaction: options.transaction || null })
+        }, {
+          transaction: options.transaction || null
+        })
       })
       .then(cart => {
         // Set the user's current cart id

@@ -208,23 +208,7 @@ module.exports = class CartService extends Service {
           }
         })
         .then(() => {
-          if (resOrder.customer_id) {
-            return this.app.emails.Order.created(resOrder, {
-              send_email: this.app.config.proxyCart.emails.orderCreated
-            }, {
-              transaction: options.transaction || null
-            })
-              .then(email => {
-                return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
-              })
-              .catch(err => {
-                this.app.log.error(err)
-                return
-              })
-          }
-          else {
-            return
-          }
+          return resOrder.sendCreatedEmail({transaction: options.transaction || null})
         })
         .then(email => {
           // Switch to a new cart
@@ -405,6 +389,7 @@ module.exports = class CartService extends Service {
    *
    * @param req
    * @param order
+   * @param options
    * @returns {Promise}
    */
   afterOrder(req, order, options){

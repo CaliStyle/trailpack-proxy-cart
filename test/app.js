@@ -135,13 +135,14 @@ const App = {
         }
       },
       onUserLogin: {
-        cart: (req, app, user) => {
+        cart: (req, app, user, options) => {
+          options = options || {}
           if (!req || !user.current_cart_id) {
             return Promise.resolve(user)
           }
           else {
             return new Promise((resolve, reject) => {
-              app.orm['Cart'].findById(user.current_cart_id)
+              app.orm['Cart'].findById(user.current_cart_id, {transaction: options.transaction || null})
                 .then(cart => {
                   if (!cart) {
                     return resolve(user)
@@ -149,7 +150,7 @@ const App = {
                   if (user.current_customer_id) {
                     cart.customer_id = user.current_customer_id
                   }
-                  return cart.save()
+                  return cart.save({transaction: options.transaction || null})
                 })
                 .then(cart => {
                   req.loginCart(cart, (err) => {
@@ -164,13 +165,14 @@ const App = {
             })
           }
         },
-        customer: (req, app, user) => {
+        customer: (req, app, user, options) => {
+          options = options || {}
           if (!req || !user.current_customer_id) {
             return Promise.resolve(user)
           }
           else {
             return new Promise((resolve, reject) => {
-              app.orm['Customer'].findById(user.current_customer_id)
+              app.orm['Customer'].findById(user.current_customer_id, {transaction: options.transaction || null})
                 .then(customer => {
                   if (!customer) {
                     return resolve(user)
@@ -204,13 +206,14 @@ const App = {
         }
       },
       onUserRecovered: {
-        cart: (req, app, user) => {
+        cart: (req, app, user, options) => {
+          options = options || {}
           if (!req || !user.current_cart_id) {
             return Promise.resolve(user)
           }
           else {
             return new Promise((resolve, reject) => {
-              app.orm['Cart'].findById(user.current_cart_id)
+              app.orm['Cart'].findById(user.current_cart_id, {transaction: options.transaction || null})
                 .then(cart => {
                   if (!cart) {
                     return resolve(user)
@@ -218,7 +221,7 @@ const App = {
                   if (user.current_customer_id) {
                     cart.customer_id = user.current_customer_id
                   }
-                  return cart.save()
+                  return cart.save({transaction: options.transaction || null})
                 })
                 .then(cart => {
                   req.loginCart(cart, (err) => {
@@ -233,13 +236,14 @@ const App = {
             })
           }
         },
-        customer: (req, app, user) => {
+        customer: (req, app, user, options) => {
+          options = options || {}
           if (!req || !user.current_customer_id) {
             return Promise.resolve(user)
           }
           else {
             return new Promise((resolve, reject) => {
-              app.orm['Customer'].findById(user.current_customer_id)
+              app.orm['Customer'].findById(user.current_customer_id, {transaction: options.transaction || null})
                 .then(customer => {
                   if (!customer) {
                     return resolve(user)

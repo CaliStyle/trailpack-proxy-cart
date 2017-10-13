@@ -276,17 +276,17 @@ module.exports = class Subscription extends Model {
               ) {
                 return Promise.resolve(this)
               }
-              // Some orders may not have a customer Id
+              // A subscription always requires a customer, but just in case.
               else if (!this.customer_id) {
                 return Promise.resolve(this)
               }
               else {
                 return this.getCustomer({transaction: options.transaction || null})
-                  .then(customer => {
-                    customer = customer || null
-                    this.Customer = customer
-                    this.setDataValue('Customer', customer)
-                    this.set('Customer', customer)
+                  .then(_customer => {
+                    _customer = _customer || null
+                    this.Customer = _customer
+                    this.setDataValue('Customer', _customer)
+                    this.set('Customer', _customer)
                     return this
                   })
               }

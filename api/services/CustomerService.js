@@ -80,7 +80,11 @@ module.exports = class CustomerService extends Service {
         {
           model: Metadata,
           as: 'metadata'
-        }
+        },
+        // {
+        //   model: User,
+        //   as: 'users'
+        // }
       ],
       transaction: options.transaction || null
     })
@@ -205,12 +209,13 @@ module.exports = class CustomerService extends Service {
         return
       })
       .then(accounts => {
+
         if (customer.users && customer.users.length > 0) {
-          return Promise.all(customer.users.map(user => {
+          return Customer.sequelize.Promise.mapSeries(customer.users, user => {
             // Setup some defaults
             user.current_customer_id = resCustomer.id
 
-            // If customer exists, then update
+            // If user exists, then update
             if (user instanceof User.Instance){
               return user.save({transaction: options.transaction || null})
             }
@@ -219,6 +224,7 @@ module.exports = class CustomerService extends Service {
             user.passports = {
               protocol: 'local'
             }
+
             return User.create(user, {
               include: [
                 {
@@ -228,15 +234,16 @@ module.exports = class CustomerService extends Service {
               ],
               transaction: options.transaction || null
             })
-          }))
+          })
         }
-        return
+        return []
       })
       .then(users => {
+        // console.log('Customer Create Users', users)
         if (users && users.length > 0) {
           return resCustomer.setUsers(users.map(user => user.id), {transaction: options.transaction || null})
         }
-        return
+        return []
       })
       .then(users => {
         const event = {
@@ -706,6 +713,89 @@ module.exports = class CustomerService extends Service {
       })
       .then(resAddress => {
         return resAddress
+      })
+  }
+
+  /**
+   *
+   * @param customer
+   * @param user
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  addUser(customer, user, options) {
+    options = options || {}
+
+    let resCustomer, resUser
+    return this.app.orm['Customer'].resolve(customer, {transaction: options.transaction || null})
+      .then(_customer => {
+        if (!_customer) {
+          throw new Error('Customer Could Not Be Resolved')
+        }
+        resCustomer = _customer
+        return this.app.orm['User'].resolve(user, {transaction: options.transaction || null})
+      })
+      .then(_user => {
+        if (!_user) {
+          throw new Error('User Could Not Be Resolved')
+        }
+        resUser = _user
+        return resCustomer.hasUser(resUser.id, {transaction: options.transaction || null})
+      })
+      .then(hasUser => {
+        if (hasUser) {
+          return
+        }
+        return resCustomer.addUser(resUser.id, {transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resUser
+      })
+  }
+
+
+  inviteUser(customer, user, options) {
+    options = options || {}
+  }
+
+  inviteUserAccepted(customer, user, options) {
+
+  }
+
+  /**
+   *
+   * @param customer
+   * @param user
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  removeUser(customer, user, options) {
+    options = options || {}
+
+    let resCustomer, resUser
+    return this.app.orm['Customer'].resolve(customer, {transaction: options.transaction || null})
+      .then(_customer => {
+        if (!_customer) {
+          throw new Error('Customer Could Not Be Resolved')
+        }
+        resCustomer = _customer
+        return this.app.orm['User'].resolve(user, {transaction: options.transaction || null})
+      })
+      .then(_user => {
+        if (!_user) {
+          throw new Error('User Could Not Be Resolved')
+        }
+        resUser = _user
+        return resCustomer.hasUser(resUser.id, {transaction: options.transaction || null})
+      })
+      .then(hasUser => {
+        if (hasUser) {
+          return
+        }
+        return resCustomer.removeUser(resUser.id, {transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resUser
       })
   }
 

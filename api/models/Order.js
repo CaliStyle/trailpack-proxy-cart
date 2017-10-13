@@ -805,10 +805,18 @@ module.exports = class Order extends Model {
               if (!this.id) {
                 return Promise.resolve(this)
               }
+              // Set fulfillment status requires fulfillments be resolved.
               return this.resolveFulfillments({
                 transaction: options.transaction || null,
                 reload: options.reload || null
               })
+                .then(() => {
+                  // Set fulfillment status requires that order items also be resolved
+                  return this.resolveOrderItems({
+                    transaction: options.transaction || null,
+                    reload: options.reload || null
+                  })
+                })
                 .then(() => {
                   // Set the new fulfillment status
                   this.setFulfillmentStatus()
@@ -1598,11 +1606,11 @@ module.exports = class Order extends Model {
               }
               else {
                 return this.getCustomer({transaction: options.transaction || null})
-                  .then(customer => {
-                    customer = customer || null
-                    this.Customer = customer
-                    this.setDataValue('Customer', customer)
-                    this.set('Customer', customer)
+                  .then(_customer => {
+                    _customer = _customer || null
+                    this.Customer = _customer
+                    this.setDataValue('Customer', _customer)
+                    this.set('Customer', _customer)
                     return this
                   })
               }
@@ -1801,6 +1809,56 @@ module.exports = class Order extends Model {
                   this.setStatus()
                   // Save the changes
                   return this.save({transaction: options.transaction || null})
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendCreatedEmail(options) {
+              options = options || {}
+              return app.emails.Order.created(this, {
+                send_email: app.config.proxyCart.emails.orderCreated
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            sendRefundedEmail(options) {
+              options = options || {}
+              return app.emails.Order.refunded(this, {
+                send_email: app.config.proxyCart.emails.orderRefunded
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            sendPaidEmail(options) {
+              options = options || {}
+              return app.emails.Order.paid(this, {
+                send_email: app.config.proxyCart.emails.orderPaid
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
                 })
             }
           }
