@@ -76,6 +76,7 @@ module.exports = {
     subscriptionCancelled: false,
     subscriptionWillRenew: false,
     subscriptionRenewed: false,
+    subscriptionFailed: false,
     transactionFailed: false
   },
   // Events to allow "publish"

@@ -1831,6 +1831,31 @@ module.exports = class Order extends Model {
                   return
                 })
             },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendCancelledEmail(options) {
+              options = options || {}
+              return app.emails.Order.cancelled(this, {
+                send_email: app.config.proxyCart.emails.orderCancelled
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
             sendRefundedEmail(options) {
               options = options || {}
               return app.emails.Order.refunded(this, {
@@ -1846,10 +1871,54 @@ module.exports = class Order extends Model {
                   return
                 })
             },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
             sendPaidEmail(options) {
               options = options || {}
               return app.emails.Order.paid(this, {
                 send_email: app.config.proxyCart.emails.orderPaid
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendPartiallyPaidEmail(options) {
+              options = options || {}
+              return app.emails.Order.partiallyPaid(this, {
+                send_email: app.config.proxyCart.emails.orderPaid
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendUpdatedEmail(options) {
+              return app.emails.Order.updated(this, {
+                send_email: app.config.proxyCart.emails.orderUpdated
               }, {
                 transaction: options.transaction || null
               })

@@ -11,7 +11,7 @@ module.exports = class Subscription extends Template {
    */
   cancelled(subscription) {
     return `<h1>Subscription ${ subscription.token } Cancelled</h1>
-<p>Dear ${subscription.Customer ? subscription.Customer.full_name || subscription.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
 <p>Your subscription was cancelled.</p>
 <p>Thank you!</p>`
   }
@@ -23,7 +23,7 @@ module.exports = class Subscription extends Template {
    */
   failed(subscription) {
     return `<h1>Subscription ${ subscription.token } Failed to Renew</h1>
-<p>Dear ${subscription.Customer ? subscription.Customer.full_name || subscription.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
 <p>Your subscription failed to renew.</p>
 <p>To avoid cancellation of your subscription, please update your payment method or contact customer services.</p>
 <p>Thank you!</p>`
@@ -40,7 +40,7 @@ module.exports = class Subscription extends Template {
     }).join('')
 
     return `<h1>Subscription ${ order.subscription_token } Renewed</h1>
-<p>Dear ${order.Customer ? order.Customer.full_name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Subscription Order Number: ${ order.name }</p>
 <h5>Subscription Items</h5>
 ${orderItems}
@@ -58,7 +58,7 @@ ${orderItems}
    */
   activated(subscription) {
     return `<h1>Subscription ${ subscription.token } Activated</h1>
-<p>Dear ${subscription.Customer ? subscription.Customer.full_name || subscription.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
 <p>Your subscription has been reactivated.</p>
 <p>Thank you!</p>`
   }
@@ -70,7 +70,7 @@ ${orderItems}
    */
   deactivated(subscription) {
     return `<h1>Subscription ${ subscription.token } Deactivated</h1>
-<p>Dear ${subscription.Customer ? subscription.Customer.full_name || subscription.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
 <p>Your subscription has been deactivated and will cancel at the end of this billing period.</p>
 <p>Thank you!</p>`
   }

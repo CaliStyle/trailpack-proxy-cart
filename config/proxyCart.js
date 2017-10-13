@@ -47,6 +47,7 @@ module.exports = {
     subscriptionCancelled: true,
     subscriptionWillRenew: true,
     subscriptionRenewed: true,
+    subscriptionFailed: true,
     transactionFailed: true
   },
   // Events to allow "publish"

@@ -473,6 +473,149 @@ module.exports = class Subscription extends Model {
             },
             /**
              *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendActivateEmail(options) {
+              options = options || {}
+              return app.emails.Subscription.activated(this, {
+                send_email: app.config.proxyCart.emails.subscriptionRenewed
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendCancelledEmail(options) {
+              options = options || {}
+              return app.emails.Subscription.cancelled(this, {
+                send_email: app.config.proxyCart.emails.subscriptionCancelled
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendDeactivateEmail(options) {
+              options = options || {}
+              return app.emails.Subscription.deactivated(this, {
+                send_email: app.config.proxyCart.emails.subscriptionDeactivated
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendFailedEmail(options) {
+              options = options || {}
+              return app.emails.Subscription.failed(this, {
+                send_email: app.config.proxyCart.emails.subscriptionFailed
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendRenewedEmail(options) {
+              options = options || {}
+              return app.emails.Subscription.renewed(this, {
+                send_email: app.config.proxyCart.emails.subscriptionRenewed
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendUpdatedEmail(options) {
+              options = options || {}
+              return app.emails.Subscription.updated(this, {
+                send_email: app.config.proxyCart.emails.subscriptionUpdated
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            sendWillRenew(options) {
+              options = options || {}
+              return app.emails.Subscription.willRenew(this, {
+                send_email: app.config.proxyCart.emails.subscriptionWillRenew
+              }, {
+                transaction: options.transaction || null
+              })
+                .then(email => {
+                  return this.notifyCustomer(email, {transaction: options.transaction || null})
+                })
+                .catch(err => {
+                  this.app.log.error(err)
+                  return
+                })
+            },
+
+            /**
+             *
              * @param data
              */
             buildOrder: function(data) {
@@ -517,6 +660,7 @@ module.exports = class Subscription extends Model {
                 shop_id: this.shop_id,
                 has_shipping: this.has_shipping,
                 has_subscription: this.has_subscription,
+                has_taxes: this.has_taxes,
 
                 //Pricing Overrides
                 pricing_override_id: this.pricing_override_id,

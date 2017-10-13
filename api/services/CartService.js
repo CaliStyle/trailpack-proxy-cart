@@ -7,6 +7,7 @@ const shortid = require('shortid')
 const Errors = require('proxy-engine-errors')
 const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
 const CART_STATUS = require('../../lib').Enums.CART_STATUS
+const ORDER_FINANCIAL = require('../../lib').Enums.ORDER_FINANCIAL
 
 /**
  * @module CartService
@@ -208,7 +209,15 @@ module.exports = class CartService extends Service {
           }
         })
         .then(() => {
-          return resOrder.sendCreatedEmail({transaction: options.transaction || null})
+          if (resOrder.financial_status === ORDER_FINANCIAL.PARTIALLY_PAID) {
+            return resOrder.sendPartiallyPaidEmail({transaction: options.transaction || null})
+          }
+          else if (resOrder.financial_status === ORDER_FINANCIAL.PAID) {
+            return resOrder.sendPaidEmail({transaction: options.transaction || null})
+          }
+          else {
+            return resOrder.sendCreatedEmail({transaction: options.transaction || null})
+          }
         })
         .then(email => {
           // Switch to a new cart

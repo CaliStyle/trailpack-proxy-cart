@@ -419,23 +419,7 @@ module.exports = class OrderService extends Service {
       })
 
       .then(() => {
-        if (resOrder.customer_id) {
-          return this.app.emails.Order.updated(resOrder, {
-            send_email: this.app.config.proxyCart.emails.orderUpdated
-          }, {
-            transaction: options.transaction || null
-          })
-            .then(email => {
-              return resOrder.notifyCustomer(email, {transaction: options.transaction || null})
-            })
-            .catch(err => {
-              this.app.log.error(err)
-              return
-            })
-        }
-        else {
-          return
-        }
+        return resOrder.sendUpdatedEmail({transaction: options.transaction || null})
       })
       .then(resOrder => {
         return Order.findByIdDefault(resOrder.id)
@@ -1001,7 +985,16 @@ module.exports = class OrderService extends Service {
       .then(retries => {
         return resOrder.saveFinancialStatus({transaction: options.transaction || null})
       })
-      .then(order => {
+      .then(() => {
+        if (resOrder.financial_status === ORDER_FINANCIAL.PAID) {
+          return resOrder.sendPaidEmail({transaction: options.transaction || null})
+        }
+        else if (resOrder.financial_status === ORDER_FINANCIAL.PARTIALLY_PAID) {
+          return resOrder.sendPartiallyPaidEmail({transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
         return Order.findByIdDefault(resOrder.id, {transaction: options.transaction || null})
       })
   }
@@ -1104,6 +1097,9 @@ module.exports = class OrderService extends Service {
           save: true,
           transaction: options.transaction || null
         })
+      })
+      .then(() => {
+        return resOrder.sendCancelledEmail({transaction: options.transaction || null})
       })
       .then(() => {
         return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)

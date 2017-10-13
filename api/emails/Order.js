@@ -52,45 +52,6 @@ module.exports = class Order extends Email {
    * @param options
    * @returns {Promise.<{type: string, subject: string, text: string, html:string, send_email:boolean}>}
    */
-  updated(order, data, options) {
-    options = options || {}
-    data = data || {}
-    const Order = this.app.orm['Order']
-    let resOrder
-    return Order.resolve(order, {transaction: options.transaction || null })
-      .then(foundOrder => {
-        if (!foundOrder) {
-          throw new Error('Order did not resolve')
-        }
-        resOrder = foundOrder
-
-        return resOrder.resolveOrderItems({transaction: options.transaction || null})
-      })
-      .then(() => {
-
-        const text = data.text || `Order ${ resOrder.name } Updated`
-        const html = data.html || this.app.templates.Order.updated(resOrder)
-        const subject = data.subject || `Order ${ resOrder.name } Updated`
-        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
-
-        this.app.log.debug(`ORDER UPDATED SEND EMAIL ${ resOrder.name }`, sendEmail)
-
-        return {
-          type: 'order.updated',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
-      })
-  }
-  /**
-   *
-   * @param order
-   * @param data
-   * @param options
-   * @returns {Promise.<{type: string, subject: string, text: string, html:string, send_email:boolean}>}
-   */
   cancelled(order, data, options) {
     options = options || {}
     data = data || {}
@@ -115,7 +76,7 @@ module.exports = class Order extends Email {
         this.app.log.debug(`ORDER CANCELLED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
         return {
-          type: 'order.fulfilled',
+          type: 'order.cancelled',
           subject: subject,
           text: text,
           html: html,
@@ -223,15 +184,54 @@ module.exports = class Order extends Email {
         return resOrder.resolveOrderItems({transaction: options.transaction || null})
       })
       .then(() => {
-        const text = data.text || `Order ${ resOrder.name } Receipt`
+        const text = data.text || `Order ${ resOrder.name } Paid`
         const html = data.html || this.app.templates.Order.paid(resOrder)
-        const subject = data.subject || `Order ${ resOrder.name } Receipt`
+        const subject = data.subject || `Order ${ resOrder.name } Paid`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER PAID SEND EMAIL ${ resOrder.name }`, sendEmail)
 
         return {
-          type: 'order.receipt',
+          type: 'order.paid',
+          subject: subject,
+          text: text,
+          html: html,
+          send_email: sendEmail
+        }
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param data
+   * @param options
+   * @returns {Promise.<{type: string, subject: string, text: string, html:string, send_email:boolean}>}
+   */
+  partiallyPaid(order, data, options) {
+    options = options || {}
+    data = data || {}
+    const Order = this.app.orm['Order']
+    let resOrder
+    return Order.resolve(order, {transaction: options.transaction || null })
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Error('Order did not resolve')
+        }
+        resOrder = foundOrder
+
+        return resOrder.resolveOrderItems({transaction: options.transaction || null})
+      })
+      .then(() => {
+        const text = data.text || `Order ${ resOrder.name } Partially Paid`
+        const html = data.html || this.app.templates.Order.partiallyPaid(resOrder)
+        const subject = data.subject || `Order ${ resOrder.name } Partially Paid Receipt`
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
+
+        this.app.log.debug(`ORDER PARTIALLY PAID SEND EMAIL ${ resOrder.name }`, sendEmail)
+
+        return {
+          type: 'order.partiallyPaid',
           subject: subject,
           text: text,
           html: html,
@@ -271,6 +271,46 @@ module.exports = class Order extends Email {
 
         return {
           type: 'order.refunded',
+          subject: subject,
+          text: text,
+          html: html,
+          send_email: sendEmail
+        }
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param data
+   * @param options
+   * @returns {Promise.<{type: string, subject: string, text: string, html:string, send_email:boolean}>}
+   */
+  updated(order, data, options) {
+    options = options || {}
+    data = data || {}
+    const Order = this.app.orm['Order']
+    let resOrder
+    return Order.resolve(order, {transaction: options.transaction || null })
+      .then(foundOrder => {
+        if (!foundOrder) {
+          throw new Error('Order did not resolve')
+        }
+        resOrder = foundOrder
+
+        return resOrder.resolveOrderItems({transaction: options.transaction || null})
+      })
+      .then(() => {
+
+        const text = data.text || `Order ${ resOrder.name } Updated`
+        const html = data.html || this.app.templates.Order.updated(resOrder)
+        const subject = data.subject || `Order ${ resOrder.name } Updated`
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
+
+        this.app.log.debug(`ORDER UPDATED SEND EMAIL ${ resOrder.name }`, sendEmail)
+
+        return {
+          type: 'order.updated',
           subject: subject,
           text: text,
           html: html,

@@ -202,23 +202,7 @@ module.exports = class SubscriptionService extends Service {
         })
       })
       .then((event) => {
-        if (resSubscription.customer_id) {
-          return this.app.emails.Subscription.updated(resSubscription, {
-            send_email: this.app.config.proxyCart.emails.subscriptionUpdated
-          }, {
-            transaction: options.transaction || null
-          })
-            .then(email => {
-              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
-            })
-            .catch(err => {
-              this.app.log.error(err)
-              return
-            })
-        }
-        else {
-          return
-        }
+        return resSubscription.sendUpdatedEmail({transaction: options.transaction || null})
       })
       .then((notifications) => {
         return resSubscription
@@ -289,23 +273,7 @@ module.exports = class SubscriptionService extends Service {
         }
       })
       .then((canceledOrders) => {
-        if (resSubscription.customer_id) {
-          return this.app.emails.Subscription.cancelled(resSubscription, {
-            send_email: this.app.config.proxyCart.emails.subscriptionCancelled
-          }, {
-            transaction: options.transaction || null
-          })
-            .then(email => {
-              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
-            })
-            .catch(err => {
-              this.app.log.error(err)
-              return
-            })
-        }
-        else {
-          return
-        }
+        return resSubscription.sendCancelledEmail({transaction: options.transaction || null})
       })
       .then((notifications) => {
         return resSubscription
@@ -354,23 +322,7 @@ module.exports = class SubscriptionService extends Service {
         })
       })
       .then((event) => {
-        if (resSubscription.customer_id) {
-          return this.app.emails.Subscription.activated(resSubscription, {
-            send_email: this.app.config.proxyCart.emails.subscriptionActivated
-          }, {
-            transaction: options.transaction || null
-          })
-            .then(email => {
-              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
-            })
-            .catch(err => {
-              this.app.log.error(err)
-              return
-            })
-        }
-        else {
-          return
-        }
+        return resSubscription.sendActivateEmail({transaction: options.transaction || null})
       })
       .then((notification) => {
         return resSubscription
@@ -419,25 +371,9 @@ module.exports = class SubscriptionService extends Service {
         })
       })
       .then((event) => {
-        if (resSubscription.customer_id) {
-          return this.app.emails.Subscription.deactivated(resSubscription, {
-            send_email: this.app.config.proxyCart.emails.subscriptionDeactivated
-          }, {
-            transaction: options.transaction || null
-          })
-            .then(email => {
-              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
-            })
-            .catch(err => {
-              this.app.log.error(err)
-              return
-            })
-        }
-        else {
-          return
-        }
+        return resSubscription.sendDeactivateEmail({transaction: options.transaction || null})
       })
-      .then(event => {
+      .then(() => {
         return resSubscription
       })
   }
@@ -446,9 +382,11 @@ module.exports = class SubscriptionService extends Service {
    *
    * @param items
    * @param subscription
+   * @param options
    * @returns {Promise.<TResult>}
    */
   addItems(items, subscription, options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
     if (items.line_items) {
       items = items.line_items
@@ -461,7 +399,7 @@ module.exports = class SubscriptionService extends Service {
         }
 
         resSubscription = foundSubscription
-        // const minimize = _.unionBy(items, 'product_id')
+
         return Subscription.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
@@ -566,16 +504,16 @@ module.exports = class SubscriptionService extends Service {
   renew(subscription, options) {
     options = options || {}
     const Subscription = this.app.orm['Subscription']
-    let resSubscription, resOrder, renewal
 
-    return this.app.orm.Cart.sequelize.transaction(t => {
+    let resSubscription, resOrder, renewal
+    return Subscription.sequelize.transaction(t => {
       options.transaction = t
       return Subscription.resolve(subscription, {transaction: options.transaction || null})
-        .then(foundSubscription => {
-          if (!foundSubscription) {
+        .then(_subscription => {
+          if (!_subscription) {
             throw new Errors.FoundError(Error('Subscription Not Found'))
           }
-          resSubscription = foundSubscription
+          resSubscription = _subscription
           return this.prepareForOrder(resSubscription, {transaction: options.transaction || null})
         })
         .then(newOrder => {
@@ -618,19 +556,11 @@ module.exports = class SubscriptionService extends Service {
           })
         })
         .then((event) => {
-          if (renewal === 'success' && resSubscription.customer_id) {
-            return this.app.emails.Subscription.renewed(resSubscription, {
-              send_email: this.app.config.proxyCart.emails.subscriptionRenewed
-            }, {
-              transaction: options.transaction || null
-            })
-              .then(email => {
-                return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
-              })
-              .catch(err => {
-                this.app.log.error(err)
-                return
-              })
+          if (renewal === 'success') {
+            return resSubscription.sendRenewedEmail({transaction: options.transaction || null})
+          }
+          else if (renewal === 'failure' && resSubscription.total_renewal_attempts === 1) {
+            return resSubscription.sendFailedEmail({transaction: options.transaction || null})
           }
           else {
             return
@@ -657,22 +587,34 @@ module.exports = class SubscriptionService extends Service {
     const Order = this.app.orm['Order']
     let resSubscription, resOrders, renewal
     return Subscription.resolve(subscription, options)
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(_subscription => {
+        if (!_subscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-        resSubscription = foundSubscription
+        if (!_subscription.token) {
+          throw new Error('Subscription is missing token and can not be retried')
+        }
+        if (!_subscription.original_order_id) {
+          throw new Error('Subscription is missing original order id and can not be retried')
+        }
+
+        // Bind the DAO
+        resSubscription = _subscription
+
         return Order.findAll({
           where: {
+            id: {
+              $not: resSubscription.original_order_id
+            },
             subscription_token: resSubscription.token,
             financial_status: ORDER_FINANCIAL.PENDING
           },
           transaction: options.transaction || null
         })
       })
-      .then(orders => {
-        resOrders = orders
-        if (resOrders.length == 0) {
+      .then(_orders => {
+        resOrders = _orders || []
+        if (resOrders.length === 0) {
           renewal = 'success'
           return resSubscription.renew()
             .save({transaction: options.transaction || null})
@@ -703,19 +645,8 @@ module.exports = class SubscriptionService extends Service {
         })
       })
       .then((event) => {
-        if (renewal === 'success' && resSubscription.customer_id) {
-          return this.app.emails.Subscription.renewed(resSubscription, {
-            send_email: this.app.config.proxyCart.emails.subscriptionRenewed
-          }, {
-            transaction: options.transaction || null
-          })
-            .then(email => {
-              return resSubscription.notifyCustomer(email, {transaction: options.transaction || null})
-            })
-            .catch(err => {
-              this.app.log.error(err)
-              return
-            })
+        if (renewal === 'success') {
+          return resSubscription.sendRenewedEmail({transaction: options.transaction || null})
         }
         else {
           return
@@ -724,7 +655,6 @@ module.exports = class SubscriptionService extends Service {
       .then((notifications) => {
         return resSubscription
       })
-    //return Promise.resolve(subscription)
   }
 
   /**
@@ -740,11 +670,11 @@ module.exports = class SubscriptionService extends Service {
     let resSubscription
 
     return Subscription.resolve(subscription, {transaction: options.transaction || null})
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(_subscription => {
+        if (!_subscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-        resSubscription = foundSubscription
+        resSubscription = _subscription
         return resSubscription.resolveCustomer({transaction: options.transaction || null})
       })
       .then(() => {
@@ -786,7 +716,7 @@ module.exports = class SubscriptionService extends Service {
           })
       })
       .then(paymentDetails => {
-        const newOrder = resSubscription.buildOrder({
+        return resSubscription.buildOrder({
           // Request info
           payment_details: paymentDetails.payment_details,
           transaction_kind: paymentDetails.transaction_kind || this.app.config.proxyCart.orders.transaction_kind,
@@ -799,7 +729,6 @@ module.exports = class SubscriptionService extends Service {
           customer_id: resSubscription.Customer.id,
           email: resSubscription.Customer.email
         })
-        return newOrder
       })
   }
 
@@ -807,7 +736,8 @@ module.exports = class SubscriptionService extends Service {
    *
    * @returns {*|Promise.<TResult>}
    */
-  renewThisHour() {
+  renewThisHour(options) {
+    options = options || {}
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Subscription = this.app.orm['Subscription']
@@ -826,12 +756,13 @@ module.exports = class SubscriptionService extends Service {
         active: true,
         total_renewal_attempts: 0
       },
-      regressive: true
+      regressive: true,
+      transaction: options.transaction || null
     }, (subscriptions) => {
 
       const Sequelize = Subscription.sequelize
       return Sequelize.Promise.mapSeries(subscriptions, subscription => {
-        return this.renew(subscription)
+        return this.renew(subscription, {transaction: options.transaction || null})
       })
         .then(results => {
           // Calculate Totals
@@ -864,7 +795,8 @@ module.exports = class SubscriptionService extends Service {
    *
    * @returns {Promise.<TResult>}
    */
-  retryThisHour() {
+  retryThisHour(options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
     const start = moment().startOf('hour')
     const errors = []
@@ -887,11 +819,12 @@ module.exports = class SubscriptionService extends Service {
         },
         active: true
       },
-      regressive: true
+      regressive: true,
+      transaction: options.transaction || null
     }, (subscriptions) => {
       const Sequelize = Subscription.sequelize
       return Sequelize.Promise.mapSeries(subscriptions, subscription => {
-        return this.retry(subscription)
+        return this.retry(subscription, {transaction: options.transaction || null})
       })
         .then(results => {
           // Calculate Totals
@@ -924,7 +857,8 @@ module.exports = class SubscriptionService extends Service {
    *
    * @returns {Promise.<TResult>}
    */
-  cancelThisHour() {
+  cancelThisHour(options) {
+    options = options || {}
     const Subscription = this.app.orm['Subscription']
     const errors = []
     // let errorsTotal = 0
@@ -939,15 +873,20 @@ module.exports = class SubscriptionService extends Service {
         },
         cancelled: false
       },
-      regressive: true
+      regressive: true,
+      transaction: options.transaction || null
     }, (subscriptions) => {
 
       const Sequelize = Subscription.sequelize
       return Sequelize.Promise.mapSeries(subscriptions, subscription => {
-        return this.cancel({
-          reason: SUBSCRIPTION_CANCEL.FUNDING,
-          cancel_pending: true
-        }, subscription)
+        return this.cancel(
+          {
+            reason: SUBSCRIPTION_CANCEL.FUNDING,
+            cancel_pending: true
+          },
+          subscription,
+          { transaction: options.transaction || null }
+        )
       })
         .then(results => {
           // Calculate Totals
