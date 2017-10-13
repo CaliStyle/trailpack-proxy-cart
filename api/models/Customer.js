@@ -604,7 +604,7 @@ module.exports = class Customer extends Model {
                   if (this.users && this.users.length > 0) {
                     return app.services.NotificationService.create(preNotification, this.users, {transaction: options.transaction || null})
                       .then(notes => {
-                        app.log.debug('NOTIFY', this.id, this.email, this.users.map(u => u.id), preNotification.send_email, notes.users)
+                        app.log.debug('NOTIFY', this.id, this.email, this.users.map(u => u.id), preNotification.send_email, notes.users.map(u => u.id))
                         return notes
                       })
                   }
