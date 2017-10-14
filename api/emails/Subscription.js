@@ -84,34 +84,32 @@ module.exports = class Subscription extends Email {
   }
   /**
    *
-   * @param order
+   * @param subscription
    * @param data
    * @param options
    * @returns {Promise.<{text: string, html:string}>}
    */
-  renewed(order, data, options) {
+  renewed(subscription, data, options) {
     options = options || {}
     data = data || {}
-    const Order = this.app.orm['Order']
-    let resOrder
-    return Order.resolve(order, {transaction: options.transaction || null })
-      .then(foundOrder => {
-        if (!foundOrder) {
-          throw new Error('Order did not resolve')
+    // const Subscription = this.app.orm['Subscription']
+    const Subscription = this.app.orm['Subscription']
+    let resSubscription
+    return Subscription.resolve(subscription, {transaction: options.transaction || null })
+      .then(_subscription => {
+        if (!_subscription) {
+          throw new Error('Subscription did not resolve')
         }
-        resOrder = foundOrder
-        return resOrder.resolveOrderItems({transaction: options.transaction || null})
-      })
-      .then(() => {
-        return resOrder.resolveCustomer({transaction: options.transaction || null})
+        resSubscription = _subscription
+        return resSubscription.resolveCustomer({transaction: options.transaction || null})
       })
       .then(() => {
 
-        const text = data.text || `Subscription ${ resOrder.subscription_token } Renewed`
-        const html = data.html || this.app.templates.Subscription.renewed(resOrder)
-        const subject = data.subject || `Subscription ${ resOrder.subscription_token } Renewed`
+        const text = data.text || `Subscription ${ resSubscription.token } Renewed`
+        const html = data.html || this.app.templates.Subscription.renewed(resSubscription)
+        const subject = data.subject || `Subscription ${ resSubscription.token } Renewed`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
-        this.app.log.debug(`SUBSCRIPTION RENEWED SEND EMAIL ${ resOrder.subscription_token }`, sendEmail)
+        this.app.log.debug(`SUBSCRIPTION RENEWED SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
         return {
           type: 'subscription.renewed',

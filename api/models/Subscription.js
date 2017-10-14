@@ -116,6 +116,10 @@ module.exports = class Subscription extends Model {
               models.Subscription.belongsTo(models.Order, {
                 as: 'original_order'
               })
+              // The latest order that this subscription created.
+              models.Subscription.belongsTo(models.Order, {
+                as: 'last_order'
+              })
               // The collection of subscriptions for a given customer
               models.Subscription.belongsToMany(models.Collection, {
                 as: 'collections',
@@ -833,6 +837,16 @@ module.exports = class Subscription extends Model {
         },
         // The Order that generated this subscription
         original_order_id: {
+          type: Sequelize.INTEGER,
+          // references: {
+          //   model: 'Order',
+          //   key: 'id'
+          // },
+          // Have to allow null so that these can be created without an order
+          // allowNull: true
+        },
+        // The Order that generated this subscription
+        last_order_id: {
           type: Sequelize.INTEGER,
           // references: {
           //   model: 'Order',

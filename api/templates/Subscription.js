@@ -31,22 +31,22 @@ module.exports = class Subscription extends Template {
 
   /**
    *
-   * @param order
+   * @param subscription
    * @returns {string}
    */
-  renewed(order) {
-    const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
+  renewed(subscription) {
+    const subscriptionItems = subscription.line_items.map(item => {
+      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
     }).join('')
 
-    return `<h1>Subscription ${ order.subscription_token } Renewed</h1>
-<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
-<p>Subscription Order Number: ${ order.name }</p>
+    return `<h1>Subscription ${ subscription.token } Renewed</h1>
+<p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
+<p>Subscription Subscription Number: ${ subscription.name }</p>
 <h5>Subscription Items</h5>
-${orderItems}
+${subscriptionItems}
 <p>------------------------</p>
-<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price, order.currency)}</p>
-<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price, order.currency)}</p>
+<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(subscription.subtotal_price, subscription.currency)}</p>
+<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(subscription.total_price, subscription.currency)}</p>
 <p>------------------------</p>
 <p>Thank you!</p>`
   }
@@ -82,7 +82,7 @@ ${orderItems}
    */
   updated(subscription) {
     return `<h1>Subscription ${ subscription.token } Updated</h1>
-<p>Dear ${subscription.Customer ? subscription.Customer.full_name || subscription.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
 <p>Your subscription has been updated.</p>
 <p>Thank you!</p>`
   }
@@ -94,7 +94,7 @@ ${orderItems}
    */
   willRenew(subscription) {
     return `<h1>Subscription ${ subscription.token } Will Renew</h1>
-<p>Dear ${subscription.Customer ? subscription.Customer.full_name || subscription.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
 <p>Your subscription will renew shortly.</p>
 <p>Thank you!</p>`
   }

@@ -10,7 +10,7 @@ module.exports = class Order extends Template {
     }).join('')
 
     return `<h1>Order ${ order.name } Created</h1>
-<p>Dear ${order.Customer ? order.Customer.name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your order was created and is being processed.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>
@@ -28,7 +28,7 @@ ${orderItems}
     }).join('')
 
     return `<h1>Order ${ order.name } was updated</h1>
-<p>Dear ${order.Customer ? order.Customer.name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your order has been updated.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>
@@ -42,7 +42,7 @@ ${orderItems}
     }).join('')
 
     return `<h1>Order ${ order.name } Cancelled</h1>
-<p>Dear ${order.Customer ? order.Customer.name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your order has been cancelled.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>
@@ -56,7 +56,7 @@ ${orderItems}
     }).join('')
 
     return `<h1>Order ${ order.name } Fulfilled</h1>
-<p>Dear ${order.Customer ? order.Customer.name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your order has been fulfilled.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>
@@ -70,7 +70,7 @@ ${orderItems}
     }).join('')
 
     return `<h1>Order ${ order.name } failed to process</h1>
-<p>Dear ${order.Customer ? order.Customer.name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your payment failed.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>
@@ -94,7 +94,7 @@ ${orderItems}
     }).join('')
 
     return `<h1>Order ${ order.name } Receipt</h1>
-<p>Dear ${order.Customer ? order.Customer.name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your payment is complete.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>
@@ -117,7 +117,7 @@ ${orderItems}
     }).join('')
 
     return `<h1>Order ${ order.name } Receipt</h1>
-<p>Dear ${order.Customer ? order.Customer.name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your order has been partially paid.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>
@@ -136,7 +136,7 @@ ${orderItems}
     }).join('')
 
     return `<h1>Order ${ order.name } Refunded</h1>
-<p>Dear ${order.Customer ? order.Customer.name || order.Customer.company || 'Customer' : 'Customer'},</p>
+<p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your payment has been refunded.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>

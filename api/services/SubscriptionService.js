@@ -213,6 +213,7 @@ module.exports = class SubscriptionService extends Service {
    *
    * @param body
    * @param subscription
+   * @param options
    * @returns {*|Promise.<TResult>}
    */
   cancel(body, subscription, options) {
@@ -221,11 +222,11 @@ module.exports = class SubscriptionService extends Service {
     const Order = this.app.orm['Order']
     let resSubscription
     return Subscription.resolve(subscription, options)
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(_subscription => {
+        if (!_subscription) {
           throw new Error('Subscription not found')
         }
-        resSubscription = foundSubscription
+        resSubscription = _subscription
         resSubscription.cancel_reason = body.reason || SUBSCRIPTION_CANCEL.OTHER
         resSubscription.cancelled_at = new Date()
         resSubscription.cancelled = true
@@ -254,6 +255,7 @@ module.exports = class SubscriptionService extends Service {
         if (body.cancel_pending) {
           return Order.findAll({
             where: {
+              customer_id: resSubscription.customer_id,
               subscription_token: resSubscription.token,
               financial_status: ORDER_FINANCIAL.PENDING
             },
@@ -292,11 +294,11 @@ module.exports = class SubscriptionService extends Service {
     const Subscription = this.app.orm['Subscription']
     let resSubscription
     return Subscription.resolve(subscription, options)
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(_subscription => {
+        if (!_subscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-        resSubscription = foundSubscription
+        resSubscription = _subscription
         resSubscription.cancel_reason = null
         resSubscription.cancelled_at = null
         resSubscription.cancelled = false
@@ -341,11 +343,11 @@ module.exports = class SubscriptionService extends Service {
     const Subscription = this.app.orm['Subscription']
     let resSubscription
     return Subscription.resolve(subscription, {transaction: options.transaction || null})
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(_subscription => {
+        if (!_subscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-        resSubscription = foundSubscription
+        resSubscription = _subscription
         resSubscription.cancel_reason = null
         resSubscription.cancelled_at = null
         resSubscription.cancelled = false
@@ -519,11 +521,14 @@ module.exports = class SubscriptionService extends Service {
         .then(newOrder => {
           return this.app.services.OrderService.create(newOrder, {transaction: options.transaction || null})
         })
-        .then(order => {
-          if (!order) {
+        .then(_order => {
+          if (!_order) {
             throw new Error(`Unexpected error during subscription ${resSubscription.id} renewal`)
           }
-          resOrder = order
+          resOrder = _order
+
+          // Set the lastest order id.
+          resSubscription.last_order_id = resOrder.id
           // Renew the Subscription
           if (resOrder.financial_status !== ORDER_FINANCIAL.PENDING) {
             renewal = 'success'
