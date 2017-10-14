@@ -295,6 +295,55 @@ module.exports = class Subscription extends Model {
                   })
               }
             },
+            resolveLastOrder: function(options) {
+              options = options || {}
+              if (
+                this.last_order
+                && this.last_order instanceof app.orm['Order'].Instance
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              // A subscription always requires a customer, but just in case.
+              else if (!this.last_order_id) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getLast_order({transaction: options.transaction || null})
+                  .then(_order => {
+                    _order = _order || null
+                    this.last_order = _order
+                    this.setDataValue('last_order', _order)
+                    this.set('last_order', _order)
+                    return this
+                  })
+              }
+            },
+
+            resolveOriginalOrder: function(options) {
+              options = options || {}
+              if (
+                this.original_order
+                && this.original_order instanceof app.orm['Order'].Instance
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              // A subscription always requires a customer, but just in case.
+              else if (!this.original_order_id) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getOriginal_order({transaction: options.transaction || null})
+                  .then(_order => {
+                    _order = _order || null
+                    this.original_order = _order
+                    this.setDataValue('original_order', _order)
+                    this.set('original_order', _order)
+                    return this
+                  })
+              }
+            },
             /**
              *
              * @param preNotification

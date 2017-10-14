@@ -26,6 +26,9 @@ module.exports = class Subscription extends Email {
         return resSubscription.resolveCustomer({transaction: options.transaction || null})
       })
       .then(() => {
+        return resSubscription.resolveLastOrder({transaction: options.transaction})
+      })
+      .then(() => {
 
         const text = data.text || `Subscription ${ resSubscription.token } Cancelled`
         const html = data.html || this.app.templates.Subscription.cancelled(resSubscription)
@@ -65,6 +68,9 @@ module.exports = class Subscription extends Email {
         return resSubscription.resolveCustomer({transaction: options.transaction || null})
       })
       .then(() => {
+        return resSubscription.resolveLastOrder({transaction: options.transaction})
+      })
+      .then(() => {
 
         const text = data.text || `Subscription ${ resSubscription.token } Failed`
         const html = data.html || this.app.templates.Subscription.willRenew(resSubscription)
@@ -102,6 +108,9 @@ module.exports = class Subscription extends Email {
         }
         resSubscription = _subscription
         return resSubscription.resolveCustomer({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resSubscription.resolveLastOrder({transaction: options.transaction})
       })
       .then(() => {
 
