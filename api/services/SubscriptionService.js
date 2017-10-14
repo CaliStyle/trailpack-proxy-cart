@@ -606,6 +606,7 @@ module.exports = class SubscriptionService extends Service {
             id: {
               $not: resSubscription.original_order_id
             },
+            customer_id: resSubscription.customer_id,
             subscription_token: resSubscription.token,
             financial_status: ORDER_FINANCIAL.PENDING
           },
