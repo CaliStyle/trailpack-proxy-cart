@@ -1827,7 +1827,7 @@ module.exports = class Order extends Model {
                   return this.notifyCustomer(email, {transaction: options.transaction || null})
                 })
                 .catch(err => {
-                  this.app.log.error(err)
+                  app.log.error(err)
                   return
                 })
             },
@@ -1847,7 +1847,7 @@ module.exports = class Order extends Model {
                   return this.notifyCustomer(email, {transaction: options.transaction || null})
                 })
                 .catch(err => {
-                  this.app.log.error(err)
+                  app.log.error(err)
                   return
                 })
             },
@@ -1867,7 +1867,7 @@ module.exports = class Order extends Model {
                   return this.notifyCustomer(email, {transaction: options.transaction || null})
                 })
                 .catch(err => {
-                  this.app.log.error(err)
+                  app.log.error(err)
                   return
                 })
             },
@@ -1887,7 +1887,7 @@ module.exports = class Order extends Model {
                   return this.notifyCustomer(email, {transaction: options.transaction || null})
                 })
                 .catch(err => {
-                  this.app.log.error(err)
+                  app.log.error(err)
                   return
                 })
             },
@@ -1907,7 +1907,7 @@ module.exports = class Order extends Model {
                   return this.notifyCustomer(email, {transaction: options.transaction || null})
                 })
                 .catch(err => {
-                  this.app.log.error(err)
+                  app.log.error(err)
                   return
                 })
             },
@@ -1926,7 +1926,7 @@ module.exports = class Order extends Model {
                   return this.notifyCustomer(email, {transaction: options.transaction || null})
                 })
                 .catch(err => {
-                  this.app.log.error(err)
+                  app.log.error(err)
                   return
                 })
             }
