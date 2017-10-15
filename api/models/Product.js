@@ -427,7 +427,7 @@ module.exports = class Product extends Model {
                 return Product.findById(product.id, options)
                   .then(resProduct => {
                     if (!resProduct) {
-                      throw new Errors.FoundError(Error(`Product ${product.id} not found`))
+                      throw new Errors.FoundError(Error(`Product id ${product.id} not found`))
                     }
                     return resProduct
                   })
@@ -438,7 +438,7 @@ module.exports = class Product extends Model {
                 }, options))
                   .then(resProduct => {
                     if (!resProduct) {
-                      throw new Errors.FoundError(Error(`Product ${product.handle} not found`))
+                      throw new Errors.FoundError(Error(`Product handle ${product.handle} not found`))
                     }
                     return resProduct
                   })
@@ -447,18 +447,19 @@ module.exports = class Product extends Model {
                 return Product.findById(product, options)
                   .then(resProduct => {
                     if (!resProduct) {
-                      throw new Errors.FoundError(Error(`Product ${product} not found`))
+                      throw new Errors.FoundError(Error(`Product id ${product} not found`))
                     }
                     return resProduct
                   })
               }
               else if (product && _.isString(product)) {
                 return Product.findOne(app.services.ProxyEngineService.mergeOptionDefaults({
-                  where: { handle: product.handle }
-                }, options))
+                  options,
+                  where: { handle: product }
+                }))
                   .then(resProduct => {
                     if (!resProduct) {
-                      throw new Errors.FoundError(Error(`Product ${product} not found`))
+                      throw new Errors.FoundError(Error(`Product handle ${product} not found`))
                     }
                     return resProduct
                   })

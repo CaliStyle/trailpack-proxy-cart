@@ -1876,11 +1876,24 @@ module.exports = class CustomerController extends Controller {
       })
   }
 
-  hasPuchasedProduct(req, res) {
+  hasPurchasedProduct(req, res) {
     if (!req.customer) {
       const err = new Error('A customer must be logged in')
       return res.send(401, err)
     }
+    const product = req.params.product
+
+    this.app.orm['Product'].resolve(product)
+      .then(resProduct => {
+        return resProduct.hasPurchaseHistory(req.customer.id)
+      })
+      .then(result => {
+        return res.json({has_purchase_history: result})
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+
   }
 
   isSubscribedToProduct(req, res) {
@@ -1888,5 +1901,17 @@ module.exports = class CustomerController extends Controller {
       const err = new Error('A customer must be logged in')
       return res.send(401, err)
     }
+    const product = req.params.product
+
+    this.app.orm['Product'].resolve(product)
+      .then(resProduct => {
+        return resProduct.isSubscribed(req.customer.id)
+      })
+      .then(result => {
+        return res.json({is_subscribed: result})
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 }

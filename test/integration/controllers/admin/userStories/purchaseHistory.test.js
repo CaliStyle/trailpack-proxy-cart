@@ -151,4 +151,22 @@ describe('Admin User Purchase History', () => {
         done(err)
       })
   })
+  it('should have purchase history with product', done => {
+    adminUser
+      .get(`/customer/hasPurchased/${shopProducts[11].handle}`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.has_purchase_history, true)
+        done(err)
+      })
+  })
+  it('should have subscription to product', done => {
+    adminUser
+      .get(`/customer/isSubscribed/${shopProducts[11].handle}`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.is_subscribed, true)
+        done(err)
+      })
+  })
 })
