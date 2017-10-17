@@ -4,15 +4,15 @@ const Cron = require('trailpack-proxy-engine').Cron
 
 module.exports = class TransactionsCron extends Cron {
   /**
-   * Retry Failed Transactions
+   * Cancel Failed Transactions
    */
-  retryFailed() {
+  cancelFailed() {
     // Every Hour at 5 past Check for orders to retry
-    const rule = new this.schedule.RecurrenceRule()
-    rule.minute = 5
+    const rule = new this.scheduler.RecurrenceRule()
+    rule.minute = 10
     // Schedule the recurring job
-    this.schedule.scheduleJob('TransactionsCron.retryFailed',rule, () => {
-      this.app.services.TransactionService.retryThisHour()
+    this.scheduler.scheduleJob('TransactionsCron.cancelFailed', rule, () => {
+      this.app.services.TransactionService.cancelThisHour()
         .catch(err => {
           this.app.log.error(err)
         })
@@ -20,15 +20,15 @@ module.exports = class TransactionsCron extends Cron {
   }
 
   /**
-   * Cancel Failed Transactions
+   * Retry Failed Transactions
    */
-  cancelFailed() {
+  retryFailed() {
     // Every Hour at 5 past Check for orders to retry
-    const rule = new this.schedule.RecurrenceRule()
-    rule.minute = 10
+    const rule = new this.scheduler.RecurrenceRule()
+    rule.minute = 5
     // Schedule the recurring job
-    this.schedule.scheduleJob('TransactionsCron.cancelFailed', rule, () => {
-      this.app.services.TransactionService.cancelThisHour()
+    this.scheduler.scheduleJob('TransactionsCron.retryFailed',rule, () => {
+      this.app.services.TransactionService.retryThisHour()
         .catch(err => {
           this.app.log.error(err)
         })

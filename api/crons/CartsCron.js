@@ -8,10 +8,10 @@ module.exports = class CartsCron extends Cron {
    */
   archive() {
     // Every Hour Check for carts that are open and inactive and have been for X amount of time and close the,
-    const rule = new this.schedule.RecurrenceRule()
+    const rule = new this.scheduler.RecurrenceRule()
     rule.minute = 0
     // Schedule the recurring job
-    this.schedule.scheduleJob('CartsCron.archive', rule, () => {
+    this.scheduler.scheduleJob('CartsCron.archive', rule, () => {
       //
     })
   }
@@ -21,10 +21,10 @@ module.exports = class CartsCron extends Cron {
    */
   retarget() {
     // Every Hour Check for carts that are open and inactive with items in them and a customer id and retarget them
-    const rule = new this.schedule.RecurrenceRule()
+    const rule = new this.scheduler.RecurrenceRule()
     rule.minute = 0
     // Schedule the recurring job
-    this.schedule.scheduleJob('CartsCron.retarget', rule, () => {
+    this.scheduler.scheduleJob('CartsCron.retarget', rule, () => {
       //
     })
   }

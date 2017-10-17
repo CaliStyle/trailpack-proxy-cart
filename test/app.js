@@ -413,7 +413,7 @@ const App = {
     },
     proxyEngine: {
       live_mode: false,
-      worker: 'testProfile'
+      profile: 'testProfile'
     }
   }
 }

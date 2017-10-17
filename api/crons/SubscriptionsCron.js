@@ -4,29 +4,30 @@ const Cron = require('trailpack-proxy-engine').Cron
 
 module.exports = class SubscriptionsCron extends Cron {
   /**
-   * Subscriptions that will renew in X time
+   * Cancel Failed Subscriptions
    */
-  willRenew() {
-    // Every Hour Check for subscription that will renew
-    const rule = new this.schedule.RecurrenceRule()
-    rule.minute = 0
+  cancelFailed() {
+    // Every Hour at 30 past Check for subscriptions to cancel
+    const rule = new this.scheduler.RecurrenceRule()
+    rule.minute = 30
     // Schedule the recurring job
-    this.schedule.scheduleJob('SubscriptionsCron.willRenew',rule, () => {
-      // this.app.services.SubscriptionService.renewThisHour()
-      //   .catch(err => {
-      //     this.app.log.error(err)
-      //   })
+    this.scheduler.scheduleJob('SubscriptionsCron.cancelFailed',rule, () => {
+      this.app.services.SubscriptionService.cancelThisHour()
+        .catch(err => {
+          this.app.log.error(err)
+        })
     })
   }
+
   /**
    * Renews Subscriptions
    */
   renew() {
     // Every Hour Check for subscription renewals
-    const rule = new this.schedule.RecurrenceRule()
+    const rule = new this.scheduler.RecurrenceRule()
     rule.minute = 0
     // Schedule the recurring job
-    this.schedule.scheduleJob('SubscriptionsCron.renew',rule, () => {
+    this.scheduler.scheduleJob('SubscriptionsCron.renew',rule, () => {
       this.app.services.SubscriptionService.renewThisHour()
         .catch(err => {
           this.app.log.error(err)
@@ -39,10 +40,10 @@ module.exports = class SubscriptionsCron extends Cron {
    */
   retryFailed() {
     // Every Hour at 15 past Check for subscriptions to retry
-    const rule = new this.schedule.RecurrenceRule()
+    const rule = new this.scheduler.RecurrenceRule()
     rule.minute = 15
     // Schedule the recurring job
-    this.schedule.scheduleJob('SubscriptionsCron.retryFailed',rule, () => {
+    this.scheduler.scheduleJob('SubscriptionsCron.retryFailed',rule, () => {
       this.app.services.SubscriptionService.retryThisHour()
         .catch(err => {
           this.app.log.error(err)
@@ -51,18 +52,18 @@ module.exports = class SubscriptionsCron extends Cron {
   }
 
   /**
-   * Cancel Failed Subscriptions
+   * Subscriptions that will renew in X time
    */
-  cancelFailed() {
-    // Every Hour at 30 past Check for subscriptions to cancel
-    const rule = new this.schedule.RecurrenceRule()
-    rule.minute = 30
+  willRenew() {
+    // Every Hour Check for subscription that will renew
+    const rule = new this.scheduler.RecurrenceRule()
+    rule.minute = 0
     // Schedule the recurring job
-    this.schedule.scheduleJob('SubscriptionsCron.cancelFailed',rule, () => {
-      this.app.services.SubscriptionService.cancelThisHour()
-        .catch(err => {
-          this.app.log.error(err)
-        })
+    this.scheduler.scheduleJob('SubscriptionsCron.willRenew',rule, () => {
+      // this.app.services.SubscriptionService.willRenew()
+      //   .catch(err => {
+      //     this.app.log.error(err)
+      //   })
     })
   }
 }
