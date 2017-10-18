@@ -373,6 +373,158 @@ module.exports = class Subscription extends Model {
                 return Promise.resolve(this)
               }
             },
+
+            resetDefaults: function() {
+              this.total_items = 0
+              this.total_shipping = 0
+              this.subtotal_price = 0
+              this.total_discounts = 0
+              this.total_coupons = 0
+              this.total_tax = 0
+              this.total_weight = 0
+              this.total_line_items_price = 0
+              this.total_overrides = 0
+              this.total_price = 0
+              this.total_due = 0
+
+              this.has_shipping = false
+              this.has_taxes = false
+              this.discounted_lines = []
+              this.coupon_lines = []
+              this.shipping_lines = []
+              this.tax_lines = []
+
+              // Reset line items
+              this.line_items.map(item => {
+                item.shipping_lines = []
+                item.discounted_lines = []
+                item.coupon_lines = []
+                item.tax_lines = []
+                item.total_discounts = 0
+                item.calculated_price = item.price
+                return item
+              })
+
+              return this
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setLineItems: function(lines) {
+              this.line_items = lines || []
+
+              this.total_items = 0
+              this.subtotal_price = 0
+              this.total_line_items_price = 0
+
+              this.line_items.forEach(item => {
+                // Check if at least one time requires shipping
+                if (item.requires_shipping) {
+                  this.total_weight = this.total_weight + item.grams
+                  this.has_shipping = true
+                }
+
+                // Check if at least one item requires taxes
+                if (item.requires_taxes) {
+                  this.has_taxes = true
+                }
+
+                this.total_items = this.total_items + item.quantity
+                this.subtotal_price = this.subtotal_price + item.price * item.quantity
+                this.total_line_items_price = this.total_line_items_price + item.price * item.quantity
+              })
+
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setDiscountedLines: function(lines) {
+              this.total_discounts = 0
+              this.discounted_lines = lines || []
+              this.discounted_lines.forEach(line => {
+                this.total_discounts = this.total_discounts + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setPricingOverrides: function(lines) {
+              this.total_overrides = 0
+              this.pricing_overrides = lines || []
+              this.pricing_overrides.forEach(line => {
+                this.total_overrides = this.total_overrides + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setCouponLines: function(lines) {
+              this.total_coupons = 0
+              this.coupon_lines = lines || []
+              this.coupon_lines.forEach(line => {
+                this.total_coupons = this.total_coupons + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setShippingLines: function(lines) {
+              this.total_shipping = 0
+              this.shipping_lines = lines || []
+              this.shipping_lines.forEach(line => {
+                this.total_shipping = this.total_shipping + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setTaxLines: function(lines) {
+              this.total_tax = 0
+              this.tax_lines = lines || []
+              this.tax_lines.forEach(line => {
+                this.total_tax = this.total_tax + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             */
+            setTotals: function() {
+              // Set Cart values
+              this.total_price = Math.max(0,
+                this.total_tax
+                + this.total_shipping
+                + this.subtotal_price
+              )
+
+              this.total_due = Math.max(0,
+                this.total_price
+                - this.total_discounts
+                - this.total_coupons
+                - this.total_overrides
+              )
+
+              return this
+            },
+
             line: function(data){
               data.Product = data.Product || {}
               const line = {
@@ -384,7 +536,7 @@ module.exports = class Subscription extends Model {
                 sku: data.sku,
                 title: data.Product.title,
                 variant_title: data.title,
-                name: data.title == data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
+                name: data.title === data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
                 properties: data.properties,
                 option: data.option,
                 barcode: data.barcode,
@@ -651,7 +803,7 @@ module.exports = class Subscription extends Model {
              * @param options
              * @returns {Promise.<T>}
              */
-            sendWillRenew(options) {
+            sendWillRenewEmail(options) {
               options = options || {}
               return app.emails.Subscription.willRenew(this, {
                 send_email: app.config.proxyCart.emails.subscriptionWillRenew
@@ -727,142 +879,65 @@ module.exports = class Subscription extends Model {
              */
             recalculate: function(options) {
               options = options || {}
-              // Default Values
+
               let collections = []
-              let subtotalPrice = 0
-              let totalDiscounts = 0
-              let totalCoupons = 0
-              let totalTax = 0
-              let totalWeight = 0
-              let totalPrice = 0
-              let totalDue = 0
-              let totalLineItemsPrice = 0
-              let totalShipping = 0
-              let totalItems = 0
 
               // Set Renewal Date
               const d = moment(this.renewed_at)
               // console.log('CHECK DATE', d, this.renewed_at, this.renews_on)
-              if (this.unit == INTERVALS.DAY) {
+              if (this.unit === INTERVALS.DAY) {
                 // d.setDate(d.getDay() + this.interval)
                 d.add(this.interval, 'D')
               }
-              else if (this.unit == INTERVALS.WEEK) {
+              else if (this.unit === INTERVALS.WEEK) {
                 // d.setMonth(d.getWeek() + this.interval);
                 d.add(this.interval, 'W')
               }
-              else if (this.unit == INTERVALS.MONTH) {
+              else if (this.unit === INTERVALS.MONTH) {
                 // d.setMonth(d.getMonth() + this.interval)
                 d.add(this.interval, 'M')
                 // console.log(d)
               }
-              else if (this.unit == INTERVALS.BIMONTH) {
+              else if (this.unit === INTERVALS.BIMONTH) {
                 d.add(this.interval * 2, 'M')
                 // d.setMonth(d.getMonth() + this.interval * 2)
               }
-              else if (this.unit == INTERVALS.YEAR) {
+              else if (this.unit === INTERVALS.YEAR) {
                 d.add(this.interval, 'Y')
                 // d.setYear(d.getYear() + this.interval)
               }
-              else if (this.unit == INTERVALS.BIYEAR) {
+              else if (this.unit === INTERVALS.BIYEAR) {
                 d.add(this.interval * 2, 'Y')
                 // d.setYear(d.getYear() + this.interval * 2)
               }
               this.renews_on = d.format('YYYY-MM-DD HH:mm:ss')
 
-              // console.log('CHECK DATE', this.renews_on, this.interval, this.unit)
+              this.resetDefaults()
 
-              // Reset Globals
-              this.has_shipping = false
-
-              // Set back to default
-              this.discounted_lines = []
-              this.shipping_lines = []
-              this.tax_lines = []
-
-              const lineItems = this.line_items.map(item => {
-                item.shipping_lines = []
-                item.discounted_lines = []
-                item.tax_lines = []
-                item.total_discounts = 0
-                item.calculated_price = item.price
-                return item
-              })
-              this.line_items = lineItems
-
-              // Calculate Totals
-              this.line_items.forEach(item => {
-                // Check if at least one time requires shipping
-                if (item.requires_shipping) {
-                  totalWeight = totalWeight + item.grams
-                  this.has_shipping = true
-                }
-
-                // Check if at least one item requires taxes
-                if (item.requires_taxes) {
-                  this.has_taxes = true
-                }
-
-                totalItems = totalItems + item.quantity
-                subtotalPrice = subtotalPrice + item.price * item.quantity
-                totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
-              })
-
-              // Get Cart Collections
+              // Get Subscription Collections
               return app.services.CollectionService.subscriptionCollections(this)
                 .then(resCollections => {
                   collections = resCollections
-                  // Resolve taxes
+                  // Calculate taxes
                   return app.services.TaxService.calculate(this, collections, app.orm['Subscription'])
                 })
-                .then(tax => {
-                  // Add tax lines
-                  _.each(this.tax_lines, line => {
-                    totalTax = totalTax + line.price
-                  })
-                  // Resolve Shipping
+                .then(() => {
+                  // Calculate Shipping and Collection shipping
                   return app.services.ShippingService.calculate(this, collections, app.orm['Subscription'])
                 })
-                .then(shipping => {
-                  // Add shipping lines
-                  // shippingLines = shipping
-                  // // Calculate shipping costs
-                  _.each(this.shipping_lines, line => {
-                    totalShipping = totalShipping + line.price
-                  })
-                  return app.services.DiscountService.calculate(this, collections, app.orm['Subscription'])
+                .then(() => {
+                  // Calculate Collection discounts
+                  return app.services.DiscountService.calculateCollections(this, collections, app.orm['Subscription'])
                 })
-                .then(discounts => {
-                  // console.log(discounts)
-                  // discountedLines = discounts
-                  _.each(this.discounted_lines, line => {
-                    totalDiscounts = totalDiscounts + line.price
-                  })
+                .then(() => {
+                  // Calculate Coupons
                   return app.services.CouponService.calculate(this, collections, app.orm['Subscription'])
                 })
-                .then(coupons => {
-                  _.each(this.coupon_lines, line => {
-                    totalCoupons = totalCoupons + line.price
-                  })
-
-                  // Finalize Totals
-                  totalPrice = Math.max(0, totalTax + totalShipping + subtotalPrice)
-                  totalDue = Math.max(0, totalPrice - totalDiscounts - totalCoupons)
-
-                  // Set Cart values
-                  this.total_items = totalItems
-                  this.total_shipping = totalShipping
-                  this.subtotal_price = subtotalPrice
-                  this.total_discounts = totalDiscounts
-                  this.total_tax = totalTax
-                  this.total_weight = totalWeight
-                  this.total_line_items_price = totalLineItemsPrice
-                  this.total_price = totalPrice
-                  this.total_due = totalDue
-                  // console.log('SUBSCRIPTION CALCULATION', this)
-                  return this
+                .then(() => {
+                  return this.setTotals()
                 })
                 .catch(err => {
+                  app.log.error(err)
                   return this
                 })
             }
@@ -1057,6 +1132,19 @@ module.exports = class Subscription extends Model {
         },
         // The total original price of the line items
         total_line_items_price: {
+          type: Sequelize.INTEGER,
+          defaultValue: 0
+        },
+        // Array of pricing overrides objects
+        pricing_overrides: helpers.JSONB('Subscription', app, Sequelize, 'pricing_overrides', {
+          defaultValue: []
+        }),
+        // USER id of the admin who did the override
+        pricing_override_id: {
+          type: Sequelize.INTEGER
+        },
+        // The total monetary amount of pricing overrides
+        total_overrides: {
           type: Sequelize.INTEGER,
           defaultValue: 0
         },

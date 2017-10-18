@@ -7,8 +7,9 @@ const Service = require('trails/service')
  * @description Shipping Service
  */
 module.exports = class ShippingService extends Service {
-  calculate(obj, shippingAddress, resolver){
-    return resolver.resolve(obj)
+  calculate(obj, shippingAddress, resolver, options){
+    options = options || {}
+    return resolver.resolve(obj, {transaction: options.transaction || null})
       .then(obj => {
         return this.app.services.ProxyCartService.resolveSendFromTo(obj, shippingAddress)
       })
@@ -19,8 +20,7 @@ module.exports = class ShippingService extends Service {
         return this.getShipping(sendFromTo)
       })
       .then(shippingLines => {
-        obj.shipping_lines = shippingLines
-        return obj
+        return obj.setShippingLines(shippingLines)
       })
   }
   getShipping(sendFromTo) {

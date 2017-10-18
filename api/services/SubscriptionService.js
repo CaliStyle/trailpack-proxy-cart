@@ -740,6 +740,34 @@ module.exports = class SubscriptionService extends Service {
 
   /**
    *
+   * @param subscription
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  willRenew(subscription, options) {
+    options = options || {}
+    const Subscription = this.app.orm['Subscription']
+
+    let resSubscription
+    return Subscription.sequelize.transaction(t => {
+      options.transaction = t
+      return Subscription.resolve(subscription, {transaction: options.transaction || null})
+        .then(_subscription => {
+          if (!_subscription) {
+            throw new Errors.FoundError(Error('Subscription Not Found'))
+          }
+          resSubscription = _subscription
+
+          return resSubscription.sendWillRenewEmail({transaction: options.transaction || null})
+        })
+        .then((notification) => {
+          return resSubscription
+        })
+    })
+  }
+
+  /**
+   *
    * @returns {*|Promise.<TResult>}
    */
   renewThisHour(options) {
@@ -913,6 +941,64 @@ module.exports = class SubscriptionService extends Service {
         }
         this.app.log.info(results)
         this.app.services.ProxyEngineService.publish('subscriptions.cancel.complete', results)
+        return results
+      })
+      .catch(err => {
+        this.app.log.error(err)
+        return
+      })
+  }
+
+  /**
+   * @param options
+   * @returns {*|Promise.<TResult>}
+   */
+  willRenewDate(options) {
+    options = options || {}
+    const start = moment().add(3, 'days').startOf('hour')
+    const end = start.clone().add(3, 'days').endOf('hour')
+    const Subscription = this.app.orm['Subscription']
+    const errors = []
+    // let errorsTotal = 0
+    let subscriptionsTotal = 0
+
+    this.app.log.debug('SubscriptionService.willRenewDate', start.format('YYYY-MM-DD HH:mm:ss'), end.format('YYYY-MM-DD HH:mm:ss'))
+
+    return Subscription.batch({
+      where: {
+        renews_on: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss'),
+          $lte: end.format('YYYY-MM-DD HH:mm:ss')
+        },
+        active: true
+      },
+      regressive: true,
+      transaction: options.transaction || null
+    }, (subscriptions) => {
+
+      const Sequelize = Subscription.sequelize
+      return Sequelize.Promise.mapSeries(subscriptions, subscription => {
+        return this.willRenew(subscription, {transaction: options.transaction || null})
+      })
+        .then(results => {
+          // Calculate Totals
+          subscriptionsTotal = subscriptionsTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
+        })
+    })
+      .then(subscriptions => {
+        const results = {
+          subscriptions: subscriptionsTotal,
+          errors: errors
+        }
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('subscriptions.renew.complete', results)
         return results
       })
       .catch(err => {

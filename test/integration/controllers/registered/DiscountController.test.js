@@ -37,4 +37,34 @@ describe('Registered User DiscountController', () => {
         done(err)
       })
   })
+  it('should not create a discount', (done) => {
+    registeredUser
+      .post('/discount')
+      .send({
+        hello: 'world'
+      })
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  it('should not update a discount', (done) => {
+    registeredUser
+      .post('/discount/1')
+      .send({
+        applies_compound: true
+      })
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
+  it('should not destroy a discount', (done) => {
+    registeredUser
+      .del('/discount/1')
+      .expect(403)
+      .end((err, res) => {
+        done(err)
+      })
+  })
 })

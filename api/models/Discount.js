@@ -1,9 +1,12 @@
+/* eslint new-cap: [0] */
 'use strict'
 
 const Model = require('trails/model')
 const Errors = require('proxy-engine-errors')
+const helpers = require('proxy-engine-helpers')
 const DISCOUNT_TYPES = require('../../lib').Enums.DISCOUNT_TYPES
 const DISCOUNT_STATUS = require('../../lib').Enums.DISCOUNT_STATUS
+const DISCOUNT_SCOPE = require('../../lib').Enums.DISCOUNT_SCOPE
 const _ = require('lodash')
 /**
  * @module Discount
@@ -75,7 +78,7 @@ module.exports = class Discount extends Model {
                 constraints: false
               })
               models.Discount.belongsToMany(models.Cart, {
-                as: 'orders',
+                as: 'carts',
                 through: {
                   model: models.ItemDiscount,
                   unique: false,
@@ -104,7 +107,7 @@ module.exports = class Discount extends Model {
                   model: models.ItemDiscount,
                   unique: false,
                   scope: {
-                    model: 'product_variant'
+                    model: 'variant'
                   }
                 },
                 foreignKey: 'discount_id',
@@ -263,6 +266,12 @@ module.exports = class Discount extends Model {
           type: Sequelize.STRING,
           notNull: true
         },
+        // The scope of the discount price modifier for the collection (individual, global)
+        discount_scope: {
+          type: Sequelize.ENUM,
+          values: _.values(DISCOUNT_SCOPE),
+          defaultValue: DISCOUNT_SCOPE.INDIVIDUAL
+        },
         // Specify how the discount's value will be applied to the order.
         // Valid values are: rate, percentage, shipping
         discount_type: {
@@ -285,6 +294,25 @@ module.exports = class Discount extends Model {
           type: Sequelize.FLOAT,
           defaultValue: 0.0
         },
+
+        // TODO allow product includes
+        // List of product types allowed to discount
+        discount_product_include: helpers.JSONB('Discount', app, Sequelize, 'discount_product_include', {
+          defaultValue: []
+        }),
+        // List of product_type [<string>] to forcefully excluded from discount modifiers
+        discount_product_exclude: helpers.JSONB('Discount', app, Sequelize, 'discount_product_exclude', {
+          defaultValue: []
+        }),
+        // List of product_type [<string>] to forcefully excluded from shipping modifiers
+        shipping_product_exclude: helpers.JSONB('Discount', app, Sequelize, 'shipping_product_exclude', {
+          defaultValue: []
+        }),
+        // List of product_type [<string>] to forcefully excluded from tax modifiers
+        tax_product_exclude: helpers.JSONB('Discount', app, Sequelize, 'tax_product_exclude', {
+          defaultValue: []
+        }),
+
         // The date when the discount code becomes disabled
         ends_at: {
           type: Sequelize.DATE
@@ -310,14 +338,6 @@ module.exports = class Discount extends Model {
         usage_limit: {
           type: Sequelize.INTEGER,
           defaultValue: 0
-        },
-        // The id of a collection or product that this discount code is restricted to. Leave blank for a store-wide discount. If applies_to_id is set, then the applies_to_resource property is also mandatory.
-        applies_to_id: {
-          type: Sequelize.STRING
-        },
-        // The discount code can be set to apply to only a product, variant, customer, or collection. If applies_to_resource is set, then applies_to_id should also be set.
-        applies_to_model: {
-          type: Sequelize.STRING
         },
         // When a discount applies to a product or collection resource, applies_once determines whether the discount should be applied once per order, or to every applicable item in the cart.
         applies_once: {

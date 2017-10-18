@@ -7,6 +7,7 @@ const helpers = require('proxy-engine-helpers')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
 const CART_STATUS = require('../../lib').Enums.CART_STATUS
+const DISCOUNT_STATUS = require('../../lib').Enums.DISCOUNT_STATUS
 const PAYMENT_PROCESSING_METHOD = require('../../lib').Enums.PAYMENT_PROCESSING_METHOD
 const queryDefaults = require('../utils/queryDefaults')
 
@@ -109,7 +110,7 @@ module.exports = class Cart extends Model {
                 constraints: false
               })
               models.Cart.belongsToMany(models.Discount, {
-                as: 'discount_codes',
+                as: 'discounts',
                 through: {
                   model: models.ItemDiscount,
                   unique: false,
@@ -239,6 +240,163 @@ module.exports = class Cart extends Model {
           },
           instanceMethods: {
             /**
+             * Resets the defaults so they can be recalculated
+             * @returns {*}
+             */
+            resetDefaults: function() {
+              this.total_items = 0
+              this.total_shipping = 0
+              this.subtotal_price = 0
+              this.total_discounts = 0
+              this.total_coupons = 0
+              this.total_tax = 0
+              this.total_weight = 0
+              this.total_line_items_price = 0
+              this.total_overrides = 0
+              this.total_price = 0
+              this.total_due = 0
+
+              this.has_subscription = false
+              this.has_shipping = false
+              this.has_taxes = false
+              this.discounted_lines = []
+              this.coupon_lines = []
+              this.shipping_lines = []
+              this.tax_lines = []
+
+              // Reset line items
+              this.line_items.map(item => {
+                item.shipping_lines = []
+                item.discounted_lines = []
+                item.coupon_lines = []
+                item.tax_lines = []
+                item.total_discounts = 0
+                item.calculated_price = item.price
+                return item
+              })
+
+              return this
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setLineItems: function(lines) {
+              this.line_items = lines || []
+
+              this.total_items = 0
+              this.subtotal_price = 0
+              this.total_line_items_price = 0
+
+              this.line_items.forEach(item => {
+                // Check if at least one time requires shipping
+                if (item.requires_shipping) {
+                  this.total_weight = this.total_weight + item.grams
+                  this.has_shipping = true
+                }
+
+                // Check if at least one item requires taxes
+                if (item.requires_taxes) {
+                  this.has_taxes = true
+                }
+
+                // Check if at least one item requires subscription
+                if (item.requires_subscription) {
+                  this.has_subscription = true
+                }
+
+                this.total_items = this.total_items + item.quantity
+                this.subtotal_price = this.subtotal_price + item.price * item.quantity
+                this.total_line_items_price = this.total_line_items_price + item.price * item.quantity
+              })
+              return this.setTotals()
+            },
+            /**
+             *
+             * @param lines
+             */
+            setDiscountedLines: function(lines) {
+              this.total_discounts = 0
+              this.discounted_lines = lines || []
+              this.discounted_lines.forEach(line => {
+                this.total_discounts = this.total_discounts + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setPricingOverrides: function(lines) {
+              this.total_overrides = 0
+              this.pricing_overrides = lines || []
+              this.pricing_overrides.forEach(line => {
+                this.total_overrides = this.total_overrides + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setCouponLines: function(lines) {
+              this.total_coupons = 0
+              this.coupon_lines = lines || []
+              this.coupon_lines.forEach(line => {
+                this.total_coupons = this.total_coupons + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setShippingLines: function(lines) {
+              this.total_shipping = 0
+              this.shipping_lines = lines || []
+              this.shipping_lines.forEach(line => {
+                this.total_shipping = this.total_shipping + line.price
+              })
+              return this.setTotals()
+            },
+
+            /**
+             *
+             * @param lines
+             */
+            setTaxLines: function(lines) {
+              this.total_tax = 0
+              this.tax_lines = lines || []
+              this.tax_lines.forEach(line => {
+                this.total_tax = this.total_tax + line.price
+              })
+              return this.setTotals()
+            },
+            /**
+             *
+             */
+            setTotals: function() {
+              // Set Cart values
+              this.total_price = Math.max(0,
+                this.total_tax
+                + this.total_shipping
+                + this.subtotal_price
+              )
+
+              this.total_due = Math.max(0,
+                this.total_price
+                - this.total_discounts
+                - this.total_coupons
+                - this.total_overrides
+              )
+
+              return this
+            },
+            /**
              *
              * @param data
              */
@@ -255,7 +413,7 @@ module.exports = class Cart extends Model {
                 sku: data.sku,
                 title: data.Product.title,
                 variant_title: data.title,
-                name: data.title == data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
+                name: data.title === data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
                 properties: data.properties,
                 option: data.option,
                 barcode: data.barcode,
@@ -428,7 +586,7 @@ module.exports = class Cart extends Model {
              * @param order
              * @param save
              */
-            order: function(order, save) {
+            ordered: function(order, save) {
               this.order_id = order.id
               this.status = CART_STATUS.ORDERED
               if (save) {
@@ -493,136 +651,201 @@ module.exports = class Cart extends Model {
               }
               return buildOrder
             },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
+            calculatePricingOverrides: function(options) {
+              options = options || {}
+
+              const pricingOverrides = []
+              let deduction = 0
+
+              if (!this.customer_id) {
+                return Promise.resolve(this)
+              }
+
+              return Promise.resolve()
+                .then(() => {
+                  if (this.Customer) {
+                    return this.Customer
+                  }
+                  else {
+                    return app.orm['Customer'].findById(this.customer_id, {
+                      attributes: ['id', 'account_balance'],
+                      transaction: options.transaction || null
+                    })
+                  }
+                })
+                .then(_customer => {
+                  if (!_customer) {
+                    return
+                  }
+
+                  this.line_items = this.line_items || []
+                  this.pricing_overrides = this.pricing_overrides || []
+
+                  const exclusions = this.line_items.filter(item => {
+                    item.exclude_payment_types = item.exclude_payment_types || []
+                    return item.exclude_payment_types.indexOf('Account Balance') !== -1
+                  })
+
+                  this.pricing_overrides.forEach(override => {
+                    pricingOverrides.push(override)
+                  })
+
+                  const accountBalanceIndex = _.findIndex(pricingOverrides, {name: 'Account Balance'})
+                  if (_customer.account_balance > 0) {
+                    // Apply Customer Account balance
+                    const removeTotal = _.sumBy(exclusions, (e) => e.calculated_price)
+                    const deductibleTotal = Math.max(0, this.total_due - removeTotal)
+                    deduction = Math.min(deductibleTotal, (deductibleTotal - (deductibleTotal - _customer.account_balance)))
+                    if (deduction > 0) {
+
+                      // If account balance has not been applied
+                      if (accountBalanceIndex === -1) {
+                        pricingOverrides.push({
+                          name: 'Account Balance',
+                          price: deduction
+                        })
+                      }
+                      else {
+                        pricingOverrides[accountBalanceIndex].price = deduction
+                      }
+                    }
+                  }
+                  else {
+                    if (accountBalanceIndex > -1) {
+                      pricingOverrides.splice(accountBalanceIndex, 1)
+                    }
+                  }
+                  return this.setPricingOverrides(pricingOverrides)
+                })
+                .catch(err => {
+                  return this
+                })
+            },
+
+            /**
+             *
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
+            calculateCustomerAndItemsDiscounts(options) {
+              options = options || {}
+              const criteria = []
+              const discountedLines = this.discounted_lines || []
+
+              return Promise.resolve()
+                .then(() => {
+                  const productIds = this.line_items.map(item => item.product_id)
+
+                  if (this.id) {
+                    criteria.push({
+                      model: 'cart',
+                      model_id: this.id
+                    })
+                  }
+                  if (this.customer_id) {
+                    criteria.push({
+                      model: 'customer',
+                      model_id: this.customer_id
+                    })
+                  }
+                  if (productIds.length > 0) {
+                    criteria.push({
+                      model: 'product',
+                      model_id: productIds
+                    })
+                  }
+                  if (criteria.length > 0) {
+                    return app.orm['ItemDiscount'].findAll({
+                      where: {
+                        $or: criteria
+                      },
+                      attributes: ['discount_id', 'model', 'model_id'],
+                      transaction: options.transaction || null
+                    })
+                  }
+                  else {
+                    return []
+                  }
+                })
+                .then(discounts => {
+                  if (discounts.length > 0) {
+                    return app.orm['Discount'].findAll({
+                      where: {
+                        id: discounts.map(item => item.discount_id),
+                        status: DISCOUNT_STATUS.ENABLED
+                      },
+                      transaction: options.transaction || null
+                    })
+                  }
+                  else {
+                    return []
+                  }
+                })
+                .then(discounts => {
+                  discounts.forEach(discount => {
+                    discountedLines.push({
+                      id: discount.id,
+                      name: discount.name,
+                      type: 'discount',
+                      price: discount.discount_rate
+                    })
+                  })
+                  return this.setDiscountedLines(discountedLines)
+                })
+                .catch(err => {
+                  app.log.error(err)
+                  return this
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
             recalculate: function(options) {
               options = options || {}
               // Default Values
               let collections = []
-              let subtotalPrice = 0
-              let totalDiscounts = 0
-              let totalCoupons = 0
-              let totalTax = 0
-              let totalWeight = 0
-              let totalPrice = 0
-              let totalDue = 0
-              let totalLineItemsPrice = 0
-              let totalShipping = 0
-              let totalItems = 0
-              let totalOverrides = 0
 
-              // Reset Globals
-              this.has_shipping = false
-              this.has_taxes = false
-              this.has_subscription = false
-
-              // Set back to default
-              this.discounted_lines = []
-              this.shipping_lines = []
-              this.tax_lines = []
-
-              const lineItems = this.line_items.map(item => {
-                item.shipping_lines = []
-                item.discounted_lines = []
-                item.tax_lines = []
-                item.total_discounts = 0
-                item.calculated_price = item.price
-                return item
-              })
-              this.line_items = lineItems
-
-              // Calculate Totals
-              this.line_items.forEach(item => {
-                // Check if at least one item requires shipping
-                if (item.requires_shipping) {
-                  totalWeight = totalWeight + item.grams
-                  this.has_shipping = true
-                }
-                // Check if at least one item requires taxes
-                if (item.requires_taxes) {
-                  this.has_taxes = true
-                }
-                // Check if at least one item requires subscription
-                if (item.requires_subscription) {
-                  this.has_subscription = true
-                }
-                totalItems = totalItems + item.quantity
-                subtotalPrice = subtotalPrice + item.price * item.quantity
-                totalLineItemsPrice = totalLineItemsPrice + item.price * item.quantity
-
-                this.total_price = subtotalPrice
-                this.total_due = subtotalPrice
-              })
+              this.resetDefaults()
+              this.setLineItems(this.line_items)
 
               // Get Cart Collections
               return app.services.CollectionService.cartCollections(this)
                 .then(resCollections => {
                   collections = resCollections
-                  // Resolve taxes
+                  // Calculate taxes
                   return app.services.TaxService.calculate(this, collections, app.orm['Cart'])
                 })
                 .then(tax => {
-                  // Add tax lines
-                  _.each(this.tax_lines, line => {
-                    totalTax = totalTax + line.price
-                  })
-                  this.total_tax = totalTax
-                  this.total_due = this.total_due + totalTax
-                  // Resolve Shipping
+                  // Calculate Shipping
                   return app.services.ShippingService.calculate(this, collections, app.orm['Cart'])
                 })
                 .then(shipping => {
-                  // Add shipping lines
-                  // shippingLines = shipping
-                  // // Calculate shipping costs
-                  _.each(this.shipping_lines, line => {
-                    totalShipping = totalShipping + line.price
-                  })
-                  this.total_shipping = totalShipping
-                  this.total_due = this.total_due + totalShipping
-                  // Resolve Discounts
-                  return app.services.DiscountService.calculate(this, collections, app.orm['Cart'])
+                  // Calculate Collection Discounts
+                  return app.services.DiscountService.calculateCollections(this, collections, app.orm['Cart'])
+                })
+                .then(() => {
+                  return this.calculateCustomerAndItemsDiscounts({transaction: options.transaction || null})
                 })
                 .then(discounts => {
-                  // console.log(discounts)
-                  // discountedLines = discounts
-                  _.each(this.discounted_lines, line => {
-                    totalDiscounts = totalDiscounts + line.price
-                  })
-                  this.total_discounts = totalDiscounts
-                  this.total_due = this.total_due - totalDiscounts
+                  // Calculate Coupons
                   return app.services.CouponService.calculate(this, collections, app.orm['Cart'])
                 })
                 .then(coupons => {
-                  _.each(this.coupon_lines, line => {
-                    totalCoupons = totalCoupons + line.price
-                  })
-                  this.total_coupons = totalCoupons
-                  this.total_due = this.total_due - totalCoupons
                   // Calculate Customer Balance
-                  return app.services.CustomerService.calculateCart(this, {transaction: options.transaction || null})
+                  return this.calculatePricingOverrides({transaction: options.transaction || null})
                 })
                 .then(accountBalance => {
-                  // console.log('BROKE',accountBalance)
-                  _.each(this.pricing_overrides, line => {
-                    totalOverrides = totalOverrides + line.price
-                  })
-
-                  // Finalize Totals
-                  totalPrice = Math.max(0, totalTax + totalShipping + subtotalPrice)
-                  totalDue = Math.max(0, totalPrice - totalDiscounts - totalCoupons - totalOverrides)
-
-                  // Set Cart values
-                  this.total_items = totalItems
-                  this.total_shipping = totalShipping
-                  this.subtotal_price = subtotalPrice
-                  this.total_discounts = totalDiscounts
-                  this.total_coupons = totalCoupons
-                  this.total_tax = totalTax
-                  this.total_weight = totalWeight
-                  this.total_line_items_price = totalLineItemsPrice
-                  this.total_overrides = totalOverrides
-                  this.total_price = totalPrice
-                  this.total_due = totalDue
-
+                  return this.setTotals()
+                })
+                .catch(err => {
+                  app.log.error(err)
                   return this
                 })
             },
@@ -641,11 +864,47 @@ module.exports = class Cart extends Model {
               }
               else {
                 return this.getCustomer({transaction: options.transaction || null})
-                  .then(customer => {
-                    customer = customer || null
-                    this.Customer = customer
-                    this.setDataValue('Customer', customer)
-                    this.set('Customer', customer)
+                  .then(_customer => {
+                    if (_customer) {
+                      _customer = _customer || null
+                      this.Customer = _customer
+                      this.setDataValue('Customer', _customer)
+                      this.set('Customer', _customer)
+                    }
+                    return this
+                  })
+              }
+            },
+            // TODO
+            resolveCustomerAndItemCollections(options) {
+              options = options || {}
+
+              this.line_items.forEach(item => {
+                //
+              })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            resolveDiscounts(options) {
+              options = options || {}
+              if (
+                this.discounts
+                && this.discounts.length > 0
+                && this.discounts.every(d => d instanceof app.orm['Discount'].Instance)
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getDiscounts({transaction: options.transaction || null})
+                  .then(_discounts => {
+                    _discounts = _discounts || []
+                    this.discounts = _discounts
+                    this.setDataValue('discounts', _discounts)
+                    this.set('discounts', _discounts)
                     return this
                   })
               }
@@ -920,14 +1179,14 @@ module.exports = class Cart extends Model {
         pricing_overrides: helpers.JSONB('Cart', app, Sequelize, 'pricing_overrides', {
           defaultValue: []
         }),
+        // USER id of the admin who did the override
+        pricing_override_id: {
+          type: Sequelize.INTEGER
+        },
         // The total monetary amount of pricing overrides
         total_overrides: {
           type: Sequelize.INTEGER,
           defaultValue: 0
-        },
-        // USER id of the admin who did the override
-        pricing_override_id: {
-          type: Sequelize.INTEGER
         },
         // The total original price of the line items
         total_line_items_price: {

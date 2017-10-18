@@ -18,7 +18,13 @@ module.exports = class ItemDiscount extends Model {
           underscored: true
         },
         classMethods: {
-          DISCOUNT_MODELS: DISCOUNT_MODELS
+          DISCOUNT_MODELS: DISCOUNT_MODELS,
+          // associate: (models) => {
+          //   models.ItemDiscount.belongsTo(models.Discount, {
+          //     // targetKey: 'discount_id'
+          //     unique: 'discount_model',
+          //   })
+          // }
         }
       }
     }
@@ -34,7 +40,11 @@ module.exports = class ItemDiscount extends Model {
       },
       discount_id: {
         type: Sequelize.INTEGER,
-        unique: 'discount_model'
+        unique: 'discount_model',
+        // references: {
+        //   model: app.orm['Discount'],
+        //   key: 'id'
+        // }
       },
       model: {
         type: Sequelize.ENUM,

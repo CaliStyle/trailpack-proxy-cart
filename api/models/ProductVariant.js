@@ -166,12 +166,12 @@ module.exports = class ProductVariant extends Model {
                 constraints: false
               })
               models.ProductVariant.belongsToMany(models.Discount, {
-                as: 'discount_codes',
+                as: 'discounts',
                 through: {
                   model: models.ItemDiscount,
                   unique: false,
                   scope: {
-                    model: 'product_variant'
+                    model: 'variant'
                   }
                 },
                 foreignKey: 'model_id',

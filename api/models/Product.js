@@ -215,7 +215,7 @@ module.exports = class Product extends Model {
                 // constraints: false
               })
               models.Product.belongsToMany(models.Discount, {
-                as: 'discount_codes',
+                as: 'discounts',
                 through: {
                   model: models.ItemDiscount,
                   unique: false,
@@ -239,6 +239,12 @@ module.exports = class Product extends Model {
                 constraints: false
               })
             },
+            /**
+             *
+             * @param criteria
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
             findByIdDefault: function(criteria, options) {
               options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Product.default(app),
@@ -249,36 +255,26 @@ module.exports = class Product extends Model {
               let resProduct
               return this.findById(criteria, options)
                 .then(product => {
-                  if (!product) {
-                    // throw new Errors.FoundError(Error(`${criteria} not found`))
-                  }
                   resProduct = product
-                  if (resProduct && options.req && options.req.customer) {
-                    return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
-                      .then(collections => {
-                        return resProduct.collections = collections
-                      })
-                  }
-                  else if (resProduct) {
-                    return app.services.CollectionService.customerCollections(null, [resProduct])
-                      .then(collections => {
-                        return resProduct.collections = collections
-                      })
-                  }
-                  else {
-                    return []
-                  }
-                })
-                .then(() => {
-                  if (resProduct && options.req && options.req.customer) {
-                    return resProduct.getCustomerHistory(options.req.customer, {transaction: options.transaction || null})
+
+                  if (resProduct) {
+                    return resProduct.resolveReqCollections(options)
                   }
                   else {
                     return
                   }
                 })
                 .then(() => {
-
+                  if (resProduct && options.req && options.req.customer) {
+                    return resProduct.getCustomerHistory(options.req.customer, {
+                      transaction: options.transaction || null
+                    })
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
                   if (resProduct) {
                     return resProduct.calculate({transaction: options.transaction || null})
                   }
@@ -287,6 +283,12 @@ module.exports = class Product extends Model {
                   }
                 })
             },
+            /**
+             *
+             * @param handle
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
             findByHandleDefault: function(handle, options) {
               options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Product.default(app),
@@ -300,29 +302,20 @@ module.exports = class Product extends Model {
               let resProduct
               return this.findOne(options)
                 .then(product => {
-                  if (!product) {
-                    // throw new Errors.FoundError(Error(`${handle} not found`))
-                  }
                   resProduct = product
-                  if (resProduct && options.req && options.req.customer) {
-                    return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
-                      .then(collections => {
-                        return resProduct.collections = collections
-                      })
-                  }
-                  else if (resProduct) {
-                    return app.services.CollectionService.customerCollections(null, [resProduct])
-                      .then(collections => {
-                        return resProduct.collections = collections
-                      })
+
+                  if (resProduct) {
+                    return resProduct.resolveReqCollections(options)
                   }
                   else {
-                    return []
+                    return
                   }
                 })
                 .then(() => {
                   if (resProduct && options.req && options.req.customer) {
-                    return resProduct.getCustomerHistory(options.req.customer, {transaction: options.transaction || null})
+                    return resProduct.getCustomerHistory(options.req.customer, {
+                      transaction: options.transaction || null
+                    })
                   }
                   else {
                     return
@@ -337,6 +330,12 @@ module.exports = class Product extends Model {
                   }
                 })
             },
+            /**
+             *
+             * @param criteria
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
             findOneDefault: function(criteria, options) {
               options = app.services.ProxyEngineService.mergeOptionDefaults(
                 queryDefaults.Product.default(app),
@@ -351,27 +350,19 @@ module.exports = class Product extends Model {
                     // throw new Errors.FoundError(Error(`${criteria} not found`))
                   }
                   resProduct = product
-                  if (resProduct && options.req && options.req.customer) {
-                    return app.services.CollectionService.customerCollections(options.req.customer, [resProduct])
-                      .then(collections => {
-                        // return resProduct.collections = collections
-                        return resProduct.set('collections', collections, {raw: true})
-                      })
-                  }
-                  else if (resProduct) {
-                    return app.services.CollectionService.customerCollections(null, [resProduct])
-                      .then(collections => {
-                        // return resProduct.collections = collections
-                        return resProduct.set('collections', collections, {raw: true})
-                      })
+
+                  if (resProduct) {
+                    return resProduct.resolveReqCollections(options)
                   }
                   else {
-                    return resProduct.set('collections', [], {raw: true})
+                    return
                   }
                 })
                 .then(() => {
                   if (resProduct && options.req && options.req.customer) {
-                    return resProduct.getCustomerHistory(options.req.customer, {transaction: options.transaction || null})
+                    return resProduct.getCustomerHistory(options.req.customer, {
+                      transaction: options.transaction || null
+                    })
                   }
                   else {
                     return
@@ -472,6 +463,25 @@ module.exports = class Product extends Model {
             }
           },
           instanceMethods: {
+            /**
+             *
+             * @param lines
+             */
+            setDiscountedLines: function(lines) {
+              let totalDiscounts = 0
+              this.discounted_lines = lines
+              _.each(this.discounted_lines, line => {
+                totalDiscounts = totalDiscounts + line.price
+              })
+              this.total_discounts = totalDiscounts
+              return this
+            },
+
+            setCalculatedPrice: function(calculatedPrice) {
+              this.calculated_price = calculatedPrice
+              return this
+            },
+
             getCustomerHistory: function(customer, options) {
               options = options || {}
               let hasPurchaseHistory = false, isSubscribed = false
@@ -557,14 +567,44 @@ module.exports = class Product extends Model {
               }
               // Set defaults
               this.calculated_price = this.price
+
               // Modify defaults
-              app.services.DiscountService.calculateProduct(
+              app.services.DiscountService.calculateCollections(
                 this,
                 this.collections,
+                app.orm['Product'],
                 {transaction: options.transaction || null}
               )
+
+              //obj, collections, resolver, options
+
               return this
             },
+            /**
+             *
+             * @param colsB
+             * @returns Instance
+             */
+            mergeIntoCollections: function(colsB) {
+              colsB = colsB || []
+
+              const collections = _.map(this.collections, (item) => {
+                return _.extend(item, _.find(colsB, { id: item.id }))
+              })
+
+              this.collections = collections
+              this.setDataValue('collections', collections)
+              this.set('collections', collections)
+              return this
+            },
+            /**
+             * TODO, this should likely be done with a view
+             * Format return data
+             * Converts tags to array of strings
+             * Converts any nested variant tags to array of strings
+             * Returns only metadata data
+             * Converts vendors to array of strings
+             */
             toJSON: function() {
               // Make JSON
               const resp = this.get({ plain: true })
@@ -628,6 +668,11 @@ module.exports = class Product extends Model {
 
               return resp
             },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveVariants: function(options) {
               options = options || {}
               if (
@@ -648,6 +693,11 @@ module.exports = class Product extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveAssociations: function(options) {
               options = options || {}
               if (
@@ -668,6 +718,11 @@ module.exports = class Product extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveImages: function(options) {
               options = options || {}
               if (
@@ -688,6 +743,11 @@ module.exports = class Product extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveVendors: function(options) {
               options = options || {}
               if (
@@ -708,19 +768,45 @@ module.exports = class Product extends Model {
                   })
               }
             },
-            // TODO
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveMetadata: function(options) {
               options = options || {}
-              if (this.metadata && options.reload !== true) {
+              if (
+                this.metadata
+                && this.metadata instanceof app.orm['Metadata'].Instance
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
-                return Promise.resolve(this)
+                return this.getMetadata({transaction: options.transaction || null})
+                  .then(_metadata => {
+                    _metadata = _metadata || {}
+                    this.metadata = _metadata
+                    this.setDataValue('metadata', _metadata)
+                    this.set('metadata', _metadata)
+                    return this
+                  })
               }
             },
+
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveShops: function(options) {
               options = options || {}
-              if (this.shops && options.reload !== true) {
+              if (
+                this.shops
+                && this.shops.length > 0
+                && this.shops.every(d => d instanceof app.orm['Shop'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -734,9 +820,19 @@ module.exports = class Product extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveTags: function(options) {
               options = options || {}
-              if (this.tags && options.reload !== true) {
+              if (
+                this.tags
+                && this.tags.length > 0
+                && this.tags.every(t => t instanceof app.orm['Tag'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -750,9 +846,43 @@ module.exports = class Product extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<TResult>}
+             */
+            resolveReqCollections: function(options) {
+              options = options || {}
+
+              return Promise.resolve()
+                .then(() => {
+                  return this.resolveCollections({transaction: options.transaction || null})
+                })
+                .then(() => {
+                  if (options.req && options.req.customer) {
+                    return options.req.customer.resolveCollections({transaction: options.transaction || null})
+                  }
+                  else {
+                    return {collections: []}
+                  }
+                })
+                .then(customer => {
+                  return this.mergeIntoCollections(customer.collections)
+                })
+            },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveCollections: function(options) {
               options = options || {}
-              if (this.collections && options.reload !== true) {
+              if (
+                this.collections
+                && this.collections.length > 0
+                && this.collections.every(c => c instanceof app.orm['Collection'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -766,9 +896,19 @@ module.exports = class Product extends Model {
                   })
               }
             },
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
             resolveCoupons: function(options) {
               options = options || {}
-              if (this.coupons && options.reload !== true) {
+              if (
+                this.coupons
+                && this.coupons.length > 0
+                && this.coupons.every(c => c instanceof app.orm['Coupon'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
@@ -782,22 +922,32 @@ module.exports = class Product extends Model {
                   })
               }
             },
-            resolveDiscounts: function(options) {
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            resolveDiscounts(options) {
               options = options || {}
-              if (this.discounts && options.reload !== true) {
+              if (
+                this.discounts
+                && this.discounts.length > 0
+                && this.discounts.every(d => d instanceof app.orm['Discount'].Instance)
+                && options.reload !== true
+              ) {
                 return Promise.resolve(this)
               }
               else {
                 return this.getDiscounts({transaction: options.transaction || null})
-                  .then(discounts => {
-                    discounts = discounts || []
-                    this.discounts = discounts
-                    this.setDataValue('discounts', discounts)
-                    this.set('discounts', discounts)
+                  .then(_discounts => {
+                    _discounts = _discounts || []
+                    this.discounts = _discounts
+                    this.setDataValue('discounts', _discounts)
+                    this.set('discounts', _discounts)
                     return this
                   })
               }
-            }
+            },
           }
         }
       }

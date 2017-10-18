@@ -226,6 +226,9 @@ describe('Admin User Account Balance', () => {
         // Discounts
         assert.equal(res.body.order.discounted_lines.length, 0)
 
+        // Pricing Overrides
+        assert.equal(res.body.order.pricing_overrides.length, 1)
+
         // Pricing
         assert.equal(res.body.order.total_line_items_price, shopProducts[7].price)
         assert.equal(res.body.order.subtotal_price, shopProducts[7].price)

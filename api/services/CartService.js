@@ -406,7 +406,7 @@ module.exports = class CartService extends Service {
     const Cart = this.app.orm['Cart']
     return Cart.resolve(req.body.cart, {transaction: options.transaction || null})
       .then(cart => {
-        cart.order(order)
+        cart.ordered(order)
         return cart.save({transaction: options.transaction || null})
       })
   }

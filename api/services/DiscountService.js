@@ -21,14 +21,61 @@ module.exports = class DiscountService extends Service {
   create(discount, options){
     options = options || {}
     const Discount = this.app.orm['Discount']
+
+    let appliesTo = discount.applies_to || []
+
+    if (discount.applies_to_id || discount.applies_to_model) {
+      appliesTo.push({
+        id: discount.applies_to_id,
+        model: discount.applies_to_model
+      })
+      delete discount.applies_to_id
+      delete discount.applies_to_model
+    }
+    delete discount.applies_to
+
+    // Filter out bad requests
+    appliesTo = appliesTo.filter(a => {
+      if (a.model && a.id) {
+        return a
+      }
+    })
+    // make all the model match schema just in case it came through lowercase.
+    appliesTo.map(a => {
+      a.model = a.model.charAt(0).toUpperCase() + a.model.slice(1)
+      return a
+    })
+
     console.log('DiscountService.create', discount)
+
+    let resDiscount
     return Discount.create(discount, {transaction: options.transaction || null})
-      .then(createdDiscount => {
-        if (!createdDiscount) {
+      .then(_discount => {
+        if (!_discount) {
           throw new Error('Discount was not created')
         }
-        return createdDiscount
+        resDiscount = _discount
+
+        return Discount.sequelize.Promise.mapSeries(appliesTo, applicant => {
+
+          if (this.app.orm[applicant.model]) {
+            return this.app.orm[applicant.model].findById(applicant.id, {transaction: options.transaction || null})
+              .then(_applicant => {
+                if (!_applicant) {
+                  throw new Error(`${ applicant.model } ${applicant.id} could not be found`)
+                }
+                return _applicant.addDiscount(resDiscount.id, {transaction: options.transaction || null})
+              })
+          }
+          else {
+            return
+          }
+        })
       })
+      .then(() => {
+        return resDiscount
+      })
+
   }
 
   /**
@@ -103,39 +150,66 @@ module.exports = class DiscountService extends Service {
    * @param options
    * @returns {Promise.<T>}
    */
-  calculate(obj, collections, resolver, options){
+  calculateCollections(obj, collections, resolver, options){
     options = options || {}
     // Set the default
     const discountedLines = []
+    let type
 
+    // Resolve the instance: product, subscription, cart
+    let resObj
     return resolver.resolve(obj, {transaction: options.transaction || null})
-      .then(obj => {
+      .then(_obj => {
+        if (!_obj) {
+          throw new Error('Could not resolve instance and calculate collection discounts')
+        }
+        if (_obj instanceof this.app.orm['Cart'].Instance) {
+          type = 'cart'
+        }
+        else if (_obj instanceof this.app.orm['Subscription'].Instance) {
+          type = 'subscription'
+        }
+        else if (_obj instanceof this.app.orm['Product'].Instance) {
+          type = 'product'
+        }
+        else {
+          throw new Error('Instance must be either Cart, Subscription, or Product')
+        }
 
-        // console.log('cart checkout', collections.map(collection => { return collection.title + ' ' + collection.id + ' ' + collection.discount_scope + ' products: ' + collection.products.length }))
+        resObj = _obj
+
         // Loop through collection and apply discounts, stop if there are no line items
         collections.forEach(collection => {
-          // If object line items is empty ignore
-          if (obj.line_items.length == 0) {
-            return
-          }
           // If the collection doesn't have a discount ignore
           if (!collection.discount_rate > 0 && !collection.percentage > 0) {
             return
           }
 
-          // Set the default
+          // If object is a cart/subscription with line items and they are empty then ignore
+          if (['cart','subscription'].indexOf(type) > -1 && resObj.line_items.length === 0) {
+            return
+          }
+
+          // Set the default discounted line
           const discountedLine = {
             id: collection.id,
+            type: 'collection',
             name: collection.title,
             scope: collection.discount_scope,
-            price: 0,
-            lines: []
+            price: 0
           }
-          if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.FIXED) {
+
+          // if cart or subscription, add lines array for tracking
+          if (['cart','subscription'].indexOf(type) > -1) {
+            discountedLine.lines = []
+          }
+
+          // Set type variable and percentage/rate
+          if (collection.discount_type === COLLECTION_DISCOUNT_TYPE.FIXED) {
             discountedLine.rate = collection.discount_rate
             discountedLine.type = COLLECTION_DISCOUNT_TYPE.FIXED
           }
-          else if (collection.discount_type == COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
+          else if (collection.discount_type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
             discountedLine.percentage = collection.discount_percentage
             discountedLine.type = COLLECTION_DISCOUNT_TYPE.PERCENTAGE
           }
@@ -143,121 +217,83 @@ module.exports = class DiscountService extends Service {
           // Determine Scope
           // if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.GLOBAL) {
             // console.log('FIXED', collection.discount_type, COLLECTION_DISCOUNT_TYPE.FIXED)
-          let publish = false
 
-          const lineItems = obj.line_items.map((item, index) => {
-            // Search Exclusion
-            if (collection.discount_product_exclude.indexOf(item.type) > -1) {
+          // If cart or subscription
+          if (['cart','subscription'].indexOf(type) > -1) {
+
+            let publish = false
+
+            const lineItems = resObj.line_items.map((item, index) => {
+              // Search Exclusion
+              if (collection.discount_product_exclude.indexOf(item.type) > -1) {
+                return item
+              }
+              // console.log('cart checkout products', collection.products)
+              // Check if Individual Scope
+              const inProducts = collection.products.some(product => product.id === item.product_id)
+              // console.log('cart checkout apply individual', inProducts)
+              if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts === false) {
+                return item
+              }
+              // const lineDiscountedLines = item.discounted_lines
+              // Set the default Discounted Line
+              const lineDiscountedLine = _.omit(_.clone(discountedLine), 'lines')
+
+              if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.FIXED) {
+                lineDiscountedLine.price = discountedLine.rate
+              }
+              else if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
+                lineDiscountedLine.price = (item.price * discountedLine.percentage)
+              }
+
+              const calculatedPrice = Math.max(0, item.calculated_price - lineDiscountedLine.price)
+              const totalDeducted = Math.min(item.price, (item.price - (item.price - lineDiscountedLine.price)))
+              // console.log('cart checkout', item.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
+              // Publish this to the parent discounted lines
+              publish = true
+              item.discounted_lines.push(lineDiscountedLine)
+              item.calculated_price = calculatedPrice
+              item.total_discounts = item.total_discounts + totalDeducted
+              discountedLine.price = discountedLine.price + totalDeducted
+              discountedLine.lines.push(index)
               return item
+
+            })
+
+            // Set the mutated line items
+            resObj.setLineItems(lineItems)
+
+            if (publish) {
+              // Add the discounted Line
+              discountedLines.push(discountedLine)
             }
-            // console.log('cart checkout products', collection.products)
+          }
+          // If product
+          else if (type === 'product') {
+            if (collection.discount_product_exclude && collection.discount_product_exclude.indexOf(resObj.type) > -1) {
+              return resObj
+            }
             // Check if Individual Scope
-            const inProducts = collection.products.some(product => product.id === item.product_id)
-            // console.log('cart checkout apply individual', inProducts)
-            if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts == false){
-              return item
-            }
-            // const lineDiscountedLines = item.discounted_lines
-            // Set the default Discounted Line
-            const lineDiscountedLine = _.omit(_.clone(discountedLine),'lines')
+            const inProducts = collection.products && collection.products.some(colProduct => colProduct.id === resObj.id)
 
-            if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.FIXED) {
-              lineDiscountedLine.price =  discountedLine.rate
-            }
-            else if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
-              lineDiscountedLine.price = (item.price * discountedLine.percentage)
+            if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts === false){
+              return resObj
             }
 
-            const calculatedPrice = Math.max(0, item.calculated_price - lineDiscountedLine.price)
-            const totalDeducted = Math.min(item.price,(item.price - (item.price - lineDiscountedLine.price)))
+            const calculatedPrice = Math.max(0, resObj.calculated_price - discountedLine.price)
+            const totalDeducted = Math.min(resObj.price,(resObj.price - (resObj.price - discountedLine.price)))
             // console.log('cart checkout', item.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
             // Publish this to the parent discounted lines
-            publish = true
-            item.discounted_lines.push(lineDiscountedLine)
-            item.calculated_price = calculatedPrice
-            item.total_discounts = item.total_discounts + totalDeducted
+            resObj.setCalculatedPrice(calculatedPrice)
             discountedLine.price = discountedLine.price + totalDeducted
-            discountedLine.lines.push(index)
-            return item
-          })
-          obj.line_items = lineItems
 
-          if (publish) {
-            // Add the discounted Line
             discountedLines.push(discountedLine)
           }
         })
-        obj.discounted_lines = discountedLines
-        // console.log('DISCOUNTED OBJ',obj)
-        return obj
+
+        resObj.setDiscountedLines(discountedLines)
+        return resObj
       })
-  }
-
-  calculateProduct(product, collections, options){
-    options = options || {}
-    if (!product || !collections || collections.length === 0) {
-      return product
-    }
-    // Set the default
-    const discountedLines = []
-    let totalDiscounts = 0
-
-    collections.forEach(collection => {
-      // If the collection doesn't have a discount ignore
-      if (!collection || (!collection.discount_rate > 0 && !collection.percentage > 0)) {
-        return
-      }
-
-      // Set the default
-      const discountedLine = {
-        id: collection.id,
-        name: collection.title,
-        scope: collection.discount_scope,
-        price: 0
-      }
-      if (collection.discount_type === COLLECTION_DISCOUNT_TYPE.FIXED) {
-        discountedLine.rate = collection.discount_rate
-        discountedLine.type = COLLECTION_DISCOUNT_TYPE.FIXED
-      }
-      else if (collection.discount_type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
-        discountedLine.percentage = collection.discount_percentage
-        discountedLine.type = COLLECTION_DISCOUNT_TYPE.PERCENTAGE
-      }
-
-      if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.FIXED) {
-        discountedLine.price =  discountedLine.rate
-      }
-      else if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE){
-        discountedLine.price = (product.price * discountedLine.percentage)
-      }
-
-      if (collection.discount_product_exclude && collection.discount_product_exclude.indexOf(product.type) > -1) {
-        return product
-      }
-      // console.log('cart checkout products', collection.products)
-      // Check if Individual Scope
-      const inProducts = collection.products && collection.products.some(colProduct => colProduct.id === product.id)
-      // console.log('cart checkout apply individual', inProducts)
-      if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts === false){
-        return product
-      }
-
-      const calculatedPrice = Math.max(0, product.calculated_price - discountedLine.price)
-      const totalDeducted = Math.min(product.price,(product.price - (product.price - discountedLine.price)))
-      // console.log('cart checkout', item.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
-      // Publish this to the parent discounted lines
-      product.calculated_price = calculatedPrice
-      totalDiscounts = totalDiscounts + totalDeducted
-      discountedLine.price = discountedLine.price + totalDeducted
-
-      discountedLines.push(discountedLine)
-
-    })
-
-    product.discounted_lines = discountedLines
-    product.total_discounts = totalDiscounts
-
-    return product
   }
 
   /**

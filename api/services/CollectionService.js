@@ -181,7 +181,7 @@ module.exports = class CollectionService extends Service {
       productIds.push(item.product_id)
     })
 
-    if (criteria.length == 0) {
+    if (criteria.length === 0) {
       return Promise.resolve([])
     }
     // console.log('CRITERIA ONE', criteria)
@@ -199,13 +199,13 @@ module.exports = class CollectionService extends Service {
 
         itemCollections.forEach(item => {
           // console.log('FOUND COLLECTION', item.get({plain: true}))
-          if (itemCriteria.indexOf(item.collection_id) == -1) {
+          if (itemCriteria.indexOf(item.collection_id) === -1) {
             itemCriteria.push(item.collection_id)
           }
         })
 
         // console.log('CRITERIA TWO', itemCriteria)
-        if (itemCriteria.length == 0) {
+        if (itemCriteria.length === 0) {
           return Promise.resolve([])
         }
         // console.log('cart checkout', itemCriteria)
@@ -238,7 +238,7 @@ module.exports = class CollectionService extends Service {
         })
           .then(collections => {
             return Promise.all(collections.map(collection => {
-              if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL) {
+              if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL) {
                 // console.log('cart checkout Needs Products', collection.id)
                 return Collection.findOne({
                   where: {
@@ -302,7 +302,7 @@ module.exports = class CollectionService extends Service {
       productIds.push(item.product_id)
     })
 
-    if (criteria.length == 0) {
+    if (criteria.length === 0) {
       return Promise.resolve([])
     }
     // console.log('CRITERIA ONE', criteria)
@@ -318,7 +318,7 @@ module.exports = class CollectionService extends Service {
 
         itemCollections.forEach(item => {
           // console.log('FOUND COLLECTION', item.get({plain: true}))
-          if (itemCriteria.indexOf(item.collection_id) == -1) {
+          if (itemCriteria.indexOf(item.collection_id) === -1) {
             itemCriteria.push(item.collection_id)
           }
           return
@@ -397,134 +397,134 @@ module.exports = class CollectionService extends Service {
       })
   }
 
-  /**
-   *
-   * @param customer
-   * @param products
-   * @param options
-   * @returns {*}
-   */
-  customerCollections(customer, products, options) {
-    options = options || {}
-    const Collection = this.app.orm['Collection']
-    const ItemCollection = this.app.orm['ItemCollection']
-    const criteria = []
-    const productIds = []
-    const customerIds = []
-
-    if (!customer) {
-      customer = {}
-    }
-    if (!products) {
-      products = []
-    }
-
-    if (customer.id) {
-      criteria.push({model: 'customer', model_id: customer.id})
-      customerIds.push(customer.id)
-    }
-
-    products.forEach(item => {
-      criteria.push({model: 'product', model_id: item.id})
-      productIds.push(item.id)
-    })
-
-    if (criteria.length == 0) {
-      return Promise.resolve([])
-    }
-    // console.log('CRITERIA ONE', criteria)
-    return ItemCollection.findAll({
-      where: {
-        $or: criteria
-      },
-      attributes: ['collection_id', 'model', 'model_id'],
-      transaction: options.transaction || null
-    })
-      .then(itemCollections => {
-        // console.log('cart checkout', itemCollections)
-        // console.log('CRITERIA FOUND',itemCollections)
-        const itemCriteria = []
-
-        itemCollections.forEach(item => {
-          // console.log('FOUND COLLECTION', item.get({plain: true}))
-          if (itemCriteria.indexOf(item.collection_id) == -1) {
-            itemCriteria.push(item.collection_id)
-          }
-        })
-
-        // console.log('CRITERIA TWO', itemCriteria)
-        if (itemCriteria.length == 0) {
-          return Promise.resolve([])
-        }
-        // console.log('cart checkout', itemCriteria)
-        // console.log('CRITERIA',criteria)
-        return Collection.findAll({
-          where: {
-            id: itemCriteria,
-            $and: {
-              $or: {
-                discount_rate: {
-                  $gt: 0
-                },
-                discount_percentage: {
-                  $gt: 0
-                }
-              }
-            }
-          },
-          attributes: [
-            'id',
-            'title',
-            'discount_type',
-            'discount_scope',
-            'discount_rate',
-            'discount_percentage',
-            'discount_product_include',
-            'discount_product_exclude'
-          ],
-          transaction: options.transaction || null
-        })
-          .then(collections => {
-            return Promise.all(collections.map(collection => {
-              if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL) {
-                // console.log('cart checkout Needs Products', collection.id)
-                return Collection.findOne({
-                  where: {
-                    id: collection.id
-                  },
-                  attributes: [
-                    'id',
-                    'title',
-                    'discount_type',
-                    'discount_scope',
-                    'discount_rate',
-                    'discount_percentage',
-                    'discount_product_include',
-                    'discount_product_exclude'
-                  ],
-                  include: [
-                    {
-                      model: this.app.orm['Product'],
-                      as: 'products',
-                      where: {
-                        $or: {
-                          id: productIds
-                        }
-                      },
-                      attributes: ['id','type']
-                    }
-                  ],
-                  transaction: options.transaction || null
-                })
-              }
-              else {
-                collection.products = []
-                return collection
-              }
-            }))
-          })
-      })
-  }
+  // /**
+  //  *
+  //  * @param customer
+  //  * @param products
+  //  * @param options
+  //  * @returns {*}
+  //  */
+  // customerCollections(customer, products, options) {
+  //   options = options || {}
+  //   const Collection = this.app.orm['Collection']
+  //   const ItemCollection = this.app.orm['ItemCollection']
+  //   const criteria = []
+  //   const productIds = []
+  //   const customerIds = []
+  //
+  //   if (!customer) {
+  //     customer = {}
+  //   }
+  //   if (!products) {
+  //     products = []
+  //   }
+  //
+  //   if (customer.id) {
+  //     criteria.push({model: 'customer', model_id: customer.id})
+  //     customerIds.push(customer.id)
+  //   }
+  //
+  //   products.forEach(item => {
+  //     criteria.push({model: 'product', model_id: item.id})
+  //     productIds.push(item.id)
+  //   })
+  //
+  //   if (criteria.length === 0) {
+  //     return Promise.resolve([])
+  //   }
+  //   // console.log('CRITERIA ONE', criteria)
+  //   return ItemCollection.findAll({
+  //     where: {
+  //       $or: criteria
+  //     },
+  //     attributes: ['collection_id', 'model', 'model_id'],
+  //     transaction: options.transaction || null
+  //   })
+  //     .then(itemCollections => {
+  //       // console.log('cart checkout', itemCollections)
+  //       // console.log('CRITERIA FOUND',itemCollections)
+  //       const itemCriteria = []
+  //
+  //       itemCollections.forEach(item => {
+  //         // console.log('FOUND COLLECTION', item.get({plain: true}))
+  //         if (itemCriteria.indexOf(item.collection_id) === -1) {
+  //           itemCriteria.push(item.collection_id)
+  //         }
+  //       })
+  //
+  //       // console.log('CRITERIA TWO', itemCriteria)
+  //       if (itemCriteria.length === 0) {
+  //         return Promise.resolve([])
+  //       }
+  //       // console.log('cart checkout', itemCriteria)
+  //       // console.log('CRITERIA',criteria)
+  //       return Collection.findAll({
+  //         where: {
+  //           id: itemCriteria,
+  //           $and: {
+  //             $or: {
+  //               discount_rate: {
+  //                 $gt: 0
+  //               },
+  //               discount_percentage: {
+  //                 $gt: 0
+  //               }
+  //             }
+  //           }
+  //         },
+  //         attributes: [
+  //           'id',
+  //           'title',
+  //           'discount_type',
+  //           'discount_scope',
+  //           'discount_rate',
+  //           'discount_percentage',
+  //           'discount_product_include',
+  //           'discount_product_exclude'
+  //         ],
+  //         transaction: options.transaction || null
+  //       })
+  //         .then(collections => {
+  //           return Promise.all(collections.map(collection => {
+  //             if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL) {
+  //               // console.log('cart checkout Needs Products', collection.id)
+  //               return Collection.findOne({
+  //                 where: {
+  //                   id: collection.id
+  //                 },
+  //                 attributes: [
+  //                   'id',
+  //                   'title',
+  //                   'discount_type',
+  //                   'discount_scope',
+  //                   'discount_rate',
+  //                   'discount_percentage',
+  //                   'discount_product_include',
+  //                   'discount_product_exclude'
+  //                 ],
+  //                 include: [
+  //                   {
+  //                     model: this.app.orm['Product'],
+  //                     as: 'products',
+  //                     where: {
+  //                       $or: {
+  //                         id: productIds
+  //                       }
+  //                     },
+  //                     attributes: ['id','type']
+  //                   }
+  //                 ],
+  //                 transaction: options.transaction || null
+  //               })
+  //             }
+  //             else {
+  //               collection.products = []
+  //               return collection
+  //             }
+  //           }))
+  //         })
+  //     })
+  // }
 
 
   /**

@@ -51,8 +51,6 @@ describe('Admin User Checkout with Product Discount', () => {
         assert.equal(discount.status, 'enabled')
         assert.equal(discount.minimum_order_amount, 0)
         assert.equal(discount.usage_limit, 0)
-        assert.equal(discount.applies_to_id, shopProducts[12].id)
-        assert.equal(discount.applies_to_model, 'product')
         assert.equal(discount.applies_compound, false)
         done()
       })
@@ -74,6 +72,15 @@ describe('Admin User Checkout with Product Discount', () => {
       .end((err, res) => {
         assert.ok(res.body.id)
         console.log('user story', res.body)
+
+        // Discounts
+        assert.equal(res.body.discounted_lines.length, 1)
+        res.body.discounted_lines.forEach(discount => {
+          assert.equal(discount.name, 'product with discount')
+          assert.equal(discount.price, 100)
+        })
+        assert.equal(res.body.total_discounts, 100)
+        assert.equal(res.body.total_due, shopProducts[12].price - 100)
 
         done(err)
       })
@@ -115,15 +122,19 @@ describe('Admin User Checkout with Product Discount', () => {
         assert.equal(_.isString(res.body.order.closed_at), true)
 
         // Discounts
-        assert.equal(res.body.order.discounted_lines.length, 0)
+        assert.equal(res.body.order.discounted_lines.length, 1)
+        res.body.order.discounted_lines.forEach(discount => {
+          assert.equal(discount.name, 'product with discount')
+          assert.equal(discount.price, 100)
+        })
 
         // Pricing
         assert.equal(res.body.order.total_line_items_price, shopProducts[12].price)
         assert.equal(res.body.order.subtotal_price, shopProducts[12].price)
-        assert.equal(res.body.order.total_price, shopProducts[12].price)
+        assert.equal(res.body.order.total_price, shopProducts[12].price - 100)
         assert.equal(res.body.order.total_due, 0)
-        assert.equal(res.body.order.total_discounts, 0)
-        assert.equal(res.body.order.total_captured, shopProducts[12].price)
+        assert.equal(res.body.order.total_discounts, 100)
+        assert.equal(res.body.order.total_captured, shopProducts[12].price - 100)
 
         // Order Items
         assert.equal(res.body.order.order_items.length, 1)
@@ -164,7 +175,7 @@ describe('Admin User Checkout with Product Discount', () => {
         assert.equal(res.body.order.total_voided, 0)
         assert.equal(res.body.order.total_cancelled, 0)
         assert.equal(res.body.order.total_refunds, 0)
-        assert.equal(res.body.order.total_captured, shopProducts[12].price)
+        assert.equal(res.body.order.total_captured, shopProducts[12].price - 100)
 
         // Events: Removed from the default query
         // assert.equal(res.body.order.events.length, 4)

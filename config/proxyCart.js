@@ -72,7 +72,9 @@ module.exports = {
     // The amount of times a Subscription will retry failed transactions
     retry_attempts: 5,
     // The amount of days before a Subscription will cancel from failed transactions
-    grace_period_days: 5
+    grace_period_days: 5,
+    // The amount of days before a subscription will renew that notice is given.
+    renewal_notice_days: 3
   },
   // Transactions
   transactions: {

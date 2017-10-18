@@ -255,7 +255,7 @@ module.exports = class Customer extends Model {
                 // constraints: false
               })
               models.Customer.belongsToMany(models.Discount, {
-                as: 'discount_codes',
+                as: 'discounts',
                 through: {
                   model: models.ItemDiscount,
                   unique: false,
@@ -612,6 +612,58 @@ module.exports = class Customer extends Model {
                     return []
                   }
                 })
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            resolveCollections(options) {
+              options = options || {}
+              if (
+                this.collections
+                && this.collections.length > 0
+                && this.collections.every(d => d instanceof app.orm['Collection'].Instance)
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getCollections({transaction: options.transaction || null})
+                  .then(_collections => {
+                    _collections = _collections || []
+                    this.collections = _collections
+                    this.setDataValue('collections', _collections)
+                    this.set('collections', _collections)
+                    return this
+                  })
+              }
+            },
+            /**
+             *
+             * @param options
+             * @returns {Promise.<T>}
+             */
+            resolveDiscounts(options) {
+              options = options || {}
+              if (
+                this.discounts
+                && this.discounts.length > 0
+                && this.discounts.every(d => d instanceof app.orm['Discount'].Instance)
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getDiscounts({transaction: options.transaction || null})
+                  .then(_discounts => {
+                    _discounts = _discounts || []
+                    this.discounts = _discounts
+                    this.setDataValue('discounts', _discounts)
+                    this.set('discounts', _discounts)
+                    return this
+                  })
+              }
             },
             /**
              *
