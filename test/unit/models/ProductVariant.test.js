@@ -11,7 +11,7 @@ describe('ProductVariant Model', () => {
   it('should resolve a ProductVariant instance', (done) => {
     ProductVariant.resolve(ProductVariant.build({}))
       .then(productVariant => {
-        assert.ok(productVariant instanceof ProductVariant.Instance)
+        assert.ok(productVariant instanceof ProductVariant)
         done()
       })
       .catch(err => {

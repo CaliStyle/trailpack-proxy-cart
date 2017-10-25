@@ -274,7 +274,7 @@ module.exports = class TransactionService extends Service {
         }
         else {
           // TODO get Source info
-          if (!(resOrder.Customer instanceof Customer.Instance)) {
+          if (!(resOrder.Customer instanceof Customer)) {
             return null
           }
           else {

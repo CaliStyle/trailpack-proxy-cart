@@ -96,7 +96,7 @@ module.exports = class ProductController extends Controller {
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || 'title DESC'
     const term = req.query.term
-    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
     const defaults = _.defaultsDeep(where, {
       $or: [
         {
@@ -150,7 +150,7 @@ module.exports = class ProductController extends Controller {
   findOne(req, res){
     const orm = this.app.orm
     const Product = orm['Product']
-    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
 
     Product.findOneDefault({
       where: where,
@@ -179,8 +179,8 @@ module.exports = class ProductController extends Controller {
     const Product = orm['Product']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
-    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const sort = req.query.sort || [['created_at','DESC']]
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
 
     Product.findAndCountDefault({
       where: where,
@@ -214,7 +214,7 @@ module.exports = class ProductController extends Controller {
     const Product = orm['Product']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
     // Product.findAndCountDefault({
     //   include: [
     //     {
@@ -979,7 +979,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
 
     if (!productId) {
       const err = new Error('A product id is required')
@@ -1025,7 +1025,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
 
     if (!productId) {
       const err = new Error('A product id is required')
@@ -1065,7 +1065,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
 
     if (!productId) {
       const err = new Error('A product id is required')
@@ -1105,7 +1105,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
 
     if (!productId) {
       const err = new Error('A product id is required')
@@ -1183,7 +1183,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
 
     if (!productId) {
       const err = new Error('A product id is required')
@@ -1320,7 +1320,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
 
     if (!productId) {
       const err = new Error('A product id is required')
@@ -1353,7 +1353,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
 
     if (!productId) {
       const err = new Error('A product id is required')
@@ -1386,7 +1386,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'created_at DESC'
+    const sort = req.query.sort || [['created_at','DESC']]
 
     if (!productId) {
       const err = new Error('A product id is required')

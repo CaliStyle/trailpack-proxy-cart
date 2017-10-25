@@ -15,7 +15,7 @@ describe('ProductService', () => {
   it('should resolve a product instance', (done) => {
     Product.resolve(Product.build({}))
       .then(product => {
-        assert.ok(product instanceof Product.Instance)
+        assert.ok(product instanceof Product)
         done()
       })
       .catch(err => {
@@ -25,7 +25,7 @@ describe('ProductService', () => {
   it('should resolve a variant instance', (done) => {
     Variant.resolve(Variant.build({}))
       .then(variant => {
-        assert.ok(variant instanceof Variant.Instance)
+        assert.ok(variant instanceof Variant)
         done()
       })
       .catch(err => {

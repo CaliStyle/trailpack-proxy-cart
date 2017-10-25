@@ -12,7 +12,7 @@ describe('Account Model', () => {
   it('should resolve a account instance', (done) => {
     Account.resolve(Account.build({}))
       .then(account => {
-        assert.ok(account instanceof Account.Instance)
+        assert.ok(account instanceof Account)
         done()
       })
       .catch(err => {

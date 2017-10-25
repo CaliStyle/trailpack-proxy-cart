@@ -43,7 +43,7 @@ if (ORM === 'waterline') {
   packs.push(require('trailpack-waterline'))
 }
 else if (ORM === 'sequelize') {
-  packs.push(require('trailpack-sequelize'))
+  packs.push(require('trailpack-proxy-sequelize'))
   if (DIALECT == 'postgres') {
     stores.sqlitedev = {
       database: 'ProxyCart',

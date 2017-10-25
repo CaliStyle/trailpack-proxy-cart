@@ -24,7 +24,7 @@ module.exports = class PaymentService extends Service {
     const Transaction = this.app.orm.Transaction
     const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
 
-    if (!(transaction instanceof Transaction.Instance)){
+    if (!(transaction instanceof Transaction)){
       throw new Error('Transaction must be an instance')
     }
     if (!paymentProcessor || !paymentProcessor.adapter) {
@@ -137,7 +137,7 @@ module.exports = class PaymentService extends Service {
       return Promise.reject(err)
     }
 
-    if (!(transaction instanceof Transaction.Instance)){
+    if (!(transaction instanceof Transaction)){
       throw new Error('Transaction must be an instance')
     }
     // console.log('cart checkout', transaction)
@@ -180,7 +180,7 @@ module.exports = class PaymentService extends Service {
     options = options || {}
 
     const Transaction = this.app.orm.Transaction
-    if (!(transaction instanceof Transaction.Instance)){
+    if (!(transaction instanceof Transaction)){
       throw new Error('Transaction must be an instance')
     }
 

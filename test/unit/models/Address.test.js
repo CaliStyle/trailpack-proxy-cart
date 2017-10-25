@@ -12,7 +12,7 @@ describe('Address Model', () => {
   it('should resolve a address instance', (done) => {
     Address.resolve(Address.build({}))
       .then(cart => {
-        assert.ok(cart instanceof Address.Instance)
+        assert.ok(cart instanceof Address)
         done()
       })
       .catch(err => {

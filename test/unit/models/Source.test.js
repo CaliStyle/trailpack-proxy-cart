@@ -11,7 +11,7 @@ describe('Source Model', () => {
   it('should resolve a source instance', (done) => {
     Source.resolve(Source.build({}))
       .then(source => {
-        assert.ok(source instanceof Source.Instance)
+        assert.ok(source instanceof Source)
         done()
       })
       .catch(err => {

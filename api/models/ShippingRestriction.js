@@ -9,16 +9,14 @@ const Model = require('trails/model')
 module.exports = class ShippingRestriction extends Model {
 
   static config (app, Sequelize) {
-    const config = {
+    return {
       options: {
         underscored: true
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {}
-    return schema
+    return {}
   }
 }

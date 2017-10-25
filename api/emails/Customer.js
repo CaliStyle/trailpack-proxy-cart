@@ -62,7 +62,7 @@ module.exports = class Customer extends Email {
         return {
           text: text,
           html: html,
-          type: 'customer.invite.accepted',
+          type: 'customer.inviteAccepted',
           subject: subject,
           send_email: sendEmail
         }
@@ -93,7 +93,7 @@ module.exports = class Customer extends Email {
         return {
           text: text,
           html: html,
-          type: 'customer.account_balance.updated',
+          type: 'customer.accountBalanceUpdated',
           subject: subject,
           send_email: sendEmail
         }
@@ -124,7 +124,7 @@ module.exports = class Customer extends Email {
         return {
           text: text,
           html: html,
-          type: 'customer.account_balance.deducted',
+          type: 'customer.accountBalanceDeducted',
           subject: subject,
           send_email: sendEmail
         }

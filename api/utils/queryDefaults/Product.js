@@ -8,13 +8,13 @@ module.exports = {
           // attributes: {
           //   exclude: ['src', 'updated_at', 'created_at']
           // },
-          order: ['position', 'ASC']
+          order: [['position', 'ASC']]
         },
         {
           model: app.orm['Tag'],
           as: 'tags',
           attributes: ['name', 'id'],
-          order: ['name', 'ASC']
+          order: [['name', 'ASC']]
         },
         {
           model: app.orm['ProductVariant'],
@@ -228,7 +228,7 @@ module.exports = {
             {
               model: app.orm['ProductImage'],
               as: 'images',
-              order: ['position', 'ASC'],
+              order: [['position', 'ASC']],
               attributes: {
                 exclude: ['src','updated_at','created_at']
               }

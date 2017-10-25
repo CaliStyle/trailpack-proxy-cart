@@ -9,22 +9,17 @@ const Model = require('trails/model')
 module.exports = class OrderRisk extends Model {
 
   static config (app, Sequelize) {
-    let config = {}
-    if (app.config.database.orm === 'sequelize') {
-      config = {
-        options: {
-          underscored: true
-        }
+    return {
+      options: {
+        underscored: true
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {
+    return {
       order_id: {
-        type: Sequelize.INTEGER,
-
+        type: Sequelize.INTEGER
       },
       reason: {
         type: Sequelize.STRING
@@ -37,6 +32,5 @@ module.exports = class OrderRisk extends Model {
         defaultValue: app.config.proxyEngine.live_mode
       }
     }
-    return schema
   }
 }

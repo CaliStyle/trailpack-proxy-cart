@@ -119,12 +119,12 @@ module.exports = class CartService extends Service {
     // Only allow a few values for update since this can be done from the client side
     const update = _.pick(cart, ['customer_id', 'host', 'ip', 'update_ip', 'client_details'])
     return Cart.resolve(identifier, {transaction: options.transaction || null})
-      .then(foundCart => {
-        if (!foundCart) {
+      .then(_cart => {
+        if (!_cart) {
           throw new Error('Could not resolve Cart')
         }
         // Extend DAO with updates
-        resCart = _.extend(foundCart, update)
+        resCart = _.extend(_cart, update)
 
         // Shipping Address
         if (cart.shipping_address) {
@@ -490,15 +490,15 @@ module.exports = class CartService extends Service {
     }
     let resCart
     return Cart.resolve(cart, { transaction: options.transaction || null })
-      .then(foundCart => {
-        if (!foundCart) {
+      .then(_cart => {
+        if (!_cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
-        if (foundCart.status !== CART_STATUS.OPEN) {
+        if (_cart.status !== CART_STATUS.OPEN) {
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
 
-        resCart = foundCart
+        resCart = _cart
         // const minimize = _.unionBy(items, 'product_id')
         return Cart.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
@@ -535,15 +535,15 @@ module.exports = class CartService extends Service {
     }
     let resCart
     return Cart.resolve(cart, {transaction: options.transaction || null})
-      .then(foundCart => {
-        if (!foundCart) {
+      .then(_cart => {
+        if (!_cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
-        if (foundCart.status !== CART_STATUS.OPEN) {
+        if (_cart.status !== CART_STATUS.OPEN) {
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
 
-        resCart = foundCart
+        resCart = _cart
         return Cart.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
@@ -573,14 +573,14 @@ module.exports = class CartService extends Service {
     const Cart = this.app.orm['Cart']
     let resCart
     return Cart.resolve(cart, {transaction: options.transaction || null})
-      .then(foundCart => {
-        if (!foundCart) {
+      .then(_cart => {
+        if (!_cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
-        if (foundCart.status !== CART_STATUS.OPEN) {
+        if (_cart.status !== CART_STATUS.OPEN) {
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
-        resCart = foundCart
+        resCart = _cart
         resCart.clear()
         return resCart.save({transaction: options.transaction || null})
       })
@@ -606,7 +606,7 @@ module.exports = class CartService extends Service {
     if (!customerId && req.customer) {
       cart.customer_id = req.customer.id
     }
-    let resCart
+    let resCart, resUser
     return this.create(cart, {transaction: options.transaction || null})
       .then(createdCart => {
         if (!createdCart) {
@@ -615,10 +615,14 @@ module.exports = class CartService extends Service {
         resCart = createdCart
 
         if (req.user) {
-          return User.findById(req.user.id, {transaction: options.transaction || null})
-            .then(user => {
-              user.current_cart_id = resCart.id
-              return user.save({transaction: options.transaction || null})
+          return User.resolve(req.user, {transaction: options.transaction || null})
+            .then(_user => {
+              if (!_user) {
+                throw new Error('User could not be resolved')
+              }
+              resUser = _user
+              resUser.current_cart_id = resCart.id
+              return resUser.save({transaction: options.transaction || null})
             })
         }
         else {
@@ -692,7 +696,7 @@ module.exports = class CartService extends Service {
     if (cart.ip) {
       cart.update_ip = cart.ip
     }
-    if (cart.status == CART_STATUS.OPEN) {
+    if (cart.status === CART_STATUS.OPEN) {
       return cart.recalculate({transaction: options.transaction || null})
     }
     else {

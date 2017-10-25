@@ -9,41 +9,33 @@ const Model = require('trails/model')
 module.exports = class CustomerOrder extends Model {
 
   static config (app, Sequelize) {
-    let config = {}
-    if (app.config.database.orm === 'sequelize') {
-      config = {
-        options: {
-          underscored: true
-        }
+    return {
+      options: {
+        underscored: true
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    let schema = {}
-    if (app.config.database.orm === 'sequelize') {
-      schema = {
-        id: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          autoIncrement: true
-        },
-        order_id: {
-          type: Sequelize.INTEGER,
-          unique: 'customerorder_order'
-        },
-        // order: {
-        //   type: Sequelize.STRING,
-        //   unique: 'customerorder_order'
-        // },
-        customer_id: {
-          type: Sequelize.INTEGER,
-          unique: 'customerorder_order',
-          references: null
-        }
+    return {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+      },
+      order_id: {
+        type: Sequelize.INTEGER,
+        unique: 'customerorder_order'
+      },
+      // order: {
+      //   type: Sequelize.STRING,
+      //   unique: 'customerorder_order'
+      // },
+      customer_id: {
+        type: Sequelize.INTEGER,
+        unique: 'customerorder_order',
+        references: null
       }
     }
-    return schema
   }
 }

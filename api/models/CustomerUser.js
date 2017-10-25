@@ -9,38 +9,33 @@ const Model = require('trails/model')
 module.exports = class CustomerUser extends Model {
 
   static config (app, Sequelize) {
-    const config = {
+    return {
       options: {
         underscored: true
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    let schema = {}
-    if (app.config.database.orm === 'sequelize') {
-      schema = {
-        id: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          autoIncrement: true
-        },
-        role: {
-          type: Sequelize.STRING,
-          defaultValue: 'admin'
-        },
-        user_id: {
-          type: Sequelize.INTEGER,
-          unique: 'customeruser_user'
-        },
-        customer_id: {
-          type: Sequelize.INTEGER,
-          unique: 'customeruser_user',
-          references: null
-        }
+    return {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+      },
+      role: {
+        type: Sequelize.STRING,
+        defaultValue: 'admin'
+      },
+      user_id: {
+        type: Sequelize.INTEGER,
+        unique: 'customeruser_user'
+      },
+      customer_id: {
+        type: Sequelize.INTEGER,
+        unique: 'customeruser_user',
+        references: null
       }
     }
-    return schema
   }
 }

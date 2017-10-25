@@ -139,14 +139,14 @@ module.exports = class OrderCsvService extends Service {
    */
   processOrderUpload(uploadId) {
     return new Promise((resolve, reject) => {
-      const OrderUpload = this.app.orm.OrderUpload
+      const OrderUpload = this.app.orm['OrderUpload']
       let ordersTotal = 0
       OrderUpload.batch({
         where: {
           upload_id: uploadId
         }
       }, orders => {
-        const Sequelize = this.app.orm.Product.sequelize
+        const Sequelize = this.app.orm['Order'].sequelize
         return Sequelize.Promise.mapSeries(orders, order => {
           const create = {
             customer: {
@@ -157,16 +157,19 @@ module.exports = class OrderCsvService extends Service {
             shipping_address: {},
             billing_address: {}
           }
-          _.each(order.get({plain: true}), (value, key) => {
+
+          order = order instanceof this.app.orm['OrderUpload'] ? order.get({plain: true}) : order
+
+          _.each(order, (value, key) => {
             if (key.indexOf('shipping_') > -1) {
               const newKey = key.replace('shipping_', '')
-              if (value && value != '') {
+              if (value && value !== '') {
                 create.shipping_address[newKey] = value
               }
             }
             if (key.indexOf('billing_') > -1) {
               const newKey = key.replace('billing_', '')
-              if (value && value != '') {
+              if (value && value !== '') {
                 create.billing_address[newKey] = value
               }
             }

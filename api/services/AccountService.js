@@ -34,8 +34,10 @@ module.exports = class AccountService extends Service {
           { transaction: options.transaction || null }
         )
          .then(source => {
+           // Convert to plain object
+           source = source instanceof this.app.orm['Source'] ? source.get({plain: true }) : source
            delete detail.gateway_token
-           detail.source = source.get({ plain: true })
+           detail.source = source
            return detail
          })
          .catch(err => {

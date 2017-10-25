@@ -11,6 +11,7 @@ const geolib = require('geolib')
 const currencyFormatter = require('currency-formatter')
 const removeMd = require('remove-markdown')
 const stripTags = require('striptags')
+const request = require('request')
 
 /**
  * @module ProxyCartService
@@ -27,36 +28,6 @@ module.exports = class ProxyCartService extends Service {
     this.customer = require('../../lib/middleware/customer')
   }
 
-
-  jsonCritera(str) {
-    if (!str) {
-      return {}
-    }
-    if (str instanceof Object) {
-      return str
-    }
-    try {
-      str = JSON.parse(str)
-    }
-    catch (err) {
-      str = {}
-    }
-    return str
-  }
-
-  paginate(res, count, limit, offset, sort) {
-
-    const pages = Math.ceil(count / limit) == 0 ? 1 : Math.ceil(count / limit)
-    const page = offset == 0 ? 1 : Math.round(offset / limit)
-    res.set('X-Pagination-Total', count)
-    res.set('X-Pagination-Pages', pages)
-    res.set('X-Pagination-Page', page)
-    res.set('X-Pagination-Offset', offset)
-    res.set('X-Pagination-Limit', limit)
-    res.set('X-Pagination-Sort', sort)
-
-    return res
-  }
   /**
    *
    * @param url
@@ -64,8 +35,8 @@ module.exports = class ProxyCartService extends Service {
    */
   downloadImage(url) {
     return new Promise((resolve, reject) => {
-      const request = require('request').defaults({ encoding: null })
-      request.get(url, (err, res, body) => {
+      const req = request.defaults({ encoding: null })
+      req.get(url, (err, res, body) => {
         if (err) {
           this.app.log.error(err)
           return reject(err)
@@ -367,7 +338,7 @@ module.exports = class ProxyCartService extends Service {
       province: normalizedProvince.name,
       province_code: normalizedProvince.code
     }
-    if (address instanceof Address.Instance) {
+    if (address instanceof Address) {
       address = address.merge(ext)
     }
     else {
@@ -411,7 +382,7 @@ module.exports = class ProxyCartService extends Service {
       const Shop = this.app.orm.Shop
       const Address = this.app.orm.Address
 
-      if (!(obj instanceof Cart.Instance) && !(obj instanceof Subscription.Instance)) {
+      if (!(obj instanceof Cart) && !(obj instanceof Subscription)) {
         const err = new Error('Object must be an instance!')
         return reject(err)
       }
@@ -458,10 +429,10 @@ module.exports = class ProxyCartService extends Service {
             })
               .then(customer => {
 
-                if ( customer.shipping_address instanceof Address.Instance) {
+                if ( customer.shipping_address instanceof Address) {
                   customer.shipping_address = customer.shipping_address.get({plain: true})
                 }
-                if ( customer.default_address instanceof Address.Instance) {
+                if ( customer.default_address instanceof Address) {
                   customer.default_address = customer.default_address.get({plain: true})
                 }
                 const to = customer.shipping_address ? customer.shipping_address : customer.default_address

@@ -15,7 +15,7 @@ const INVENTORY_POLICY = require('../../lib').Enums.INVENTORY_POLICY
 module.exports = class ProductUpload extends Model {
 
   static config (app, Sequelize) {
-    const config = {
+    return {
       migrate: 'drop', //override default models configurations if needed
       store: 'uploads',
       options: {
@@ -60,11 +60,10 @@ module.exports = class ProductUpload extends Model {
         }
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {
+    return {
       upload_id: {
         type: Sequelize.STRING,
         allowNull: false
@@ -269,7 +268,5 @@ module.exports = class ProductUpload extends Model {
         defaultValue: app.config.proxyEngine.live_mode
       }
     }
-
-    return schema
   }
 }

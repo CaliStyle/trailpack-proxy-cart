@@ -14,7 +14,7 @@ describe('CustomerService', () => {
   it('should resolve a customer instance', (done) => {
     Customer.resolve(Customer.build({}))
       .then(customer => {
-        assert.ok(customer instanceof Customer.Instance)
+        assert.ok(customer instanceof Customer)
         done()
       })
       .catch(err => {

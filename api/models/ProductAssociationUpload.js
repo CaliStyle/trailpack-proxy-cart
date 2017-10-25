@@ -11,7 +11,7 @@ const Model = require('trails/model')
 module.exports = class ProductAssociationUpload extends Model {
 
   static config (app, Sequelize) {
-    const config = {
+    return {
       // migrate: 'drop', //override default models configurations if needed
       store: 'uploads',
       options: {
@@ -62,11 +62,10 @@ module.exports = class ProductAssociationUpload extends Model {
         }
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {
+    return {
       upload_id: {
         type: Sequelize.STRING,
         allowNull: false
@@ -104,6 +103,5 @@ module.exports = class ProductAssociationUpload extends Model {
         defaultValue: app.config.proxyEngine.live_mode
       }
     }
-    return schema
   }
 }

@@ -27,14 +27,10 @@ module.exports = class User extends Model {
         },
         hooks: {
           afterCreate: [
-            (values, options, fn) => {
-              app.services.ProxyCartService.afterUserCreate(values, options)
-                .then(values => {
-                  // console.log('BROKE',values)
-                  return fn(null, values)
-                })
+            (values, options) => {
+              return app.services.ProxyCartService.afterUserCreate(values, options)
                 .catch(err => {
-                  return fn(err)
+                  return Promise.resolve(err)
                 })
             }
           ].concat(ModelPermissions.config(app, Sequelize).options.hooks.afterCreate)
@@ -103,7 +99,7 @@ module.exports = class User extends Model {
           ModelNotifications.config(app, Sequelize).options.instanceMethods,
           {
             toJSON: function() {
-              const resp = this.get({ plain: true })
+              const resp = this instanceof app.orm['User'] ? this.get({ plain: true }) : this
               // Transform Tags to array on toJSON
               if (resp.tags) {
                 resp.tags = resp.tags.map(tag => {

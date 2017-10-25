@@ -20,7 +20,7 @@ const COLLECTION_SHIPPING_TYPE = require('../../lib').Enums.COLLECTION_SHIPPING_
 module.exports = class CollectionUpload extends Model {
 
   static config (app, Sequelize) {
-    const config = {
+    return {
       migrate: 'drop', //override default models configurations if needed
       store: 'uploads',
       options: {
@@ -66,11 +66,10 @@ module.exports = class CollectionUpload extends Model {
         }
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {
+    return {
       // Upload ID
       upload_id: {
         type: Sequelize.STRING,
@@ -186,6 +185,5 @@ module.exports = class CollectionUpload extends Model {
         defaultValue: app.config.proxyEngine.live_mode
       }
     }
-    return schema
   }
 }

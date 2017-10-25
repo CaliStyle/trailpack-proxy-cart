@@ -13,7 +13,7 @@ describe('Subscription Model', () => {
   it('should resolve a subscription instance', (done) => {
     Subscription.resolve(Subscription.build({}))
       .then(subscription => {
-        assert.ok(subscription instanceof Subscription.Instance)
+        assert.ok(subscription instanceof Subscription)
         done()
       })
       .catch(err => {
@@ -31,7 +31,7 @@ describe('Subscription Model', () => {
     }).renew().save()
       .then(subscription => {
         // console.log('MODEL renew', subscription)
-        assert.ok(subscription instanceof Subscription.Instance)
+        assert.ok(subscription instanceof Subscription)
         assert.ok(subscription.renews_on)
         assert.equal(subscription.active, true)
         done()
@@ -52,7 +52,7 @@ describe('Subscription Model', () => {
     }).retry().save()
       .then(subscription => {
         // console.log('MODEL renew', subscription)
-        assert.ok(subscription instanceof Subscription.Instance)
+        assert.ok(subscription instanceof Subscription)
         assert.equal(subscription.active, true)
         assert.ok(subscription.renews_on)
         assert.ok(subscription.renew_retry_at)

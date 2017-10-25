@@ -107,7 +107,7 @@ module.exports = class SubscriptionCsvService extends Service {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
             const k = keys[i]
             if (i > -1 && k) {
-              if (k == 'products') {
+              if (k === 'products') {
                 upload[k] = data.split(',').map(product => { return product.trim()})
               }
               else {

@@ -11,28 +11,24 @@ const _ = require('lodash')
 module.exports = class ItemDiscount extends Model {
 
   static config (app, Sequelize) {
-    let config = {}
-    if (app.config.database.orm === 'sequelize') {
-      config = {
-        options: {
-          underscored: true
-        },
-        classMethods: {
-          DISCOUNT_MODELS: DISCOUNT_MODELS,
-          // associate: (models) => {
-          //   models.ItemDiscount.belongsTo(models.Discount, {
-          //     // targetKey: 'discount_id'
-          //     unique: 'discount_model',
-          //   })
-          // }
-        }
+    return {
+      options: {
+        underscored: true
+      },
+      classMethods: {
+        DISCOUNT_MODELS: DISCOUNT_MODELS,
+        // associate: (models) => {
+        //   models.ItemDiscount.belongsTo(models.Discount, {
+        //     // targetKey: 'discount_id'
+        //     unique: 'discount_model',
+        //   })
+        // }
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {
+    return {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -57,6 +53,5 @@ module.exports = class ItemDiscount extends Model {
         references: null
       }
     }
-    return schema
   }
 }

@@ -15,145 +15,134 @@ const shortId = require('shortid')
 module.exports = class Source extends Model {
 
   static config (app, Sequelize) {
-    let config = {}
-    if (app.config.database.orm === 'sequelize') {
-      config = {
-        options: {
-          underscored: true,
-          // defaultScope: {
-          //   where: {
-          //     live_mode: app.config.proxyEngine.live_mode
-          //   }
-          // },
-          scopes: {
-            live: {
-              where: {
-                live_mode: true
-              }
+    return {
+      options: {
+        underscored: true,
+        // defaultScope: {
+        //   where: {
+        //     live_mode: app.config.proxyEngine.live_mode
+        //   }
+        // },
+        scopes: {
+          live: {
+            where: {
+              live_mode: true
+            }
+          }
+        },
+        hooks: {
+          beforeCreate: (values, options) => {
+            // If not token was already created, create it
+            if (!values.token) {
+              values.token = `source_${shortId.generate()}`
             }
           },
-          hooks: {
-            beforeCreate: (values, options, fn) => {
-              // If not token was already created, create it
-              if (!values.token) {
-                values.token = `source_${shortId.generate()}`
-              }
-              fn()
-            },
-            afterCreate: (values, options, fn) => {
-              app.services.AccountService.afterSourceCreate(values)
-                .then(values => {
-                  return fn(null, values)
-                })
-                .catch(err => {
-                  return fn(err)
-                })
-            },
-            afterDestroy: (values, options, fn) => {
-              app.services.AccountService.afterSourceDestroy(values)
-                .then(values => {
-                  return fn(null, values)
-                })
-                .catch(err => {
-                  return fn(err)
-                })
-            },
-          },
-          classMethods: {
-            associate: (models) => {
-              models.Source.belongsTo(models.Account, {
-                // as: 'account',
-                // through: {
-                //   model: models.CustomerSource,
-                //   unique: false,
-                //   foreignKey: 'account_id',
-                // }
-                // constraints: false
-              })
-              models.Source.belongsTo(models.Customer, {
-                // as: 'customer',
-                // through: {
-                //   model: models.CustomerSource,
-                //   unique: false,
-                //   foreignKey: 'customer_id',
-                // }
-                // constraints: false
-              })
-              models.Source.hasMany(models.Transaction, {
-                as: 'transactions',
-                // constraints: false
-              })
-            },
-            resolve: function(source, options){
-              const Source =  this
-              if (source instanceof Source.Instance){
-                return Promise.resolve(source)
-              }
-              else if (source && _.isObject(source) && source.id) {
-                return Source.findById(source.id, options)
-                  .then(resSource => {
-                    if (!resSource) {
-                      throw new Errors.FoundError(Error(`Source ${source.id} not found`))
-                    }
-                    return resSource
-                  })
-              }
-              else if (source && _.isObject(source) && source.token) {
-                return Source.findOne(app.services.ProxyEngineService.mergeOptionDefaults(
-                  options || {},
-                  {
-                    where: {
-                      token: source.token
-                    }
-                  }
-                ))
-                  .then(resSource => {
-                    if (!resSource) {
-                      throw new Errors.FoundError(Error(`Source ${source.token} not found`))
-                    }
-                    return resSource
-                  })
-              }
-              else if (source && _.isNumber(source)) {
-                return Source.findById(source, options)
-                  .then(resSource => {
-                    if (!resSource) {
-                      throw new Errors.FoundError(Error(`Source ${source} not found`))
-                    }
-                    return resSource
-                  })
-              }
-              else if (source && _.isString(source)) {
-                return Source.findOne(app.services.ProxyEngineService.mergeOptionDefaults(
-                  options || {},
-                  {
-                    where: {
-                      token: source
-                    }
-                  }
-                ))
-                  .then(resSource => {
-                    if (!resSource) {
-                      throw new Errors.FoundError(Error(`Source ${source} not found`))
-                    }
-                    return resSource
-                  })
-              }
-              else {
-                // TODO create proper error
-                const err = new Error(`Unable to resolve Source ${source}`)
+          afterCreate: (values, options) => {
+            return app.services.AccountService.afterSourceCreate(values)
+              .catch(err => {
                 return Promise.reject(err)
-              }
+              })
+          },
+          afterDestroy: (values, options) => {
+            return app.services.AccountService.afterSourceDestroy(values)
+              .catch(err => {
+                return Promise.reject(err)
+              })
+          },
+        },
+        classMethods: {
+          associate: (models) => {
+            models.Source.belongsTo(models.Account, {
+              // as: 'account',
+              // through: {
+              //   model: models.CustomerSource,
+              //   unique: false,
+              //   foreignKey: 'account_id',
+              // }
+              // constraints: false
+            })
+            models.Source.belongsTo(models.Customer, {
+              // as: 'customer',
+              // through: {
+              //   model: models.CustomerSource,
+              //   unique: false,
+              //   foreignKey: 'customer_id',
+              // }
+              // constraints: false
+            })
+            models.Source.hasMany(models.Transaction, {
+              as: 'transactions',
+              // constraints: false
+            })
+          },
+          resolve: function(source, options){
+            const Source =  this
+            if (source instanceof Source){
+              return Promise.resolve(source)
+            }
+            else if (source && _.isObject(source) && source.id) {
+              return Source.findById(source.id, options)
+                .then(resSource => {
+                  if (!resSource) {
+                    throw new Errors.FoundError(Error(`Source ${source.id} not found`))
+                  }
+                  return resSource
+                })
+            }
+            else if (source && _.isObject(source) && source.token) {
+              return Source.findOne(app.services.ProxyEngineService.mergeOptionDefaults(
+                options || {},
+                {
+                  where: {
+                    token: source.token
+                  }
+                }
+              ))
+                .then(resSource => {
+                  if (!resSource) {
+                    throw new Errors.FoundError(Error(`Source ${source.token} not found`))
+                  }
+                  return resSource
+                })
+            }
+            else if (source && _.isNumber(source)) {
+              return Source.findById(source, options)
+                .then(resSource => {
+                  if (!resSource) {
+                    throw new Errors.FoundError(Error(`Source ${source} not found`))
+                  }
+                  return resSource
+                })
+            }
+            else if (source && _.isString(source)) {
+              return Source.findOne(app.services.ProxyEngineService.mergeOptionDefaults(
+                options || {},
+                {
+                  where: {
+                    token: source
+                  }
+                }
+              ))
+                .then(resSource => {
+                  if (!resSource) {
+                    throw new Errors.FoundError(Error(`Source ${source} not found`))
+                  }
+                  return resSource
+                })
+            }
+            else {
+              // TODO create proper error
+              const err = new Error(`Unable to resolve Source ${source}`)
+              return Promise.reject(err)
             }
           }
         }
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {
+    return {
       customer_id: {
         type: Sequelize.INTEGER,
         // references: {
@@ -230,6 +219,5 @@ module.exports = class Source extends Model {
       }
 
     }
-    return schema
   }
 }

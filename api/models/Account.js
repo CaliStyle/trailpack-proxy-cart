@@ -16,135 +16,130 @@ const queryDefaults = require('../utils/queryDefaults')
 module.exports = class Account extends Model {
 
   static config (app, Sequelize) {
-    let config = {}
-    if (app.config.database.orm === 'sequelize') {
-      config = {
-        options: {
-          underscored: true,
-          // defaultScope: {
-          //   where: {
-          //     live_mode: app.config.proxyEngine.live_mode
-          //   }
-          // },
-          scopes: {
-            live: {
-              where: {
-                live_mode: true
-              }
-            },
-          },
-          hooks: {
-            beforeCreate: (values, options, fn) => {
-              // If not token was already created, create it
-              if (!values.token) {
-                values.token = `account_${shortId.generate()}`
-              }
-              fn()
+    return {
+      options: {
+        underscored: true,
+        // defaultScope: {
+        //   where: {
+        //     live_mode: app.config.proxyEngine.live_mode
+        //   }
+        // },
+        scopes: {
+          live: {
+            where: {
+              live_mode: true
             }
           },
-          classMethods: {
-            associate: (models) => {
-              models.Account.belongsTo(models.Customer, {
-                // through: {
-                //   model: models.CustomerAccount,
-                //   unique: false
-                // },
-                foreignKey: 'customer_id',
-                // constraints: false
-              })
+        },
+        hooks: {
+          beforeCreate: (values, options) => {
+            // If not token was already created, create it
+            if (!values.token) {
+              values.token = `account_${shortId.generate()}`
+            }
+          }
+        },
+        classMethods: {
+          associate: (models) => {
+            models.Account.belongsTo(models.Customer, {
+              // through: {
+              //   model: models.CustomerAccount,
+              //   unique: false
+              // },
+              foreignKey: 'customer_id',
+              // constraints: false
+            })
 
-              models.Account.belongsToMany(models.Source, {
-                as: 'sources',
-                through: {
-                  model: models.CustomerSource,
-                  unique: false
-                },
-                foreignKey: 'account_id'
-                // constraints: false
-              })
-            },
-            findByIdDefault: function(id, options) {
-              options = app.services.ProxyEngineService.mergeOptionDefaults(
-                queryDefaults.Account.default(app),
-                options || {}
-              )
-              return this.findById(id, options)
-            },
-            resolve: function (account, options) {
-              options = options || {}
-              const Account = this
-              if (account instanceof Account.Instance) {
-                return Promise.resolve(account)
-              }
-              else if (account && _.isObject(account) && account.id) {
-                return Account.findById(account.id, options)
-                  .then(resAccount => {
-                    if (!resAccount) {
-                      throw new Errors.FoundError(Error(`Account ${account.id} not found`))
-                    }
-                    return resAccount
-                  })
-              }
-              else if (account && _.isObject(account) && account.gateway && account.customer_id) {
-                return Account.findOne(_.defaultsDeep({
-                  where: {
-                    gateway: account.gateway,
-                    customer_id: account.customer_id
+            models.Account.belongsToMany(models.Source, {
+              as: 'sources',
+              through: {
+                model: models.CustomerSource,
+                unique: false
+              },
+              foreignKey: 'account_id'
+              // constraints: false
+            })
+          },
+          findByIdDefault: function(id, options) {
+            options = app.services.ProxyEngineService.mergeOptionDefaults(
+              queryDefaults.Account.default(app),
+              options || {}
+            )
+            return this.findById(id, options)
+          },
+          resolve: function (account, options) {
+            options = options || {}
+            const Account = this
+            if (account instanceof Account) {
+              return Promise.resolve(account)
+            }
+            else if (account && _.isObject(account) && account.id) {
+              return Account.findById(account.id, options)
+                .then(resAccount => {
+                  if (!resAccount) {
+                    throw new Errors.FoundError(Error(`Account ${account.id} not found`))
                   }
-                }, options))
-                  .then(resAccount => {
-                    if (!resAccount) {
-                      throw new Errors.FoundError(Error(`Account with customer id ${account.customer_id} not found`))
-                    }
-                    return resAccount
-                  })
-              }
-              else if (account && _.isObject(account) && account.token) {
-                return Account.findOne(_.defaultsDeep({
-                  where: {
-                    token: account.token
+                  return resAccount
+                })
+            }
+            else if (account && _.isObject(account) && account.gateway && account.customer_id) {
+              return Account.findOne(_.defaultsDeep({
+                where: {
+                  gateway: account.gateway,
+                  customer_id: account.customer_id
+                }
+              }, options))
+                .then(resAccount => {
+                  if (!resAccount) {
+                    throw new Errors.FoundError(Error(`Account with customer id ${account.customer_id} not found`))
                   }
-                }, options))
-                  .then(resAccount => {
-                    if (!resAccount) {
-                      throw new Errors.FoundError(Error(`Account token ${account.token} not found`))
-                    }
-                    return resAccount
-                  })
-              }
-              else if (account && _.isNumber(account)) {
-                return Account.findById(account, options)
-                  .then(resAccount => {
-                    if (!resAccount) {
-                      throw new Errors.FoundError(Error(`Account ${account.token} not found`))
-                    }
-                    return resAccount
-                  })
-              }
-              else if (account && _.isString(account)) {
-                return Account.findOne(_.defaultsDeep({
-                  where: {
-                    token: account
+                  return resAccount
+                })
+            }
+            else if (account && _.isObject(account) && account.token) {
+              return Account.findOne(_.defaultsDeep({
+                where: {
+                  token: account.token
+                }
+              }, options))
+                .then(resAccount => {
+                  if (!resAccount) {
+                    throw new Errors.FoundError(Error(`Account token ${account.token} not found`))
                   }
-                }, options))
-                  .then(resAccount => {
-                    if (!resAccount) {
-                      throw new Errors.FoundError(Error(`Account ${account} not found`))
-                    }
-                    return resAccount
-                  })
-              }
-              else {
-                // TODO create proper error
-                const err = new Error(`Unable to resolve Account ${account}`)
-                return Promise.reject(err)
-              }
+                  return resAccount
+                })
+            }
+            else if (account && _.isNumber(account)) {
+              return Account.findById(account, options)
+                .then(resAccount => {
+                  if (!resAccount) {
+                    throw new Errors.FoundError(Error(`Account ${account.token} not found`))
+                  }
+                  return resAccount
+                })
+            }
+            else if (account && _.isString(account)) {
+              return Account.findOne(_.defaultsDeep({
+                where: {
+                  token: account
+                }
+              }, options))
+                .then(resAccount => {
+                  if (!resAccount) {
+                    throw new Errors.FoundError(Error(`Account ${account} not found`))
+                  }
+                  return resAccount
+                })
+            }
+            else {
+              // TODO create proper error
+              const err = new Error(`Unable to resolve Account ${account}`)
+              return Promise.reject(err)
             }
           }
         }
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {

@@ -108,22 +108,22 @@ module.exports = class CustomerCsvService extends Service {
         const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
         const k = keys[i]
         if (i > -1 && k) {
-          if (k == 'tags') {
+          if (k === 'tags') {
             upload[k] = _.uniq(data.toLowerCase().split(',').map(tag => {
               return tag.trim()
             }))
           }
-          else if (k == 'collections') {
+          else if (k === 'collections') {
             upload[k] = data.split(',').map(collection => {
               return collection.trim()
             })
           }
-          else if (k == 'accounts') {
+          else if (k === 'accounts') {
             upload[k] = data.split(',').map(account => {
               return account.trim()
             })
           }
-          else if (k == 'users') {
+          else if (k === 'users') {
             upload[k] = data.split(',').map(user => {
               return user.trim()
             })
@@ -167,8 +167,9 @@ module.exports = class CustomerCsvService extends Service {
    * @param uploadId
    * @returns {Promise}
    */
-  processCustomerUpload(uploadId) {
-    const CustomerUpload = this.app.orm.CustomerUpload
+  processCustomerUpload(uploadId, options) {
+    options = options || {}
+    const CustomerUpload = this.app.orm['CustomerUpload']
     const errors = []
     let customersTotal = 0
     let errorsCount = 0
@@ -179,7 +180,7 @@ module.exports = class CustomerCsvService extends Service {
       }
     }, (customers) => {
 
-      const Sequelize = this.app.orm.Customer.sequelize
+      const Sequelize = this.app.orm['Customer'].sequelize
       return Sequelize.Promise.mapSeries(customers, customer => {
         const create = {
           account_balance: customer.account_balance,
@@ -195,16 +196,20 @@ module.exports = class CustomerCsvService extends Service {
           accounts: customer.accounts,
           users: customer.users
         }
-        _.each(customer.get({plain: true}), (value, key) => {
+
+        // Convert to normal object
+        customer = customer instanceof this.app.orm['CustomerUpload'] ? customer.get({plain: true}) : customer
+        console.log('BROKE', customer)
+        _.each(customer, (value, key) => {
           if (key.indexOf('shipping_') > -1) {
             const newKey = key.replace('shipping_', '')
-            if (value && value != '') {
+            if (value && value !== '') {
               create.shipping_address[newKey] = value
             }
           }
           if (key.indexOf('billing_') > -1) {
             const newKey = key.replace('billing_', '')
-            if (value && value != '') {
+            if (value && value !== '') {
               create.billing_address[newKey] = value
             }
           }
@@ -216,7 +221,7 @@ module.exports = class CustomerCsvService extends Service {
           delete create.billing_address
         }
         // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
-        return this.app.services.CustomerService.create(create)
+        return this.app.services.CustomerService.create(create, {transaction: options.transaction || null})
           .then(() => {
             customersTotal++
             return
@@ -228,7 +233,12 @@ module.exports = class CustomerCsvService extends Service {
           })
       })
         .then(() => {
-          return CustomerUpload.destroy({where: {upload_id: uploadId}})
+          return CustomerUpload.destroy({
+            where: {
+              upload_id: uploadId
+            },
+            transaction: options.transaction || null
+          })
             .catch(err => {
               errorsCount++
               errors.push(err.message)

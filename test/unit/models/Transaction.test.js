@@ -11,7 +11,7 @@ describe('Transaction Model', () => {
   it('should resolve a transaction instance', (done) => {
     Transaction.resolve(Transaction.build({}))
       .then(transaction => {
-        assert.ok(transaction instanceof Transaction.Instance)
+        assert.ok(transaction instanceof Transaction)
         done()
       })
       .catch(err => {

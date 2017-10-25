@@ -10,22 +10,18 @@ const _ = require('lodash')
 module.exports = class ItemCollection extends Model {
 
   static config (app,Sequelize) {
-    let config = {}
-    if (app.config.database.orm === 'sequelize') {
-      config = {
-        options: {
-          underscored: true
-        },
-        classMethods: {
-          COLLECTION_MODELS: COLLECTION_MODELS
-        }
+    return {
+      options: {
+        underscored: true
+      },
+      classMethods: {
+        COLLECTION_MODELS: COLLECTION_MODELS
       }
     }
-    return config
   }
 
   static schema (app,Sequelize) {
-    const schema = {
+    return {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -48,6 +44,5 @@ module.exports = class ItemCollection extends Model {
         references: null
       }
     }
-    return schema
   }
 }

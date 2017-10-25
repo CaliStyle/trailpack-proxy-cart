@@ -13,7 +13,7 @@ describe('CollectionService', () => {
   it('should resolve a collection instance', (done) => {
     Collection.resolve(Collection.build({}))
       .then(collection => {
-        assert.ok(collection instanceof Collection.Instance)
+        assert.ok(collection instanceof Collection)
         done()
       })
       .catch(err => {

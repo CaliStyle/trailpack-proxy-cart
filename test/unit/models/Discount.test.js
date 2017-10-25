@@ -11,7 +11,7 @@ describe('Discount Model', () => {
   it('should resolve a discount instance', (done) => {
     Discount.resolve(Discount.build({}))
       .then(discount => {
-        assert.ok(discount instanceof Discount.Instance)
+        assert.ok(discount instanceof Discount)
         done()
       })
       .catch(err => {

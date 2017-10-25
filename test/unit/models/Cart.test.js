@@ -12,7 +12,7 @@ describe('Cart Model', () => {
   it('should resolve a cart instance', (done) => {
     Cart.resolve(Cart.build({}))
       .then(cart => {
-        assert.ok(cart instanceof Cart.Instance)
+        assert.ok(cart instanceof Cart)
         done()
       })
       .catch(err => {

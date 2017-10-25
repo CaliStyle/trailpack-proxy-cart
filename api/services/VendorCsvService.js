@@ -159,7 +159,11 @@ module.exports = class VendorCsvService extends Service {
           shipping_address: {},
           billing_address: {}
         }
-        _.each(vendor.get({plain: true}), (value, key) => {
+
+        // Convert to normal object
+        vendor = vendor instanceof this.app.orm['VendorUpload'] ? vendor.get({plain: true}) : vendor
+
+        _.each(vendor, (value, key) => {
           if (key.indexOf('shipping_') > -1) {
             const newKey = key.replace('shipping_', '')
             if (value && value != '') {
@@ -168,7 +172,7 @@ module.exports = class VendorCsvService extends Service {
           }
           if (key.indexOf('billing_') > -1) {
             const newKey = key.replace('billing_', '')
-            if (value && value != '') {
+            if (value && value !== '') {
               create.billing_address[newKey] = value
             }
           }

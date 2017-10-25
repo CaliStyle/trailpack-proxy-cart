@@ -77,7 +77,7 @@ module.exports = class TagController extends Controller {
   findOne(req, res){
     const orm = this.app.orm
     const Tag = orm['Tag']
-    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
 
     Tag.findOne({
       where: where
@@ -104,7 +104,7 @@ module.exports = class TagController extends Controller {
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
     Tag.findAndCount({
       where: where,
       order: sort,

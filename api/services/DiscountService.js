@@ -163,13 +163,13 @@ module.exports = class DiscountService extends Service {
         if (!_obj) {
           throw new Error('Could not resolve instance and calculate collection discounts')
         }
-        if (_obj instanceof this.app.orm['Cart'].Instance) {
+        if (_obj instanceof this.app.orm['Cart']) {
           type = 'cart'
         }
-        else if (_obj instanceof this.app.orm['Subscription'].Instance) {
+        else if (_obj instanceof this.app.orm['Subscription']) {
           type = 'subscription'
         }
-        else if (_obj instanceof this.app.orm['Product'].Instance) {
+        else if (_obj instanceof this.app.orm['Product']) {
           type = 'product'
         }
         else {
@@ -193,7 +193,8 @@ module.exports = class DiscountService extends Service {
           // Set the default discounted line
           const discountedLine = {
             id: collection.id,
-            type: 'collection',
+            model: 'collection',
+            type: null,
             name: collection.title,
             scope: collection.discount_scope,
             price: 0

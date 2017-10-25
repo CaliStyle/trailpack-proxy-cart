@@ -119,116 +119,116 @@ module.exports = class ProductCsvService extends Service {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
             const k = keys[i]
             if (i > -1 && k) {
-              if (k == 'handle') {
+              if (k === 'handle') {
                 upload[k] = this.app.services.ProxyCartService.handle(data)
               }
-              else if (k == 'title') {
+              else if (k === 'title') {
                 upload[k] = this.app.services.ProxyCartService.title(data)
               }
-              else if (k == 'seo_description') {
+              else if (k === 'seo_description') {
                 upload[k] = this.app.services.ProxyCartService.description(data)
               }
-              else if (k == 'tags') {
+              else if (k === 'tags') {
                 upload[k] = _.uniq(data.toString().split(',').map(tag => {
                   return tag.toLowerCase().trim()
                 }))
               }
-              else if (k == 'images') {
+              else if (k === 'images') {
                 upload[k] = data.toString().split(',').map(image => {
                   return image.trim()
                 })
               }
-              else if (k == 'images_alt') {
+              else if (k === 'images_alt') {
                 upload[k] = data.toString().split('|').map(alt => {
                   return alt.trim()
                 })
               }
-              else if (k == 'variant_images') {
+              else if (k === 'variant_images') {
                 upload[k] = data.toString().split(',').map(image => {
                   return image.trim()
                 })
               }
-              else if (k == 'variant_images_alt') {
+              else if (k === 'variant_images_alt') {
                 upload[k] = data.toString().split('|').map(alt => {
                   return alt.trim()
                 })
               }
-              else if (k == 'collections') {
+              else if (k === 'collections') {
                 upload[k] = _.uniq(data.toString().split(',').map(collection => {
                   return collection.trim()
                 }))
               }
-              else if (k == 'associations') {
+              else if (k === 'associations') {
                 upload[k] = data.toString().split(',').map(collection => {
                   return collection.trim()
                 })
               }
-              else if (k == 'exclude_payment_types') {
+              else if (k === 'exclude_payment_types') {
                 upload[k] = data.toString().split(',').map(type => {
                   return type.trim()
                 })
               }
-              else if (k == 'vendors') {
+              else if (k === 'vendors') {
                 upload[k] = data.toString().split(',').map(vendor => {
                   return vendor.trim()
                 })
               }
-              else if (k == 'shops') {
+              else if (k === 'shops') {
                 upload[k] = data.toString().split(',').map(shop => {
                   return shop.trim()
                 })
               }
-              else if (k == 'shops_quantity') {
+              else if (k === 'shops_quantity') {
                 upload[k] = data.toString().split(',').map(shopQty => {
                   return parseInt(shopQty.trim())
                 })
               }
-              else if (k == 'weight_unit') {
+              else if (k === 'weight_unit') {
                 upload[k] = data.toString().toLowerCase().trim()
               }
-              else if (k == 'inventory_policy') {
+              else if (k === 'inventory_policy') {
                 upload[k] = data.toString().toLowerCase().trim()
               }
-              else if (k == 'g_product_category') {
+              else if (k === 'g_product_category') {
                 google['g_product_category'] = data.toString().trim()
               }
-              else if (k == 'g_gender') {
+              else if (k === 'g_gender') {
                 google['g_gender'] = data.toString().trim()
               }
-              else if (k == 'g_age_group') {
+              else if (k === 'g_age_group') {
                 google['g_age_group'] = data.toString().trim()
               }
-              else if (k == 'g_mpn') {
+              else if (k === 'g_mpn') {
                 google['g_mpn'] = data.toString().trim()
               }
-              else if (k == 'g_adwords_grouping') {
+              else if (k === 'g_adwords_grouping') {
                 google['g_adwords_grouping'] = data.toString().trim()
               }
-              else if (k == 'g_adwords_label') {
+              else if (k === 'g_adwords_label') {
                 google['g_adwords_label'] = data.toString().trim()
               }
-              else if (k == 'g_condition') {
+              else if (k === 'g_condition') {
                 google['g_condition'] = data.toString().trim()
               }
-              else if (k == 'g_custom_product') {
+              else if (k === 'g_custom_product') {
                 google['g_custom_product'] = data.toString().trim()
               }
-              else if (k == 'g_custom_label_0') {
+              else if (k === 'g_custom_label_0') {
                 google['g_custom_label_0'] = data.toString().trim()
               }
-              else if (k == 'g_custom_label_1') {
+              else if (k === 'g_custom_label_1') {
                 google['g_custom_label_1'] = data.toString().trim()
               }
-              else if (k == 'g_custom_label_2') {
+              else if (k === 'g_custom_label_2') {
                 google['g_custom_label_2'] = data.toString().trim()
               }
-              else if (k == 'g_custom_label_3') {
+              else if (k === 'g_custom_label_3') {
                 google['g_custom_label_3'] = data.toString().trim()
               }
-              else if (k == 'g_custom_label_4') {
+              else if (k === 'g_custom_label_4') {
                 google['g_custom_label_4'] = data.toString().trim()
               }
-              else if (k == 'metadata') {
+              else if (k === 'metadata') {
                 // METADATA uploaded this way MUST be in JSON
                 let formatted = data.toString().trim()
                 if (this.app.services.ProxyCartService.isJson(formatted)) {
@@ -368,7 +368,7 @@ module.exports = class ProductCsvService extends Service {
    * @returns {Promise}
    */
   processProductUpload(uploadId) {
-    const ProductUpload = this.app.orm.ProductUpload
+    const ProductUpload = this.app.orm['ProductUpload']
     let errors = [], productsTotal = 0, variantsTotal = 0, associationsTotal = 0, errorsCount = 0
 
     return ProductUpload.batch({
@@ -382,7 +382,7 @@ module.exports = class ProductCsvService extends Service {
       // distinct: true
     }, (products) => {
 
-      const Sequelize = this.app.orm.Product.sequelize
+      const Sequelize = this.app.orm['Product'].sequelize
       return Sequelize.Promise.mapSeries(products, product => {
         return this.processProductGroup(product.handle, uploadId, {})
           .then((results) => {
@@ -443,7 +443,7 @@ module.exports = class ProductCsvService extends Service {
    */
   processProductGroup(handle, uploadId, options) {
     options = options || {}
-    this.app.log.debug('ProxyCartService.processProductGroup', handle)
+    this.app.log.debug('ProductCsvService.processProductGroup: processing', handle, uploadId)
 
     const Product = this.app.orm['Product']
     const ProductUpload = this.app.orm['ProductUpload']
@@ -460,7 +460,7 @@ module.exports = class ProductCsvService extends Service {
           handle: handle,
           upload_id: uploadId
         },
-        order: 'id ASC',
+        order: [['id','ASC']],
         // transaction: options.transaction || null
       })
         .then(products => {
@@ -488,7 +488,7 @@ module.exports = class ProductCsvService extends Service {
           })
 
           // Sort the products to find the default if they got out of order somewhere
-          if (!products[0].title || products[0].title == '') {
+          if (!products[0].title || products[0].title === '') {
             products = products.sort((a, b) => {
               if (a.title > b.title) {
                 return 1

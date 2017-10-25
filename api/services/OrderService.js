@@ -306,7 +306,7 @@ module.exports = class OrderService extends Service {
           }
           resOrder = order
 
-          if (resCustomer instanceof Customer.Instance && deduction > 0) {
+          if (resCustomer instanceof Customer && deduction > 0) {
             // Get the total deducted
             resCustomer.setAccountBalance(Math.max(0, resCustomer.account_balance - deduction))
             const event = {
@@ -352,7 +352,7 @@ module.exports = class OrderService extends Service {
         })
         .then(() => {
           // TODO REMOVE THIS PART WHEN WE CREATE THE EVENT ELSEWHERE
-          if (resCustomer instanceof Customer.Instance) {
+          if (resCustomer instanceof Customer) {
             return resCustomer.addOrder(resOrder.id, { transaction: options.transaction || null})
               .then(() => {
                 const event = {
@@ -1119,7 +1119,7 @@ module.exports = class OrderService extends Service {
       return address
     }
     else {
-      if (customerAddress instanceof Address.Instance) {
+      if (customerAddress instanceof Address) {
         return customerAddress.get({plain: true})
       }
       else {

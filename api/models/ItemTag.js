@@ -11,22 +11,18 @@ const _ = require('lodash')
 module.exports = class ItemTag extends Model {
 
   static config (app, Sequelize) {
-    let config = {}
-    if (app.config.database.orm === 'sequelize') {
-      config = {
-        options: {
-          underscored: true
-        },
-        classMethods: {
-          TAG_MODELS: TAG_MODELS
-        }
+    return {
+      options: {
+        underscored: true
+      },
+      classMethods: {
+        TAG_MODELS: TAG_MODELS
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {
+    return {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -48,6 +44,5 @@ module.exports = class ItemTag extends Model {
         references: null
       }
     }
-    return schema
   }
 }

@@ -51,7 +51,7 @@ module.exports = class CouponController extends Controller {
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
 
     Coupon.findAndCount({
       order: sort,

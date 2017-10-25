@@ -90,7 +90,7 @@ module.exports = class ProductService extends Service {
     if (!Array.isArray(products)) {
       products = [products]
     }
-    const Sequelize = this.app.orm.Product.sequelize
+    const Sequelize = this.app.orm['Product'].sequelize
     // const addedProducts = []
     // Setup Transaction
     return Sequelize.transaction(t => {
@@ -158,7 +158,6 @@ module.exports = class ProductService extends Service {
     }
 
     product = this.productDefaults(product)
-
     // The Default Product
     const create = {
       host: product.host,
@@ -206,7 +205,6 @@ module.exports = class ProductService extends Service {
     if (!product.seo_description && product.body) {
       create.seo_description = this.app.services.ProxyCartService.description(product.body)
     }
-
     // Images
     let images = []
     // If this request came with product images
@@ -645,7 +643,7 @@ module.exports = class ProductService extends Service {
       })
       .then(vendors => {
         return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
-          if (variant instanceof Variant.Instance) {
+          if (variant instanceof Variant) {
             return variant.save({
               transaction: options.transaction || null
             })
@@ -663,7 +661,7 @@ module.exports = class ProductService extends Service {
             image.product_variant_id = resProduct.variants[image.variant].id
             delete image.variant
           }
-          if (image instanceof Image.Instance) {
+          if (image instanceof Image) {
             return image.save({ transaction: options.transaction || null })
           }
           else {
@@ -956,7 +954,7 @@ module.exports = class ProductService extends Service {
           where: {
             product_id: resDestroy.product_id
           },
-          order: 'position ASC',
+          order: [['position','ASC']],
           transaction: options.transaction || null
         })
       })
@@ -1029,7 +1027,7 @@ module.exports = class ProductService extends Service {
           where: {
             product_id: resProduct.id
           },
-          order: 'position ASC',
+          order: [['position','ASC']],
           transaction: options.transaction || null
         })
       })
@@ -1092,7 +1090,7 @@ module.exports = class ProductService extends Service {
           where: {
             product_id: resProduct.id
           },
-          order: 'position ASC',
+          order: [['position','ASC']],
           transaction: options.transaction || null
         })
       })

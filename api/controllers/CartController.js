@@ -154,7 +154,7 @@ module.exports = class CartController extends Controller {
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
-    const where = this.app.services.ProxyCartService.jsonCritera(req.query.where)
+    const where = req.query.where
 
     Cart.findAndCount({
       order: sort,
@@ -393,7 +393,12 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
-  // ADMIN ONLY FEATURE
+
+  /**
+   * ADMIN ONLY FEATURE
+   * @param req
+   * @param res
+   */
   pricingOverrides(req, res) {
     const CartService = this.app.services.CartService
     let id = req.params.id
@@ -426,7 +431,7 @@ module.exports = class CartController extends Controller {
   }
 
   /**
-   *
+   * Clears a cart of items
    * @param req
    * @param res
    */
@@ -565,11 +570,33 @@ module.exports = class CartController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   logout(req, res) {
     req.logoutCart()
     res.ok()
   }
-  //TODO
-  addCoupon(req, res) {}
+
+  /**
+   * TODO
+   * @param req
+   * @param res
+   */
+  addCoupon(req, res) {
+
+  }
+
+  /**
+   * TODO
+   * @param req
+   * @param res
+   */
+  removeCoupon(req, res) {
+
+  }
 }
 

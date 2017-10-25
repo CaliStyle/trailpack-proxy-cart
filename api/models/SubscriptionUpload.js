@@ -15,7 +15,7 @@ const INTERVALS = require('../../lib').Enums.INTERVALS
 module.exports = class SubscriptionUpload extends Model {
 
   static config (app, Sequelize) {
-    const config = {
+    return {
       migrate: 'drop', //override default models configurations if needed
       store: 'uploads',
       options: {
@@ -55,11 +55,10 @@ module.exports = class SubscriptionUpload extends Model {
         }
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
-    const schema = {
+    return {
       // Upload ID
       upload_id: {
         type: Sequelize.STRING
@@ -98,6 +97,5 @@ module.exports = class SubscriptionUpload extends Model {
         defaultValue: app.config.proxyEngine.live_mode
       }
     }
-    return schema
   }
 }

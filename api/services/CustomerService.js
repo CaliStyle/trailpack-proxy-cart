@@ -155,20 +155,23 @@ module.exports = class CustomerService extends Service {
       })
       .then(cart => {
         if (customer.accounts && customer.accounts.length > 0) {
-          return Promise.all(customer.accounts.map(account => {
+          return Customer.sequelize.Promise.mapSeries(customer.accounts, account => {
             account.customer_id = resCustomer.id
             account.email = resCustomer.email
             return this.app.services.AccountService.findAndCreate(
               account,
-              {transaction: options.transaction || null}
+              {
+                transaction: options.transaction || null
+              }
             )
-          }))
+          })
         }
         else {
           return this.app.services.PaymentGenericService.createCustomer(resCustomer)
             .then(serviceCustomer => {
               //const Account = this.app.orm['Account']
               // const CustomerAccount = this.app.orm['CustomerAccount']
+              let resAccount
               return Account.create({
                 customer_id: resCustomer.id,
                 email: resCustomer.email,
@@ -177,34 +180,43 @@ module.exports = class CustomerService extends Service {
                 foreign_id: serviceCustomer.foreign_id,
                 foreign_key: serviceCustomer.foreign_key,
                 data: serviceCustomer.data
-              }, {transaction: options.transaction || null})
+              }, {
+                transaction: options.transaction || null
+              })
                 .then(account => {
+                  if (!account) {
+                    throw new Error('Account was not created')
+                  }
+                  resAccount = account
                   // Track Event
                   const event = {
                     object_id: account.customer_id,
                     object: 'customer',
                     objects: [{
                       customer: account.customer_id
-                    },{
+                    }, {
                       account: account.id
                     }],
                     type: 'customer.account.created',
                     message: `Customer account ${account.foreign_id} created on ${ account.gateway }`,
                     data: _.omit(account, ['events'])
                   }
-                  this.app.services.ProxyEngineService.publish(event.type, event, {
+                  return this.app.services.ProxyEngineService.publish(event.type, event, {
                     save: true,
                     transaction: options.transaction || null
                   })
-
-                  return [account]
+                })
+                .then(event => {
+                  return [resAccount]
                 })
             })
         }
       })
       .then(accounts => {
         if (accounts && accounts.length > 0) {
-          return resCustomer.setAccounts(accounts.map(account => account.id), {transaction: options.transaction || null})
+          return resCustomer.setAccounts(accounts.map(account => account.id), {
+            transaction: options.transaction || null
+          })
         }
         return
       })
@@ -216,7 +228,7 @@ module.exports = class CustomerService extends Service {
             user.current_customer_id = resCustomer.id
 
             // If user exists, then update
-            if (user instanceof User.Instance){
+            if (user instanceof User){
               return user.save({transaction: options.transaction || null})
             }
 
@@ -241,7 +253,9 @@ module.exports = class CustomerService extends Service {
       .then(users => {
         // console.log('Customer Create Users', users)
         if (users && users.length > 0) {
-          return resCustomer.setUsers(users.map(user => user.id), {transaction: options.transaction || null})
+          return resCustomer.setUsers(users.map(user => user.id), {
+            transaction: options.transaction || null
+          })
         }
         return []
       })
@@ -275,8 +289,8 @@ module.exports = class CustomerService extends Service {
    */
   update(customer, options) {
     options = options || {}
-    const Customer = this.app.orm.Customer
-    const Tag = this.app.orm.Tag
+    const Customer = this.app.orm['Customer']
+    const Tag = this.app.orm['Tag']
 
     if (!customer.id) {
       const err = new Errors.FoundError(Error('Customer is missing id'))

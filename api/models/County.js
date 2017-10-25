@@ -9,42 +9,38 @@ const Model = require('trails/model')
 module.exports = class County extends Model {
 
   static config (app, Sequelize) {
-    let config = {}
-    if (app.config.database.orm === 'sequelize') {
-      config = {
-        options: {
-          underscored: true,
-          scopes: {
-            live: {
-              where: {
-                live_mode: true
-              }
+    return {
+      options: {
+        underscored: true,
+        scopes: {
+          live: {
+            where: {
+              live_mode: true
             }
+          }
+        },
+        classMethods: {
+          /**
+           * Associate the Model
+           * @param models
+           */
+          associate: (models) => {
+            models.County.belongsTo(models.Province, {
+              // as: 'country_id'
+            })
+            models.County.hasMany(models.City, {
+              as: 'cities'
+            })
+            models.County.belongsTo(models.Country, {
+              // as: 'country_id'
+            })
           },
-          classMethods: {
-            /**
-             * Associate the Model
-             * @param models
-             */
-            associate: (models) => {
-              models.County.belongsTo(models.Province, {
-                // as: 'country_id'
-              })
-              models.County.hasMany(models.City, {
-                as: 'cities'
-              })
-              models.County.belongsTo(models.Country, {
-                // as: 'country_id'
-              })
-            },
-            resolve: function(county, options){
-              //
-            }
+          resolve: function(county, options){
+            //
           }
         }
       }
     }
-    return config
   }
 
   static schema (app, Sequelize) {
