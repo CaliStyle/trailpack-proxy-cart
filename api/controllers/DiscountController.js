@@ -135,5 +135,351 @@ module.exports = class DiscountController extends Controller {
         return res.serverError(err)
       })
   }
+
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addProduct(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.addProduct(req.params.id, req.params.product)
+      .then(product => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('ProductController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeProduct(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.removeProduct(req.params.id, req.params.product)
+      .then(product => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('ProductController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  products(req, res) {
+    const Product = this.app.orm['Product']
+    const discountId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!discountId) {
+      const err = new Error('A discount id is required')
+      return res.send(401, err)
+    }
+
+    Product.findAndCountDefault({
+      order: sort,
+      include: [
+        {
+          model: this.app.orm['Discount'],
+          as: 'discounts',
+          where: {
+            id: discountId
+          }
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(products => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addCustomer(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.addCustomer(req.params.id, req.params.customer)
+      .then(customer => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeCustomer(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.removeCustomer(req.params.id, req.params.customer)
+      .then(customer => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  customers(req, res) {
+    const Customer = this.app.orm['Customer']
+    const discountId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!discountId) {
+      const err = new Error('A discount id is required')
+      return res.send(401, err)
+    }
+
+    Customer.findAndCountDefault({
+      order: sort,
+      include: [
+        {
+          model: this.app.orm['Discount'],
+          as: 'discounts',
+          where: {
+            id: discountId
+          }
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(customers => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addCart(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.addCart(req.params.id, req.params.cart)
+      .then(cart => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CartController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeCart(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.removeCart(req.params.id, req.params.cart)
+      .then(cart => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CartController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  carts(req, res) {
+    const Cart = this.app.orm['Cart']
+    const discountId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!discountId) {
+      const err = new Error('A cart id is required')
+      return res.send(401, err)
+    }
+
+    Cart.findAndCountDefault({
+      order: sort,
+      include: [
+        {
+          model: this.app.orm['Discount'],
+          as: 'discounts',
+          where: {
+            id: discountId
+          }
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(carts => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, carts.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, carts.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addCollection(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.addCollection(req.params.id, req.params.collection)
+      .then(collection => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeCollection(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.removeCollection(req.params.id, req.params.collection)
+      .then(collection => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  collections(req, res) {
+    const Collection = this.app.orm['Collection']
+    const discountId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!discountId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    Collection.findAndCountDefault({
+      order: sort,
+      include: [
+        {
+          model: this.app.orm['Discount'],
+          as: 'discounts',
+          where: {
+            id: discountId
+          }
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(collections => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

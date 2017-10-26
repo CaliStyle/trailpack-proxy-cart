@@ -369,5 +369,325 @@ module.exports = class DiscountService extends Service {
         return results
       })
   }
+
+  /**
+   *
+   * @param discount
+   * @param product
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  addProduct(discount, product, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    const Product = this.app.orm['Product']
+
+    let resDiscount, resProduct
+    return Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = _discount
+        return Product.resolve(product, {transaction: options.transaction || null})
+      })
+      .then(_product => {
+        if (!_product) {
+          throw new Error('Product did not resolve')
+        }
+        resProduct = _product
+
+        return resDiscount.hasProduct(resProduct.id, {transaction: options.transaction || null})
+      })
+      .then(hasProduct => {
+        if (!hasProduct) {
+          return resDiscount.addProduct(resProduct.id, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return resDiscount
+      })
+  }
+
+  /**
+   *
+   * @param discount
+   * @param product
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  removeProduct(discount, product, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    const Product = this.app.orm['Product']
+
+    let resDiscount, resProduct
+    return Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = _discount
+        return Product.resolve(product, {transaction: options.transaction || null})
+      })
+      .then(_product => {
+        if (!_product) {
+          throw new Error('Product did not resolve')
+        }
+        resProduct = _product
+
+        return resDiscount.hasProduct(resProduct.id, {transaction: options.transaction || null})
+      })
+      .then(hasProduct => {
+        if (hasProduct) {
+          return resDiscount.removeProduct(resProduct.id, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return resDiscount
+      })
+  }
+
+  /**
+   *
+   * @param discount
+   * @param customer
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  addCustomer(discount, customer, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    const Customer = this.app.orm['Customer']
+
+    let resDiscount, resCustomer
+    return Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = _discount
+        return Customer.resolve(customer, {transaction: options.transaction || null})
+      })
+      .then(_customer => {
+        if (!_customer) {
+          throw new Error('Customer did not resolve')
+        }
+        resCustomer = _customer
+
+        return resDiscount.hasCustomer(resCustomer.id, {transaction: options.transaction || null})
+      })
+      .then(hasCustomer => {
+        if (!hasCustomer) {
+          return resDiscount.addCustomer(resCustomer.id, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return resDiscount
+      })
+  }
+
+  /**
+   *
+   * @param discount
+   * @param customer
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  removeCustomer(discount, customer, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    const Customer = this.app.orm['Customer']
+
+    let resDiscount, resCustomer
+    return Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = _discount
+        return Customer.resolve(customer, {transaction: options.transaction || null})
+      })
+      .then(_customer => {
+        if (!_customer) {
+          throw new Error('Customer did not resolve')
+        }
+        resCustomer = _customer
+
+        return resDiscount.hasCustomer(resCustomer.id, {transaction: options.transaction || null})
+      })
+      .then(hasCustomer => {
+        if (hasCustomer) {
+          return resDiscount.removeCustomer(resCustomer.id, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return resDiscount
+      })
+  }
+
+  /**
+   *
+   * @param discount
+   * @param cart
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  addCart(discount, cart, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    const Cart = this.app.orm['Cart']
+
+    let resDiscount, resCart
+    return Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = _discount
+        return Cart.resolve(cart, {transaction: options.transaction || null})
+      })
+      .then(_cart => {
+        if (!_cart) {
+          throw new Error('Cart did not resolve')
+        }
+        resCart = _cart
+
+        return resDiscount.hasCart(resCart.id, {transaction: options.transaction || null})
+      })
+      .then(hasCart => {
+        if (!hasCart) {
+          return resDiscount.addCart(resCart.id, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return resDiscount
+      })
+  }
+
+  /**
+   *
+   * @param discount
+   * @param cart
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  removeCart(discount, cart, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    const Cart = this.app.orm['Cart']
+
+    let resDiscount, resCart
+    return Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = _discount
+        return Cart.resolve(cart, {transaction: options.transaction || null})
+      })
+      .then(_cart => {
+        if (!_cart) {
+          throw new Error('Cart did not resolve')
+        }
+        resCart = _cart
+
+        return resDiscount.hasCart(resCart.id, {transaction: options.transaction || null})
+      })
+      .then(hasCart => {
+        if (hasCart) {
+          return resDiscount.removeCart(resCart.id, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return resDiscount
+      })
+  }
+
+  /**
+   *
+   * @param discount
+   * @param collection
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  addCollection(discount, collection, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    const Collection = this.app.orm['Collection']
+
+    let resDiscount, resCollection
+    return Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = _discount
+        return Collection.resolve(collection, {transaction: options.transaction || null})
+      })
+      .then(_collection => {
+        if (!_collection) {
+          throw new Error('Collection did not resolve')
+        }
+        resCollection = _collection
+
+        return resDiscount.hasCollection(resCollection.id, {transaction: options.transaction || null})
+      })
+      .then(hasCollection => {
+        if (!hasCollection) {
+          return resDiscount.addCollection(resCollection.id, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return resDiscount
+      })
+  }
+
+  /**
+   *
+   * @param discount
+   * @param collection
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  removeCollection(discount, collection, options) {
+    options = options || {}
+    const Discount = this.app.orm['Discount']
+    const Collection = this.app.orm['Collection']
+
+    let resDiscount, resCollection
+    return Discount.resolve(discount, {transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        resDiscount = _discount
+        return Collection.resolve(collection, {transaction: options.transaction || null})
+      })
+      .then(_collection => {
+        if (!_collection) {
+          throw new Error('Collection did not resolve')
+        }
+        resCollection = _collection
+
+        return resDiscount.hasCollection(resCollection.id, {transaction: options.transaction || null})
+      })
+      .then(hasCollection => {
+        if (hasCollection) {
+          return resDiscount.removeCollection(resCollection.id, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        return resDiscount
+      })
+  }
 }
 

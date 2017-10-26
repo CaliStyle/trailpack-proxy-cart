@@ -199,7 +199,7 @@ module.exports = class CustomerCsvService extends Service {
 
         // Convert to normal object
         customer = customer instanceof this.app.orm['CustomerUpload'] ? customer.get({plain: true}) : customer
-        console.log('BROKE', customer)
+        // console.log('BROKE', customer)
         _.each(customer, (value, key) => {
           if (key.indexOf('shipping_') > -1) {
             const newKey = key.replace('shipping_', '')

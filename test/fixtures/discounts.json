@@ -10,5 +10,15 @@
     "usage_limit": 0,
     "applies_to_id": 1,
     "applies_to_model": "product"
+  },
+  {
+    "name": "Test Discount 2",
+    "description": "Test Discount 2 Description",
+    "code": "1234",
+    "discount_type": "rate",
+    "discount_rate": 100,
+    "status": "enabled",
+    "minimum_order_amount": 0,
+    "usage_limit": 0
   }
 ]
