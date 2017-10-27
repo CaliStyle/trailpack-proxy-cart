@@ -31,7 +31,7 @@ module.exports = {
             {
               model: app.orm['ProductImage'],
               as: 'images',
-              order: ['position', 'ASC'],
+              order: [['position', 'ASC']],
               attributes: {
                 exclude: ['src','updated_at','created_at']
               }

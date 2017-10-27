@@ -849,7 +849,7 @@ module.exports = class SubscriptionService extends Service {
         },
         total_renewal_attempts: {
           $gt: 0,
-          $lte: this.app.config.proxyCart.subscriptions.retry_attempts || 1
+          $lt: this.app.config.proxyCart.subscriptions.retry_attempts || 1
         },
         active: true
       },
@@ -900,6 +900,7 @@ module.exports = class SubscriptionService extends Service {
 
     this.app.log.debug('SubscriptionService.cancelThisHour')
 
+    // Find Subscriptions that are at their max retry amount and aren't already cancelled.
     return Subscription.batch({
       where: {
         total_renewal_attempts: {

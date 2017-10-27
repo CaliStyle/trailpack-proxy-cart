@@ -369,7 +369,7 @@ module.exports = class DiscountController extends Controller {
       return res.send(401, err)
     }
 
-    Cart.findAndCountDefault({
+    Cart.findAndCount({
       order: sort,
       include: [
         {

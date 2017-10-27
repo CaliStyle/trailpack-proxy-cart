@@ -428,13 +428,13 @@ module.exports = class ProductController extends Controller {
         {
           model: this.app.orm['ProductImage'],
           as: 'images',
-          order: ['position', 'ASC']
+          order: [['position', 'ASC']]
         },
         {
           model: this.app.orm['Tag'],
           as: 'tags',
           attributes: ['name', 'id'],
-          order: ['name', 'ASC']
+          order: [['name', 'ASC']]
         },
         {
           model: this.app.orm['Vendor'],

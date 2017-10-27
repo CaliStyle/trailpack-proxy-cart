@@ -72,9 +72,9 @@ module.exports = class Subscription extends Email {
       })
       .then(() => {
 
-        const text = data.text || `Subscription ${ resSubscription.token } Failed`
-        const html = data.html || this.app.templates.Subscription.willRenew(resSubscription)
-        const subject = data.subject || `Subscription ${ resSubscription.token } Failed`
+        const text = data.text || `Subscription ${ resSubscription.token } Failed to Renew`
+        const html = data.html || this.app.templates.Subscription.failed(resSubscription)
+        const subject = data.subject || `Subscription ${ resSubscription.token } Failed to Renew`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
         this.app.log.debug(`SUBSCRIPTION FAILED SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
