@@ -5,5 +5,5 @@
 --slow 50
 --timeout 10000
 --check-leaks
---globals app
+--globals app,__core-js_shared__
 --fgrep app.js --invert

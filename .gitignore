@@ -2,6 +2,7 @@ node_modules
 coverage
 .idea
 .tmp
+.nyc_output
 test/uploads
 test/test.sqlite
 test/test.uploads.sqlite

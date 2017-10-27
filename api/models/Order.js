@@ -1053,19 +1053,19 @@ module.exports = class Order extends Model {
 
             // Calculate the totals of the successful transactions
             _.each(successes, transaction => {
-              if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+              if (transaction.kind === TRANSACTION_KIND.AUTHORIZE) {
                 totalAuthorized = totalAuthorized + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.VOID) {
+              else if (transaction.kind === TRANSACTION_KIND.VOID) {
                 totalVoided = totalVoided + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.CAPTURE) {
+              else if (transaction.kind === TRANSACTION_KIND.CAPTURE) {
                 totalSale = totalSale + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.SALE) {
+              else if (transaction.kind === TRANSACTION_KIND.SALE) {
                 totalSale = totalSale + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.REFUND) {
+              else if (transaction.kind === TRANSACTION_KIND.REFUND) {
                 totalRefund = totalRefund + transaction.amount
               }
             })
