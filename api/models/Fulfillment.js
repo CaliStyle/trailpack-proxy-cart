@@ -306,7 +306,11 @@ module.exports = class Fulfillment extends Model {
            */
           resolveOrderItems: function(options) {
             options = options || {}
-            if (this.order_items && options.reload !== true) {
+            if (
+              this.order_items
+              && this.order_items.every(i => i instanceof app.orm['OrderItem'])
+              && options.reload !== true
+            ) {
               return Promise.resolve(this)
             }
             else {

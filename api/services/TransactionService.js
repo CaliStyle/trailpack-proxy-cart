@@ -36,11 +36,11 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        return this.app.services.PaymentService.authorize(foundTransaction, {transaction: options.transaction || null})
+        return this.app.services.PaymentService.authorize(_transaction, {transaction: options.transaction || null})
       })
   }
 
@@ -54,14 +54,14 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        if (foundTransaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+        if (_transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
           throw new Errors.FoundError(Error(`Transaction must be first be ${TRANSACTION_KIND.AUTHORIZE} to ${TRANSACTION_KIND.CAPTURE}`))
         }
-        return this.app.services.PaymentService.capture(foundTransaction, {transaction: options.transaction || null})
+        return this.app.services.PaymentService.capture(_transaction, {transaction: options.transaction || null})
       })
   }
 
@@ -93,14 +93,14 @@ module.exports = class TransactionService extends Service {
     options = options || {}
     const Transaction = this.app.orm['Transaction']
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error('Transaction must have successful to be refunded')
         }
-        return this.app.services.PaymentService.void(foundTransaction, {transaction: options.transaction || null})
+        return this.app.services.PaymentService.void(_transaction, {transaction: options.transaction || null})
       })
   }
 
@@ -116,17 +116,17 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error('Transaction must have successful to be voided')
         }
-        if (foundTransaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+        if (_transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
           throw new Error(`Transaction must be ${TRANSACTION_KIND.AUTHORIZE} to be partially voided`)
         }
-        resTransaction = foundTransaction
+        resTransaction = _transaction
         resTransaction.amount = Math.max(0, resTransaction.amount - amount)
         return resTransaction.save({transaction: options.transaction || null})
       })
@@ -143,17 +143,17 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction not found'))
         }
-        if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error('Transaction must have been successful to be refunded')
         }
-        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(foundTransaction.kind) === -1) {
+        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(_transaction.kind) === -1) {
           throw new Error(`Only Transactions that are ${TRANSACTION_KIND.CAPTURE} or ${TRANSACTION_KIND.SALE} can be refunded`)
         }
-        resTransaction = foundTransaction
+        resTransaction = _transaction
         return this.app.services.PaymentService.refund(resTransaction, {transaction: options.transaction || null})
       })
   }
@@ -171,17 +171,20 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        if (foundTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Transaction did not resolve an instance')
+        }
+        if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error('Transaction must have been successful to be refunded')
         }
-        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(foundTransaction.kind) === -1) {
+        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(_transaction.kind) === -1) {
           throw new Error(`Only Transactions that are ${TRANSACTION_KIND.CAPTURE} or ${TRANSACTION_KIND.SALE} can be refunded`)
         }
-        resTransaction = foundTransaction
+        resTransaction = _transaction
         resTransaction.amount = Math.max(0, resTransaction.amount - amount)
         return resTransaction.save({transaction: options.transaction || null})
       })
@@ -206,14 +209,17 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(foundTransaction.status) === -1) {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Transaction did not resolve an instance')
+        }
+        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(_transaction.status) === -1) {
           throw new Error('Transaction can not be cancelled if it is not pending or failed')
         }
-        resTransaction = foundTransaction
+        resTransaction = _transaction
         return this.app.services.PaymentService.cancel(resTransaction, {transaction: options.transaction || null})
       })
   }
@@ -229,14 +235,17 @@ module.exports = class TransactionService extends Service {
     const Transaction = this.app.orm['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null})
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(foundTransaction.status) === -1) {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Transaction did not resolve an instance')
+        }
+        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(_transaction.status) === -1) {
           throw new Error('Transaction can not be tried if it is not pending or has not failed')
         }
-        resTransaction = foundTransaction
+        resTransaction = _transaction
         return this.app.services.PaymentService.retry(resTransaction, {transaction: options.transaction || null})
       })
   }
@@ -248,11 +257,14 @@ module.exports = class TransactionService extends Service {
     const Customer = this.app.orm['Customer']
     let resOrder, totalNew = 0, availablePending = []
     return Order.resolve(order, {transaction: options.transaction || null})
-      .then(foundOrder => {
-        if (!foundOrder) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order Not Found'))
         }
-        resOrder = foundOrder
+        if (!(_order instanceof Order)) {
+          throw new Error('Order did not resolve an instance')
+        }
+        resOrder = _order
         return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
@@ -342,11 +354,14 @@ module.exports = class TransactionService extends Service {
       toUpdate = []
 
     return Order.resolve(order, {transaction: options.transaction || null})
-      .then(foundOrder => {
-        if (!foundOrder) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order Not Found'))
         }
-        resOrder = foundOrder
+        if (!(_order instanceof Order)) {
+          throw new Error('Order did not resolve an instance')
+        }
+        resOrder = _order
         return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {

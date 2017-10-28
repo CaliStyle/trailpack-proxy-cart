@@ -27,18 +27,18 @@ module.exports = class FulfillmentService extends Service {
     let resOrder, resFulfillment
 
     return Order.resolve(order, {transaction: options.transaction || null})
-      .then(foundOrder => {
-        if (!foundOrder) {
+      .then(_order => {
+        if (!_order) {
           throw new Error('Order not found')
         }
-        resOrder = foundOrder
+        resOrder = _order
         return Fulfillment.resolve(fulfillment, {transaction: options.transaction || null})
       })
-      .then(foundFulfillment => {
-        if (!foundFulfillment) {
+      .then(_fulfillment => {
+        if (!_fulfillment) {
           throw new Error('Fulfillment not found')
         }
-        resFulfillment = foundFulfillment
+        resFulfillment = _fulfillment
         // console.log('BROKE THIS',fulfillment, foundFulfillment)
         return resFulfillment.resolveOrderItems({transaction: options.transaction || null})
       })
@@ -127,14 +127,14 @@ module.exports = class FulfillmentService extends Service {
     const Fulfillment = this.app.orm['Fulfillment']
     let resFulfillment
     return Fulfillment.resolve(fulfillment, {transaction: options.transaction || null})
-      .then(foundFulfillment => {
-        if (!foundFulfillment) {
+      .then(_fulfillment => {
+        if (!_fulfillment) {
           throw new Error('Fulfillment not found')
         }
-        if ([FULFILLMENT_STATUS.FULFILLED, FULFILLMENT_STATUS.CANCELLED].indexOf(foundFulfillment.status) > -1) {
+        if ([FULFILLMENT_STATUS.FULFILLED, FULFILLMENT_STATUS.CANCELLED].indexOf(_fulfillment.status) > -1) {
           throw new Error(`Fulfillment status must be ${ FULFILLMENT_STATUS.PENDING }, ${ FULFILLMENT_STATUS.NONE }, ${FULFILLMENT_STATUS.PARTIAL}, ${FULFILLMENT_STATUS.SENT} to update`)
         }
-        resFulfillment = foundFulfillment
+        resFulfillment = _fulfillment
         if ([FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.PENDING].indexOf(resFulfillment.status) > -1) {
           return
         }
@@ -162,15 +162,15 @@ module.exports = class FulfillmentService extends Service {
     const Fulfillment = this.app.orm['Fulfillment']
     let resFulfillment
     return Fulfillment.resolve(fulfillment, { transaction: options.transaction || null })
-      .then(foundFulfillment => {
-        if (!foundFulfillment) {
+      .then(_fulfillment => {
+        if (!_fulfillment) {
           throw new Error('Fulfillment not found')
         }
-        if ([FULFILLMENT_STATUS.FULFILLED, FULFILLMENT_STATUS.CANCELLED].indexOf(foundFulfillment.status) > -1) {
+        if ([FULFILLMENT_STATUS.FULFILLED, FULFILLMENT_STATUS.CANCELLED].indexOf(_fulfillment.status) > -1) {
           throw new Error(`Fulfillment status must be ${ FULFILLMENT_STATUS.PENDING }, ${ FULFILLMENT_STATUS.NONE }, ${FULFILLMENT_STATUS.PARTIAL}, ${FULFILLMENT_STATUS.SENT} to be cancelled`)
         }
 
-        resFulfillment = foundFulfillment
+        resFulfillment = _fulfillment
 
         return resFulfillment.resolveOrderItems({transaction: options.transaction || null,})
       })
@@ -178,7 +178,7 @@ module.exports = class FulfillmentService extends Service {
         if ([FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.PENDING].indexOf(resFulfillment.status) > -1) {
           return
         }
-        else if (resFulfillment.service == FULFILLMENT_SERVICE.MANUAL) {
+        else if (resFulfillment.service === FULFILLMENT_SERVICE.MANUAL) {
           return
         }
         else {
@@ -209,11 +209,11 @@ module.exports = class FulfillmentService extends Service {
     const Fulfillment = this.app.orm['Fulfillment']
     let resOrderItem, resFulfillment
     return OrderItem.resolve(item, {transaction: options.transaction || null})
-      .then(foundItem => {
-        if (!foundItem) {
+      .then(_item => {
+        if (!_item) {
           throw new Errors.FoundError('Order Item not Found')
         }
-        resOrderItem = foundItem
+        resOrderItem = _item
         return Fulfillment.find({
           where: {
             order_id: resOrderItem.order_id,
@@ -228,9 +228,9 @@ module.exports = class FulfillmentService extends Service {
           transaction: options.transaction || null
         })
       })
-      .then(fulfillment => {
-        if (fulfillment) {
-          resFulfillment = fulfillment
+      .then(_fulfillment => {
+        if (_fulfillment) {
+          resFulfillment = _fulfillment
           return resFulfillment.addOrder_item(resOrderItem, {
             hooks: false,
             individualHooks: false,
@@ -286,11 +286,11 @@ module.exports = class FulfillmentService extends Service {
     const Fulfillment = this.app.orm['Fulfillment']
     let resOrderItem, resFulfillment
     return OrderItem.resolve(item, {transaction: options.transaction || null})
-      .then(foundItem => {
-        if (!foundItem) {
+      .then(_item => {
+        if (!_item) {
           throw new Errors.FoundError('Order Item not Found')
         }
-        resOrderItem = foundItem
+        resOrderItem = _item
         return Fulfillment.find({
           where: {
             order_id: resOrderItem.order_id,
@@ -351,11 +351,11 @@ module.exports = class FulfillmentService extends Service {
     const Fulfillment = this.app.orm['Fulfillment']
     let resOrderItem, resFulfillment
     return OrderItem.resolve(item, options)
-      .then(foundItem => {
-        if (!foundItem) {
+      .then(_item => {
+        if (!_item) {
           throw new Error('Order Item not Found')
         }
-        resOrderItem = foundItem
+        resOrderItem = _item
         return Fulfillment.find({
           where: {
             order_id: resOrderItem.order_id,

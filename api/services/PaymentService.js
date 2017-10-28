@@ -2,7 +2,6 @@
 'use strict'
 
 const Service = require('trails/service')
-const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
 const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../../lib').Enums.TRANSACTION_KIND
@@ -34,11 +33,14 @@ module.exports = class PaymentService extends Service {
 
     let resTransaction
     return this.app.services.PaymentGenericService.authorize(transaction, paymentProcessor)
-      .then(transaction => {
-        return transaction.save({transaction: options.transaction || null})
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('PaymentGenericService.authorize did not return Transaction instance')
+        }
+        return _transaction.save({transaction: options.transaction || null})
       })
-      .then(transaction => {
-        resTransaction = transaction
+      .then(_transaction => {
+        resTransaction = _transaction
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -49,7 +51,7 @@ module.exports = class PaymentService extends Service {
           }],
           type: `order.transaction.authorize.${resTransaction.status}`,
           message: `Order ID ${ resTransaction.order_id} transaction authorize of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
-          data: _.omit(resTransaction,['events'])
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -83,20 +85,26 @@ module.exports = class PaymentService extends Service {
     let resTransaction
     // Resolve the authorized transaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
-      .then(transaction => {
-        if (transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Did not resolve a Transaction instance')
+        }
+        if (_transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
           throw new Error(`Transaction kind must be '${TRANSACTION_KIND.AUTHORIZE}' to be captured`)
         }
-        if (transaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error(`Transaction status must be '${TRANSACTION_STATUS.SUCCESS}' to be captured`)
         }
-        return this.app.services.PaymentGenericService.capture(transaction, paymentProcessor)
+        return this.app.services.PaymentGenericService.capture(_transaction, paymentProcessor)
       })
-      .then(transaction => {
-        return transaction.save({transaction: options.transaction || null})
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('PaymentGenericService.capture did not return Transaction instance')
+        }
+        return _transaction.save({transaction: options.transaction || null})
       })
-      .then(transaction => {
-        resTransaction = transaction
+      .then(_transaction => {
+        resTransaction = _transaction
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -107,7 +115,7 @@ module.exports = class PaymentService extends Service {
           }],
           type: `order.transaction.capture.${resTransaction.status}`,
           message: `Order ID ${resTransaction.order_id} transaction capture of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
-          data: _.omit(resTransaction,['events'])
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -137,17 +145,23 @@ module.exports = class PaymentService extends Service {
       return Promise.reject(err)
     }
 
-    if (!(transaction instanceof Transaction)){
-      throw new Error('Transaction must be an instance')
-    }
-    // console.log('cart checkout', transaction)
     let resTransaction
-    return this.app.services.PaymentGenericService.sale(transaction, paymentProcessor)
-      .then(transaction => {
-        return transaction.save({transaction: options.transaction || null})
+    // Resolve the authorized transaction
+    return Transaction.resolve(transaction, {transaction: options.transaction || null })
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Did not resolve a Transaction instance')
+        }
+        return this.app.services.PaymentGenericService.sale(_transaction, paymentProcessor)
       })
-      .then(transaction => {
-        resTransaction = transaction
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('PaymentGenericService.sale did not return Transaction instance')
+        }
+        return _transaction.save({transaction: options.transaction || null})
+      })
+      .then(_transaction => {
+        resTransaction = _transaction
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -158,7 +172,7 @@ module.exports = class PaymentService extends Service {
           }],
           type: `order.transaction.sale.${resTransaction.status}`,
           message: `Order ID ${resTransaction.order_id} transaction sale of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
-          data: _.omit(resTransaction,['events'])
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -180,6 +194,7 @@ module.exports = class PaymentService extends Service {
     options = options || {}
 
     const Transaction = this.app.orm.Transaction
+
     if (!(transaction instanceof Transaction)){
       throw new Error('Transaction must be an instance')
     }
@@ -198,7 +213,7 @@ module.exports = class PaymentService extends Service {
           }],
           type: `order.transaction.${transaction.kind}.${transaction.status}`,
           message: `Order ID ${transaction.order_id} transaction ID ${ transaction.id } ${transaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(transaction.amount,transaction.currency)} ${transaction.currency} ${transaction.status}`,
-          data: _.omit(transaction,['events'])
+          data: transaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -227,23 +242,29 @@ module.exports = class PaymentService extends Service {
     transaction.description = transaction.description || 'Transaction Void'
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        resTransaction = foundTransaction
-        if (resTransaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Did not resolve a Transaction instance')
+        }
+        if (_transaction.kind !== TRANSACTION_KIND.AUTHORIZE) {
           throw new Error(`Transaction kind must be '${TRANSACTION_KIND.AUTHORIZE}' to be voided`)
         }
-        if (resTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error(`Transaction status must be '${TRANSACTION_STATUS.SUCCESS}' to be voided`)
         }
-        return this.app.services.PaymentGenericService.void(resTransaction, paymentProcessor)
+        return this.app.services.PaymentGenericService.void(_transaction, paymentProcessor)
       })
-      .then(() => {
-        return resTransaction.save({transaction: options.transaction || null})
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('PaymentGenericService.void did not return Transaction instance')
+        }
+        return _transaction.save({transaction: options.transaction || null})
       })
-      .then(() => {
+      .then(_transaction => {
+        resTransaction = _transaction
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -254,7 +275,7 @@ module.exports = class PaymentService extends Service {
           }],
           type: `order.transaction.void.${resTransaction.status}`,
           message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } voided of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
-          data: _.omit(resTransaction,['events'])
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -283,25 +304,35 @@ module.exports = class PaymentService extends Service {
     }
     let resTransaction
     transaction.description = transaction.description || 'Transaction Refund'
+
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        resTransaction = foundTransaction
 
-        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(resTransaction.kind) == -1) {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Did not resolve a Transaction instance')
+        }
+
+        resTransaction = _transaction
+
+        if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(_transaction.kind) === -1) {
           throw new Error(`Transaction kind must be '${TRANSACTION_KIND.CAPTURE}' or '${TRANSACTION_KIND.SALE}' to be refunded`)
         }
-        if (resTransaction.status !== TRANSACTION_STATUS.SUCCESS) {
+        if (_transaction.status !== TRANSACTION_STATUS.SUCCESS) {
           throw new Error(`Transaction status must be '${TRANSACTION_STATUS.SUCCESS}' to be refunded`)
         }
-        return this.app.services.PaymentGenericService.refund(resTransaction, paymentProcessor)
+        return this.app.services.PaymentGenericService.refund(_transaction, paymentProcessor)
       })
-      .then(() => {
-        return resTransaction.save({transaction: options.transaction || null})
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('PaymentGenericService.refund did not return Transaction instance')
+        }
+        return _transaction.save({transaction: options.transaction || null})
       })
-      .then(() => {
+      .then(_transaction => {
+        resTransaction = _transaction
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -312,7 +343,7 @@ module.exports = class PaymentService extends Service {
           }],
           type: `order.transaction.refund.${resTransaction.status}`,
           message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } refund of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
-          data: _.omit(resTransaction,['events'])
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -335,25 +366,31 @@ module.exports = class PaymentService extends Service {
     const Transaction = this.app.orm['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(foundTransaction.status) === -1) {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Did not resolve a Transaction instance')
+        }
+        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(_transaction.status) === -1) {
           throw new Error('Transaction can not be tried if it is not pending or has not failed')
         }
-        const paymentProcessor = this.app.config.proxyGenerics[foundTransaction.gateway] || this.app.config.proxyGenerics.payment_processor
+        const paymentProcessor = this.app.config.proxyGenerics[_transaction.gateway] || this.app.config.proxyGenerics.payment_processor
         if (!paymentProcessor || !paymentProcessor.adapter) {
           throw new Error('Payment Processor is unspecified')
         }
-        resTransaction = foundTransaction
-        resTransaction = resTransaction.retry()
-        return this.app.services.PaymentGenericService[resTransaction.kind](resTransaction, paymentProcessor)
+        _transaction.retry()
+        return this.app.services.PaymentGenericService[_transaction.kind](_transaction, paymentProcessor)
       })
-      .then(() => {
-        return resTransaction.save({transaction: options.transaction || null})
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('PaymentGenericService.retry did not return Transaction instance')
+        }
+        return _transaction.save({transaction: options.transaction || null})
       })
-      .then(() => {
+      .then(_transaction => {
+        resTransaction = _transaction
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -364,7 +401,7 @@ module.exports = class PaymentService extends Service {
           }],
           type: `order.transaction.${resTransaction.kind}.${resTransaction.status}`,
           message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } ${resTransaction.kind} of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.currency} ${resTransaction.status}`,
-          data: _.omit(resTransaction,['events'])
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -387,17 +424,24 @@ module.exports = class PaymentService extends Service {
     const Transaction = this.app.orm['Transaction']
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
-      .then(foundTransaction => {
-        if (!foundTransaction) {
+      .then(_transaction => {
+        if (!_transaction) {
           throw new Errors.FoundError(Error('Transaction Not Found'))
         }
-        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(foundTransaction.status) === -1) {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Did not resolve Transaction instance')
+        }
+        if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(_transaction.status) === -1) {
           throw new Error('Transaction can not be cancelled if it is not pending or failed')
         }
-        resTransaction = foundTransaction
-        return resTransaction.cancel().save({transaction: options.transaction || null})
+
+        return _transaction.cancel().save({transaction: options.transaction || null})
       })
-      .then(() => {
+      .then(_transaction => {
+        if (!(_transaction instanceof Transaction)) {
+          throw new Error('Did not return Transaction instance')
+        }
+        resTransaction = _transaction
         const event = {
           object_id: resTransaction.order_id,
           object: 'order',
@@ -408,7 +452,7 @@ module.exports = class PaymentService extends Service {
           }],
           type: 'order.transaction.cancelled',
           message: `Order ID ${resTransaction.order_id} transaction ID ${ resTransaction.id } of ${ this.app.services.ProxyCartService.formatCurrency(resTransaction.amount,resTransaction.currency)} ${resTransaction.status}`,
-          data: _.omit(resTransaction,['events'])
+          data: resTransaction
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,

@@ -936,7 +936,7 @@ module.exports = class Order extends Model {
                     }],
                     type: `order.financial_status.${currentStatus}`,
                     message: `Order ${ this.name || 'ID ' + this.id } financial status changed from "${previousStatus}" to "${currentStatus}"`,
-                    data: _.omit(this, ['events'])
+                    data: this
                   }
                   return app.services.ProxyEngineService.publish(event.type, event, {
                     save: true,
@@ -1007,7 +1007,7 @@ module.exports = class Order extends Model {
                     }],
                     type: `order.fulfillment_status.${currentStatus}`,
                     message: `Order ${ this.name || 'ID ' + this.id } fulfillment status changed from "${previousStatus}" to "${currentStatus}"`,
-                    data: _.omit(this, ['events'])
+                    data: this
                   }
                   return app.services.ProxyEngineService.publish(event.type, event, {
                     save: true,
@@ -1072,72 +1072,77 @@ module.exports = class Order extends Model {
 
             // Calculate the totals of pending transactions
             _.each(pending, transaction => {
-              if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+              if (transaction.kind === TRANSACTION_KIND.AUTHORIZE) {
                 totalPending = totalPending + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.CAPTURE) {
+              else if (transaction.kind === TRANSACTION_KIND.CAPTURE) {
                 totalPending = totalPending + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.SALE) {
+              else if (transaction.kind === TRANSACTION_KIND.SALE) {
                 totalPending = totalPending + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.VOID) {
+              else if (transaction.kind === TRANSACTION_KIND.VOID) {
                 totalPending = totalPending - transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.REFUND) {
+              else if (transaction.kind === TRANSACTION_KIND.REFUND) {
                 totalPending = totalPending - transaction.amount
               }
             })
 
             // Calculate the totals of cancelled pending transactions
             _.each(cancelled, transaction => {
-              if (transaction.kind == TRANSACTION_KIND.AUTHORIZE) {
+              if (transaction.kind === TRANSACTION_KIND.AUTHORIZE) {
                 totalCancelled = totalCancelled + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.CAPTURE) {
+              else if (transaction.kind === TRANSACTION_KIND.CAPTURE) {
                 totalCancelled = totalCancelled + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.SALE) {
+              else if (transaction.kind === TRANSACTION_KIND.SALE) {
                 totalCancelled = totalCancelled + transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.VOID) {
+              else if (transaction.kind === TRANSACTION_KIND.VOID) {
                 totalCancelled = totalCancelled - transaction.amount
               }
-              else if (transaction.kind == TRANSACTION_KIND.REFUND) {
+              else if (transaction.kind === TRANSACTION_KIND.REFUND) {
                 totalCancelled = totalCancelled - transaction.amount
               }
             })
 
             // If this item is completely free
-            if (this.total_price == 0) {
+            if (this.total_price === 0) {
               financialStatus = ORDER_FINANCIAL.PAID
             }
             // Total Authorized is the Price of the Order and there are no Capture/Sale transactions and 0 voided
-            else if (totalAuthorized == this.total_price && totalSale == 0 && totalVoided == 0 && totalRefund == 0) {
+            else if (
+              totalAuthorized === this.total_price
+              && totalSale === 0
+              && totalVoided === 0
+              && totalRefund === 0
+            ) {
               // console.log('SHOULD BE: authorized')
               financialStatus = ORDER_FINANCIAL.AUTHORIZED
             }
             // Total Authorized is the Price of the Order and there are no Capture/Sale transactions
-            else if (totalAuthorized == totalVoided && totalVoided > 0) {
+            else if (totalAuthorized === totalVoided && totalVoided > 0) {
               // console.log('SHOULD BE: voided')
               financialStatus = ORDER_FINANCIAL.VOIDED
             }
-            else if (this.total_price == totalVoided && totalVoided > 0) {
+            else if (this.total_price === totalVoided && totalVoided > 0) {
               // console.log('SHOULD BE: voided')
               financialStatus = ORDER_FINANCIAL.VOIDED
             }
             // Total Sale is the Price of the order and there are no refunds
-            else if (totalSale == this.total_price && totalRefund == 0) {
+            else if (totalSale === this.total_price && totalRefund === 0) {
               // console.log('SHOULD BE: paid')
               financialStatus = ORDER_FINANCIAL.PAID
             }
             // Total Sale is not yet the Price of the order and there are no refunds
-            else if (totalSale < this.total_price && totalSale > 0 && totalRefund == 0) {
+            else if (totalSale < this.total_price && totalSale > 0 && totalRefund === 0) {
               // console.log('SHOULD BE: partially_paid')
               financialStatus = ORDER_FINANCIAL.PARTIALLY_PAID
             }
             // Total Sale is the Total Price and Total Refund is Total Price
-            else if (this.total_price ==  totalRefund) {
+            else if (this.total_price ===  totalRefund) {
               // console.log('SHOULD BE: refunded')
               financialStatus = ORDER_FINANCIAL.REFUNDED
             }
@@ -1146,7 +1151,7 @@ module.exports = class Order extends Model {
               // console.log('SHOULD BE: partially_refunded')
               financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
             }
-            else if (this.total_price == totalCancelled) {
+            else if (this.total_price === totalCancelled) {
               financialStatus = ORDER_FINANCIAL.CANCELLED
             }
 

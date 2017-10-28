@@ -317,7 +317,7 @@ module.exports = class OrderService extends Service {
               }],
               type: 'customer.account_balance.deducted',
               message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } account balance was deducted by ${ deduction }`,
-              data: _.omit(resCustomer, ['events'])
+              data: resCustomer
             }
             return this.app.services.ProxyEngineService.publish(event.type, event, {
               save: true,
@@ -365,7 +365,7 @@ module.exports = class OrderService extends Service {
                   }],
                   type: 'customer.order.created',
                   message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } Order ${ resOrder.name } was created`,
-                  data: _.omit(resOrder, ['events'])
+                  data: resOrder
                 }
                 return this.app.services.ProxyEngineService.publish(event.type, event, {
                   save: true,
@@ -395,11 +395,11 @@ module.exports = class OrderService extends Service {
     const Order = this.app.orm.Order
     let resOrder
     return Order.resolve(order, options)
-      .then(foundOrder => {
-        if (!foundOrder) {
+      .then(_order => {
+        if (!_order) {
           throw new Error('Order not found')
         }
-        resOrder = foundOrder
+        resOrder = _order
         if ([FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.SENT].indexOf(resOrder.fulfillment_status) === -1 || resOrder.cancelled_at) {
           throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
         }
@@ -440,16 +440,16 @@ module.exports = class OrderService extends Service {
     const Sequelize = Order.sequelize
     let resOrder
     return Order.resolve(order, options)
-      .then(foundOrder => {
-        if (!foundOrder) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
 
-        if (foundOrder.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
-          throw new Error(`Order status is ${foundOrder.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
+        if (_order.financial_status !== (ORDER_FINANCIAL.AUTHORIZED || ORDER_FINANCIAL.PARTIALLY_PAID)) {
+          throw new Error(`Order status is ${_order.financial_status} not '${ORDER_FINANCIAL.AUTHORIZED} or ${ORDER_FINANCIAL.PARTIALLY_PAID}'`)
         }
 
-        resOrder = foundOrder
+        resOrder = _order
         return resOrder.resolveTransactions({transaction: options.transaction || null})
       })
       .then(() => {
@@ -469,7 +469,7 @@ module.exports = class OrderService extends Service {
           }],
           type: `order.${resOrder.financial_status}`,
           message: `Order ${ resOrder.name } was ${resOrder.financial_status}`,
-          data: _.omit(resOrder, ['events'])
+          data: resOrder
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -704,7 +704,7 @@ module.exports = class OrderService extends Service {
           }],
           type: `order.${resOrder.financial_status}`,
           message: `Order ${ resOrder.name } was ${resOrder.financial_status}`,
-          data: _.omit(resOrder, ['events'])
+          data: resOrder
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -1091,7 +1091,7 @@ module.exports = class OrderService extends Service {
           }],
           type: 'order.cancelled',
           message: `Order ${resOrder.name} was cancelled`,
-          data: _.omit(resOrder, ['events'])
+          data: resOrder
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -1232,12 +1232,12 @@ module.exports = class OrderService extends Service {
         // Resolve the item of the new order item
         return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null })
       })
-      .then(foundItem => {
-        if (!foundItem) {
+      .then(_item => {
+        if (!_item) {
           throw new Error('Could not resolve product and variant')
         }
         // Build the item
-        resItem = resOrder.buildOrderItem(foundItem, item.quantity, item.properties)
+        resItem = resOrder.buildOrderItem(_item, item.quantity, item.properties)
         // Add the item
         return resOrder.addItem(resItem, { transaction: options.transaction || null })
       })
@@ -1302,12 +1302,12 @@ module.exports = class OrderService extends Service {
         // Resolve the item
         return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null})
       })
-      .then(foundItem => {
-        if (!foundItem) {
+      .then(_item => {
+        if (!_item) {
           throw new Error('Could not resolve product and variant')
         }
         // Build the item
-        resItem = resOrder.buildOrderItem(foundItem, item.quantity, item.properties)
+        resItem = resOrder.buildOrderItem(_item, item.quantity, item.properties)
         // Update the item
         return resOrder.updateItem(resItem)
       })
@@ -1373,12 +1373,12 @@ module.exports = class OrderService extends Service {
         // Resolve the item
         return this.app.services.ProductService.resolveItem(item, { transaction: options.transaction || null})
       })
-      .then(foundItem => {
-        if (!foundItem) {
+      .then(_item => {
+        if (!_item) {
           throw new Error('Could not resolve product and variant')
         }
         // Build the item
-        resItem = resOrder.buildOrderItem(foundItem, item.quantity, item.properties)
+        resItem = resOrder.buildOrderItem(_item, item.quantity, item.properties)
         // Remove the item
         return resOrder.removeItem(resItem)
       })

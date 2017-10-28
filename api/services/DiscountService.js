@@ -90,11 +90,11 @@ module.exports = class DiscountService extends Service {
 
     let resDiscount
     return Discount.resolve(identifier, {transaction: options.transaction || null})
-      .then(foundDiscount => {
-        if (!foundDiscount) {
+      .then(_discount => {
+        if (!_discount) {
           throw new Error('Discount did not resolve')
         }
-        resDiscount = foundDiscount
+        resDiscount = _discount
         return resDiscount.update(discount, {transaction: options.transaction || null})
       })
   }
@@ -110,11 +110,11 @@ module.exports = class DiscountService extends Service {
     const Discount = this.app.orm['Discount']
     let resDiscount
     return Discount.resolve(identifier, {transaction: options.transaction || null})
-      .then(foundDiscount => {
-        if (!foundDiscount) {
+      .then(_discount => {
+        if (!_discount) {
           throw new Error('Discount did not resolve')
         }
-        resDiscount = foundDiscount
+        resDiscount = _discount
         return resDiscount.destroy({transaction: options.transaction || null})
       })
       .then(() => {
@@ -126,8 +126,11 @@ module.exports = class DiscountService extends Service {
     options = options || {}
     const Discount = this.app.orm['Discount']
     return Discount.resolve(identifier, {transaction: options.transaction || null})
-      .then(foundDiscount => {
-        return foundDiscount.start({transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        return _discount.start({transaction: options.transaction || null})
       })
   }
 
@@ -136,8 +139,11 @@ module.exports = class DiscountService extends Service {
     options = options || {}
     const Discount = this.app.orm['Discount']
     return Discount.resolve(identifier, {transaction: options.transaction || null})
-      .then(foundDiscount => {
-        return foundDiscount.expire({transaction: options.transaction || null})
+      .then(_discount => {
+        if (!_discount) {
+          throw new Error('Discount did not resolve')
+        }
+        return _discount.expire({transaction: options.transaction || null})
       })
   }
 

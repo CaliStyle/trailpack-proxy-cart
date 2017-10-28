@@ -199,7 +199,7 @@ module.exports = class CustomerService extends Service {
                     }],
                     type: 'customer.account.created',
                     message: `Customer account ${account.foreign_id} created on ${ account.gateway }`,
-                    data: _.omit(account, ['events'])
+                    data: account
                   }
                   return this.app.services.ProxyEngineService.publish(event.type, event, {
                     save: true,
@@ -268,7 +268,7 @@ module.exports = class CustomerService extends Service {
           }],
           type: 'customer.created',
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id} created`,
-          data: _.omit(resCustomer, ['events'])
+          data: resCustomer
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -299,11 +299,11 @@ module.exports = class CustomerService extends Service {
 
     let resCustomer
     return Customer.findByIdDefault(customer.id, options)
-      .then(foundCustomer => {
-        if (!foundCustomer) {
+      .then(_customer => {
+        if (!_customer) {
           throw new Errors.FoundError(Error('Customer not found'))
         }
-        resCustomer = foundCustomer
+        resCustomer = _customer
         const update = _.omit(customer, ['tags', 'metadata', 'shipping_address','billing_address','default_address'])
         return resCustomer.update(update)
       })
@@ -365,7 +365,7 @@ module.exports = class CustomerService extends Service {
           }],
           type: 'customer.updated',
           message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } updated`,
-          data: _.omit(resCustomer, ['events'])
+          data: resCustomer
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -396,11 +396,11 @@ module.exports = class CustomerService extends Service {
 
     let resCustomer = {}
     return Customer.findById(customer.id)
-      .then(foundCustomer => {
-        if (!foundCustomer) {
+      .then(_customer => {
+        if (!_customer) {
           throw new Errors.FoundError(Error('Customer was not found'))
         }
-        resCustomer = foundCustomer
+        resCustomer = _customer
         resCustomer.account_balance = customer.account_balance
         return resCustomer.save({transaction: options.transaction || null})
       })
@@ -444,11 +444,11 @@ module.exports = class CustomerService extends Service {
     }
     let resCustomer
     return Customer.findById(customerId)
-      .then(foundCustomer => {
-        if (!foundCustomer) {
+      .then(_customer => {
+        if (!_customer) {
           throw new Errors.FoundError(Error('Customer not found'))
         }
-        resCustomer = foundCustomer
+        resCustomer = _customer
         return resCustomer.hasCart(cartId)
       })
       .then(hasCart => {
@@ -475,11 +475,11 @@ module.exports = class CustomerService extends Service {
     const cartId = _.isObject(cart) ? cart.id : cart
     let resCustomer
     return Customer.findById(customerId)
-      .then(foundCustomer => {
-        if (!foundCustomer) {
+      .then(_customer => {
+        if (!_customer) {
           throw new Errors.FoundError(Error('Customer not found'))
         }
-        resCustomer = foundCustomer
+        resCustomer = _customer
         return resCustomer.hasCart(cartId)
       })
       .then(hasCart => {

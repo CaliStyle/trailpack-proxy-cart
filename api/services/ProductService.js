@@ -739,11 +739,11 @@ module.exports = class ProductService extends Service {
     const Variant = this.app.orm['ProductVariant']
     let resProduct, resVariant, productOptions = []
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Could not find Product'))
         }
-        resProduct = product
+        resProduct = _product
 
         variant.product_id = resProduct.id
         variant = this.variantDefaults(variant, resProduct)
@@ -813,8 +813,11 @@ module.exports = class ProductService extends Service {
     const Variant = this.app.orm['ProductVariant']
     let  resProduct, resVariant, productOptions = []
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        resProduct = product
+      .then(_product => {
+        if (!_product) {
+          throw new Error('Product did not resolve')
+        }
+        resProduct = _product
         return Variant.resolve(variant, options)
       })
       .then(foundVariant => {
@@ -1055,11 +1058,11 @@ module.exports = class ProductService extends Service {
     const Variant = this.app.orm['ProductVariant']
     let resProduct, resImage, resVariant
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(foundProduct => {
-        if (!foundProduct) {
+      .then(_product => {
+        if (!_product) {
           throw new Error('Product could not be resolved')
         }
-        resProduct = foundProduct
+        resProduct = _product
         if (variant) {
           return Variant.resolve(variant, {transaction: options.transaction || null})
         }
@@ -1067,8 +1070,8 @@ module.exports = class ProductService extends Service {
           return null
         }
       })
-      .then(foundVariant => {
-        resVariant = foundVariant ? foundVariant.id : null
+      .then(_variant => {
+        resVariant = _variant ? _variant.id : null
         return this.app.services.ProxyCartService.uploadImage(image, filePath)
       })
       .then(uploadedImage => {
@@ -1122,18 +1125,18 @@ module.exports = class ProductService extends Service {
     const Tag = this.app.orm['Tag']
     let resProduct, resTag
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resProduct = product
+        resProduct = _product
         return Tag.resolve(tag, {transaction: options.transaction || null})
       })
-      .then(tag => {
-        if (!tag) {
+      .then(_tag => {
+        if (!_tag) {
           throw new Errors.FoundError(Error('Tag not found'))
         }
-        resTag = tag
+        resTag = _tag
         return resProduct.hasTag(resTag.id, {transaction: options.transaction || null})
       })
       .then(hasTag => {
@@ -1160,18 +1163,18 @@ module.exports = class ProductService extends Service {
     const Tag = this.app.orm['Tag']
     let resProduct, resTag
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resProduct = product
+        resProduct = _product
         return Tag.resolve(tag, {transaction: options.transaction || null})
       })
-      .then(tag => {
-        if (!tag) {
+      .then(_tag => {
+        if (!_tag) {
           throw new Errors.FoundError(Error('Tag not found'))
         }
-        resTag = tag
+        resTag = _tag
         return resProduct.hasTag(resTag.id, {transaction: options.transaction || null})
       })
       .then(hasTag => {
@@ -1197,18 +1200,18 @@ module.exports = class ProductService extends Service {
     const Product = this.app.orm['Product']
     let resProduct, resAssociation
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resProduct = product
+        resProduct = _product
         return Product.resolve(association, {transaction: options.transaction || null})
       })
-      .then(association => {
-        if (!association) {
+      .then(_association => {
+        if (!_association) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resAssociation = association
+        resAssociation = _association
         return resProduct.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
       })
       .then(hasAssociation => {
@@ -1234,18 +1237,18 @@ module.exports = class ProductService extends Service {
     const Product = this.app.orm['Product']
     let resProduct, resAssociation
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resProduct = product
+        resProduct = _product
         return Product.resolve(association, {transaction: options.transaction || null})
       })
-      .then(association => {
-        if (!association) {
+      .then(_association => {
+        if (!_association) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resAssociation = association
+        resAssociation = _association
         return resProduct.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
       })
       .then(hasAssociation => {
@@ -1272,18 +1275,18 @@ module.exports = class ProductService extends Service {
     const Collection = this.app.orm['Collection']
     let resProduct, resCollection
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resProduct = product
+        resProduct = _product
         return Collection.resolve(collection, {transaction: options.transaction || null})
       })
-      .then(collection => {
-        if (!collection) {
-          throw new Errors.FoundError(Error('Product not found'))
+      .then(_collection => {
+        if (!_collection) {
+          throw new Errors.FoundError(Error('Collection not found'))
         }
-        resCollection = collection
+        resCollection = _collection
         return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
@@ -1310,18 +1313,18 @@ module.exports = class ProductService extends Service {
     const Collection = this.app.orm['Collection']
     let resProduct, resCollection
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resProduct = product
+        resProduct = _product
         return Collection.resolve(collection, {transaction: options.transaction || null})
       })
-      .then(collection => {
-        if (!collection) {
+      .then(_collection => {
+        if (!_collection) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resCollection = collection
+        resCollection = _collection
         return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
@@ -1347,18 +1350,18 @@ module.exports = class ProductService extends Service {
     const Product = this.app.orm['Product']
     let resProduct, resShop
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resProduct = product
+        resProduct = _product
         return this.app.orm['Shop'].resolve(shop, {transaction: options.transaction || null})
       })
-      .then(shop => {
-        if (!shop) {
+      .then(_shop => {
+        if (!_shop) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resShop = shop
+        resShop = _shop
         return resProduct.hasShop(resShop.id, {transaction: options.transaction || null})
       })
       .then(hasShop => {
@@ -1384,18 +1387,18 @@ module.exports = class ProductService extends Service {
     const Product = this.app.orm['Product']
     let resProduct, resShop
     return Product.resolve(product, {transaction: options.transaction || null})
-      .then(product => {
-        if (!product) {
+      .then(_product => {
+        if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resProduct = product
+        resProduct = _product
         return this.app.orm['Shop'].resolve(shop, {transaction: options.transaction || null})
       })
-      .then(shop => {
-        if (!shop) {
+      .then(_shop => {
+        if (!_shop) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resShop = shop
+        resShop = _shop
         return resProduct.hasShop(resShop.id, {transaction: options.transaction || null})
       })
       .then(hasShop => {

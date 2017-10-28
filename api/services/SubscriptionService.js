@@ -110,6 +110,12 @@ module.exports = class SubscriptionService extends Service {
   create(order, items, unit, interval, active, options) {
     options = options || {}
     const Subscription = this.app.orm['Subscription']
+
+    items.forEach(item => {
+      if (!(item instanceof this.app.orm['OrderItem'])){
+        throw new Error('Subscription item is not an instance of OrderItem')
+      }
+    })
     const resSubscription = Subscription.build({
       original_order_id: order.id,
       customer_id: order.customer_id,
@@ -149,7 +155,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.subscribed',
           message: `Customer subscribed to subscription ${resSubscription.token}`,
-          data: _.omit(resSubscription,['events'])
+          data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -176,11 +182,11 @@ module.exports = class SubscriptionService extends Service {
 
     let resSubscription
     return Subscription.resolve(subscription, options)
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(_subscription => {
+        if (!_subscription) {
           throw new Error('Subscription not found')
         }
-        resSubscription = foundSubscription
+        resSubscription = _subscription
         return resSubscription.update(update, {transaction: options.transaction || null})
       })
       .then(() => {
@@ -194,7 +200,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.updated',
           message: `Customer subscription ${resSubscription.token} updated`,
-          data: _.omit(resSubscription,['events'])
+          data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -244,7 +250,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.cancelled',
           message: `Customer subscription ${resSubscription.token} was cancelled`,
-          data: _.omit(resSubscription,['events'])
+          data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -316,7 +322,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.activated',
           message: `Customer subscription ${resSubscription.token} was activated`,
-          data: _.omit(resSubscription,['events'])
+          data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -365,7 +371,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.deactivated',
           message: `Customer subscription ${resSubscription.token} was deactivated`,
-          data: _.omit(resSubscription,['events'])
+          data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -395,12 +401,12 @@ module.exports = class SubscriptionService extends Service {
     }
     let resSubscription
     return Subscription.resolve(subscription, options)
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(_subscription => {
+        if (!_subscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
 
-        resSubscription = foundSubscription
+        resSubscription = _subscription
 
         return Subscription.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
@@ -430,7 +436,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.items_added',
           message: `Customer subscription ${resSubscription.token} had items added`,
-          data: _.omit(resSubscription,['events'])
+          data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -457,11 +463,11 @@ module.exports = class SubscriptionService extends Service {
     }
     let resSubscription
     return Subscription.resolve(subscription, options)
-      .then(foundSubscription => {
-        if (!foundSubscription) {
+      .then(_subscription => {
+        if (!_subscription) {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
-        resSubscription = foundSubscription
+        resSubscription = _subscription
         return Subscription.sequelize.Promise.mapSeries(items, item => {
           return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
         })
@@ -485,7 +491,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: 'customer.subscription.items_removed',
           message: `Customer subscription ${resSubscription.token} had items removed`,
-          data: _.omit(resSubscription,['events'])
+          data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,
@@ -553,7 +559,7 @@ module.exports = class SubscriptionService extends Service {
             }],
             type: `customer.subscription.renewed.${renewal}`,
             message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
-            data: _.omit(resSubscription,['events'])
+            data: resSubscription
           }
           return this.app.services.ProxyEngineService.publish(event.type, event, {
             save: true,
@@ -643,7 +649,7 @@ module.exports = class SubscriptionService extends Service {
           }],
           type: `customer.subscription.renewed.${renewal}`,
           message: `Customer subscription ${resSubscription.token} renewal ${renewal}`,
-          data: _.omit(resSubscription,['events'])
+          data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {
           save: true,

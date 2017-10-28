@@ -197,7 +197,7 @@ module.exports = class CartService extends Service {
               }],
               type: 'customer.cart.checkout',
               message: `Customer Cart ${ resOrder.cart_token } checked out and created Order ${resOrder.name}`,
-              data: _.omit(resOrder,['events'])
+              data: resOrder
             }
             return this.app.services.ProxyEngineService.publish(event.type, event, {
               save: true,
@@ -256,17 +256,17 @@ module.exports = class CartService extends Service {
     }
 
     return Cart.resolve(req.body.cart, { transaction: options.transaction || null })
-      .then(foundCart => {
-        if (!foundCart) {
+      .then(_cart => {
+        if (!_cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
 
-        if (foundCart.status !== CART_STATUS.OPEN) {
+        if (_cart.status !== CART_STATUS.OPEN) {
           // TODO CREATE PROPER ERROR
           throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
         }
 
-        resCart = foundCart
+        resCart = _cart
 
         // if email is set, set email for the cart
         if (req.body.email) {
@@ -435,11 +435,11 @@ module.exports = class CartService extends Service {
     })
     let resCart
     return Cart.resolve(id, {transaction: options.transaction || null})
-      .then(foundCart => {
-        if (!foundCart) {
+      .then(_cart => {
+        if (!_cart) {
           throw new Error('Cart could not be resolved')
         }
-        resCart = foundCart
+        resCart = _cart
         resCart.pricing_overrides = overrides
         resCart.pricing_override_id = admin.id
         return resCart.save({transaction: options.transaction || null})

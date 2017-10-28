@@ -108,11 +108,11 @@ module.exports = class CollectionService extends Service {
     let resCollection
     const update = _.omit(collection,['id','created_at','updated_at','collections','images'])
     return Collection.resolve(collection, {transaction: options.transaction || null})
-      .then(foundCollection => {
-        if (!foundCollection) {
+      .then(_collection => {
+        if (!_collection) {
           throw new Error('Collection could not be resolved')
         }
-        resCollection = foundCollection
+        resCollection = _collection
         return resCollection.update(update, {transaction: options.transaction || null})
       })
       .then(updatedCollection => {
