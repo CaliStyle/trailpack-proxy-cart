@@ -79,6 +79,7 @@ module.exports = class ProductVariant extends Model {
            */
           associate: (models) => {
             models.ProductVariant.belongsTo(models.Product, {
+              foreignKey: 'product_id'
               // as: 'product_id',
               // foreign_key: 'id',
               // notNull: true
@@ -141,20 +142,7 @@ module.exports = class ProductVariant extends Model {
             })
             models.ProductVariant.hasOne(models.Metadata, {
               as: 'metadata',
-              // through: {
-              //   model: models.ItemMetadata,
-              //   unique: false,
-              //   scope: {
-              //     model: 'product_variant'
-              //   },
-              //   foreignKey: 'model_id',
-              //   constraints: false
-              // }
-              // scope: {
-              //   model: 'product_variant'
-              // },
-              // foreignKey: 'model_id',
-              constraints: false
+              foreignKey: 'product_variant_id'
             })
             models.ProductVariant.belongsToMany(models.Discount, {
               as: 'discounts',
@@ -168,10 +156,12 @@ module.exports = class ProductVariant extends Model {
               foreignKey: 'model_id',
               constraints: false
             })
+
             models.ProductVariant.hasMany(models.OrderItem, {
               as: 'order_items',
               foreignKey: 'variant_id'
             })
+
             models.ProductVariant.belongsToMany(models.Event, {
               as: 'event_items',
               through: {
@@ -290,6 +280,31 @@ module.exports = class ProductVariant extends Model {
           },
           resolveImages: function(options) {
             options = options || {}
+          },
+          /**
+           *
+           * @param options
+           * @returns {*}
+           */
+          resolveMetadata: function(options) {
+            options = options || {}
+            if (
+              this.metadata
+              && this.metadata instanceof app.orm['Metadata']
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this)
+            }
+            else {
+              return this.getMetadata({transaction: options.transaction || null})
+                .then(_metadata => {
+                  _metadata = _metadata || {product_variant_id: this.id}
+                  this.metadata = _metadata
+                  this.setDataValue('metadata', _metadata)
+                  this.set('metadata', _metadata)
+                  return this
+                })
+            }
           }
         }
       }

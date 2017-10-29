@@ -86,7 +86,7 @@ module.exports = class User extends Model {
             // })
             models.User.hasOne(models.Metadata, {
               as: 'metadata',
-              constraints: false
+              foreignKey: 'user_id'
             })
           },
           findByIdDefault: ModelPermissions.config(app, Sequelize).options.classMethods.findByIdDefault,
@@ -98,6 +98,31 @@ module.exports = class User extends Model {
           ModelPermissions.config(app, Sequelize).options.instanceMethods,
           ModelNotifications.config(app, Sequelize).options.instanceMethods,
           {
+            /**
+             *
+             * @param options
+             * @returns {*}
+             */
+            resolveMetadata: function(options) {
+              options = options || {}
+              if (
+                this.metadata
+                && this.metadata instanceof app.orm['Metadata']
+                && options.reload !== true
+              ) {
+                return Promise.resolve(this)
+              }
+              else {
+                return this.getMetadata({transaction: options.transaction || null})
+                  .then(_metadata => {
+                    _metadata = _metadata || {user_id: this.id}
+                    this.metadata = _metadata
+                    this.setDataValue('metadata', _metadata)
+                    this.set('metadata', _metadata)
+                    return this
+                  })
+              }
+            },
             toJSON: function() {
               const resp = this instanceof app.orm['User'] ? this.get({ plain: true }) : this
               // Transform Tags to array on toJSON

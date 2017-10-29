@@ -101,12 +101,12 @@ module.exports = class Fulfillment extends Model {
            */
           associate: (models) => {
             models.Fulfillment.belongsTo(models.Order, {
-              // as: 'order_id',
+              foreignKey: 'order_id',
               // allowNull: false
             })
             models.Fulfillment.hasMany(models.OrderItem, {
+              as: 'order_items',
               foreignKey: 'fulfillment_id',
-              as: 'order_items'
             })
           },
           findByIdDefault: function(id, options) {
@@ -361,42 +361,42 @@ module.exports = class Fulfillment extends Model {
             this.order_items.forEach(item => {
               totalQty = totalQty + item.quantity
 
-              if (item.fulfillment_status == FULFILLMENT_STATUS.FULFILLED) {
+              if (item.fulfillment_status === FULFILLMENT_STATUS.FULFILLED) {
                 totalFulfillments = totalFulfillments + item.quantity
               }
-              else if (item.fulfillment_status == FULFILLMENT_STATUS.PARTIAL) {
+              else if (item.fulfillment_status === FULFILLMENT_STATUS.PARTIAL) {
                 totalPartialFulfillments = totalPartialFulfillments + item.quantity
               }
-              else if (item.fulfillment_status == FULFILLMENT_STATUS.SENT) {
+              else if (item.fulfillment_status === FULFILLMENT_STATUS.SENT) {
                 totalSentFulfillments = totalSentFulfillments + item.quantity
               }
-              else if (item.fulfillment_status == FULFILLMENT_STATUS.PENDING) {
+              else if (item.fulfillment_status === FULFILLMENT_STATUS.PENDING) {
                 totalPendingFulfillments = totalPendingFulfillments + item.quantity
               }
-              else if (item.fulfillment_status == FULFILLMENT_STATUS.NONE) {
+              else if (item.fulfillment_status === FULFILLMENT_STATUS.NONE) {
                 totalNonFulfillments = totalNonFulfillments + item.quantity
               }
-              else if (item.fulfillment_status == FULFILLMENT_STATUS.CANCELLED) {
+              else if (item.fulfillment_status === FULFILLMENT_STATUS.CANCELLED) {
                 totalCancelledFulfillments = totalCancelledFulfillments + item.quantity
               }
             })
 
-            if (totalFulfillments == totalQty && totalQty > 0) {
+            if (totalFulfillments === totalQty && totalQty > 0) {
               fulfillmentStatus = FULFILLMENT_STATUS.FULFILLED
             }
-            else if (totalSentFulfillments == totalQty && totalQty > 0) {
+            else if (totalSentFulfillments === totalQty && totalQty > 0) {
               fulfillmentStatus = FULFILLMENT_STATUS.SENT
             }
             else if (totalPartialFulfillments > 0 && totalQty > 0) {
               fulfillmentStatus = FULFILLMENT_STATUS.PARTIAL
             }
-            else if (totalPendingFulfillments == totalQty && totalQty > 0) {
+            else if (totalPendingFulfillments === totalQty && totalQty > 0) {
               fulfillmentStatus = FULFILLMENT_STATUS.PENDING // back to default
             }
-            else if (totalNonFulfillments == totalQty && totalQty > 0) {
+            else if (totalNonFulfillments === totalQty && totalQty > 0) {
               fulfillmentStatus = FULFILLMENT_STATUS.NONE // back to default
             }
-            else if (totalCancelledFulfillments == totalQty && totalQty > 0) {
+            else if (totalCancelledFulfillments === totalQty && totalQty > 0) {
               fulfillmentStatus = FULFILLMENT_STATUS.CANCELLED
             }
 

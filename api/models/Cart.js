@@ -62,9 +62,15 @@ module.exports = class Cart extends Model {
            */
           associate: (models) => {
             models.Cart.belongsTo(models.Customer, {
+              foreignKey: 'customer_id'
               // as: 'customer_id',
             })
             models.Cart.belongsTo(models.Shop, {
+              foreignKey: 'shop_id'
+              // as: 'shop_id',
+            })
+            models.Cart.belongsTo(models.Order, {
+              foreignKey: 'order_id'
               // as: 'shop_id',
             })
 
@@ -81,9 +87,11 @@ module.exports = class Cart extends Model {
             })
             models.Cart.belongsTo(models.Address, {
               as: 'shipping_address',
+              foreignKey: 'shipping_address_id'
             })
             models.Cart.belongsTo(models.Address, {
               as: 'billing_address',
+              foreignKey: 'billing_address_id'
             })
             models.Cart.belongsToMany(models.Address, {
               as: 'addresses',
@@ -1060,6 +1068,20 @@ module.exports = class Cart extends Model {
         // }
       },
       order_id: {
+        type: Sequelize.INTEGER,
+        // references: {
+        //   model: 'Shop',
+        //   key: 'id'
+        // }
+      },
+      billing_address_id: {
+        type: Sequelize.INTEGER,
+        // references: {
+        //   model: 'Shop',
+        //   key: 'id'
+        // }
+      },
+      shipping_address_id: {
         type: Sequelize.INTEGER,
         // references: {
         //   model: 'Shop',

@@ -69,25 +69,28 @@ module.exports = class OrderItem extends Model {
            */
           associate: (models) => {
             models.OrderItem.belongsTo(models.Order, {
-
+              foreignKey: 'order_id'
             })
             models.OrderItem.belongsTo(models.Customer, {
-
+              foreignKey: 'customer_id'
             })
             models.OrderItem.belongsTo(models.Fulfillment, {
-
+              foreignKey: 'fulfillment_id'
             })
             models.OrderItem.belongsTo(models.Product, {
-
+              foreignKey: 'product_id'
             })
-            // models.OrderItem.belongsTo(models.ProductVariant, {
-            //   as: 'variant_id'
-            // })
+            models.OrderItem.belongsTo(models.ProductVariant, {
+              foreignKey: 'variant_id'
+            })
             models.OrderItem.belongsTo(models.Vendor, {
-
+              foreignKey: 'vendor_id'
             })
             models.OrderItem.belongsTo(models.Refund, {
-
+              foreignKey: 'refund_id'
+            })
+            models.OrderItem.belongsTo(models.GiftCard, {
+              foreignKey: 'gift_card_id'
             })
           },
           resolve: function(item, options){
@@ -311,6 +314,13 @@ module.exports = class OrderItem extends Model {
         type: Sequelize.INTEGER,
         // references: {
         //   model: 'Refund',
+        //   key: 'id'
+        // }
+      },
+      gift_card_id: {
+        type: Sequelize.INTEGER,
+        // references: {
+        //   model: 'GiftCard',
         //   key: 'id'
         // }
       },

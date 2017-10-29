@@ -410,12 +410,13 @@ module.exports = class ProductService extends Service {
   // TODO Create/Update Images and Variant Images in one command
   updateProduct(product, options) {
     options = options || {}
-    const Product = this.app.orm.Product
-    const Variant = this.app.orm.ProductVariant
-    const Image = this.app.orm.ProductImage
-    const Tag = this.app.orm.Tag
-    const Collection = this.app.orm.Collection
-    const Vendor = this.app.orm.Vendor
+    const Product = this.app.orm['Product']
+    const Variant = this.app.orm['ProductVariant']
+    const Image = this.app.orm['ProductImage']
+    const Tag = this.app.orm['Tag']
+    const Collection = this.app.orm['Collection']
+    const Vendor = this.app.orm['Vendor']
+    // const Metadata = this.app.orm['Metadata']
 
     const productOptions = []
     if (!product.id) {
@@ -426,11 +427,11 @@ module.exports = class ProductService extends Service {
     return Product.findByIdDefault(product.id, {
       transaction: options.transaction || null
     })
-      .then(foundProduct => {
-        if (!foundProduct){
+      .then(_product => {
+        if (!_product){
           throw new Error('Product not found')
         }
-        resProduct = foundProduct
+        resProduct = _product
 
         const update = {
           host: product.host || resProduct.host,
@@ -485,14 +486,11 @@ module.exports = class ProductService extends Service {
         if (product.compare_at_price) {
           resProduct.variants[0].compare_at_price = product.compare_at_price
         }
-        if (product.metadata) {
-          resProduct.metadata.data = product.metadata || {}
-        }
-
         // Update seo_title if provided, else update it if a new product title
         if (product.seo_title) {
           resProduct.seo_title = product.seo_title //.substring(0,255)
         }
+        // Update product_seo title
         if (product.title && !product.seo_title) {
           resProduct.seo_title = product.title //.substring(0,255)
         }
@@ -500,6 +498,7 @@ module.exports = class ProductService extends Service {
         if (product.seo_description) {
           resProduct.seo_description = this.app.services.ProxyCartService.description(product.seo_description)
         }
+        // Update seo_description
         if (!product.seo_description && product.body) {
           resProduct.seo_description = this.app.services.ProxyCartService.description(product.body)
         }
@@ -626,8 +625,17 @@ module.exports = class ProductService extends Service {
         return
       })
       .then(collections => {
-        // save the metadata
-        return resProduct.metadata.save({ transaction: options.transaction || null })
+        // Resolve the metadata in case this is missing it
+        return resProduct.resolveMetadata({transaction: options.transaction || null})
+      })
+      .then(() => {
+        // if product metadata.
+        if (product.metadata && _.isObject(product.metadata)) {
+          resProduct.metadata.data = product.metadata || {}
+          // save the metadata
+          return resProduct.metadata.save({ transaction: options.transaction || null })
+        }
+        return
       })
       .then(metadata => {
         if (product.vendors && product.vendors.length > 0) {

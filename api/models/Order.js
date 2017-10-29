@@ -149,7 +149,7 @@ module.exports = class Order extends Model {
             })
             // Applicable discount codes that can be applied to the order. If no codes exist the value will default to blank.
             models.Order.belongsToMany(models.Discount, {
-              as: 'discount_codes',
+              as: 'discounts',
               through: {
                 model: models.ItemDiscount,
                 unique: false,

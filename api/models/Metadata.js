@@ -40,14 +40,14 @@ module.exports = class Metadata extends Model {
             //   scope: {
             //     model: 'product_variant'
             //   },
-            //   foreignKey: 'id',
+            //   foreignKey: 'model_id',
             //   constraints: false
             // })
             // models.Metadata.belongsTo(models.Customer, {
             //   scope: {
             //     model: 'customer'
             //   },
-            //   foreignKey: 'id',
+            //   foreignKey: 'model_id',
             //   constraints: false
             // })
             // models.Metadata.belongsTo(models.User, {
@@ -104,16 +104,34 @@ module.exports = class Metadata extends Model {
     return {
       // model: {
       //   type: Sequelize.STRING,
-      //   unique: 'metadata_model'
+      //   // unique: 'metadata_model'
       // },
       // model_id: {
       //   type: Sequelize.INTEGER,
-      //   unique: 'metadata_model',
-      //   references: null
+      //   // unique: 'metadata_model',
+      //   // references: null
       // },
       data: helpers.JSONB('Metadata', app, Sequelize, 'data', {
         defaultValue: {}
       }),
+      customer_id: {
+        type: Sequelize.INTEGER
+      },
+      collection_id: {
+        type: Sequelize.INTEGER
+      },
+      product_id: {
+        type: Sequelize.INTEGER
+      },
+      product_variant_id: {
+        type: Sequelize.INTEGER
+      },
+      product_review_id: {
+        type: Sequelize.INTEGER
+      },
+      user_id: {
+        type: Sequelize.INTEGER
+      },
       live_mode: {
         type: Sequelize.BOOLEAN,
         defaultValue: app.config.proxyEngine.live_mode

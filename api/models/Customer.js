@@ -118,18 +118,18 @@ module.exports = class Customer extends Model {
             //     constraints: false
             //   }
             // })
-            models.Customer.hasOne(models.Cart, {
-              as: 'default_cart',
-              through: {
-                model: models.CustomerCart,
-                foreignKey: 'customer_id',
-                unique: true,
-                scope: {
-                  cart: 'default_cart'
-                },
-                constraints: false
-              }
-            })
+            // models.Customer.hasOne(models.Cart, {
+            //   as: 'default_cart',
+            //   through: {
+            //     model: models.CustomerCart,
+            //     foreignKey: 'customer_id',
+            //     unique: true,
+            //     scope: {
+            //       cart: 'default_cart'
+            //     },
+            //     constraints: false
+            //   }
+            // })
             models.Customer.belongsToMany(models.Address, {
               as: 'addresses',
               // otherKey: 'address_id',
@@ -203,6 +203,7 @@ module.exports = class Customer extends Model {
             })
             models.Customer.hasOne(models.Metadata, {
               as: 'metadata',
+              foreignKey: 'customer_id',
               // through: {
               //   model: models.ItemMetadata,
               //   unique: false,
@@ -216,7 +217,7 @@ module.exports = class Customer extends Model {
               //   model: 'customer'
               // },
               // foreignKey: 'model_id',
-              constraints: false
+              // constraints: false
             })
             models.Customer.belongsToMany(models.Account, {
               as: 'accounts',
@@ -267,6 +268,19 @@ module.exports = class Customer extends Model {
                 }
               },
               foreignKey: 'model_id',
+              constraints: false
+            })
+            models.Customer.hasOne(models.Cart, {
+              as: 'default_cart',
+              foreignKey: 'default_cart_id'
+            })
+            models.Customer.belongsToMany(models.Cart, {
+              as: 'carts',
+              through: {
+                model: models.CustomerCart,
+                unique: false
+              },
+              foreignKey: 'customer_id',
               constraints: false
             })
             models.Customer.hasMany(models.Event, {
@@ -652,6 +666,31 @@ module.exports = class Customer extends Model {
                   this.discounts = _discounts
                   this.setDataValue('discounts', _discounts)
                   this.set('discounts', _discounts)
+                  return this
+                })
+            }
+          },
+          /**
+           *
+           * @param options
+           * @returns {*}
+           */
+          resolveMetadata: function(options) {
+            options = options || {}
+            if (
+              this.metadata
+              && this.metadata instanceof app.orm['Metadata']
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this)
+            }
+            else {
+              return this.getMetadata({transaction: options.transaction || null})
+                .then(_metadata => {
+                  _metadata = _metadata || {customer_id: this.id}
+                  this.metadata = _metadata
+                  this.setDataValue('metadata', _metadata)
+                  this.set('metadata', _metadata)
                   return this
                 })
             }

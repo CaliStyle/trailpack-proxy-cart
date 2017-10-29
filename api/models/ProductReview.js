@@ -28,7 +28,8 @@ module.exports = class ProductReview extends Model {
               // as: 'product_id'
             })
             models.ProductReview.hasOne(models.Metadata, {
-              // as: 'metadata',
+              as: 'metadata',
+              foreignKey: 'product_review_id'
               // through: {
               //   model: models.ItemMetadata,
               //   unique: false,
@@ -40,6 +41,33 @@ module.exports = class ProductReview extends Model {
               // }
             })
           }
+        },
+        instanceMethods: {
+          /**
+           *
+           * @param options
+           * @returns {*}
+           */
+          resolveMetadata: function(options) {
+            options = options || {}
+            if (
+              this.metadata
+              && this.metadata instanceof app.orm['Metadata']
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this)
+            }
+            else {
+              return this.getMetadata({transaction: options.transaction || null})
+                .then(_metadata => {
+                  _metadata = _metadata || {product_review_id: this.id}
+                  this.metadata = _metadata
+                  this.setDataValue('metadata', _metadata)
+                  this.set('metadata', _metadata)
+                  return this
+                })
+            }
+          },
         }
       }
     }

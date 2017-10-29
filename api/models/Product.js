@@ -137,10 +137,16 @@ module.exports = class Product extends Model {
               foreignKey: 'model_id',
               constraints: false
             })
+
             models.Product.hasOne(models.Metadata, {
               as: 'metadata',
-              constraints: false
+              // scope: {
+              //   model: 'product'
+              // },
+              foreignKey: 'product_id'
+              // constraints: false
             })
+
             models.Product.belongsToMany(models.Vendor, {
               as: 'vendors',
               through: {
@@ -778,7 +784,7 @@ module.exports = class Product extends Model {
             else {
               return this.getMetadata({transaction: options.transaction || null})
                 .then(_metadata => {
-                  _metadata = _metadata || {}
+                  _metadata = _metadata || {product_id: this.id}
                   this.metadata = _metadata
                   this.setDataValue('metadata', _metadata)
                   this.set('metadata', _metadata)

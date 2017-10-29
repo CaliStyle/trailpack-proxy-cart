@@ -148,6 +148,10 @@ module.exports = class Collection extends Model {
               foreignKey: 'model_id',
               constraints: false
             })
+            models.Collection.hasOne(models.Metadata, {
+              as: 'metadata',
+              foreignKey: 'collection_id'
+            })
           },
           findByIdDefault: function(id, options) {
             options = app.services.ProxyEngineService.mergeOptionDefaults(
@@ -345,6 +349,33 @@ module.exports = class Collection extends Model {
             })
             return collections
           }
+        },
+        instanceMethods: {
+          /**
+           *
+           * @param options
+           * @returns {*}
+           */
+          resolveMetadata: function(options) {
+            options = options || {}
+            if (
+              this.metadata
+              && this.metadata instanceof app.orm['Metadata']
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this)
+            }
+            else {
+              return this.getMetadata({transaction: options.transaction || null})
+                .then(_metadata => {
+                  _metadata = _metadata || {collection_id: this.id}
+                  this.metadata = _metadata
+                  this.setDataValue('metadata', _metadata)
+                  this.set('metadata', _metadata)
+                  return this
+                })
+            }
+          },
         }
         // instanceMethods: {
         //   getProductIds: function () {
