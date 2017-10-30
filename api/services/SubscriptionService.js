@@ -153,8 +153,8 @@ module.exports = class SubscriptionService extends Service {
           }, {
             subscription: resSubscription.id
           }],
-          type: 'customer.subscription.subscribed',
-          message: `Customer subscribed to subscription ${resSubscription.token}`,
+          type: 'customer.subscription.started',
+          message: `Customer subscription ${resSubscription.token} started`,
           data: resSubscription
         }
         return this.app.services.ProxyEngineService.publish(event.type, event, {

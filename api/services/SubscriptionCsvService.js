@@ -249,8 +249,8 @@ module.exports = class SubscriptionCsvService extends Service {
           },{
             subscription: subscription.id
           }],
-          type: 'customer.subscription.subscribed',
-          message: `Customer subscribed to imported subscription ${subscription.token}`,
+          type: 'customer.subscription.started',
+          message: `Customer imported subscription ${subscription.token} started`,
           data: subscription
         }
         this.app.services.ProxyEngineService.publish(event.type, event, {
