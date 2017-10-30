@@ -1556,9 +1556,75 @@ module.exports = class OrderService extends Service {
     //
 
   }
-  cancelThisHour() {
+  // TODO
+  cancelThisHour(options) {
+    // options = options || {}
+    // const Order = this.app.orm['Order']
+    // const errors = []
     //
-
+    // const start = moment().startOf('hour')
+    //   .subtract(this.app.config.get('proxyCart.orders.grace_period_days') || 0, 'days')
+    //
+    // console.log('START TIME', start.format('YYYY-MM-DD HH:mm:ss'))
+    // // let errorsTotal = 0
+    // let ordersTotal = 0
+    //
+    // this.app.log.debug('OrderService.cancelThisHour')
+    //
+    // // Find Orders that are at their max retry amount
+    // // and aren't already cancelled.
+    // // and have reached the end of the grace period
+    // return Order.batch({
+    //   where: {
+    //     renews_on: {
+    //       $gte: start.format('YYYY-MM-DD HH:mm:ss')
+    //     },
+    //     total_renewal_attempts: {
+    //       $gte: this.app.config.proxyCart.orders.retry_attempts || 1
+    //     },
+    //     // Not cancelled
+    //     cancelled: false
+    //   },
+    //   regressive: true,
+    //   transaction: options.transaction || null
+    // }, (orders) => {
+    //
+    //   const Sequelize = Order.sequelize
+    //   return Sequelize.Promise.mapSeries(orders, order => {
+    //     return this.cancel(
+    //       {
+    //         reason: ORDER_CANCEL.FUNDING,
+    //         cancel_pending: true
+    //       },
+    //       order,
+    //       { transaction: options.transaction || null }
+    //     )
+    //   })
+    //     .then(results => {
+    //       // Calculate Totals
+    //       ordersTotal = ordersTotal + results.length
+    //       return
+    //     })
+    //     .catch(err => {
+    //       // errorsTotal++
+    //       this.app.log.error(err)
+    //       errors.push(err)
+    //       return
+    //     })
+    // })
+    //   .then(orders => {
+    //     const results = {
+    //       orders: ordersTotal,
+    //       errors: errors
+    //     }
+    //     this.app.log.info(results)
+    //     this.app.services.ProxyEngineService.publish('orders.cancel.complete', results)
+    //     return results
+    //   })
+    //   .catch(err => {
+    //     this.app.log.error(err)
+    //     return
+    //   })
   }
 
   /**

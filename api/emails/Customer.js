@@ -21,18 +21,10 @@ module.exports = class Customer extends Email {
         }
         resCustomer = foundCustomer
 
-        const text = `${ resCustomer.name }`
-        const html = `${ resCustomer.name }`
         const subject = data.subject || `${ resCustomer.name } Invitation`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
-        return {
-          text: text,
-          html: html,
-          type: 'customer.invite',
-          subject: subject,
-          send_email: sendEmail
-        }
+        return this.compose('invite', subject, resCustomer, sendEmail)
       })
 
   }
@@ -54,18 +46,10 @@ module.exports = class Customer extends Email {
         }
         resCustomer = foundCustomer
 
-        const text = `${ resCustomer.name }`
-        const html = `${ resCustomer.name }`
         const subject = data.subject || `${ resCustomer.name } Invite Accepted`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
-        return {
-          text: text,
-          html: html,
-          type: 'customer.inviteAccepted',
-          subject: subject,
-          send_email: sendEmail
-        }
+        return this.compose('inviteAccepted', subject, resCustomer, sendEmail)
       })
   }
   /**
@@ -85,18 +69,10 @@ module.exports = class Customer extends Email {
         }
         resCustomer = foundCustomer
 
-        const text = `${ resCustomer.name }`
-        const html = `${ resCustomer.name }`
         const subject = data.subject || `${ resCustomer.name } Account Balance Updated`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
-        return {
-          text: text,
-          html: html,
-          type: 'customer.accountBalanceUpdated',
-          subject: subject,
-          send_email: sendEmail
-        }
+        return this.compose('accountBalanceUpdated', subject, resCustomer, sendEmail)
       })
   }
   /**
@@ -116,18 +92,10 @@ module.exports = class Customer extends Email {
         }
         resCustomer = foundCustomer
 
-        const text = `${ resCustomer.name }`
-        const html = `${ resCustomer.name }`
         const subject = data.subject || `${ resCustomer.name } Account Balance Deducted`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
-        return {
-          text: text,
-          html: html,
-          type: 'customer.accountBalanceDeducted',
-          subject: subject,
-          send_email: sendEmail
-        }
+        return this.compose('accountBalanceDeducted', subject, resCustomer, sendEmail)
       })
   }
 }

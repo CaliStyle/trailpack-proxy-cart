@@ -26,20 +26,11 @@ module.exports = class Source extends Email {
         return resSource.resolveCustomer({transaction: options.transaction || null})
       })
       .then(() => {
-
-        const text = data.text || `Payment Method ${ resSource.token } will expire`
-        const html = data.html || this.app.templates.Source.willExpire(resSource)
         const subject = data.subject || `Payment Method ${ resSource.token } will expire`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
         this.app.log.debug(`SOURCE WILL EXPIRE SEND EMAIL ${ resSource.token }`, sendEmail)
 
-        return {
-          type: 'source.willExpire',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('willExpire', subject, resSource, sendEmail)
       })
   }
 
@@ -60,13 +51,14 @@ module.exports = class Source extends Email {
         }
         resSource = foundSource
 
-        const text = `${ resSource.name }`
-        const html = `${ resSource.name }`
+        return resSource.resolveCustomer({transaction: options.transaction || null})
+      })
+      .then(() => {
+        const subject = data.subject || `Payment Method ${ resSource.token } expired`
+        const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
+        this.app.log.debug(`SOURCE EXPIRED SEND EMAIL ${ resSource.token }`, sendEmail)
 
-        return {
-          text: text,
-          html: html
-        }
+        return this.compose('expired', subject, resSource, sendEmail)
       })
   }
 }

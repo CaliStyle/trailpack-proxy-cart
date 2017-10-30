@@ -56,10 +56,10 @@ module.exports = {
   },
   // Transactions
   transactions: {
+    // The amount of days before authorization expires
+    authorization_exp_days: 5,
     // The amount of times a Transaction will retry failed
-    retry_attempts: 5,
-    // The amount of days before a Transaction will cancel from failed
-    grace_period_days: 5
+    retry_attempts: 5
   },
   // Emails that are allowed to send
   emails: {

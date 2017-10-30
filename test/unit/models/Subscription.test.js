@@ -26,6 +26,7 @@ describe('Subscription Model', () => {
     Subscription.build({
       customer_id: 1,
       renewed_at: start,
+      renews_on: end,
       interval: 1,
       interval_unit: 'm'
     }).renew().save()
@@ -34,6 +35,12 @@ describe('Subscription Model', () => {
         assert.ok(subscription instanceof Subscription)
         assert.ok(subscription.renews_on)
         assert.equal(subscription.active, true)
+        assert.equal(subscription.cancelled_at, null)
+        assert.equal(subscription.cancel_reason, null)
+        assert.equal(subscription.cancelled, false)
+        assert.ok(subscription.renews_on)
+        assert.equal(subscription.renew_retry_at, null)
+        assert.equal(subscription.total_renewal_attempts, 0)
         done()
       })
       .catch(err => {
@@ -47,6 +54,7 @@ describe('Subscription Model', () => {
     Subscription.build({
       customer_id: 1,
       renewed_at: start,
+      renews_on: end,
       interval: 1,
       interval_unit: 'm'
     }).retry().save()
@@ -54,10 +62,12 @@ describe('Subscription Model', () => {
         // console.log('MODEL renew', subscription)
         assert.ok(subscription instanceof Subscription)
         assert.equal(subscription.active, true)
+        assert.equal(subscription.cancelled_at, null)
+        assert.equal(subscription.cancel_reason, null)
+        assert.equal(subscription.cancelled, false)
         assert.ok(subscription.renews_on)
         assert.ok(subscription.renew_retry_at)
         assert.equal(subscription.total_renewal_attempts, 1)
-        // assert.equal(subscription.renews_on, end)
         done()
       })
       .catch(err => {

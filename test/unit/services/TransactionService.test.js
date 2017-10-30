@@ -43,16 +43,16 @@ describe('TransactionService', () => {
       })
       .then(transactions => {
         return TransactionService.retryThisHour()
-          .then(renewals => {
-            assert.equal(renewals.transactions, 21)
-            assert.equal(renewals.errors.length, 0)
+          .then(retries => {
+            assert.equal(retries.transactions, 21)
+            assert.equal(retries.errors.length, 0)
             return TransactionService.retryThisHour()
           })
       })
-      .then(renewals => {
+      .then(retries => {
         // Should be zero since they can't be retried more than once in the same hour.
-        assert.equal(renewals.transactions, 0)
-        assert.equal(renewals.errors.length, 0)
+        assert.equal(retries.transactions, 0)
+        assert.equal(retries.errors.length, 0)
         done()
       })
       .catch(err => {
@@ -85,6 +85,7 @@ describe('TransactionService', () => {
             authorization: `transaction_${i}`,
             description: `transaction cancel transaction_${i}`,
             total_retry_attempts: 5,
+            authorization_exp: start,
             retry_at: start
           })
           i++
@@ -93,16 +94,16 @@ describe('TransactionService', () => {
       })
       .then(transactions => {
         return TransactionService.cancelThisHour()
-          .then(renewals => {
-            assert.equal(renewals.transactions, 21)
-            assert.equal(renewals.errors.length, 0)
+          .then(cancelled => {
+            assert.equal(cancelled.transactions, 21)
+            assert.equal(cancelled.errors.length, 0)
             return TransactionService.cancelThisHour()
           })
       })
-      .then(renewals => {
+      .then(cancelled => {
         // Should be zero since they can't be retried more than once in the same hour.
-        assert.equal(renewals.transactions, 0)
-        assert.equal(renewals.errors.length, 0)
+        assert.equal(cancelled.transactions, 0)
+        assert.equal(cancelled.errors.length, 0)
         done()
       })
       .catch(err => {

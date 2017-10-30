@@ -651,6 +651,24 @@ module.exports = class Subscription extends Model {
             this.renew_retry_at = null
             this.total_renewal_attempts = 0
             this.total_renewals++
+
+            // Active now because it was renewed
+            this.active = true
+            // Clear prior cancelled arguments
+            this.cancelled = false
+            this.cancel_reason = null
+            this.cancelled_at = null
+
+            // Clear the prior renewal notices
+            this.notice_sent = false
+            this.notice_sent_at = null
+
+            return this
+          },
+
+          willRenew: function() {
+            this.notice_sent = true
+            this.notice_sent_at = new Date(Date.now())
             return this
           },
           /**
@@ -1155,6 +1173,18 @@ module.exports = class Subscription extends Model {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
+
+      // If a renewal notice was sent
+      notice_sent: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+
+      // When the renewal notice was sent
+      notice_sent_at: {
+        type: Sequelize.DATE
+      },
+
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,

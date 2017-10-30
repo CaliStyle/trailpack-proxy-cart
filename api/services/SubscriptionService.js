@@ -522,25 +522,32 @@ module.exports = class SubscriptionService extends Service {
             throw new Errors.FoundError(Error('Subscription Not Found'))
           }
           resSubscription = _subscription
+          // Build the order
           return this.prepareForOrder(resSubscription, {transaction: options.transaction || null})
         })
         .then(newOrder => {
+          // Create the order
           return this.app.services.OrderService.create(newOrder, {transaction: options.transaction || null})
         })
         .then(_order => {
           if (!_order) {
             throw new Error(`Unexpected error during subscription ${resSubscription.id} renewal`)
           }
+          if (!(_order instanceof this.app.orm['Order'])) {
+            throw new Error('Did not return an instance of Order')
+          }
           resOrder = _order
 
-          // Set the lastest order id.
+          // Set the latest order id.
           resSubscription.last_order_id = resOrder.id
-          // Renew the Subscription
-          if (resOrder.financial_status !== ORDER_FINANCIAL.PENDING) {
+
+          // Renew the Subscription if it is paid
+          if (resOrder.financial_status === ORDER_FINANCIAL.PAID) {
             renewal = 'success'
             return resSubscription.renew()
               .save({transaction: options.transaction || null})
           }
+          // Mark the subscription for retry if part of it has failed
           else {
             renewal = 'failure'
             return resSubscription.retry()
@@ -567,12 +574,15 @@ module.exports = class SubscriptionService extends Service {
           })
         })
         .then((event) => {
+          // If renewed, then send a renewal success email
           if (renewal === 'success') {
             return resSubscription.sendRenewedEmail({transaction: options.transaction || null})
           }
+          // If failed to renew, send a failure email if it's the first attempt
           else if (renewal === 'failure' && resSubscription.total_renewal_attempts === 1) {
             return resSubscription.sendFailedEmail({transaction: options.transaction || null})
           }
+          // Else we don't need to send any email
           else {
             return
           }
@@ -763,7 +773,9 @@ module.exports = class SubscriptionService extends Service {
             throw new Errors.FoundError(Error('Subscription Not Found'))
           }
           resSubscription = _subscription
-
+          return resSubscription.willRenew().save({transaction: options.transaction || null})
+        })
+        .then(() => {
           return resSubscription.sendWillRenewEmail({transaction: options.transaction || null})
         })
         .then((notification) => {
@@ -901,17 +913,34 @@ module.exports = class SubscriptionService extends Service {
     options = options || {}
     const Subscription = this.app.orm['Subscription']
     const errors = []
+
+    const start = moment().startOf('hour')
+      .subtract(this.app.config.get('proxyCart.subscriptions.grace_period_days') || 0, 'days')
+
     // let errorsTotal = 0
     let subscriptionsTotal = 0
 
-    this.app.log.debug('SubscriptionService.cancelThisHour')
+    this.app.log.debug('SubscriptionService.cancelThisHour', start.format('YYYY-MM-DD HH:mm:ss'))
 
-    // Find Subscriptions that are at their max retry amount and aren't already cancelled.
+    // Find Subscriptions that are at their max retry amount
+    // and aren't already cancelled.
+    // and have reached the end of the grace period
     return Subscription.batch({
       where: {
-        total_renewal_attempts: {
-          $gte: this.app.config.proxyCart.subscriptions.retry_attempts || 1
+        $or: [
+          {
+            total_renewal_attempts: {
+              $gte: this.app.config.proxyCart.subscriptions.retry_attempts || 1
+            }
+          },
+          {
+            active: false
+          }
+        ],
+        renews_on: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss')
         },
+        // Not cancelled
         cancelled: false
       },
       regressive: true,
@@ -962,8 +991,13 @@ module.exports = class SubscriptionService extends Service {
    */
   willRenewDate(options) {
     options = options || {}
-    const start = moment().add(3, 'days').startOf('hour')
-    const end = start.clone().add(3, 'days').endOf('hour')
+
+    const start = moment()
+      .add(this.app.config.get('proxyCart.subscriptions.renewal_notice_days') || 0, 'days')
+      .startOf('hour')
+    const end = start.clone()
+      .endOf('hour')
+
     const Subscription = this.app.orm['Subscription']
     const errors = []
     // let errorsTotal = 0
@@ -977,6 +1011,7 @@ module.exports = class SubscriptionService extends Service {
           $gte: start.format('YYYY-MM-DD HH:mm:ss'),
           $lte: end.format('YYYY-MM-DD HH:mm:ss')
         },
+        notice_sent: false,
         active: true
       },
       regressive: true,

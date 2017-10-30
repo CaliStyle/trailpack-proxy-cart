@@ -16,7 +16,7 @@ module.exports = class Subscription extends Template {
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
-    }).join('')
+    }).join('\n')
 
     return `<h1>Subscription ${ subscription.token } Cancelled</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
@@ -33,17 +33,20 @@ ${subscriptionItems}
    */
   failed(subscription) {
 
-    // let cancelTime = new Date(subscription.cancelled_at)
-    // cancelTime = moment(cancelTime).format('LLLL')
+    let cancelTime = new Date(subscription.renews_on)
+    cancelTime = moment(cancelTime)
+      .add(this.app.config.get('proxyCart.subscriptions.grace_period_days') || 0, 'days')
+      .format('LLLL')
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
-    }).join('')
+    }).join('\n')
 
     return `<h1>Subscription ${ subscription.token } Failed to Renew</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
-<p>Your subscription failed to renew.</p>
+<p>Your subscription failed to renew and is at risk of being cancelled.</p>
 <p>To avoid cancellation of your subscription, please update your payment method or contact customer services.</p>
+<p>Your Subscription is set to cancel on ${ cancelTime }</p>
 <p>Subscription Order Number: ${ subscription.last_order.name }</p>
 <h5>Subscription Items</h5>
 ${subscriptionItems}
@@ -67,7 +70,7 @@ ${subscriptionItems}
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
-    }).join('')
+    }).join('\n')
 
     return `<h1>Subscription ${ subscription.token } Renewed</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
@@ -97,7 +100,7 @@ ${subscriptionItems}
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
-    }).join('')
+    }).join('\n')
 
     return `<h1>Subscription ${ subscription.token } Activated</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
@@ -123,7 +126,7 @@ ${subscriptionItems}
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
-    }).join('')
+    }).join('\n')
 
     return `<h1>Subscription ${ subscription.token } Deactivated</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
@@ -149,7 +152,7 @@ ${subscriptionItems}
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
-    }).join('')
+    }).join('\n')
 
     return `<h1>Subscription ${ subscription.token } Updated</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
@@ -172,7 +175,7 @@ ${subscriptionItems}
 
     const subscriptionItems = subscription.line_items.map(item => {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
-    }).join('')
+    }).join('\n')
 
     return `<h1>Subscription ${ subscription.token } Will Renew</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>

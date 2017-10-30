@@ -343,6 +343,13 @@ module.exports = class TransactionService extends Service {
       })
   }
 
+  /**
+   *
+   * @param order
+   * @param amount
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
   reconcileUpdate(order, amount, options) {
     options = options || {}
     const Order = this.app.orm['Order']
@@ -496,13 +503,21 @@ module.exports = class TransactionService extends Service {
   cancelThisHour() {
     const Transaction = this.app.orm['Transaction']
     const errors = []
+    const start = moment().startOf('hour')
+      .subtract(this.app.config.get('proxyCart.transactions.authorization_exp_days') || 0, 'days')
+
+    // console.log('START TIME', start.format('YYYY-MM-DD HH:mm:ss'))
+
     // let errorsTotal = 0
     let transactionsTotal = 0
 
-    this.app.log.debug('TransactionService.cancelThisHour')
+    this.app.log.debug('TransactionService.cancelThisHour', start.format('YYYY-MM-DD HH:mm:ss'))
 
     return Transaction.batch({
       where: {
+        authorization_exp: {
+          $gte: start.format('YYYY-MM-DD HH:mm:ss')
+        },
         total_retry_attempts: {
           $gte: this.app.config.proxyCart.transactions.retry_attempts || 1
         },

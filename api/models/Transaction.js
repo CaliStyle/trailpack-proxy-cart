@@ -11,6 +11,7 @@ const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
 const TRANSACTION_KIND = require('../../lib').Enums.TRANSACTION_KIND
 const TRANSACTION_DEFAULTS = require('../../lib').Enums.TRANSACTION_DEFAUTLS
 const _ = require('lodash')
+const moment = require('moment')
 
 /**
  * @module Transaction
@@ -356,7 +357,9 @@ module.exports = class Transaction extends Model {
       // The date the authorization expires
       authorization_exp: {
         type: Sequelize.DATE,
-        defaultValue: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
+        defaultValue: moment()
+          .subtract(app.config.get('proxyCart.transactions.authorization_exp_days') || 0, 'days')
+          .format('YYYY-MM-DD HH:mm:ss')
       },
       // The unique identifier for the device.
       device_id: {

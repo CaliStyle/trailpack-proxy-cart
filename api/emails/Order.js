@@ -30,19 +30,11 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `Order ${ resOrder.name } Created`
-        const html = data.html || this.app.templates.Order.created(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Created`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
         this.app.log.debug(`ORDER CREATED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
-        return {
-          type: 'order.created',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('created', subject, resOrder, sendEmail)
       })
   }
   /**
@@ -68,20 +60,12 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `Order ${ resOrder.name } Cancelled`
-        const html = data.html || this.app.templates.Order.cancelled(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Cancelled`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER CANCELLED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
-        return {
-          type: 'order.cancelled',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('cancelled', subject, resOrder, sendEmail)
       })
   }
   /**
@@ -107,20 +91,12 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `Order ${ resOrder.name } Failed`
-        const html = data.html || this.app.templates.Order.failed(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Failed`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER FAILED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
-        return {
-          type: 'order.failed',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('failed', subject, resOrder, sendEmail)
       })
   }
   /**
@@ -146,20 +122,12 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `Order ${ resOrder.name } Fulfilled`
-        const html = data.html || this.app.templates.Order.fulfilled(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Fulfilled`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER FULFILLED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
-        return {
-          type: 'order.fulfilled',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('fulfilled', subject, resOrder, sendEmail)
       })
   }
   /**
@@ -184,20 +152,13 @@ module.exports = class Order extends Email {
         return resOrder.resolveOrderItems({transaction: options.transaction || null})
       })
       .then(() => {
-        const text = data.text || `Order ${ resOrder.name } Paid`
-        const html = data.html || this.app.templates.Order.paid(resOrder)
+
         const subject = data.subject || `Order ${ resOrder.name } Paid`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER PAID SEND EMAIL ${ resOrder.name }`, sendEmail)
 
-        return {
-          type: 'order.paid',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('paid', subject, resOrder, sendEmail)
       })
   }
 
@@ -223,20 +184,12 @@ module.exports = class Order extends Email {
         return resOrder.resolveOrderItems({transaction: options.transaction || null})
       })
       .then(() => {
-        const text = data.text || `Order ${ resOrder.name } Partially Paid`
-        const html = data.html || this.app.templates.Order.partiallyPaid(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Partially Paid Receipt`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER PARTIALLY PAID SEND EMAIL ${ resOrder.name }`, sendEmail)
 
-        return {
-          type: 'order.partiallyPaid',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('partiallyPaid', subject, resOrder, sendEmail)
       })
   }
   /**
@@ -262,20 +215,12 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `Order ${ resOrder.name } Refunded`
-        const html = data.html || this.app.templates.Order.refunded(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Refunded`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER REFUNDED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
-        return {
-          type: 'order.refunded',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('refunded', subject, resOrder, sendEmail)
       })
   }
 
@@ -302,20 +247,12 @@ module.exports = class Order extends Email {
       })
       .then(() => {
 
-        const text = data.text || `Order ${ resOrder.name } Updated`
-        const html = data.html || this.app.templates.Order.updated(resOrder)
         const subject = data.subject || `Order ${ resOrder.name } Updated`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
 
         this.app.log.debug(`ORDER UPDATED SEND EMAIL ${ resOrder.name }`, sendEmail)
 
-        return {
-          type: 'order.updated',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('updated', subject, resOrder, sendEmail)
       })
   }
 }
