@@ -587,13 +587,18 @@ module.exports = class Product extends Model {
           mergeIntoCollections: function(colsB) {
             colsB = colsB || []
 
-            const collections = _.map(this.collections, (item) => {
-              return _.extend(item, _.find(colsB, { id: item.id }))
+            const collections = this.collections
+
+            colsB.forEach(collection => {
+              if (!this.collections.some(colA => colA.id === collection.id)) {
+                collections.push(collection)
+              }
             })
 
             this.collections = collections
             this.setDataValue('collections', collections)
             this.set('collections', collections)
+
             return this
           },
           /**

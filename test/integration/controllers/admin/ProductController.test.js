@@ -877,7 +877,7 @@ describe('Admin User ProductController', () => {
         uploadID = res.body.result.upload_id
         assert.equal(res.body.result.products, 18)
         assert.equal(res.body.result.errors.length, 1)
-        done()
+        done(err)
       })
   })
   it('It should process upload', (done) => {
@@ -889,7 +889,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body.products, 15)
         assert.equal(res.body.variants, 18)
         assert.equal(res.body.errors.length, 0)
-        done()
+        done(err)
       })
   })
   // TODO list associations
@@ -898,7 +898,7 @@ describe('Admin User ProductController', () => {
       .get('/product/handle/yeti')
       .expect(200)
       .end((err, res) => {
-        done()
+        done(err)
       })
   })
 
@@ -912,7 +912,7 @@ describe('Admin User ProductController', () => {
         uploadMetaID = res.body.result.upload_id
         assert.equal(res.body.result.products, 2)
         assert.equal(res.body.result.errors.length, 1)
-        done()
+        done(err)
       })
   })
   it('It should process meta upload', (done) => {
@@ -923,7 +923,7 @@ describe('Admin User ProductController', () => {
       .end((err, res) => {
         assert.equal(res.body.errors_count, 0)
         assert.equal(res.body.products, 2)
-        done()
+        done(err)
       })
   })
   it('It should get product with uploaded meta', (done) => {
@@ -938,7 +938,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.body.variants[0].metadata['material'], 'metal')
         assert.equal(res.body.variants[0].metadata['condition'], 'used')
         assert.equal(res.body.variants[0].metadata['recycle'], 'no')
-        done()
+        done(err)
       })
   })
 
@@ -968,7 +968,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-sort'], 'created_at,DESC')
         assert.ok(res.body)
         assert.equal(res.body.length, 10)
-        done()
+        done(err)
       })
   })
   it('It should get products offset', (done) => {
@@ -997,7 +997,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-sort'], 'created_at,DESC')
         assert.ok(res.body)
         assert.equal(res.body.length, 10)
-        done()
+        done(err)
       })
   })
   it('It should get products by tag', (done) => {
@@ -1023,7 +1023,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-offset'], '0')
         assert.equal(res.body.length, 10)
-        done()
+        done(err)
       })
   })
   it('It should get products by tag offset', (done) => {
@@ -1049,7 +1049,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-offset'], '10')
         assert.equal(res.body.length, 5)
-        done()
+        done(err)
       })
   })
   it('It should get products by collection', (done) => {
@@ -1086,7 +1086,7 @@ describe('Admin User ProductController', () => {
         })
 
         assert.equal(res.body.length, 10)
-        done()
+        done(err)
       })
   })
   it('It should get products by collection offset', (done) => {
@@ -1122,7 +1122,7 @@ describe('Admin User ProductController', () => {
         })
 
         assert.equal(res.body.length, 5)
-        done()
+        done(err)
       })
   })
   it('It should search products by collection', (done) => {
@@ -1159,7 +1159,7 @@ describe('Admin User ProductController', () => {
         })
 
         assert.equal(res.body.length, 1)
-        done()
+        done(err)
       })
   })
   it.skip('It should get product by handle', (done) => {
@@ -1169,7 +1169,7 @@ describe('Admin User ProductController', () => {
       .end((err, res) => {
         assert.ok(res.body)
         assert.equal(res.body.handle, 'discount-test')
-        done()
+        done(err)
       })
   })
   it('It should get product by handle alias', (done) => {
@@ -1179,7 +1179,7 @@ describe('Admin User ProductController', () => {
       .end((err, res) => {
         assert.ok(res.body)
         assert.equal(res.body.handle, 'discount-test')
-        done()
+        done(err)
       })
   })
   it('It should search and get product', (done) => {

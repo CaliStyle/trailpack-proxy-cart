@@ -56,7 +56,7 @@ describe('Admin User Pricing Override', () => {
         assert.equal(res.body.pricing_overrides[0].price, 100)
         assert.equal(res.body.pricing_overrides[0].admin_id, userID)
         assert.equal(res.body.pricing_override_id, userID)
-        done()
+        done(err)
       })
   })
 
@@ -76,7 +76,7 @@ describe('Admin User Pricing Override', () => {
         assert.equal(res.body.pricing_overrides[0].price, 1000)
         assert.equal(res.body.pricing_overrides[0].admin_id, userID)
         assert.equal(res.body.pricing_override_id, userID)
-        done()
+        done(err)
       })
   })
 

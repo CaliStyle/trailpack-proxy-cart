@@ -300,7 +300,7 @@ describe('Admin User CollectionController', () => {
         uploadID = res.body.result.upload_id
         assert.equal(res.body.result.collections, 1)
         assert.equal(res.body.result.errors_count, 0)
-        done()
+        done(err)
       })
   })
   it('It should process upload', (done) => {
@@ -311,7 +311,7 @@ describe('Admin User CollectionController', () => {
       .end((err, res) => {
         assert.equal(res.body.collections, 1)
         assert.equal(res.body.errors_count, 0)
-        done()
+        done(err)
       })
   })
   it('It should get collection by handle', (done) => {
@@ -331,7 +331,7 @@ describe('Admin User CollectionController', () => {
         assert.equal(res.body.discount_scope, 'global')
         assert.equal(res.body.discount_type, 'fixed')
         assert.equal(res.body.discount_rate, 100)
-        done()
+        done(err)
       })
   })
   it('should get all collections', (done) => {
@@ -381,7 +381,7 @@ describe('Admin User CollectionController', () => {
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
         assert.equal(res.body.length, 1)
-        done()
+        done(err)
       })
   })
 })

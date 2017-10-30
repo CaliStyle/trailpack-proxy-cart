@@ -54,7 +54,7 @@ describe('Admin User SubscriptionController', () => {
         assert.ok(res.body.result.upload_id)
         uploadID = res.body.result.upload_id
         assert.equal(res.body.result.subscriptions, 1)
-        done()
+        done(err)
       })
   })
   it('It should process upload', (done) => {

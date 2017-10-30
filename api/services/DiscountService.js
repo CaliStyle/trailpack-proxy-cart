@@ -287,9 +287,20 @@ module.exports = class DiscountService extends Service {
               return resObj
             }
 
-            const calculatedPrice = Math.max(0, resObj.calculated_price - discountedLine.price)
-            const totalDeducted = Math.min(resObj.price,(resObj.price - (resObj.price - discountedLine.price)))
-            // console.log('cart checkout', item.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
+            // const lineDiscountedLines = item.discounted_lines
+            // Set the default Discounted Line
+            const lineDiscountedLine = _.omit(_.clone(discountedLine), 'lines')
+
+            if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.FIXED) {
+              lineDiscountedLine.price = discountedLine.rate
+            }
+            else if (discountedLine.type === COLLECTION_DISCOUNT_TYPE.PERCENTAGE) {
+              lineDiscountedLine.price = (resObj.price * discountedLine.percentage)
+            }
+
+            const calculatedPrice = Math.max(0, resObj.calculated_price - lineDiscountedLine.price)
+            const totalDeducted = Math.min(resObj.price,(resObj.price - (resObj.price - lineDiscountedLine.price)))
+            // console.log('Product Collections Discounts', resObj.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
             // Publish this to the parent discounted lines
             resObj.setCalculatedPrice(calculatedPrice)
             discountedLine.price = discountedLine.price + totalDeducted

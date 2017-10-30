@@ -40,7 +40,7 @@ describe('Registered User Login, Logout, recover, and log back in', () => {
       .set('Accept', 'application/json')
       .expect(200)
       .end((err, res) => {
-        done()
+        done(err)
       })
   })
   it('should logback in', done => {
@@ -67,7 +67,7 @@ describe('Registered User Login, Logout, recover, and log back in', () => {
       .set('Accept', 'application/json')
       .expect(200)
       .end((err, res) => {
-        done()
+        done(err)
       })
   })
 
