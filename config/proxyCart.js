@@ -32,12 +32,16 @@ module.exports = {
   default_countries: ['USA'],
   // Emails to send
   emails: {
+    customerRetarget: true,
+    customerAccountBalanceDeducted: true,
+    customerAccountBalanceCredited: true,
     orderCreated: true,
     orderUpdated: true,
     orderPaid: true,
     orderFulfilled: true,
     orderRefunded: true,
     orderCancelled: true,
+    sourceExpired: false,
     sourceWillExpire: true,
     sourceUpdated: true,
     subscriptionCreated: true,

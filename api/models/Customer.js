@@ -817,6 +817,27 @@ module.exports = class Customer extends Model {
           },
 
           /**
+           * Email to notify user's that there are pending items in cart
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          sendRetargetEmail(options) {
+            options = options || {}
+            return app.emails.Customer.retarget(this, {
+              send_email: app.config.proxyCart.emails.customerRetarget
+            }, {
+              transaction: options.transaction || null
+            })
+              .then(email => {
+                return this.notifyUsers(email, {transaction: options.transaction || null})
+              })
+              .catch(err => {
+                app.log.error(err)
+                return
+              })
+          },
+
+          /**
            *
            * @param address
            * @param options

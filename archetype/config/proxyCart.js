@@ -63,12 +63,16 @@ module.exports = {
   },
   // Emails that are allowed to send
   emails: {
+    customerRetarget: false,
+    customerAccountBalanceDeducted: false,
+    customerAccountBalanceCredited: false,
     orderCreated: false,
     orderUpdated: false,
     orderPaid: false,
     orderFulfilled: false,
     orderRefunded: false,
     orderCancelled: false,
+    sourceExpired: false,
     sourceWillExpire: false,
     sourceUpdated: false,
     subscriptionCreated: false,

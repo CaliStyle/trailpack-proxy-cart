@@ -52,6 +52,14 @@ module.exports = class Discount extends Model {
             }
           }
         },
+        hooks: {
+          beforeCreate: function(values, options) {
+            if (values.body) {
+              const bodyDoc = app.services.RenderGenericService.renderSync(values.body)
+              values.body_html = bodyDoc.document
+            }
+          }
+        },
         classMethods: {
           DISCOUNT_TYPES: DISCOUNT_TYPES,
           DISCOUNT_STATUS: DISCOUNT_STATUS,
@@ -240,6 +248,20 @@ module.exports = class Discount extends Model {
               return Promise.reject(err)
             }
           }
+        },
+        instanceMethods: {
+          start: function() {
+            this.status = DISCOUNT_STATUS.ENABLED
+            return this
+          },
+          stop: function() {
+            this.status = DISCOUNT_STATUS.DISABLED
+            return this
+          },
+          depleted: function () {
+            this.status = DISCOUNT_STATUS.DEPLETED
+            return this
+          }
         }
       }
     }
@@ -253,6 +275,14 @@ module.exports = class Discount extends Model {
       },
       // A description of the discount.
       description: {
+        type: Sequelize.TEXT
+      },
+      // The body of a collection (in markdown or html)
+      body: {
+        type: Sequelize.TEXT
+      },
+      // The html of a collection (DO NOT EDIT DIRECTLY)
+      body_html: {
         type: Sequelize.TEXT
       },
       // The case-insensitive discount code that customers use at checkout. Required when creating a discount. Maximum length of 255 characters.

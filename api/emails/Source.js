@@ -45,11 +45,11 @@ module.exports = class Source extends Email {
     const Source = this.app.orm['Source']
     let resSource
     return Source.resolve(source, options)
-      .then(foundSource => {
-        if (!foundSource) {
+      .then(_source => {
+        if (!_source) {
           throw new Error('Source did not resolve')
         }
-        resSource = foundSource
+        resSource = _source
 
         return resSource.resolveCustomer({transaction: options.transaction || null})
       })

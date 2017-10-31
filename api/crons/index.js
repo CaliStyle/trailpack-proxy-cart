@@ -1,3 +1,4 @@
+exports.AccountsCron = require('./AccountsCron')
 exports.CartsCron = require('./CartsCron')
 exports.CouponsCron = require('./CouponsCron')
 exports.DiscountsCron = require('./DiscountsCron')

@@ -30,19 +30,11 @@ module.exports = class Subscription extends Email {
       })
       .then(() => {
 
-        const text = data.text || `Subscription ${ resSubscription.token } Cancelled`
-        const html = data.html || this.app.templates.Subscription.cancelled(resSubscription)
         const subject = data.subject || `Subscription ${ resSubscription.token } Cancelled`
         const sendEmail = typeof data.send_email !== 'undefined' ? data.send_email : true
         this.app.log.debug(`SUBSCRIPTION CANCELLED SEND EMAIL ${ resSubscription.token }`, sendEmail)
 
-        return {
-          type: 'subscription.cancelled',
-          subject: subject,
-          text: text,
-          html: html,
-          send_email: sendEmail
-        }
+        return this.compose('cancelled', subject, resSubscription, sendEmail)
       })
 
   }

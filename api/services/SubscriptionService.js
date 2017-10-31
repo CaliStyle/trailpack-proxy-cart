@@ -774,6 +774,9 @@ module.exports = class SubscriptionService extends Service {
           if (!_subscription) {
             throw new Errors.FoundError(Error('Subscription Not Found'))
           }
+          if (!(_subscription instanceof Subscription)) {
+            throw new Error('Subscription did not resolve instance of Subscription')
+          }
           resSubscription = _subscription
           return resSubscription.willRenew().save({transaction: options.transaction || null})
         })
@@ -951,9 +954,12 @@ module.exports = class SubscriptionService extends Service {
 
       const Sequelize = Subscription.sequelize
       return Sequelize.Promise.mapSeries(subscriptions, subscription => {
+        // If the subscription was cancelled due to retries, then it's a funding issue
+        // If subscription was deactivated, it's because the customer requested the cancellation.
+        const reason = subscription.retry_attempts > 0 ? SUBSCRIPTION_CANCEL.FUNDING : SUBSCRIPTION_CANCEL.CUSTOMER
         return this.cancel(
           {
-            reason: SUBSCRIPTION_CANCEL.FUNDING,
+            reason: reason,
             cancel_pending: true
           },
           subscription,

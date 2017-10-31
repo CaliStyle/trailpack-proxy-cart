@@ -7,6 +7,7 @@ describe('SubscriptionService', () => {
   let SubscriptionService, Subscription, Order
   it('should exist', () => {
     assert(global.app.api.services['SubscriptionService'])
+    assert(global.app.services['SubscriptionService'])
     SubscriptionService = global.app.services['SubscriptionService']
     Subscription = global.app.orm['Subscription']
     Order = global.app.orm['Order']

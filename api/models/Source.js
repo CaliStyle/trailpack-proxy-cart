@@ -75,6 +75,41 @@ module.exports = class Source extends Model {
               // constraints: false
             })
           },
+          /**
+           *
+           * @param options
+           * @param batch
+           * @returns Promise.<T>
+           */
+          batch: function (options, batch) {
+            const self = this
+            options = options || {}
+            options.limit = options.limit || 10
+            options.offset = options.offset || 0
+            options.regressive = options.regressive || false
+
+            const recursiveQuery = function(options) {
+              let count = 0
+              // let batched = 0
+              return self.findAndCountAll(options)
+                .then(results => {
+                  count = results.count
+                  // batched = results.rows.length
+                  // console.log('BROKE', count, batched, options.offset + options.limit)
+                  return batch(results.rows)
+                })
+                .then(() => {
+                  if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
+                    options.offset = options.regressive ? 0 : options.offset + options.limit
+                    return recursiveQuery(options)
+                  }
+                  else {
+                    return Promise.resolve()
+                  }
+                })
+            }
+            return recursiveQuery(options)
+          },
           resolve: function(source, options){
             const Source =  this
             if (source instanceof Source){
@@ -135,6 +170,101 @@ module.exports = class Source extends Model {
               const err = new Error(`Unable to resolve Source ${source}`)
               return Promise.reject(err)
             }
+          }
+        },
+        instanceMethods: {
+          /**
+           *
+           * @param preNotification
+           * @param options
+           */
+          notifyCustomer: function(preNotification, options) {
+            options = options || {}
+            if (this.customer_id) {
+              return this.resolveCustomer({
+                attributes: ['id','email','company','first_name','last_name','full_name'],
+                transaction: options.transaction || null,
+                reload: options.reload || null
+              })
+                .then(() => {
+                  if (this.Customer && this.Customer instanceof app.orm['Customer']) {
+                    return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
+                  }
+                  else {
+                    return
+                  }
+                })
+                .then(() => {
+                  return this
+                })
+            }
+            else {
+              return Promise.resolve(this)
+            }
+          },
+          resolveCustomer: function(options) {
+            options = options || {}
+            if (
+              this.Customer
+              && this.Customer instanceof app.orm['Customer']
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this)
+            }
+            // A subscription always requires a customer, but just in case.
+            else if (!this.customer_id) {
+              return Promise.resolve(this)
+            }
+            else {
+              return this.getCustomer({transaction: options.transaction || null})
+                .then(_customer => {
+                  _customer = _customer || null
+                  this.Customer = _customer
+                  this.setDataValue('Customer', _customer)
+                  this.set('Customer', _customer)
+                  return this
+                })
+            }
+          },
+          /**
+           *
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          sendExpiredEmail(options) {
+            options = options || {}
+            return app.emails.Source.expired(this, {
+              send_email: app.config.proxyCart.emails.sourceExpired
+            }, {
+              transaction: options.transaction || null
+            })
+              .then(email => {
+                return this.notifyCustomer(email, {transaction: options.transaction || null})
+              })
+              .catch(err => {
+                app.log.error(err)
+                return
+              })
+          },
+          /**
+           *
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          sendWillExpireEmail(options) {
+            options = options || {}
+            return app.emails.Source.willExpire(this, {
+              send_email: app.config.proxyCart.emails.sourceWillExpire
+            }, {
+              transaction: options.transaction || null
+            })
+              .then(email => {
+                return this.notifyCustomer(email, {transaction: options.transaction || null})
+              })
+              .catch(err => {
+                app.log.error(err)
+                return
+              })
           }
         }
       }

@@ -18,10 +18,29 @@ module.exports = class Subscription extends Template {
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, subscription.currency)}</p>`
     }).join('\n')
 
+    let reason
+    switch (subscription.cancel_reason) {
+    case 'funding':
+      reason = 'because we were unable to process your billing method'
+      break
+    case 'inventory':
+      reason = 'because we are unable to fulfill your subscription'
+      break
+    case 'fraud':
+      reason = 'because it was reported fraudulent'
+      break
+    case 'other':
+    case 'customer':
+      reason = 'by your request'
+      break
+    default:
+      reason = 'by your request'
+    }
+
     return `<h1>Subscription ${ subscription.token } Cancelled</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
-<p>Your subscription was cancelled at ${cancelTime}.</p>
-<h5>Subscription Items</h5>
+<p>Your subscription was cancelled ${reason} and cancelled at ${cancelTime}.</p>
+<h5>Cancelled Subscription Items</h5>
 ${subscriptionItems}
 <p>Thank you!</p>`
   }
@@ -77,7 +96,7 @@ ${subscriptionItems}
 <p>Your subscription has renewed.</p>
 <p>Subscription Order Number: ${ subscription.last_order.name }</p>
 <p>Next renewal date: ${renewOnTime}</p>
-<h5>Subscription Items</h5>
+<h5>Renewed Subscription Items</h5>
 ${subscriptionItems}
 <p>------------------------</p>
 <p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(subscription.subtotal_price, subscription.currency)}</p>
@@ -180,7 +199,7 @@ ${subscriptionItems}
     return `<h1>Subscription ${ subscription.token } Will Renew</h1>
 <p>Dear ${subscription.Customer ? subscription.Customer.getSalutation() : 'Customer'},</p>
 <p>Your subscription will renew on ${renewOnTime}.</p>
-<h5>Subscription Items</h5>
+<h5>Subscription items that will renew</h5>
 ${subscriptionItems}
 <p>Thank you!</p>`
   }

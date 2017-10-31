@@ -25,7 +25,10 @@ module.exports = class CartsCron extends Cron {
     rule.minute = 0
     // Schedule the recurring job
     this.scheduler.scheduleJob('CartsCron.retarget', rule, () => {
-      //
+      this.app.services.CartService.retarget()
+        .catch(err => {
+          this.app.log.error(err)
+        })
     })
   }
 }

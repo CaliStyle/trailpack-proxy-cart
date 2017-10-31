@@ -4,6 +4,7 @@
 const Service = require('trails/service')
 const Errors = require('proxy-engine-errors')
 const _ = require('lodash')
+const moment = require('moment')
 const TRANSACTION_STATUS = require('../../lib').Enums.TRANSACTION_STATUS
 
 /**
@@ -552,6 +553,59 @@ module.exports = class AccountService extends Service {
         })
       })
   }
+  /**
+   * Sends Source Will Expire Email
+   * @param source
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  sourceExpired(source, options) {
+    options = options || {}
+
+    const Source = this.app.orm['Source']
+    let resSource
+    return Source.resolve(source, {transaction: options.transaction || null})
+      .then(_source => {
+        if (!_source) {
+          throw new Error('Source did not resolve')
+        }
+        if (!(_source instanceof Source)) {
+          throw new Error('Source did not resolve instance of Source')
+        }
+        resSource = _source
+        return resSource.sendExpiredEmail({transaction: options.transaction || null})
+      })
+      .then(notification => {
+        return resSource
+      })
+  }
+
+  /**
+   * Sends Source Will Expire Email
+   * @param source
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
+  sourceWillExpire(source, options) {
+    options = options || {}
+
+    const Source = this.app.orm['Source']
+    let resSource
+    return Source.resolve(source, {transaction: options.transaction || null})
+      .then(_source => {
+        if (!_source) {
+          throw new Error('Source did not resolve')
+        }
+        if (!(_source instanceof Source)) {
+          throw new Error('Source did not resolve instance of Source')
+        }
+        resSource = _source
+        return resSource.sendWillExpireEmail({transaction: options.transaction || null})
+      })
+      .then(notification => {
+        return resSource
+      })
+  }
 
   afterSourceCreate(source, options) {
     options = options || {}
@@ -577,6 +631,146 @@ module.exports = class AccountService extends Service {
     })
       .then(customerSource => {
         return source
+      })
+  }
+
+  /**
+   * Sources that are now expired
+   * @param options
+   */
+  sourcesExpiredThisMonth(options) {
+    options = options || {}
+
+    const start = moment()
+      .subtract(1, 'months')
+    const startMonth = start.clone().format('MM')
+    const startYear = start.clone().format('YYYY')
+
+    const Source = this.app.orm['Source']
+    const errors = []
+    // let errorsTotal = 0
+    let sourcesTotal = 0
+
+    this.app.log.debug('AccountService.sourcesExpiredThisMonth', startMonth, startYear)
+
+    return Source.batch({
+      where: {
+        $or: [{
+          payment_details: {
+            type: 'credit_card',
+            credit_card_exp_month: startMonth,
+            credit_card_exp_year: startYear
+          }
+        }, {
+          payment_details: {
+            type: 'debit_card',
+            credit_card_exp_month: startMonth,
+            credit_card_exp_year: startYear
+          }
+        }]
+      },
+      regressive: false,
+      transaction: options.transaction || null
+    }, (sources) => {
+
+      const Sequelize = Source.sequelize
+      return Sequelize.Promise.mapSeries(sources, source => {
+        return this.sourceExpired(source, {transaction: options.transaction || null})
+      })
+        .then(results => {
+          // Calculate Totals
+          sourcesTotal = sourcesTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
+        })
+    })
+      .then(sources => {
+        const results = {
+          sources: sourcesTotal,
+          errors: errors
+        }
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('account.sourcesExpiredThisMonth.complete', results)
+        return results
+      })
+      .catch(err => {
+        this.app.log.error(err)
+        return
+      })
+  }
+
+  /**
+   * Sources that will expire this month
+   * @param options
+   */
+  sourcesWillExpireNextMonth(options) {
+    options = options || {}
+
+    const start = moment()
+
+    const startMonth = start.clone().format('MM')
+    const startYear = start.clone().format('YYYY')
+
+    const Source = this.app.orm['Source']
+    const errors = []
+    // let errorsTotal = 0
+    let sourcesTotal = 0
+
+    this.app.log.debug('account.sourcesWillExpireNextMonth', startMonth, startYear)
+
+    return Source.batch({
+      where: {
+        $or: [{
+          payment_details: {
+            type: 'credit_card',
+            credit_card_exp_month: startMonth,
+            credit_card_exp_year: startYear
+          }
+        }, {
+          payment_details: {
+            type: 'debit_card',
+            credit_card_exp_month: startMonth,
+            credit_card_exp_year: startYear
+          }
+        }]
+      },
+      regressive: false,
+      transaction: options.transaction || null
+    }, (sources) => {
+
+      const Sequelize = Source.sequelize
+      return Sequelize.Promise.mapSeries(sources, source => {
+        return this.sourceWillExpire(source, {transaction: options.transaction || null})
+      })
+        .then(results => {
+          // Calculate Totals
+          sourcesTotal = sourcesTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
+        })
+    })
+      .then(sources => {
+        const results = {
+          sources: sourcesTotal,
+          errors: errors
+        }
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('account.sourcesWillExpireNextMonth.complete', results)
+        return results
+      })
+      .catch(err => {
+        this.app.log.error(err)
+        return
       })
   }
 }
