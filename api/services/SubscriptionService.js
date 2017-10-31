@@ -615,18 +615,20 @@ module.exports = class SubscriptionService extends Service {
         if (!_subscription.token) {
           throw new Error('Subscription is missing token and can not be retried')
         }
-        if (!_subscription.original_order_id) {
-          throw new Error('Subscription is missing original order id and can not be retried')
-        }
+        // We can't do this because there may be imported subscriptions
+        // if (!_subscription.original_order_id) {
+        //   throw new Error('Subscription is missing original order id and can not be retried')
+        // }
 
         // Bind the DAO
         resSubscription = _subscription
 
         return Order.findAll({
           where: {
-            id: {
-              $not: resSubscription.original_order_id
-            },
+            // We can't do this because there may be imported subscriptions
+            // id: {
+            //   $not: resSubscription.original_order_id
+            // },
             customer_id: resSubscription.customer_id,
             subscription_token: resSubscription.token,
             financial_status: ORDER_FINANCIAL.PENDING
