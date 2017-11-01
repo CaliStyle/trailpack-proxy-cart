@@ -1556,7 +1556,12 @@ module.exports = class OrderService extends Service {
     //
 
   }
-  // TODO
+
+  /**
+   *
+   * @param options
+   * @returns {Promise.<T>}
+   */
   cancelThisHour(options) {
     // options = options || {}
     // const Order = this.app.orm['Order']
@@ -1565,25 +1570,25 @@ module.exports = class OrderService extends Service {
     // const start = moment().startOf('hour')
     //   .subtract(this.app.config.get('proxyCart.orders.grace_period_days') || 0, 'days')
     //
-    // console.log('START TIME', start.format('YYYY-MM-DD HH:mm:ss'))
     // // let errorsTotal = 0
     // let ordersTotal = 0
     //
-    // this.app.log.debug('OrderService.cancelThisHour')
+    // this.app.log.debug('OrderService.cancelThisHour', start.format('YYYY-MM-DD HH:mm:ss'))
     //
     // // Find Orders that are at their max retry amount
     // // and aren't already cancelled.
     // // and have reached the end of the grace period
     // return Order.batch({
     //   where: {
-    //     renews_on: {
-    //       $gte: start.format('YYYY-MM-DD HH:mm:ss')
-    //     },
-    //     total_renewal_attempts: {
-    //       $gte: this.app.config.proxyCart.orders.retry_attempts || 1
-    //     },
-    //     // Not cancelled
-    //     cancelled: false
+    //     // renews_on: {
+    //     //   $gte: start.format('YYYY-MM-DD HH:mm:ss')
+    //     // },
+    //     // total_renewal_attempts: {
+    //     //   $gte: this.app.config.proxyCart.orders.retry_attempts || 1
+    //     // },
+    //     // // Not cancelled
+    //     // cancelled: false
+    //     status: ORDER_STATUS.OPEN
     //   },
     //   regressive: true,
     //   transaction: options.transaction || null

@@ -2,6 +2,7 @@
 /* global describe, it */
 const assert = require('assert')
 const supertest = require('supertest')
+const qs = require('qs')
 const _ = require('lodash')
 
 describe('Admin User CartController', () => {
@@ -508,6 +509,9 @@ describe('Admin User CartController', () => {
   it('should get all carts', (done) => {
     adminUser
       .get('/carts')
+      .query(qs.stringify({
+        sort: [['updated_at','DESC'],['created_at','DESC']]
+      }))
       .expect(200)
       .end((err, res) => {
         assert.ok(res.headers['x-pagination-total'])

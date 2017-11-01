@@ -155,12 +155,16 @@ module.exports = class CartController extends Controller {
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at', 'DESC']]
     const where = req.query.where
+    const include = req.query.include || []
+
+    console.log('I BROKE', sort)
 
     Cart.findAndCount({
       order: sort,
       offset: offset,
       limit: limit,
-      where: where
+      where: where,
+      include: include
     })
       .then(carts => {
         // Paginate

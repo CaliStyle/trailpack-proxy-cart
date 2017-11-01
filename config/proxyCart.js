@@ -41,7 +41,7 @@ module.exports = {
     orderFulfilled: true,
     orderRefunded: true,
     orderCancelled: true,
-    sourceExpired: false,
+    sourceExpired: true,
     sourceWillExpire: true,
     sourceUpdated: true,
     subscriptionCreated: true,
