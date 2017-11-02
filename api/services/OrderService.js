@@ -156,7 +156,7 @@ module.exports = class OrderService extends Service {
             deduction = Math.min(deductibleTotal, (deductibleTotal - (deductibleTotal - resCustomer.account_balance)))
             if (deduction > 0) {
               // If account balance has not been applied
-              if (accountBalanceIndex == -1) {
+              if (accountBalanceIndex === -1) {
                 obj.pricing_overrides.push({
                   name: 'Account Balance',
                   price: deduction
@@ -241,10 +241,10 @@ module.exports = class OrderService extends Service {
             email: obj.email || resCustomer.email || null,
 
             // Types
-            fulfillment_kind: obj.fulfillment_kind || this.app.config.proxyCart.orders.fulfillment_kind,
-            payment_kind: obj.payment_kind || this.app.config.proxyCart.orders.payment_kind,
+            fulfillment_kind: obj.fulfillment_kind || this.app.config.get('proxyCart.orders.fulfillment_kind'),
+            payment_kind: obj.payment_kind || this.app.config.get('proxyCart.orders.payment_kind'),
             transaction_kind: obj.transaction_kind
-              || this.app.config.proxyCart.orders.transaction_kind
+              || this.app.config.get('proxyCart.orders.transaction_kind')
               || TRANSACTION_KIND.AUTHORIZE,
             // Gateway
             payment_gateway_names: paymentGatewayNames,
@@ -323,12 +323,17 @@ module.exports = class OrderService extends Service {
               save: true,
               transaction: options.transaction || null
             })
-              .then(event => {
-                return resCustomer
-                  .setTotalSpent(totalPrice)
-                  .setLastOrder(resOrder)
-                  .save({transaction: options.transaction || null})
-              })
+          }
+          else {
+            return
+          }
+        })
+        .then(() => {
+          if (resCustomer instanceof Customer) {
+            return resCustomer
+              .setTotalSpent(totalPrice)
+              .setLastOrder(resOrder)
+              .save({transaction: options.transaction || null})
           }
           else {
             return

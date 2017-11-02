@@ -376,20 +376,27 @@ module.exports = class Collection extends Model {
                 })
             }
           },
+          resolveDiscounts: function(options) {
+            options = options || {}
+            if (
+              this.discounts
+              && this.discount.every(d => d instanceof app.orm['Discount'])
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this)
+            }
+            else {
+              return this.getDiscounts({transaction: options.transaction || null})
+                .then(_discounts => {
+                  _discounts = _discounts || []
+                  this.discounts = _discounts
+                  this.setDataValue('discounts', _discounts)
+                  this.set('discounts', _discounts)
+                  return this
+                })
+            }
+          }
         }
-        // instanceMethods: {
-        //   getProductIds: function () {
-        //     return models.Product.findAll({
-        //
-        //     })
-        //   }
-        // }
-        // instanceMethods: {
-        //   toJSON: function () {
-        //     const resp = this.get({ plain: true })
-        //     return resp
-        //   }
-        // }
       }
     }
   }

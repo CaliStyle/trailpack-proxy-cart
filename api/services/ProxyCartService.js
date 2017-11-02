@@ -284,7 +284,7 @@ module.exports = class ProxyCartService extends Service {
    * @returns {*}
    */
   formatCurrency(num, currency) {
-    currency = currency || this.app.config.proxyCart.default_currency
+    currency = currency || this.app.config.get('proxyCart.default_currency')
     return currencyFormatter.format(num / 100, { code: currency.toUpperCase() })
   }
   /**

@@ -718,23 +718,23 @@ module.exports = class SubscriptionService extends Service {
           .then(source => {
             if (!source) {
               return {
-                payment_kind: 'immediate' || this.app.config.proxyCart.orders.payment_kind,
-                transaction_kind: 'sale' || this.app.config.proxyCart.orders.transaction_kind,
+                payment_kind: 'immediate' || this.app.config.get('proxyCart.orders.payment_kind'),
+                transaction_kind: 'sale' || this.app.config.get('proxyCart.orders.transaction_kind'),
                 payment_details: [],
-                fulfillment_kind: 'immediate' || this.app.config.proxyCart.orders.fulfillment_kind
+                fulfillment_kind: 'immediate' || this.app.config.get('proxyCart.orders.fulfillment_kind')
               }
             }
             else {
               return {
-                payment_kind: 'immediate' || this.app.config.proxyCart.orders.payment_kind,
-                transaction_kind: 'sale' || this.app.config.proxyCart.orders.transaction_kind,
+                payment_kind: 'immediate' || this.app.config.get('proxyCart.orders.payment_kind'),
+                transaction_kind: 'sale' || this.app.config.get('proxyCart.orders.transaction_kind'),
                 payment_details: [
                   {
                     gateway: source.gateway,
                     source: source,
                   }
                 ],
-                fulfillment_kind: 'immediate' || this.app.config.proxyCart.orders.fulfillment_kind
+                fulfillment_kind: 'immediate' || this.app.config.get('proxyCart.orders.fulfillment_kind')
               }
             }
           })
@@ -743,9 +743,9 @@ module.exports = class SubscriptionService extends Service {
         return resSubscription.buildOrder({
           // Request info
           payment_details: paymentDetails.payment_details,
-          transaction_kind: paymentDetails.transaction_kind || this.app.config.proxyCart.orders.transaction_kind,
-          payment_kind: paymentDetails.payment_kind || this.app.config.proxyCart.orders.payment_kind,
-          fulfillment_kind: paymentDetails.fulfillment_kind || this.app.config.proxyCart.orders.fulfillment_kind,
+          transaction_kind: paymentDetails.transaction_kind || this.app.config.get('proxyCart.orders.transaction_kind'),
+          payment_kind: paymentDetails.payment_kind || this.app.config.get('proxyCart.orders.payment_kind'),
+          fulfillment_kind: paymentDetails.fulfillment_kind || this.app.config.get('proxyCart.orders.fulfillment_kind'),
           processing_method: PAYMENT_PROCESSING_METHOD.SUBSCRIPTION,
           shipping_address: resSubscription.Customer.shipping_address,
           billing_address: resSubscription.Customer.billing_address,
@@ -872,7 +872,7 @@ module.exports = class SubscriptionService extends Service {
         },
         total_renewal_attempts: {
           $gt: 0,
-          $lt: this.app.config.proxyCart.subscriptions.retry_attempts || 1
+          $lt: this.app.config.get('proxyCart.subscriptions.retry_attempts') || 1
         },
         active: true
       },
@@ -935,7 +935,7 @@ module.exports = class SubscriptionService extends Service {
         $or: [
           {
             total_renewal_attempts: {
-              $gte: this.app.config.proxyCart.subscriptions.retry_attempts || 1
+              $gte: this.app.config.get('proxyCart.subscriptions.retry_attempts') || 1
             }
           },
           {

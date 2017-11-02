@@ -42,12 +42,7 @@ module.exports = class Account extends Model {
         classMethods: {
           associate: (models) => {
             models.Account.belongsTo(models.Customer, {
-              // through: {
-              //   model: models.CustomerAccount,
-              //   unique: false
-              // },
-              foreignKey: 'customer_id',
-              // constraints: false
+              foreignKey: 'customer_id'
             })
 
             models.Account.belongsToMany(models.Source, {

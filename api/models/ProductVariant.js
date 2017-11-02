@@ -284,6 +284,32 @@ module.exports = class ProductVariant extends Model {
           /**
            *
            * @param options
+           * @returns {Promise.<T>}
+           */
+          resolveDiscounts(options) {
+            options = options || {}
+            if (
+              this.discounts
+              && this.discounts.length > 0
+              && this.discounts.every(d => d instanceof app.orm['Discount'])
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this)
+            }
+            else {
+              return this.getDiscounts({transaction: options.transaction || null})
+                .then(_discounts => {
+                  _discounts = _discounts || []
+                  this.discounts = _discounts
+                  this.setDataValue('discounts', _discounts)
+                  this.set('discounts', _discounts)
+                  return this
+                })
+            }
+          },
+          /**
+           *
+           * @param options
            * @returns {*}
            */
           resolveMetadata: function(options) {

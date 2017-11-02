@@ -32,7 +32,7 @@ Proxy Cart is the eCommerce component for [Proxy Engine](https://github.com/cali
 ### Supported ORMs
 | Repo          |  Build Status (edge)                  |
 |---------------|---------------------------------------|
-| [trailpack-sequelize](https://github.com/trailsjs/trailpack-sequelize) | [![Build status][ci-sequelize-image]][ci-sequelize-url] |
+| [trailpack-proxy-sequelize](https://github.com/calistyle/trailpack-proxy-sequelize) | [![Build status][ci-sequelize-image]][ci-sequelize-url] |
 
 ### Supported Webserver
 | Repo          |  Build Status (edge)                  |
@@ -120,6 +120,7 @@ module.exports = {
     orderFulfilled: false,
     orderRefunded: false,
     orderCancelled: false,
+    sourceExpired: false,
     sourceWillExpire: false,
     sourceUpdated: false,
     subscriptionCreated: false,
@@ -158,7 +159,7 @@ module.exports = {
     // The amount of times a Transaction will retry failed
     retry_attempts: 5,
     // The amount of days before a Transaction will cancel from failed
-    grace_period_days: 5
+    authorization_exp_days: 5
   }
 }
 
@@ -309,6 +310,31 @@ Expires discounts on a schedule
 
 ### Renew Subscriptions
 Renews subscriptions on a schedule
+`SubscriptionsCron.renew`
+
+### Retry Subscriptions
+Retry failed subscriptions
+`SubscriptionsCron.retryFailed`
+
+### Cancel Subscriptions
+Cancels Subscriptions that failed to renew
+`SubscriptionsCron.cancelFailed`
+
+### Retry Transactions
+Retries failed transactions
+`TransactionsCron.retryFailed`
+
+### Cancel Transactions
+Cancels failed transactions.
+`TransactionsCron.cancelFailed`
+
+### Source Will Expire
+Notifies Customers that their Payment Method will Expire
+`AccountsCron.expired`
+
+### Source Expired
+Notifies Customers that their Payment Method expired
+`AccoutnsCron.willExipre`
 
 ## Emails
 Emails that are constructed to be passed as notifications to the users.
@@ -323,7 +349,10 @@ Emails that are constructed to be passed as notifications to the users.
 
 ## Templates
 Templates that are used in the construction of emails.
+
+### Customer
 ### Order
+### Source
 ### Subscription
 
 ## Generics
@@ -466,11 +495,13 @@ From cart to checkout is easy and there are some special features to note:
 - You can process payments immediately
 - You can send to fulfillment immediately
 
-`payment_kind`: the type of transactions to create, 'authorize', 'capture', 'sale', or 'manual'
+`payment_kind`: the type of payment to be made, 'immediate', 'manual'
+
+`transaction_kind`: The type of transaction to create, 'authorize', 'capture', 'sale', or 'manual'
 
 `payment_details`: an array of payment information, requires a 'gateway' attribute and normally a 'token' or a 'source'
 
-`fulfillment_kind`: the type of fulfillment to perform, 'immediate', null or blank
+`fulfillment_kind`: the type of fulfillment to perform, 'immediate', 'manual', null or blank
 
 `billing_address`: an address object or you can leave null if cart has a customer with address 
 
@@ -482,7 +513,8 @@ From cart to checkout is easy and there are some special features to note:
 //POST <api>/cart/:id/checkout
 //POST <api>/cart/checkout (If cart in session)
 {
-  payment_kind: 'sale',
+  payment_kind: 'immediate',
+  transaction_kind: 'sale',
   payment_details: [
     {
       gateway: 'payment_processor',
@@ -492,11 +524,12 @@ From cart to checkout is easy and there are some special features to note:
   fulfillment_kind: 'immediate'
 }
 ```
-Returns the placed Order and a new Cart object
+Returns the placed Order and a new Cart object, and if Customer was provided/created a Customer Object
 ```
 {
   order: ...,
   cart: ....
+  customer: ....
 }
 
 ```
@@ -507,7 +540,8 @@ Add Items to an open cart. Some interesting things to note:
 - You can add an existing item to a cart and it will increase the quantity
 - Checks if the product inventory is available according to inventory policy
 - Checks for geographic restrictions
-- Checks for Product and Customer Discounts
+- Checks for Product, Collections, and Customer Discounts
+- Checks for Account Balance
 - Checks and validates Coupons
 
 ```

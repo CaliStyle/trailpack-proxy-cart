@@ -198,10 +198,12 @@ module.exports = class Order extends Model {
             models.Order.belongsTo(models.Customer, {
               foreignKey: 'customer_id'
             })
-            // models.Order.belongsTo(models.Customer, {
-            //   targetKey:
+
+            // models.Order.hasOne(models.Customer, {
+            //   as: 'last_order',
             //   foreignKey: 'last_order_id'
             // })
+
             models.Order.belongsToMany(models.Event, {
               as: 'event_items',
               through: {

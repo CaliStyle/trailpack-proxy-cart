@@ -21,7 +21,8 @@ module.exports = class PaymentService extends Service {
     transaction.description = transaction.description || 'Transaction Authorize'
 
     const Transaction = this.app.orm.Transaction
-    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway]
+      || this.app.config.get('proxyGenerics.payment_processor')
 
     if (!(transaction instanceof Transaction)){
       throw new Error('Transaction must be an instance')
@@ -75,7 +76,8 @@ module.exports = class PaymentService extends Service {
     transaction.description = transaction.description || 'Transaction Capture'
 
     const Transaction = this.app.orm['Transaction']
-    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway]
+      || this.app.config.get('proxyGenerics.payment_processor')
 
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
@@ -138,7 +140,8 @@ module.exports = class PaymentService extends Service {
     transaction.description = transaction.description || 'Transaction Sale'
 
     const Transaction = this.app.orm.Transaction
-    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway]
+      || this.app.config.get('proxyGenerics.payment_processor')
 
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
@@ -234,12 +237,16 @@ module.exports = class PaymentService extends Service {
   void(transaction, options){
     options = options || {}
     const Transaction = this.app.orm['Transaction']
-    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway]
+      || this.app.config.get('proxyGenerics.payment_processor')
+
     if (!paymentProcessor || !paymentProcessor.adapter) {
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
+
     transaction.description = transaction.description || 'Transaction Void'
+
     let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(_transaction => {
@@ -296,15 +303,18 @@ module.exports = class PaymentService extends Service {
   refund(transaction, options){
     options = options || {}
     const Transaction = this.app.orm['Transaction']
-    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway] || this.app.config.proxyGenerics.payment_processor
+    const paymentProcessor = this.app.config.proxyGenerics[transaction.gateway]
+      || this.app.config.get('proxyGenerics.payment_processor')
+
     if (!paymentProcessor || !paymentProcessor.adapter) {
       // TODO throw proper error
       const err = new Error('Payment Processor is unspecified')
       return Promise.reject(err)
     }
-    let resTransaction
+
     transaction.description = transaction.description || 'Transaction Refund'
 
+    let resTransaction
     return Transaction.resolve(transaction, {transaction: options.transaction || null })
       .then(_transaction => {
         if (!_transaction) {
@@ -314,8 +324,6 @@ module.exports = class PaymentService extends Service {
         if (!(_transaction instanceof Transaction)) {
           throw new Error('Did not resolve a Transaction instance')
         }
-
-        resTransaction = _transaction
 
         if ([TRANSACTION_KIND.CAPTURE, TRANSACTION_KIND.SALE].indexOf(_transaction.kind) === -1) {
           throw new Error(`Transaction kind must be '${TRANSACTION_KIND.CAPTURE}' or '${TRANSACTION_KIND.SALE}' to be refunded`)
@@ -376,10 +384,13 @@ module.exports = class PaymentService extends Service {
         if ([TRANSACTION_STATUS.PENDING, TRANSACTION_STATUS.FAILURE].indexOf(_transaction.status) === -1) {
           throw new Error('Transaction can not be tried if it is not pending or has not failed')
         }
-        const paymentProcessor = this.app.config.proxyGenerics[_transaction.gateway] || this.app.config.proxyGenerics.payment_processor
+        const paymentProcessor = this.app.config.proxyGenerics[_transaction.gateway]
+          || this.app.config.get('proxyGenerics.payment_processor')
+
         if (!paymentProcessor || !paymentProcessor.adapter) {
           throw new Error('Payment Processor is unspecified')
         }
+
         _transaction.retry()
         return this.app.services.PaymentGenericService[_transaction.kind](_transaction, paymentProcessor)
       })

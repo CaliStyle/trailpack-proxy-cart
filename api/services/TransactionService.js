@@ -459,7 +459,7 @@ module.exports = class TransactionService extends Service {
         },
         total_retry_attempts: {
           $gte: 0,
-          $lte: this.app.config.proxyCart.transactions.retry_attempts || 1
+          $lte: this.app.config.get('proxyCart.transactions.retry_attempts') || 1
         },
         status: TRANSACTION_STATUS.FAILURE
       },
@@ -519,7 +519,7 @@ module.exports = class TransactionService extends Service {
           $gte: start.format('YYYY-MM-DD HH:mm:ss')
         },
         total_retry_attempts: {
-          $gte: this.app.config.proxyCart.transactions.retry_attempts || 1
+          $gte: this.app.config.get('proxyCart.transactions.retry_attempts') || 1
         },
         status: TRANSACTION_STATUS.FAILURE
       },

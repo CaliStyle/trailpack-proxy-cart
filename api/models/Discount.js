@@ -53,6 +53,11 @@ module.exports = class Discount extends Model {
           }
         },
         hooks: {
+          beforeValidate(values, options) {
+            if (!values.handle && values.name) {
+              values.handle = values.name
+            }
+          },
           beforeCreate: function(values, options) {
             if (values.body) {
               const bodyDoc = app.services.RenderGenericService.renderSync(values.body)
@@ -190,11 +195,29 @@ module.exports = class Discount extends Model {
             }
             else if (discount && _.isObject(discount) && discount.id) {
               return Discount.findById(discount.id, options)
-                .then(foundDiscount => {
-                  if (!foundDiscount) {
+                .then(_discount => {
+                  if (!_discount) {
                     throw new Errors.FoundError(Error(`Discount ${discount.id} not found`))
                   }
-                  return foundDiscount
+                  return _discount
+                })
+            }
+            else if (discount && _.isObject(discount) && discount.handle) {
+              return Discount.findOne(
+                app.services.ProxyEngineService.mergeOptionDefaults(
+                  options,
+                  {
+                    where: {
+                      handle: discount.handle
+                    }
+                  }
+                )
+              )
+                .then(_discount => {
+                  if (!_discount) {
+                    throw new Errors.FoundError(Error(`Discount ${discount.handle} not found`))
+                  }
+                  return _discount
                 })
             }
             else if (discount && _.isObject(discount) && discount.code) {
@@ -208,20 +231,20 @@ module.exports = class Discount extends Model {
                   }
                 )
                )
-                .then(foundDiscount => {
-                  if (!foundDiscount) {
+                .then(_discount => {
+                  if (!_discount) {
                     throw new Errors.FoundError(Error(`Discount ${discount.code} not found`))
                   }
-                  return foundDiscount
+                  return _discount
                 })
             }
             else if (discount && _.isNumber(discount)) {
               return Discount.findById(discount, options)
-                .then(foundDiscount => {
-                  if (!foundDiscount) {
+                .then(_discount => {
+                  if (!_discount) {
                     throw new Errors.FoundError(Error(`Discount ${discount} not found`))
                   }
-                  return foundDiscount
+                  return _discount
                 })
             }
             else if (discount && _.isString(discount)) {
@@ -235,11 +258,11 @@ module.exports = class Discount extends Model {
                   }
                 )
               )
-                .then(foundDiscount => {
-                  if (!foundDiscount) {
+                .then(_discount => {
+                  if (!_discount) {
                     throw new Errors.FoundError(Error(`Discount ${discount} not found`))
                   }
-                  return foundDiscount
+                  return _discount
                 })
             }
             else {
@@ -269,6 +292,14 @@ module.exports = class Discount extends Model {
 
   static schema (app, Sequelize) {
     return {
+      handle: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+        set: function(val) {
+          this.setDataValue('handle', app.services.ProxyCartService.splitHandle(val) || null)
+        }
+      },
       // The name of the discount
       name: {
         type: Sequelize.STRING

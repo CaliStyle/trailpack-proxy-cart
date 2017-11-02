@@ -92,44 +92,6 @@ module.exports = class Customer extends Model {
               foreignKey: 'item_id',
               constraints: false
             })
-            // models.Customer.belongsToMany(models.User, {
-            //   as: 'users',
-            //   through: {
-            //     model: models.CustomerUser,
-            //     foreignKey: 'customer_id'
-            //   }
-            // })
-            // models.Customer.belongsToMany(models.User, {
-            //   as: 'users',
-            //   through: {
-            //     model: models.CustomerUser,
-            //     unique: true
-            //   },
-            //   foreignKey: 'customer_id',
-            //   constraints: false
-            // })
-
-            // models.Customer.belongsToMany(models.Cart, {
-            //   as: 'carts',
-            //   through: {
-            //     model: models.CustomerCart,
-            //     foreignKey: 'customer_id',
-            //     unique: true,
-            //     constraints: false
-            //   }
-            // })
-            // models.Customer.hasOne(models.Cart, {
-            //   as: 'default_cart',
-            //   through: {
-            //     model: models.CustomerCart,
-            //     foreignKey: 'customer_id',
-            //     unique: true,
-            //     scope: {
-            //       cart: 'default_cart'
-            //     },
-            //     constraints: false
-            //   }
-            // })
             models.Customer.belongsToMany(models.Address, {
               as: 'addresses',
               // otherKey: 'address_id',
@@ -159,23 +121,13 @@ module.exports = class Customer extends Model {
                 unique: true
               },
               foreignKey: 'customer_id'
-              // constraints: false
             })
-            // models.Customer.hasMany(models.Order, {
-            //   foreignKey: 'customer_id'
-            // })
-            // models.Customer.hasMany(models.Order, {
-            //   as: 'orders',
-            //   foreignKey: 'customer_id'
-            // })
-            // models.Customer.belongsTo(models.Order, {
-            //   as: 'last_order_id',
-            //   // foreignKey: 'id',
-            //   constraints: false
-            // })
-            // models.Customer.hasOne(models.Order, {
-            //   as: 'last_order_id'
-            // })
+
+            models.Customer.belongsTo(models.Order, {
+              as: 'last_order',
+              foreignKey: 'last_order_id',
+              constraints: false
+            })
 
             models.Customer.belongsToMany(models.Tag, {
               as: 'tags',
@@ -203,21 +155,7 @@ module.exports = class Customer extends Model {
             })
             models.Customer.hasOne(models.Metadata, {
               as: 'metadata',
-              foreignKey: 'customer_id',
-              // through: {
-              //   model: models.ItemMetadata,
-              //   unique: false,
-              //   scope: {
-              //     model: 'customer'
-              //   },
-              //   foreignKey: 'model_id'
-              //   // constraints: false
-              // }
-              // scope: {
-              //   model: 'customer'
-              // },
-              // foreignKey: 'model_id',
-              // constraints: false
+              foreignKey: 'customer_id'
             })
             models.Customer.belongsToMany(models.Account, {
               as: 'accounts',
@@ -226,7 +164,6 @@ module.exports = class Customer extends Model {
                 unique: false
               },
               foreignKey: 'customer_id'
-              // constraints: false
             })
             models.Customer.belongsToMany(models.Source, {
               as: 'sources',
@@ -235,7 +172,6 @@ module.exports = class Customer extends Model {
                 unique: false
               },
               foreignKey: 'customer_id'
-              // constraints: false
             })
             models.Customer.belongsToMany(models.User, {
               as: 'users',
@@ -244,7 +180,6 @@ module.exports = class Customer extends Model {
                 unique: true,
               },
               foreignKey: 'customer_id'
-              // constraints: false
             })
             models.Customer.belongsToMany(models.Discount, {
               as: 'discounts',

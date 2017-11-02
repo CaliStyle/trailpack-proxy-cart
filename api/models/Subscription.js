@@ -131,6 +131,18 @@ module.exports = class Subscription extends Model {
               as: 'order_items',
               foreignKey: 'subscription_id'
             })
+            models.Subscription.belongsToMany(models.Discount, {
+              as: 'discounts',
+              through: {
+                model: models.ItemDiscount,
+                unique: false,
+                scope: {
+                  model: 'subscription'
+                }
+              },
+              foreignKey: 'model_id',
+              constraints: false
+            })
           },
           /**
            *
@@ -277,6 +289,32 @@ module.exports = class Subscription extends Model {
                   this.Customer = _customer
                   this.setDataValue('Customer', _customer)
                   this.set('Customer', _customer)
+                  return this
+                })
+            }
+          },
+          /**
+           *
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          resolveDiscounts(options) {
+            options = options || {}
+            if (
+              this.discounts
+              && this.discounts.length > 0
+              && this.discounts.every(d => d instanceof app.orm['Discount'])
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this)
+            }
+            else {
+              return this.getDiscounts({transaction: options.transaction || null})
+                .then(_discounts => {
+                  _discounts = _discounts || []
+                  this.discounts = _discounts
+                  this.setDataValue('discounts', _discounts)
+                  this.set('discounts', _discounts)
                   return this
                 })
             }
