@@ -440,6 +440,7 @@ describe('Admin User CartController', () => {
         orderedCartID = cartID
         newCartID = res.body.cart.id
 
+        // Add total spent
         totalSpent = totalSpent + res.body.order.total_price
 
         done(err)

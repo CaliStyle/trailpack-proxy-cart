@@ -5,7 +5,7 @@ const supertest = require('supertest')
 const _ = require('lodash')
 
 describe('Registered User CartController', () => {
-  let registeredUser, userID, customerID, cartToken, orderedCartToken, newCartToken, resetCartToken, shopID, shopProducts, orderID, orderToken
+  let registeredUser, userID, customerID, cartToken, orderedCartToken, newCartToken, resetCartToken, shopID, shopProducts, orderID, orderToken, totalSpent
 
   before((done) => {
     shopID = global.app.shopID
@@ -25,7 +25,18 @@ describe('Registered User CartController', () => {
       assert.ok(res.body.user.current_customer_id)
       userID = res.body.user.id
       customerID = res.body.user.current_customer_id
-      done(err)
+
+      if (err) {
+        return done(err)
+      }
+
+      registeredUser.get('/customer')
+        .expect(200)
+        .end((err, res) => {
+          assert.equal(customerID, res.body.id)
+          totalSpent = res.body.total_spent
+          done(err)
+        })
     })
   })
   it('should exist', () => {
@@ -430,6 +441,19 @@ describe('Registered User CartController', () => {
         orderedCartToken = cartToken
         newCartToken = res.body.cart.token
 
+        // Add total spent
+        totalSpent = totalSpent + res.body.order.total_price
+
+        done(err)
+      })
+  })
+  it('should get session customer and total spent should be the total order', (done) => {
+    registeredUser
+      .get('/customer')
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.total_spent, totalSpent)
+        assert.equal(res.body.last_order_id, orderID)
         done(err)
       })
   })

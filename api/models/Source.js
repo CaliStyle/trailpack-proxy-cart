@@ -174,6 +174,63 @@ module.exports = class Source extends Model {
         },
         instanceMethods: {
           /**
+           * Get the Credit/Debit Card Brand Company Name
+           */
+          getBrand: function() {
+            let brand = this.gateway
+
+            if (this.payment_details && this.payment_details.credit_card_company) {
+              brand = this.payment_details.credit_card_company
+            }
+            return brand
+          },
+          /**
+           * Get's the type of the
+           */
+          getType: function() {
+            let type
+            switch (this.payment_details.type) {
+            case 'credit_card':
+              type = 'Credit Card'
+              break
+            case 'debit_card':
+              type = 'Debit Card'
+              break
+            default:
+              type = 'Payment Method'
+            }
+            return type
+          },
+          /**
+           * Get's the Last 4 Digits of a Payment Method, if Applicable
+           * @returns {string}
+           */
+          getLast4: function () {
+            let last4 = '****'
+
+            if (this.payment_details && this.payment_details.credit_card_last4) {
+              last4 = this.payment_details.credit_card_last4
+            }
+            return last4
+          },
+
+          /**
+           * Get's the expiration date of the card if applicable.
+           * @returns {string}
+           */
+          getExpiration: function () {
+            let expiration = 'MM/YYYY'
+
+            if (
+              this.payment_details
+              && this.payment_details.credit_card_exp_year
+              && this.payment_details.credit_card_exp_month
+            ) {
+              expiration = `${this.payment_details.credit_card_exp_month}/${this.payment_details.credit_card_exp_year}`
+            }
+            return expiration
+          },
+          /**
            *
            * @param preNotification
            * @param options
