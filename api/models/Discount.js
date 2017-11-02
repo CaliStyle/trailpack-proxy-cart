@@ -157,6 +157,7 @@ module.exports = class Discount extends Model {
            */
           batch: function (options, batch) {
             const self = this
+            options = options || {}
             options.limit = options.limit || 10
             options.offset = options.offset || 0
             options.regressive = options.regressive || false
@@ -174,7 +175,7 @@ module.exports = class Discount extends Model {
                     return recursiveQuery(options)
                   }
                   else {
-                    return batched
+                    return Promise.resolve()
                   }
                 })
             }
@@ -283,6 +284,13 @@ module.exports = class Discount extends Model {
           },
           depleted: function () {
             this.status = DISCOUNT_STATUS.DEPLETED
+            return this
+          },
+          logUsage: function () {
+            this.times_used++
+            if (this.usage_limit > 0 && this.times_used >= this.usage_limit) {
+              this.depleted()
+            }
             return this
           }
         }
@@ -394,6 +402,11 @@ module.exports = class Discount extends Model {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
+      // Returns a count of successful checkouts where the discount code has been used. Cannot exceed the usage_limit property.
+      times_used: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
       // When a discount applies to a product or collection resource, applies_once determines whether the discount should be applied once per order, or to every applicable item in the cart.
       applies_once: {
         type: Sequelize.BOOLEAN
@@ -407,11 +420,6 @@ module.exports = class Discount extends Model {
       applies_compound: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
-      },
-      // Returns a count of successful checkouts where the discount code has been used. Cannot exceed the usage_limit property.
-      times_used: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0
       },
       // Live Mode
       live_mode: {

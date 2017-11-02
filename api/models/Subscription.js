@@ -190,12 +190,9 @@ module.exports = class Subscription extends Model {
 
             const recursiveQuery = function(options) {
               let count = 0
-              // let batched = 0
               return self.findAndCountAll(options)
                 .then(results => {
                   count = results.count
-                  // batched = results.rows.length
-                  // console.log('BROKE', count, batched, options.offset + options.limit)
                   return batch(results.rows)
                 })
                 .then(() => {

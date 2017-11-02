@@ -7,6 +7,7 @@ const _ = require('lodash')
 const moment = require('moment')
 const COLLECTION_DISCOUNT_TYPE = require('../../lib').Enums.COLLECTION_DISCOUNT_TYPE
 const COLLECTION_DISCOUNT_SCOPE = require('../../lib').Enums.COLLECTION_DISCOUNT_SCOPE
+const DISCOUNT_STATUS = require('../../lib').Enums.DISCOUNT_STATUS
 /**
  * @module DiscountService
  * @description Discount Service
@@ -45,8 +46,6 @@ module.exports = class DiscountService extends Service {
       a.model = a.model.charAt(0).toUpperCase() + a.model.slice(1)
       return a
     })
-
-    console.log('DiscountService.create', discount)
 
     let resDiscount
     return Discount.create(discount, {transaction: options.transaction || null})
@@ -101,7 +100,6 @@ module.exports = class DiscountService extends Service {
 
   /**
    * @param identifier
-   * @param discount
    * @param options
    * @returns {Promise.<TResult>}
    */
@@ -121,7 +119,13 @@ module.exports = class DiscountService extends Service {
         return resDiscount
       })
   }
-  // TODO
+
+  /**
+   *
+   * @param identifier
+   * @param options
+   * @returns {Promise.<TResult>|*}
+   */
   start(identifier, options) {
     options = options || {}
     const Discount = this.app.orm['Discount']
@@ -130,11 +134,18 @@ module.exports = class DiscountService extends Service {
         if (!_discount) {
           throw new Error('Discount did not resolve')
         }
-        return _discount.start({transaction: options.transaction || null})
+        return _discount
+          .start({transaction: options.transaction || null})
+          .save({transaction: options.transaction || null})
       })
   }
 
-  // TODO
+  /**
+   *
+   * @param identifier
+   * @param options
+   * @returns {Promise.<TResult>|*}
+   */
   expire(identifier, options) {
     options = options || {}
     const Discount = this.app.orm['Discount']
@@ -143,7 +154,9 @@ module.exports = class DiscountService extends Service {
         if (!_discount) {
           throw new Error('Discount did not resolve')
         }
-        return _discount.expire({transaction: options.transaction || null})
+        return _discount
+          .stop({transaction: options.transaction || null})
+          .save({transaction: options.transaction || null})
       })
   }
 
@@ -318,11 +331,15 @@ module.exports = class DiscountService extends Service {
    *
    * @returns {Promise.<T>|*}
    */
-  expireThisHour() {
+  expireThisHour(options) {
+    options = options || {}
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Discount = this.app.orm['Discount']
+    const errors = []
     let discountsTotal = 0
+
+    this.app.log.debug('DiscountService.startThisHour', start.format('YYYY-MM-DD HH:mm:ss'), end.format('YYYY-MM-DD HH:mm:ss'))
 
     return Discount.batch({
       where: {
@@ -330,22 +347,33 @@ module.exports = class DiscountService extends Service {
           $gte: start.format('YYYY-MM-DD HH:mm:ss'),
           $lte: end.format('YYYY-MM-DD HH:mm:ss')
         },
-        active: true
-      }
+        status: [DISCOUNT_STATUS.ENABLED, DISCOUNT_STATUS.DEPLETED]
+      },
+      regressive: true,
+      transaction: options.transaction || null
     }, discounts => {
       return Discount.sequelize.Promise.mapSeries(discounts, discount => {
-        return this.expire(discount)
+        return this.expire(discount, {transaction: options.transaction || null})
       })
         .then(results => {
           // Calculate Totals
           discountsTotal = discountsTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
         })
     })
       .then(discounts => {
         const results = {
-          discounts: discountsTotal
+          discounts: discountsTotal,
+          errors: errors
         }
-        this.app.services.ProxyEngineService.publish('discount_cron.complete', results)
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('discounts.end.complete', results)
         return results
       })
   }
@@ -354,11 +382,15 @@ module.exports = class DiscountService extends Service {
    *
    * @returns {Promise.<TResult>|*}
    */
-  startThisHour() {
+  startThisHour(options) {
+    options = options || {}
     const start = moment().startOf('hour')
     const end = start.clone().endOf('hour')
     const Discount = this.app.orm['Discount']
+    const errors = []
     let discountsTotal = 0
+
+    this.app.log.debug('DiscountService.startThisHour', start.format('YYYY-MM-DD HH:mm:ss'), end.format('YYYY-MM-DD HH:mm:ss'))
 
     return Discount.batch({
       where: {
@@ -366,23 +398,34 @@ module.exports = class DiscountService extends Service {
           $gte: start.format('YYYY-MM-DD HH:mm:ss'),
           $lte: end.format('YYYY-MM-DD HH:mm:ss')
         },
-        active: true
-      }
+        status: DISCOUNT_STATUS.DISABLED
+      },
+      regressive: true,
+      transaction: options.transaction || null
     }, discounts => {
       const Sequelize = Discount.sequelize
       return Sequelize.Promise.mapSeries(discounts, discount => {
-        return this.start(discount)
+        return this.start(discount, {transaction: options.transaction || null})
       })
         .then(results => {
           // Calculate Totals
           discountsTotal = discountsTotal + results.length
+          return
+        })
+        .catch(err => {
+          // errorsTotal++
+          this.app.log.error(err)
+          errors.push(err)
+          return
         })
     })
       .then(discounts => {
         const results = {
-          discounts: discountsTotal
+          discounts: discountsTotal,
+          errors: errors
         }
-        this.app.services.ProxyEngineService.publish('discount_cron.complete', results)
+        this.app.log.info(results)
+        this.app.services.ProxyEngineService.publish('discounts.start.complete', results)
         return results
       })
   }

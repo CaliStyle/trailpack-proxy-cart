@@ -157,8 +157,6 @@ module.exports = class CartController extends Controller {
     const where = req.query.where
     const include = req.query.include || []
 
-    console.log('I BROKE', sort)
-
     Cart.findAndCount({
       order: sort,
       offset: offset,
