@@ -6,7 +6,7 @@ const qs = require('qs')
 const _ = require('lodash')
 
 describe('Admin User CartController', () => {
-  let adminUser, userID, customerID, cartID, orderedCartID, newCartID, resetCartID, shopID, shopProducts, orderID
+  let adminUser, userID, customerID, cartID, orderedCartID, newCartID, resetCartID, shopID, shopProducts, orderID, totalSpent
 
   before((done) => {
     shopID = global.app.shopID
@@ -24,7 +24,19 @@ describe('Admin User CartController', () => {
         assert.ok(res.body.user.current_customer_id)
         userID = res.body.user.id
         customerID = res.body.user.current_customer_id
-        done(err)
+
+        if (err) {
+          return done(err)
+        }
+
+        adminUser.get('/customer')
+          .expect(200)
+          .end((err, res) => {
+            assert.equal(customerID, res.body.id)
+            totalSpent = res.body.total_spent
+            console.log('total spent', totalSpent)
+            done(err)
+          })
       })
   })
   it('should exist', () => {
@@ -428,6 +440,18 @@ describe('Admin User CartController', () => {
         orderedCartID = cartID
         newCartID = res.body.cart.id
 
+        totalSpent = totalSpent + res.body.order.total_price
+
+        done(err)
+      })
+  })
+  it('should get session customer and total spent should be the total order', (done) => {
+    adminUser
+      .get('/customer')
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.total_spent, totalSpent)
+        assert.equal(res.body.last_order_id, orderID)
         done(err)
       })
   })
