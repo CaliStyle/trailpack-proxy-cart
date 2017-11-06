@@ -180,6 +180,9 @@ module.exports = class CollectionUpload extends Model {
       collections: helpers.JSONB('CollectionUpload', app, Sequelize, 'collections', {
         defaultValue: []
       }),
+      discounts: helpers.JSONB('CollectionUpload', app, Sequelize, 'discounts', {
+        defaultValue: []
+      }),
       live_mode: {
         type: Sequelize.BOOLEAN,
         defaultValue: app.config.proxyEngine.live_mode

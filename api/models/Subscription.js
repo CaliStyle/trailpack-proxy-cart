@@ -1070,7 +1070,7 @@ module.exports = class Subscription extends Model {
               })
               .then(_collections => {
                 collectionIds = _collections
-                console.log('BROKE COLLECTION IDS', collectionIds)
+                // console.log('BROKE COLLECTION IDS', collectionIds)
                 if (this.id) {
                   criteria.push({
                     model: 'cart',
@@ -1109,7 +1109,7 @@ module.exports = class Subscription extends Model {
                 }
               })
               .then(discounts => {
-                console.log('BROKE DISCOUNTS', discounts)
+                // console.log('BROKE DISCOUNTS', discounts)
                 discounts.forEach(discount => {
                   discountCriteria.push({
                     id: discount.discount_id,
@@ -1117,7 +1117,7 @@ module.exports = class Subscription extends Model {
                   })
                 })
 
-                console.log('ItemDiscount from criteria', discountCriteria)
+                app.log.debug('ItemDiscount from criteria', discountCriteria)
 
                 if (discounts.length > 0) {
                   return app.orm['Discount'].findAll({
@@ -1151,6 +1151,11 @@ module.exports = class Subscription extends Model {
                 return this
               })
           },
+          /**
+           *
+           * @param options
+           * @returns {Promise.<TResult>}
+           */
           getCollectionIds: function(options) {
             options = options || {}
             let collections = []

@@ -331,7 +331,7 @@ describe('Registered User Checkout With Subscription', () => {
   it('should renew created subscription', done => {
     global.app.services.SubscriptionService.renew(subscriptionID)
       .then(body => {
-        console.log('BROKE USER STORY',body)
+        // console.log('BROKE USER STORY',body)
         // ORDER
         const orderID = body.order.id
         assert.ok(body.order.id)

@@ -894,7 +894,7 @@ module.exports = class Cart extends Model {
               })
               .then(_collections => {
                 collectionIds = _collections
-                console.log('BROKE COLLECTION IDS', collectionIds)
+                // console.log('BROKE COLLECTION IDS', collectionIds)
                 if (this.id) {
                   criteria.push({
                     model: 'cart',
@@ -933,7 +933,7 @@ module.exports = class Cart extends Model {
                 }
               })
               .then(discounts => {
-                console.log('BROKE DISCOUNTS', discounts)
+                // console.log('BROKE DISCOUNTS', discounts)
                 discounts.forEach(discount => {
                   discountCriteria.push({
                     id: discount.discount_id,
@@ -941,7 +941,7 @@ module.exports = class Cart extends Model {
                   })
                 })
 
-                console.log('ItemDiscount from criteria', discountCriteria)
+                // console.log('ItemDiscount from criteria', discountCriteria)
 
                 if (discounts.length > 0) {
                   return app.orm['Discount'].findAll({

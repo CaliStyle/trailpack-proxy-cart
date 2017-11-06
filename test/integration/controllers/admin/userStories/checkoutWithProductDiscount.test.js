@@ -73,7 +73,7 @@ describe('Admin User Checkout with Product Discount', () => {
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.id)
-        console.log('user story', res.body)
+        // console.log('user story', res.body)
         res.body.line_items.forEach(item => {
           assert.equal(item.discounted_lines.length, 1)
         })

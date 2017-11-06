@@ -7,6 +7,7 @@ const Errors = require('proxy-engine-errors')
 const helpers = require('proxy-engine-helpers')
 const UNITS = require('../../lib').Enums.UNITS
 const PRODUCT_DEFAULTS = require('../../lib').Enums.PRODUCT_DEFAULTS
+const DISCOUNT_STATUS = require('../../lib').Enums.DISCOUNT_STATUS
 const queryDefaults = require('../utils/queryDefaults')
 const _ = require('lodash')
 // const Errors = require('proxy-engine-errors')
@@ -254,14 +255,14 @@ module.exports = class Product extends Model {
               .then(product => {
                 resProduct = product
 
-                if (resProduct) {
-                  return resProduct.resolveReqCollections(options)
-                }
-                else {
-                  return
-                }
-              })
-              .then(() => {
+              //   if (resProduct) {
+              //     return resProduct.resolveReqCollections(options)
+              //   }
+              //   else {
+              //     return
+              //   }
+              // })
+              // .then(() => {
                 if (resProduct && options.req && options.req.customer) {
                   return resProduct.getCustomerHistory(options.req.customer, {
                     transaction: options.transaction || null
@@ -273,7 +274,10 @@ module.exports = class Product extends Model {
               })
               .then(() => {
                 if (resProduct) {
-                  return resProduct.calculate({transaction: options.transaction || null})
+                  return resProduct.calculate({
+                    req: options.req || null,
+                    transaction: options.transaction || null
+                  })
                 }
                 else {
                   return resProduct
@@ -301,14 +305,14 @@ module.exports = class Product extends Model {
               .then(product => {
                 resProduct = product
 
-                if (resProduct) {
-                  return resProduct.resolveReqCollections(options)
-                }
-                else {
-                  return
-                }
-              })
-              .then(() => {
+              //   if (resProduct) {
+              //     return resProduct.resolveReqCollections(options)
+              //   }
+              //   else {
+              //     return
+              //   }
+              // })
+              // .then(() => {
                 if (resProduct && options.req && options.req.customer) {
                   return resProduct.getCustomerHistory(options.req.customer, {
                     transaction: options.transaction || null
@@ -320,7 +324,10 @@ module.exports = class Product extends Model {
               })
               .then(() => {
                 if (resProduct) {
-                  return resProduct.calculate({transaction: options.transaction || null})
+                  return resProduct.calculate({
+                    req: options.req || null,
+                    transaction: options.transaction || null
+                  })
                 }
                 else {
                   return resProduct
@@ -348,14 +355,14 @@ module.exports = class Product extends Model {
                 }
                 resProduct = product
 
-                if (resProduct) {
-                  return resProduct.resolveReqCollections(options)
-                }
-                else {
-                  return
-                }
-              })
-              .then(() => {
+              //   if (resProduct) {
+              //     return resProduct.resolveReqCollections(options)
+              //   }
+              //   else {
+              //     return
+              //   }
+              // })
+              // .then(() => {
                 if (resProduct && options.req && options.req.customer) {
                   return resProduct.getCustomerHistory(options.req.customer, {
                     transaction: options.transaction || null
@@ -367,7 +374,10 @@ module.exports = class Product extends Model {
               })
               .then(() => {
                 if (resProduct) {
-                  return resProduct.calculate({transaction: options.transaction || null})
+                  return resProduct.calculate({
+                    req: options.req || null,
+                    transaction: options.transaction || null
+                  })
                 }
                 else {
                   return resProduct
@@ -464,20 +474,121 @@ module.exports = class Product extends Model {
         instanceMethods: {
           /**
            *
+           * @param discounts
+           * @param criteria
+           * @returns {*}
+           */
+          setItemDiscountedLines: function (discounts, criteria) {
+            // Make this an array if null
+            discounts = discounts || []
+            // Make this an array if null
+            criteria = criteria || []
+
+            // Set this to the default
+            this.discounted_lines = []
+
+            // Holds the final factored results
+            const factoredDiscountedLines = []
+            // Holds list of all discount objects being tried
+            let discountsArr = []
+
+            // For each item run the normal discounts
+            discounts.forEach(discount => {
+              discount.discountItem(this, criteria)
+            })
+
+            // Gather all discounts into a single array
+            this.discounted_lines.forEach(line => {
+              discountsArr = [...discountsArr, line.id]
+            })
+
+            this.discounted_lines = this.discounted_lines.map(discount => {
+              // Applies once Rule
+              if (discount.rules.applies_once && discountsArr.filter(d => d === discount.id).length > 1) {
+                const arrRemove = discountsArr.findIndex(d => d === discount.id)
+                // Removes duplicated from discountArr
+                discountsArr = discountsArr.splice(arrRemove, 1)
+                // This means the next occurrence of the discount will receive the one time discount
+                discount.applies = false
+              }
+              // Minimum Order Rule
+              else if (
+                discount.rules.minimum_order_amount > 0
+                && this.price < discount.minimum_order_amount
+              ) {
+                discount.applies = false
+              }
+              // Compounding Discounts Rule
+              else if (
+                discount.rules.applies_compound === false && discountsArr.length > 1
+              ) {
+                discount.applies = false
+              }
+              else {
+                discount.applies = true
+              }
+              return discount
+            })
+
+            this.discounted_lines.forEach(discountedLine => {
+              if (discountedLine.applies === true) {
+                const calculatedPrice = Math.max(0, this.calculated_price - discountedLine.price)
+                const totalDeducted = Math.min(this.price, (this.price - (this.price - discountedLine.price)))
+
+                this.calculated_price = calculatedPrice
+                this.total_discounts = this.total_discounts + totalDeducted
+
+                const fI = factoredDiscountedLines.findIndex(d => d.id === discountedLine.id)
+                if (fI > -1) {
+                  factoredDiscountedLines[fI].price = factoredDiscountedLines[fI].price + totalDeducted
+                }
+                else {
+                  discountedLine.price = totalDeducted
+                  factoredDiscountedLines.push(discountedLine)
+                }
+              }
+            })
+
+            console.log('FACTORED PRODUCT DISCOUNTS',factoredDiscountedLines)
+
+            return this.setDiscountedLines(factoredDiscountedLines)
+          },
+          /**
+           *
            * @param lines
            */
           setDiscountedLines: function(lines) {
-            let totalDiscounts = 0
-            this.discounted_lines = lines
-            _.each(this.discounted_lines, line => {
-              totalDiscounts = totalDiscounts + line.price
+            this.total_discounts = 0
+            this.discounted_lines = lines || []
+            this.discounted_lines.forEach(line => {
+              this.total_discounts = this.total_discounts + line.price
             })
-            this.total_discounts = totalDiscounts
-            return this
+            return this.setTotals()
           },
 
           setCalculatedPrice: function(calculatedPrice) {
             this.calculated_price = calculatedPrice
+            return this
+          },
+
+          /**
+           *
+           */
+          setTotals: function() {
+            // Set Cart values
+            this.total_price = Math.max(0,
+              this.total_tax
+              + this.total_shipping
+              + this.subtotal_price
+            )
+
+            this.total_due = Math.max(0,
+              this.total_price
+              - this.total_discounts
+              - this.total_coupons
+              - this.total_overrides
+            )
+
             return this
           },
 
@@ -559,6 +670,139 @@ module.exports = class Product extends Model {
                 return false
               })
           },
+
+          getCollectionIds: function(options) {
+            options = options || {}
+            let collections = []
+            const criteria = []
+
+            return Promise.resolve()
+              .then(() => {
+                if (options.req && options.req.customer && options.req.customer.id) {
+                  criteria.push({
+                    model: 'customer',
+                    model_id: options.req.customer.id
+                  })
+                }
+                if (this.id) {
+                  criteria.push({
+                    model: 'product',
+                    model_id: this.id
+                  })
+                }
+
+                if (criteria.length > 0) {
+                  return app.orm['ItemCollection'].findAll({
+                    where: {
+                      $or: criteria
+                    },
+                    attributes: ['id','collection_id'],
+                    transaction: options.transaction || null
+                  })
+                }
+                return []
+              })
+              .then(_collections => {
+                _collections = _collections || []
+                collections = [...collections, ..._collections.map(c => c.collection_id)]
+                return collections
+              })
+              .catch(err => {
+                app.log.error(err)
+                return []
+              })
+          },
+          /**
+           *
+           * @param options
+           * @returns {Promise.<TResult>}
+           */
+          calculateDiscounts(options) {
+            options = options || {}
+            const criteria = []
+            const discountCriteria = []
+            let collectionIds = []
+            // const discountedLines = this.discounted_lines || []
+
+            return Promise.resolve()
+              .then(() => {
+                return this.getCollectionIds({
+                  req: options.req || null,
+                  transaction: options.transaction || null
+                })
+              })
+              .then(_collections => {
+                collectionIds = _collections
+                // console.log('BROKE COLLECTION IDS', collectionIds)
+                if (options.req && options.req.cart && options.req.cart.id) {
+                  criteria.push({
+                    model: 'cart',
+                    model_id: options.req.cart.id
+                  })
+                }
+                if (options.req && options.req.customer && options.req.customer.id) {
+                  criteria.push({
+                    model: 'customer',
+                    model_id: options.req.customer.id
+                  })
+                }
+                if (this.id) {
+                  criteria.push({
+                    model: 'product',
+                    model_id: this.id
+                  })
+                }
+                if (collectionIds.length > 0) {
+                  criteria.push({
+                    model: 'collection',
+                    model_id: collectionIds
+                  })
+                }
+                if (criteria.length > 0) {
+                  return app.orm['ItemDiscount'].findAll({
+                    where: {
+                      $or: criteria
+                    },
+                    attributes: ['discount_id', 'model', 'model_id'],
+                    transaction: options.transaction || null
+                  })
+                }
+                else {
+                  return []
+                }
+              })
+              .then(discounts => {
+                // console.log('BROKE DISCOUNTS', discounts)
+                discounts.forEach(discount => {
+                  discountCriteria.push({
+                    id: discount.discount_id,
+                    [discount.model]: discount.model_id
+                  })
+                })
+
+                // console.log('ItemDiscount from criteria', discountCriteria)
+
+                if (discounts.length > 0) {
+                  return app.orm['Discount'].findAll({
+                    where: {
+                      id: discounts.map(item => item.discount_id),
+                      status: DISCOUNT_STATUS.ENABLED
+                    },
+                    transaction: options.transaction || null
+                  })
+                }
+                else {
+                  return []
+                }
+              })
+              .then(discounts => {
+                return this.setItemDiscountedLines(discounts, discountCriteria)
+              })
+              .catch(err => {
+                app.log.error(err)
+                return this
+              })
+          },
           calculate: function (options) {
             options = options || {}
             if (!this) {
@@ -576,8 +820,10 @@ module.exports = class Product extends Model {
             // )
 
             //obj, collections, resolver, options
-
-            return this
+            return this.calculateDiscounts(options)
+              .then(() => {
+                return this
+              })
           },
           /**
            *
@@ -855,25 +1101,25 @@ module.exports = class Product extends Model {
            * @param options
            * @returns {Promise.<TResult>}
            */
-          resolveReqCollections: function(options) {
-            options = options || {}
-
-            return Promise.resolve()
-              .then(() => {
-                return this.resolveCollections({transaction: options.transaction || null})
-              })
-              .then(() => {
-                if (options.req && options.req.customer) {
-                  return options.req.customer.resolveCollections({transaction: options.transaction || null})
-                }
-                else {
-                  return {collections: []}
-                }
-              })
-              .then(customer => {
-                return this.mergeIntoCollections(customer.collections)
-              })
-          },
+          // resolveReqCollections: function(options) {
+          //   options = options || {}
+          //
+          //   return Promise.resolve()
+          //     .then(() => {
+          //       return this.resolveCollections({transaction: options.transaction || null})
+          //     })
+          //     .then(() => {
+          //       if (options.req && options.req.customer) {
+          //         return options.req.customer.resolveCollections({transaction: options.transaction || null})
+          //       }
+          //       else {
+          //         return {collections: []}
+          //       }
+          //     })
+          //     .then(customer => {
+          //       return this.mergeIntoCollections(customer.collections)
+          //     })
+          // },
           /**
            *
            * @param options

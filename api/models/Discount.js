@@ -1,4 +1,5 @@
 /* eslint new-cap: [0] */
+/* eslint no-console: [0] */
 'use strict'
 
 const Model = require('trails/model')
@@ -349,13 +350,18 @@ module.exports = class Discount extends Model {
               customer_id: customerId,
               order_id: orderId,
               price: price
-            }, {transaction: options.transaction || null})
+            }, {
+              transaction: options.transaction || null
+            })
               .then(() => {
                 return this.save({transaction: options.transaction || null})
               })
           },
           discountItem: function(item, criteria) {
             criteria = criteria || []
+
+            console.log('CRITERIA', criteria)
+
             // Set item defaults
             item.discounted_lines = item.discounted_lines || []
             item.shipping_lines = item.shipping_lines || []
