@@ -340,14 +340,15 @@ module.exports = class Discount extends Model {
             this.status = DISCOUNT_STATUS.DEPLETED
             return this
           },
-          logUsage: function (customer, order, options) {
+          logUsage: function (orderId, customerId, price, options) {
             this.times_used++
             if (this.usage_limit > 0 && this.times_used >= this.usage_limit) {
               this.depleted()
             }
             return this.createEvent({
-              customer: customer,
-              order: order,
+              customer_id: customerId,
+              order_id: orderId,
+              price: price
             }, {transaction: options.transaction || null})
               .then(() => {
                 return this.save({transaction: options.transaction || null})

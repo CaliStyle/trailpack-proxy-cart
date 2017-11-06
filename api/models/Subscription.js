@@ -1236,6 +1236,7 @@ module.exports = class Subscription extends Model {
             this.renews_on = d.format('YYYY-MM-DD HH:mm:ss')
 
             this.resetDefaults()
+            this.setLineItems(this.line_items)
 
             // // Get Subscription Collections
             // return app.services.CollectionService.subscriptionCollections(this)
@@ -1257,6 +1258,9 @@ module.exports = class Subscription extends Model {
             //     return app.services.CouponService.calculate(this, collections, app.orm['Subscription'])
             //   })
             //   .then(() => {
+
+
+
             return Promise.resolve()
               .then(() => {
                 return this.calculateDiscounts({transaction: options.transaction || null})

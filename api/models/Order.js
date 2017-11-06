@@ -346,6 +346,27 @@ module.exports = class Order extends Model {
           },
           /**
            *
+           * @param options
+           * @returns {*}
+           */
+          logDiscountUsage: function(options) {
+            return app.orm['Order'].sequelize.Promise.mapSeries(this.discounted_lines, line => {
+              return app.orm['Discount'].findById(line.id, {
+                attributes: ['id','times_used','usage_limit'],
+                transaction: options.transaction || null
+              })
+                .then(_discount => {
+                  return _discount.logUsage(
+                    this.id,
+                    this.customer_id,
+                    line.price,
+                    {transaction: options.transaction || null}
+                  )
+                })
+            })
+          },
+          /**
+           *
            * @param preNotification
            * @param options
            */

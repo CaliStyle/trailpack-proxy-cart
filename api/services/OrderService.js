@@ -356,6 +356,14 @@ module.exports = class OrderService extends Service {
           return resOrder.saveStatus({transaction: options.transaction || null})
         })
         .then(() => {
+          if (resOrder.discounted_lines.length > 0) {
+            return resOrder.logDiscountUsage({transaction: options.transaction || null})
+          }
+          else {
+            return
+          }
+        })
+        .then(() => {
           // TODO REMOVE THIS PART WHEN WE CREATE THE EVENT ELSEWHERE
           if (resCustomer instanceof Customer) {
             return resCustomer.addOrder(resOrder.id, { transaction: options.transaction || null})

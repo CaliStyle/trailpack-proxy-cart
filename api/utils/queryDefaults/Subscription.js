@@ -6,20 +6,20 @@ module.exports = {
           model: app.orm['Customer'],
           // as: 'customer'
         },
-        {
-          model: app.orm['Event'],
-          as: 'events'
-        }
+        // {
+        //   model: app.orm['Event'],
+        //   as: 'events'
+        // }
       ],
-      order: [
-        [
-          {
-            model: app.orm['Event'],
-            as: 'events'
-          },
-          'created_at', 'DESC'
-        ]
-      ]
+      // order: [
+      //   [
+      //     {
+      //       model: app.orm['Event'],
+      //       as: 'events'
+      //     },
+      //     'created_at', 'DESC'
+      //   ]
+      // ]
     }
   }
 }
