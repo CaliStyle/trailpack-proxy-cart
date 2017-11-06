@@ -97,7 +97,7 @@ module.exports = class Collection extends Model {
               constraints: false
             })
             models.Collection.belongsToMany(models.Discount, {
-              as: 'discount_codes',
+              as: 'discounts',
               through: {
                 model: models.ItemDiscount,
                 unique: false,
@@ -526,37 +526,37 @@ module.exports = class Collection extends Model {
       shipping_name: {
         type: Sequelize.STRING
       },
-      // The scope of the discount price modifier for the collection (individual, global)
-      discount_scope: {
-        type: Sequelize.ENUM,
-        values: _.values(COLLECTION_DISCOUNT_SCOPE),
-        defaultValue: COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL
-      },
-      // The type of the discount modifier (rate, percentage)
-      discount_type: {
-        type: Sequelize.ENUM,
-        values: _.values(COLLECTION_DISCOUNT_TYPE),
-        defaultValue: COLLECTION_DISCOUNT_TYPE.PERCENTAGE
-      },
-      // The discount rate if the discount_type is rate
-      discount_rate: {
-        type: Sequelize.FLOAT,
-        defaultValue: 0.0
-      },
-      // A percentage to apply if the discount_type is percentage
-      discount_percentage: {
-        type: Sequelize.FLOAT,
-        defaultValue: 0.0
-      },
-      // TODO allow product includes
-      // List of product types allowed to discount
-      discount_product_include: helpers.JSONB('Collection', app, Sequelize, 'discount_product_include', {
-        defaultValue: []
-      }),
-      // List of product_type [<string>] to forcefully excluded from discount modifiers
-      discount_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'discount_product_exclude', {
-        defaultValue: []
-      }),
+      // // The scope of the discount price modifier for the collection (individual, global)
+      // discount_scope: {
+      //   type: Sequelize.ENUM,
+      //   values: _.values(COLLECTION_DISCOUNT_SCOPE),
+      //   defaultValue: COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL
+      // },
+      // // The type of the discount modifier (rate, percentage)
+      // discount_type: {
+      //   type: Sequelize.ENUM,
+      //   values: _.values(COLLECTION_DISCOUNT_TYPE),
+      //   defaultValue: COLLECTION_DISCOUNT_TYPE.PERCENTAGE
+      // },
+      // // The discount rate if the discount_type is rate
+      // discount_rate: {
+      //   type: Sequelize.FLOAT,
+      //   defaultValue: 0.0
+      // },
+      // // A percentage to apply if the discount_type is percentage
+      // discount_percentage: {
+      //   type: Sequelize.FLOAT,
+      //   defaultValue: 0.0
+      // },
+      // // TODO allow product includes
+      // // List of product types allowed to discount
+      // discount_product_include: helpers.JSONB('Collection', app, Sequelize, 'discount_product_include', {
+      //   defaultValue: []
+      // }),
+      // // List of product_type [<string>] to forcefully excluded from discount modifiers
+      // discount_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'discount_product_exclude', {
+      //   defaultValue: []
+      // }),
       // List of product_type [<string>] to forcefully excluded from shipping modifiers
       shipping_product_exclude: helpers.JSONB('Collection', app, Sequelize, 'shipping_product_exclude', {
         defaultValue: []

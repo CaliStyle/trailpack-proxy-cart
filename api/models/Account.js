@@ -62,7 +62,7 @@ module.exports = class Account extends Model {
             )
             return this.findById(id, options)
           },
-          resolve: function (account, options) {
+          resolve: function(account, options) {
             options = options || {}
             const Account = this
             if (account instanceof Account) {

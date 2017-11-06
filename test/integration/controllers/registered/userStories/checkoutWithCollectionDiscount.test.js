@@ -37,10 +37,10 @@ describe('Registered User Checkout With Collection Discount', () => {
         body: '# Discount that excludes product types of subscription',
         published: true,
         sort_order: 'price-desc',
-        discount_type: 'fixed',
+        primary_purpose: 'discount',
+        discount_type: 'rate',
         discount_scope: 'global',
         discount_rate: 100,
-        primary_purpose: 'discount',
         discount_product_exclude: [
           'subscription'
         ]
@@ -73,7 +73,7 @@ describe('Registered User Checkout With Collection Discount', () => {
       })
       .expect(200)
       .end((err, res) => {
-
+        console.log('BROKE USER STORY',res.body)
         // Cart
         assert.equal(res.body.has_shipping, true)
         assert.equal(res.body.has_taxes, true)
@@ -91,7 +91,7 @@ describe('Registered User Checkout With Collection Discount', () => {
         assert.equal(res.body.discounted_lines[0].name, 'Checkout with Collection Discount test')
         assert.equal(res.body.discounted_lines[0].price, 100)
         assert.equal(res.body.discounted_lines[0].rate, 100)
-        assert.equal(res.body.discounted_lines[0].type, 'fixed')
+        assert.equal(res.body.discounted_lines[0].type, 'rate')
         assert.equal(res.body.discounted_lines[0].scope, 'global')
 
         // Pricing
@@ -153,7 +153,7 @@ describe('Registered User Checkout With Collection Discount', () => {
         assert.equal(res.body.order.discounted_lines[0].name, 'Checkout with Collection Discount test')
         assert.equal(res.body.order.discounted_lines[0].price, 100)
         assert.equal(res.body.order.discounted_lines[0].rate, 100)
-        assert.equal(res.body.order.discounted_lines[0].type, 'fixed')
+        assert.equal(res.body.order.discounted_lines[0].type, 'rate')
         assert.equal(res.body.order.discounted_lines[0].scope, 'global')
 
         // Pricing

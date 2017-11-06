@@ -183,6 +183,12 @@ module.exports = class Cart extends Model {
 
             return this.findOne(options)
           },
+          /**
+           *
+           * @param cart
+           * @param options
+           * @returns {*}
+           */
           resolve: function(cart, options){
             options = options || {}
             const Cart = this
@@ -308,6 +314,144 @@ module.exports = class Cart extends Model {
               this.total_line_items_price = this.total_line_items_price + item.price * item.quantity
             })
             return this.setTotals()
+          },
+          /**
+           *
+           * @param item
+           * @param discount
+           * @param criteria
+           * @returns {*}
+           */
+          setItemDiscountedLines: function(item, discount, criteria) {
+            if (!(discount instanceof app.orm['Discount'])) {
+              throw new Error('setItemDiscountedLines expects discount parameter to be a Discount Instance')
+            }
+            item = discount.discountItem(item, criteria)
+            return item
+          },
+          /**
+           *
+           * @param discounts
+           * @param criteria
+           * @returns {*}
+           */
+          setItemsDiscountedLines: function (discounts, criteria) {
+            // Make this an array if null
+            discounts = discounts || []
+            // Make this an array if null
+            criteria = criteria || []
+
+            // Make this an array if null
+            this.line_items = this.line_items || []
+
+            // Set this to the default
+            this.discounted_lines = []
+
+            // Holds the final factored results
+            const factoredDiscountedLines = []
+            // Holds list of all discount objects being tried
+            let discountsArr = []
+            // Holds list lines and their discounts
+            let discountedLines = []
+
+
+            // For each item run the normal discounts
+            this.line_items = this.line_items.map((item, index) => {
+              discounts.forEach(discount => {
+                item = this.setItemDiscountedLines(item, discount, [])
+              })
+
+              if (item.discounted_lines.length > 0) {
+                const i = discountedLines.findIndex(line => line.line === index)
+                if (i > -1) {
+
+                  discountedLines[i].discounts = [...discountedLines[i].discounts, ...item.discounted_lines]
+                }
+                else {
+                  discountedLines.push({
+                    line: index,
+                    discounts: item.discounted_lines
+                  })
+                }
+              }
+              return item
+            })
+
+            // Gather all discounts into a single array
+            discountedLines.forEach(line => {
+              discountsArr = [...discountsArr, ...line.discounts.map(d => d.id)]
+            })
+
+            // Check rules
+            discountedLines = discountedLines.map(line => {
+              line.discounts = line.discounts.map(discount => {
+                // Applies once Rule
+                if (discount.rules.applies_once && discountsArr.filter(d => d === discount.id).length > 1) {
+                  const arrRemove = discountsArr.findIndex(d => d === discount.id)
+                  // Removes duplicated from discountArr
+                  discountsArr = discountsArr.splice(arrRemove, 1)
+                  // This means the next occurrence of the discount will receive the one time discount
+                  discount.applies = false
+                }
+                // Minimum Order Rule
+                else if (
+                  discount.rules.minimum_order_amount > 0
+                  && this.total_line_items_price < discount.minimum_order_amount
+                ) {
+                  discount.applies = false
+                }
+                // Compounding Discounts Rule
+                else if (
+                  discount.rules.applies_compound === false && discountsArr.length > 1
+                ) {
+                  discount.applies = false
+                }
+                else {
+                  discount.applies = true
+                }
+                return discount
+              })
+              return line
+            })
+
+            // console.log('Lines results', discountedLines)
+
+            // Apply rules to line item discounts
+            discountedLines.forEach(line => {
+              line.discounts.forEach(discount => {
+                const index = this.line_items[line.line].discounted_lines.findIndex(d => d.id === discount.id)
+                this.line_items[line.line].discounted_lines[index].applies = discount.applies
+              })
+            })
+
+            // Loop through items and apply discounts and factor cart discounted_lines
+            this.line_items = this.line_items.map((item, index) => {
+              item.discounted_lines.forEach(discountedLine => {
+                if (discountedLine.applies === true) {
+                  const calculatedPrice = Math.max(0, item.calculated_price - discountedLine.price)
+                  const totalDeducted = Math.min(item.price, (item.price - (item.price - discountedLine.price)))
+                  item.calculated_price = calculatedPrice
+                  item.total_discounts = item.total_discounts + totalDeducted
+
+                  const fI = factoredDiscountedLines.findIndex(d => d.id === discountedLine.id)
+                  if (fI > -1) {
+                    factoredDiscountedLines[fI].lines = [...factoredDiscountedLines[fI].lines, index]
+                    factoredDiscountedLines[fI].price = factoredDiscountedLines[fI].price + totalDeducted
+                  }
+                  else {
+                    discountedLine.lines = [index]
+                    discountedLine.price = totalDeducted
+                    factoredDiscountedLines.push(discountedLine)
+                  }
+                }
+              })
+              return item
+            })
+
+
+            // console.log('Factored results', factoredDiscountedLines)
+
+            return this.setDiscountedLines(factoredDiscountedLines)
           },
           /**
            *
@@ -607,7 +751,7 @@ module.exports = class Cart extends Model {
            */
           buildOrder: function(options) {
             options = options || {}
-            const buildOrder = {
+            return {
               // Request info
               client_details: options.client_details || this.client_details || {},
               ip: options.ip || null,
@@ -655,7 +799,6 @@ module.exports = class Cart extends Model {
               pricing_overrides: this.pricing_overrides,
               total_overrides: this.total_overrides
             }
-            return buildOrder
           },
           /**
            *
@@ -664,8 +807,10 @@ module.exports = class Cart extends Model {
            */
           calculatePricingOverrides: function(options) {
             options = options || {}
+            this.line_items = this.line_items || []
+            this.pricing_overrides = this.pricing_overrides || []
 
-            const pricingOverrides = []
+            let pricingOverrides = []
             let deduction = 0
 
             if (!this.customer_id) {
@@ -689,19 +834,15 @@ module.exports = class Cart extends Model {
                   return
                 }
 
-                this.line_items = this.line_items || []
-                this.pricing_overrides = this.pricing_overrides || []
-
                 const exclusions = this.line_items.filter(item => {
                   item.exclude_payment_types = item.exclude_payment_types || []
                   return item.exclude_payment_types.indexOf('Account Balance') !== -1
                 })
 
-                this.pricing_overrides.forEach(override => {
-                  pricingOverrides.push(override)
-                })
+                pricingOverrides = this.pricing_overrides.filter(override => override)
 
-                const accountBalanceIndex = _.findIndex(pricingOverrides, {name: 'Account Balance'})
+                const accountBalanceIndex = pricingOverrides.findIndex(p => p.name === 'Account Balance')
+
                 if (_customer.account_balance > 0) {
                   // Apply Customer Account balance
                   const removeTotal = _.sumBy(exclusions, (e) => e.calculated_price)
@@ -729,6 +870,7 @@ module.exports = class Cart extends Model {
                 return this.setPricingOverrides(pricingOverrides)
               })
               .catch(err => {
+                app.log.error(err)
                 return this
               })
           },
@@ -738,15 +880,21 @@ module.exports = class Cart extends Model {
            * @param options
            * @returns {Promise.<TResult>}
            */
-          calculateCustomerAndItemsDiscounts(options) {
+          calculateDiscounts(options) {
             options = options || {}
             const criteria = []
-            const discountedLines = this.discounted_lines || []
+            const discountCriteria = []
+            const productIds = this.line_items.map(item => item.product_id)
+            let collectionIds = []
+            // const discountedLines = this.discounted_lines || []
 
             return Promise.resolve()
               .then(() => {
-                const productIds = this.line_items.map(item => item.product_id)
-
+                return this.getCollectionIds({transaction: options.transaction || null})
+              })
+              .then(_collections => {
+                collectionIds = _collections
+                console.log('BROKE COLLECTION IDS', collectionIds)
                 if (this.id) {
                   criteria.push({
                     model: 'cart',
@@ -765,6 +913,12 @@ module.exports = class Cart extends Model {
                     model_id: productIds
                   })
                 }
+                if (collectionIds.length > 0) {
+                  criteria.push({
+                    model: 'collection',
+                    model_id: collectionIds
+                  })
+                }
                 if (criteria.length > 0) {
                   return app.orm['ItemDiscount'].findAll({
                     where: {
@@ -779,6 +933,16 @@ module.exports = class Cart extends Model {
                 }
               })
               .then(discounts => {
+                console.log('BROKE DISCOUNTS', discounts)
+                discounts.forEach(discount => {
+                  discountCriteria.push({
+                    id: discount.discount_id,
+                    [discount.model]: discount.model_id
+                  })
+                })
+
+                console.log('ItemDiscount from criteria', discountCriteria)
+
                 if (discounts.length > 0) {
                   return app.orm['Discount'].findAll({
                     where: {
@@ -793,16 +957,18 @@ module.exports = class Cart extends Model {
                 }
               })
               .then(discounts => {
-                discounts.forEach(discount => {
-                  discountedLines.push({
-                    id: discount.id,
-                    model: 'discount',
-                    name: discount.name,
-                    type: discount.discount_type,
-                    price: discount.discount_rate
-                  })
-                })
-                return this.setDiscountedLines(discountedLines)
+                // discounts.forEach(discount => {
+                //   discountedLines.push({
+                //     id: discount.id,
+                //     model: 'discount',
+                //     name: discount.name,
+                //     type: discount.discount_type,
+                //     price: discount.discount_rate
+                //   })
+                // })
+                // return this.setDiscountedLines(discountedLines)
+                return this.setItemsDiscountedLines(discounts, discountCriteria)
+
               })
               .catch(err => {
                 app.log.error(err)
@@ -817,33 +983,34 @@ module.exports = class Cart extends Model {
           recalculate: function(options) {
             options = options || {}
             // Default Values
-            let collections = []
+            // const collections = []
 
             this.resetDefaults()
             this.setLineItems(this.line_items)
 
             // Get Cart Collections
-            return app.services.CollectionService.cartCollections(this)
-              .then(resCollections => {
-                collections = resCollections
-                // Calculate taxes
-                return app.services.TaxService.calculate(this, collections, app.orm['Cart'])
-              })
-              .then(tax => {
-                // Calculate Shipping
-                return app.services.ShippingService.calculate(this, collections, app.orm['Cart'])
-              })
-              .then(shipping => {
-                // Calculate Collection Discounts
-                return app.services.DiscountService.calculateCollections(this, collections, app.orm['Cart'])
-              })
+            // return app.services.CollectionService.cartCollections(this)
+            //   .then(resCollections => {
+            //     collections = resCollections
+            //     // Calculate taxes
+            //     return app.services.TaxService.calculate(this, collections, app.orm['Cart'])
+            //   })
+            //   .then(tax => {
+            //     // Calculate Shipping
+            //     return app.services.ShippingService.calculate(this, collections, app.orm['Cart'])
+            //   })
+              // .then(shipping => {
+              //   // Calculate Collection Discounts
+              //   return app.services.DiscountService.calculateCollections(this, collections, app.orm['Cart'])
+              // })
+            return Promise.resolve()
               .then(() => {
-                return this.calculateCustomerAndItemsDiscounts({transaction: options.transaction || null})
+                return this.calculateDiscounts({transaction: options.transaction || null})
               })
-              .then(discounts => {
-                // Calculate Coupons
-                return app.services.CouponService.calculate(this, collections, app.orm['Cart'])
-              })
+              // .then(discounts => {
+              //   // Calculate Coupons
+              //   return app.services.CouponService.calculate(this, collections, app.orm['Cart'])
+              // })
               .then(coupons => {
                 // Calculate Customer Balance
                 return this.calculatePricingOverrides({transaction: options.transaction || null})
@@ -856,6 +1023,11 @@ module.exports = class Cart extends Model {
                 return this
               })
           },
+          /**
+           *
+           * @param options
+           * @returns {*}
+           */
           resolveCustomer: function(options) {
             options = options || {}
             if (
@@ -915,6 +1087,51 @@ module.exports = class Cart extends Model {
                   return this
                 })
             }
+          },
+          getCollectionIds: function(options) {
+            options = options || {}
+            let collections = []
+            const criteria = []
+            const productIds = this.line_items.map(item => item.product_id)
+
+            return Promise.resolve()
+              .then(() => {
+                if (this.customer_id) {
+                  criteria.push({
+                    model: 'customer',
+                    model_id: this.customer_id
+                  })
+                }
+
+                if (productIds.length > 0) {
+                  criteria.push({
+                    model: 'product',
+                    model_id: productIds
+                  })
+                }
+
+                // console.log('BROKE CRITERIA',criteria)
+
+                if (criteria.length > 0) {
+                  return app.orm['ItemCollection'].findAll({
+                    where: {
+                      $or: criteria
+                    },
+                    attributes: ['id','collection_id'],
+                    transaction: options.transaction || null
+                  })
+                }
+                return []
+              })
+              .then(_collections => {
+                _collections = _collections || []
+                collections = [...collections, ..._collections.map(c => c.collection_id)]
+                return collections
+              })
+              .catch(err => {
+                app.log.error(err)
+                return []
+              })
           },
           resolveShippingAddress: function(options) {
             options = options || {}

@@ -1,7 +1,7 @@
 [
   {
-    "name": "Test Discount",
-    "description": "Test Discount Description",
+    "name": "Create Test Discount",
+    "description": "Create Test Discount Description",
     "code": "123",
     "discount_type": "rate",
     "discount_rate": 100,
@@ -12,8 +12,8 @@
     "applies_to_model": "product"
   },
   {
-    "name": "Test Discount 2",
-    "description": "Test Discount 2 Description",
+    "name": "Create Test Discount 2",
+    "description": "Create Test Discount 2 Description",
     "code": "1234",
     "discount_type": "rate",
     "discount_rate": 100,

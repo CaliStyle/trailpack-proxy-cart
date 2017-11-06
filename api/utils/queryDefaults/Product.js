@@ -63,10 +63,10 @@ module.exports = {
             'tax_type',
             'tax_rate',
             'tax_name',
-            'discount_scope',
-            'discount_type',
-            'discount_rate',
-            'discount_percentage'
+            // 'discount_scope',
+            // 'discount_type',
+            // 'discount_rate',
+            // 'discount_percentage'
           ]
         }
       ],
@@ -118,10 +118,10 @@ module.exports = {
             'tax_type',
             'tax_rate',
             'tax_name',
-            'discount_scope',
-            'discount_type',
-            'discount_rate',
-            'discount_percentage'
+            // 'discount_scope',
+            // 'discount_type',
+            // 'discount_rate',
+            // 'discount_percentage'
           ]
         },
         {
@@ -162,10 +162,10 @@ module.exports = {
             'tax_type',
             'tax_rate',
             'tax_name',
-            'discount_scope',
-            'discount_type',
-            'discount_rate',
-            'discount_percentage'
+            // 'discount_scope',
+            // 'discount_type',
+            // 'discount_rate',
+            // 'discount_percentage'
           ]
         }
       ]

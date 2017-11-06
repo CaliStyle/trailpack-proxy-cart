@@ -45,7 +45,7 @@ describe('Admin User DiscountController', () => {
         assert.equal(res.body.status, discount.status)
         assert.equal(res.body.minimum_order_amount, discount.minimum_order_amount)
         assert.equal(res.body.usage_limit, discount.usage_limit)
-        assert.equal(res.body.applies_compound, false)
+        assert.equal(res.body.applies_compound, true)
 
         done(err)
       })
@@ -56,7 +56,7 @@ describe('Admin User DiscountController', () => {
     adminUser
       .post(`/discount/${discountID}`)
       .send({
-        applies_compound: true
+        applies_compound: false
       })
       .expect(200)
       .end((err, res) => {
@@ -70,7 +70,7 @@ describe('Admin User DiscountController', () => {
         assert.equal(res.body.status, discount.status)
         assert.equal(res.body.minimum_order_amount, discount.minimum_order_amount)
         assert.equal(res.body.usage_limit, discount.usage_limit)
-        assert.equal(res.body.applies_compound, true)
+        assert.equal(res.body.applies_compound, false)
         done(err)
       })
   })
@@ -90,7 +90,7 @@ describe('Admin User DiscountController', () => {
         assert.equal(res.body.status, discount.status)
         assert.equal(res.body.minimum_order_amount, discount.minimum_order_amount)
         assert.equal(res.body.usage_limit, discount.usage_limit)
-        assert.equal(res.body.applies_compound, true)
+        assert.equal(res.body.applies_compound, false)
         done(err)
       })
   })
@@ -133,7 +133,7 @@ describe('Admin User DiscountController', () => {
         assert.equal(res.body.status, discount.status)
         assert.equal(res.body.minimum_order_amount, discount.minimum_order_amount)
         assert.equal(res.body.usage_limit, discount.usage_limit)
-        assert.equal(res.body.applies_compound, false)
+        assert.equal(res.body.applies_compound, true)
 
         done(err)
       })

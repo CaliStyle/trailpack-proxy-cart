@@ -164,8 +164,12 @@ module.exports = class CustomerUpload extends Model {
       accounts: helpers.JSONB('CustomerUpload', app, Sequelize, 'accounts', {
         defaultValue: []
       }),
-      // 'Customers'
+      // 'Users'
       users: helpers.JSONB('CustomerUpload', app, Sequelize, 'users', {
+        defaultValue: []
+      }),
+      // 'Discounts'
+      discounts: helpers.JSONB('CustomerUpload', app, Sequelize, 'discounts', {
         defaultValue: []
       }),
       // 'Image'

@@ -24,10 +24,11 @@
     "body": "# Customer Discount",
     "published": true,
     "sort_order": "price-desc",
-    "discount_type": "fixed",
+    "primary_purpose": "discount",
+    "discount_type": "rate",
     "discount_scope": "global",
     "discount_rate": 100,
-    "primary_purpose": "discount",
+    "discount_status": "enabled",
     "discount_product_exclude": [
       "subscription"
     ]

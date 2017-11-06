@@ -568,12 +568,12 @@ module.exports = class Product extends Model {
             this.calculated_price = this.price
 
             // Modify defaults
-            app.services.DiscountService.calculateCollections(
-              this,
-              this.collections,
-              app.orm['Product'],
-              {transaction: options.transaction || null}
-            )
+            // app.services.DiscountService.calculateCollections(
+            //   this,
+            //   this.collections,
+            //   app.orm['Product'],
+            //   {transaction: options.transaction || null}
+            // )
 
             //obj, collections, resolver, options
 

@@ -4,7 +4,7 @@ const Cron = require('trailpack-proxy-engine').Cron
 
 module.exports = class DiscountsCron extends Cron {
   start() {
-    // Every Hour Check for discount that start
+    // Every Hour Check for discounts that start
     const rule = new this.scheduler.RecurrenceRule()
     rule.minute = 0
     // Schedule the recurring job
@@ -13,7 +13,7 @@ module.exports = class DiscountsCron extends Cron {
     })
   }
   expire() {
-    // Every Hour Check for discount expires
+    // Every Hour Check for discounts that should expire
     const rule = new this.scheduler.RecurrenceRule()
     rule.minute = 0
     // Schedule the recurring job

@@ -44,11 +44,43 @@ module.exports = class CollectionService extends Service {
    */
   create(collection, options) {
     options = options || {}
-    const Collection =  this.app.orm.Collection
-    const Image =  this.app.orm.Image
+    const Collection =  this.app.orm['Collection']
+    const Image =  this.app.orm['Image']
+    const Discount = this.app.orm['Discount']
+    let discounts = []
 
     let resCollection
-    const create = _.omit(collection, ['collections','images'])
+    const create = _.omit(collection, [
+      'collections',
+      'images',
+      'discounts',
+      'discount_name',
+      'discount_status',
+      'discount_code',
+      'discount_scope',
+      'discount_type',
+      'discount_product_exclude',
+      'discount_product_include',
+      'discount_rate',
+      'discount_percentage'
+    ])
+    if (collection.discount_type && collection.discount_type) {
+      discounts.push({
+        name: collection.discount_name || collection.title,
+        code: collection.discount_code || collection.title,
+        status: collection.discount_status,
+        discount_scope: collection.discount_scope,
+        discount_type: collection.discount_type,
+        discount_product_exclude: collection.discount_product_exclude,
+        discount_product_include: collection.discount_product_include,
+        discount_rate: collection.discount_rate,
+        discount_percentage: collection.discount_percentage
+      })
+    }
+    if (collection.discounts && collection.discounts.length > 0) {
+      discounts = [...discounts, ...collection.discounts]
+    }
+
     return Collection.create(create, {transaction: options.transaction || null})
       .then(createdCollection => {
         if (!createdCollection) {
@@ -83,6 +115,18 @@ module.exports = class CollectionService extends Service {
           return Collection.sequelize.Promise.mapSeries(images, (image, index) => {
             return resCollection.addImage(image.id, {through: {position: index + 1 }, transaction: options.transaction || null})
           })
+        }
+        return
+      })
+      .then(() => {
+        if (discounts.length > 0) {
+          return Discount.transformDiscounts(discounts, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(discounts => {
+        if (discounts && discounts.length > 0) {
+          return resCollection.setDiscounts(discounts.map( d => d.id), {transaction: options.transaction || null})
         }
         return
       })
@@ -227,12 +271,12 @@ module.exports = class CollectionService extends Service {
           attributes: [
             'id',
             'title',
-            'discount_type',
-            'discount_scope',
-            'discount_rate',
-            'discount_percentage',
-            'discount_product_include',
-            'discount_product_exclude'
+            // 'discount_type',
+            // 'discount_scope',
+            // 'discount_rate',
+            // 'discount_percentage',
+            // 'discount_product_include',
+            // 'discount_product_exclude'
           ],
           transaction: options.transaction || null
         })
@@ -247,12 +291,12 @@ module.exports = class CollectionService extends Service {
                   attributes: [
                     'id',
                     'title',
-                    'discount_type',
-                    'discount_scope',
-                    'discount_rate',
-                    'discount_percentage',
-                    'discount_product_include',
-                    'discount_product_exclude'
+                    // 'discount_type',
+                    // 'discount_scope',
+                    // 'discount_rate',
+                    // 'discount_percentage',
+                    // 'discount_product_include',
+                    // 'discount_product_exclude'
                   ],
                   include: [
                     {
@@ -346,12 +390,12 @@ module.exports = class CollectionService extends Service {
           attributes: [
             'id',
             'title',
-            'discount_type',
-            'discount_scope',
-            'discount_rate',
-            'discount_percentage',
-            'discount_product_include',
-            'discount_product_exclude'
+            // 'discount_type',
+            // 'discount_scope',
+            // 'discount_rate',
+            // 'discount_percentage',
+            // 'discount_product_include',
+            // 'discount_product_exclude'
           ],
           transaction: options.transaction || null
         })
@@ -366,12 +410,12 @@ module.exports = class CollectionService extends Service {
                   attributes: [
                     'id',
                     'title',
-                    'discount_type',
-                    'discount_scope',
-                    'discount_rate',
-                    'discount_percentage',
-                    'discount_product_include',
-                    'discount_product_exclude'
+                    // 'discount_type',
+                    // 'discount_scope',
+                    // 'discount_rate',
+                    // 'discount_percentage',
+                    // 'discount_product_include',
+                    // 'discount_product_exclude'
                   ],
                   include: [
                     {

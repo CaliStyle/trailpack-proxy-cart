@@ -92,6 +92,19 @@ module.exports = class OrderItem extends Model {
             models.OrderItem.belongsTo(models.GiftCard, {
               foreignKey: 'gift_card_id'
             })
+
+            models.OrderItem.belongsToMany(models.Discount, {
+              as: 'discounts',
+              through: {
+                model: models.ItemDiscount,
+                unique: false,
+                scope: {
+                  model: 'order_item'
+                }
+              },
+              foreignKey: 'model_id',
+              constraints: false
+            })
           },
           resolve: function(item, options){
             options = options || {}

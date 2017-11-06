@@ -63,7 +63,7 @@ describe('Registered User Checkout With Product Discount', () => {
         assert.equal(res.body.discounted_lines[0].price, 100)
         assert.equal(res.body.discounted_lines[0].scope, 'individual')
         assert.equal(res.body.discounted_lines[0].rate, 100)
-        assert.equal(res.body.discounted_lines[0].type, 'fixed')
+        assert.equal(res.body.discounted_lines[0].type, 'rate')
 
         // Pricing
         assert.equal(res.body.total_line_items_price, shopProducts[8].price)

@@ -38,7 +38,7 @@ describe('Registered User Checkout With Subscription', () => {
         body: '# Discount that excludes product types of subscription',
         published: true,
         sort_order: 'price-desc',
-        discount_type: 'fixed',
+        discount_type: 'rate',
         discount_scope: 'global',
         discount_rate: 100,
         primary_purpose: 'discount',

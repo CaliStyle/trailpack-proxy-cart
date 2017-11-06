@@ -328,9 +328,10 @@ describe('Admin User CollectionController', () => {
         assert.equal(res.body.body, 'Everything is Awesome')
         assert.equal(res.body.body_html, '<p>Everything is Awesome</p>\n')
         assert.equal(res.body.sort_order, 'price-asc')
-        assert.equal(res.body.discount_scope, 'global')
-        assert.equal(res.body.discount_type, 'fixed')
-        assert.equal(res.body.discount_rate, 100)
+        // DISCOUNTS MIGRATED TO THEIR OWN OBJECT
+        // assert.equal(res.body.discount_scope, 'global')
+        // assert.equal(res.body.discount_type, 'fixed')
+        // assert.equal(res.body.discount_rate, 100)
         done(err)
       })
   })

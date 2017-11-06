@@ -28,7 +28,7 @@ describe('Admin User Checkout with Product Discount', () => {
         done(err)
       })
   })
-  it('should create a discount', done => {
+  it('should create a product discount', done => {
     discountService.create({
       name: 'product with discount',
       description: 'product with discount',
@@ -36,6 +36,7 @@ describe('Admin User Checkout with Product Discount', () => {
       discount_type: 'rate',
       discount_rate: 100,
       discount_status: 'enabled',
+      discount_scope: 'individual',
       applies_to_id: shopProducts[12].id,
       applies_to_model: 'product',
       applies_compound: false
@@ -48,6 +49,7 @@ describe('Admin User Checkout with Product Discount', () => {
         assert.equal(discount.code, 'product-with-discount')
         assert.equal(discount.discount_type, 'rate')
         assert.equal(discount.discount_rate, 100)
+        assert.equal(discount.discount_scope, 'individual')
         assert.equal(discount.status, 'enabled')
         assert.equal(discount.minimum_order_amount, 0)
         assert.equal(discount.usage_limit, 0)
@@ -72,12 +74,16 @@ describe('Admin User Checkout with Product Discount', () => {
       .end((err, res) => {
         assert.ok(res.body.id)
         console.log('user story', res.body)
-
+        res.body.line_items.forEach(item => {
+          assert.equal(item.discounted_lines.length, 1)
+        })
         // Discounts
         assert.equal(res.body.discounted_lines.length, 1)
         res.body.discounted_lines.forEach(discount => {
           assert.equal(discount.name, 'product with discount')
           assert.equal(discount.price, 100)
+          assert.equal(discount.applies, true)
+          assert.notEqual(discount.lines.indexOf(0), -1)
         })
         assert.equal(res.body.total_discounts, 100)
         assert.equal(res.body.total_due, shopProducts[12].price - 100)
@@ -103,6 +109,8 @@ describe('Admin User Checkout with Product Discount', () => {
       .expect(200)
       .end((err, res) => {
         orderID = res.body.order.id
+
+        // console.log('BROKE USER STORY', res.body.order)
 
         assert.ok(res.body.order.id)
         assert.ok(res.body.order.token)
@@ -141,8 +149,8 @@ describe('Admin User Checkout with Product Discount', () => {
         assert.equal(res.body.order.total_items, 1)
         assert.equal(res.body.order.order_items[0].price, shopProducts[12].price)
         assert.equal(res.body.order.order_items[0].price_per_unit, shopProducts[12].price)
-        assert.equal(res.body.order.order_items[0].calculated_price, shopProducts[12].price)
-        assert.equal(res.body.order.order_items[0].total_discounts, 0)
+        assert.equal(res.body.order.order_items[0].calculated_price, shopProducts[12].price - 100)
+        assert.equal(res.body.order.order_items[0].total_discounts, 100)
 
         res.body.order.order_items.forEach(item => {
           assert.equal(item.order_id, orderID)

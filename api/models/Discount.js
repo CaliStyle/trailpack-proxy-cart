@@ -148,6 +148,11 @@ module.exports = class Discount extends Model {
               foreignKey: 'discount_id',
               constraints: false
             })
+
+            models.Discount.hasMany(models.DiscountEvent, {
+              as: 'events',
+              foreignKey: 'discount_id'
+            })
           },
           /**
            *
@@ -189,7 +194,7 @@ module.exports = class Discount extends Model {
            */
           resolve: function(discount, options){
             options = options || {}
-            const Discount =  this
+            const Discount = this
 
             if (discount instanceof Discount){
               return Promise.resolve(discount)
@@ -271,6 +276,55 @@ module.exports = class Discount extends Model {
               const err = new Error(`Not able to resolve discount ${discount}`)
               return Promise.reject(err)
             }
+          },
+          /**
+           *
+           * @param discounts
+           * @param options
+           */
+          transformDiscounts: (discounts, options) => {
+            options = options || {}
+            discounts = discounts || []
+
+            const Discount = app.orm['Discount']
+            const Sequelize = Discount.sequelize
+
+            // Transform if necessary to objects
+            discounts = discounts.map(discount => {
+              if (discount && _.isNumber(discount)) {
+                return { id: discount }
+              }
+              else if (discount && _.isString(discount)) {
+                return {
+                  handle: app.services.ProxyCartService.handle(discount),
+                  name: discount
+                }
+              }
+              else if (discount && _.isObject(discount) && (discount.name || discount.handle)) {
+                discount.handle = app.services.ProxyCartService.handle(discount.handle) || app.services.ProxyCartService.handle(discount.name)
+                return discount
+              }
+            })
+            // Filter out undefined
+            discounts = discounts.filter(discount => discount)
+
+            return Sequelize.Promise.mapSeries(discounts, discount => {
+              return Discount.findOne({
+                where: _.pick(discount, ['id','handle']),
+                attributes: ['id', 'handle', 'name'],
+                transaction: options.transaction || null
+              })
+                .then(_discount => {
+                  if (_discount) {
+                    return _.extend(_discount, discount)
+                  }
+                  else {
+                    return app.services.DiscountService.create(discount, {
+                      transaction: options.transaction || null
+                    })
+                  }
+                })
+            })
           }
         },
         instanceMethods: {
@@ -286,12 +340,110 @@ module.exports = class Discount extends Model {
             this.status = DISCOUNT_STATUS.DEPLETED
             return this
           },
-          logUsage: function () {
+          logUsage: function (customer, order, options) {
             this.times_used++
             if (this.usage_limit > 0 && this.times_used >= this.usage_limit) {
               this.depleted()
             }
-            return this
+            return this.createEvent({
+              customer: customer,
+              order: order,
+            }, {transaction: options.transaction || null})
+              .then(() => {
+                return this.save({transaction: options.transaction || null})
+              })
+          },
+          discountItem: function(item, criteria) {
+            criteria = criteria || []
+            // Set item defaults
+            item.discounted_lines = item.discounted_lines || []
+            item.shipping_lines = item.shipping_lines || []
+            item.calculated_price = item.calculated_price || item.price
+            item.total_discounts = item.total_discounts || 0
+
+            const discountedLine = {
+              id: this.id,
+              model: 'discount',
+              type: null,
+              rate: null,
+              percentage: null,
+              name: this.name,
+              scope: this.discount_scope,
+              price: 0,
+              applies: false,
+              rules: {
+                applies_once: this.applies_once,
+                applies_once_per_customer: this.applies_once_per_customer,
+                applies_compound: this.applies_compound,
+                minimum_order_amount: this.minimum_order_amount
+              }
+            }
+
+            let totalDeducted = 0
+
+            // If this discount is not enabled
+            if (this.status !== DISCOUNT_STATUS.ENABLED) {
+              return item
+            }
+            // If this has a usage limit and is past it's usage limit
+            if (this.usage_limit > 0 && this.times_used > this.usage_limit) {
+              return item
+            }
+
+            // If this item type is excluded from discount, ignore
+            if (
+              this.discount_product_exclude.length > 0
+              && this.discount_product_exclude.indexOf(item.type) > -1
+            ) {
+              return item
+            }
+            // If an item type is included in discount and it is not this item type, ignore
+            if (
+              this.discount_product_include.length > 0
+              && this.discount_product_include.indexOf(item.type) === -1
+            ) {
+              return item
+            }
+            // If this discount has already been applied
+            if (item.discounted_lines && item.discounted_lines.some(discount => discount.id === this.id)) {
+              return item
+            }
+
+            // If this discount only applies to individual products
+            // TODO Check that this is the correct criteria
+            // if (
+            //   this.discount_scope === DISCOUNT_SCOPE.INDIVIDUAL
+            //   && !criteria.some(pair =>
+            //     pair['product'] === item.product_id
+            //     || pair['variant'] === item.variant_id
+            //   )
+            // ) {
+            //   // return item
+            // }
+            // Set the type
+            // If this is rate
+            if (this.discount_type === DISCOUNT_TYPES.RATE) {
+              discountedLine.rate = this.discount_rate
+              discountedLine.type = DISCOUNT_TYPES.RATE
+              discountedLine.price = discountedLine.rate
+            }
+            // If this is a percentage
+            else if (this.discount_type === DISCOUNT_TYPES.PERCENTAGE) {
+              discountedLine.percentage = this.discount_percentage
+              discountedLine.type = DISCOUNT_TYPES.PERCENTAGE
+              discountedLine.price = Math.round((item.price * (discountedLine.percentage / 100)))
+            }
+            // If this a shipping discount, return because this needs a different calculation
+            else if (this.discount_type === DISCOUNT_TYPES.SHIPPING) {
+              return item
+            }
+
+            totalDeducted = Math.min(item.price, (item.price - (item.price - discountedLine.price)))
+            discountedLine.price = totalDeducted
+            item.discounted_lines.push(discountedLine)
+
+            return item
+
           }
         }
       }
@@ -409,17 +561,20 @@ module.exports = class Discount extends Model {
       },
       // When a discount applies to a product or collection resource, applies_once determines whether the discount should be applied once per order, or to every applicable item in the cart.
       applies_once: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
       // Determines whether the discount should be applied once, or any number of times per customer.
+      // Example, if true, then once the customer checks out, this discount can no longer apply to them
+      // in subsequent orders.
       applies_once_per_customer: {
-        type: Sequelize.INTEGER,
-        defaultValue: 1
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
       // if this discount can be compounded with other discounts.
       applies_compound: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: true
       },
       // Live Mode
       live_mode: {

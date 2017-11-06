@@ -107,7 +107,7 @@
       {
         "handle": "test-discount",
         "title": "Test Discount",
-        "discount_type": "fixed",
+        "discount_type": "rate",
         "discount_scope": "global",
         "discount_rate": 100,
         "primary_purpose": "discount",
@@ -139,7 +139,7 @@
       {
         "handle": "test-discount-2",
         "title": "Test Discount 2",
-        "discount_type": "fixed",
+        "discount_type": "rate",
         "discount_scope": "individual",
         "discount_rate": 100,
         "primary_purpose": "discount",
@@ -148,7 +148,7 @@
       {
         "handle": "test-discount-3",
         "title": "Test Discount 3",
-        "discount_type": "fixed",
+        "discount_type": "rate",
         "discount_scope": "individual",
         "discount_rate": 100,
         "primary_purpose": "discount",
@@ -254,7 +254,7 @@
       {
         "handle": "product-with-discount-collection-test",
         "title": "Product with discount Collection test",
-        "discount_type": "fixed",
+        "discount_type": "rate",
         "discount_scope": "individual",
         "discount_rate": 100,
         "primary_purpose": "discount",

@@ -109,36 +109,36 @@ module.exports = class CollectionCsvService extends Service {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
             const k = keys[i]
             if (i > -1 && k) {
-              if (k == 'handle') {
+              if (k === 'handle') {
                 upload[k] = this.app.services.ProxyCartService.splitHandle(data.toString())
               }
-              else if (k == 'title') {
+              else if (k === 'title') {
                 upload[k] = data.toString().trim().substring(0,255)
               }
-              else if (k == 'description') {
+              else if (k === 'description') {
                 upload[k] = data.toString().trim().substring(0,255)
               }
-              else if (k == 'discount_product_include') {
+              else if (k === 'discount_product_include') {
                 upload[k] = data.toString().split(',').map(discount => {
                   return discount.trim()
                 })
               }
-              else if (k == 'discount_product_exclude') {
+              else if (k === 'discount_product_exclude') {
                 upload[k] = data.toString().split(',').map(discount => {
                   return discount.trim()
                 })
               }
-              else if (k == 'collections') {
+              else if (k === 'collections') {
                 upload[k] = data.toString().split(',').map(collection => {
                   return collection.trim()
                 })
               }
-              else if (k == 'images') {
+              else if (k === 'images') {
                 upload[k] = data.toString().split(',').map(images => {
                   return images.trim()
                 })
               }
-              else if (k == 'images_alt') {
+              else if (k === 'images_alt') {
                 upload[k] = data.toString().split('|').map(images => {
                   return images.trim()
                 })
@@ -221,6 +221,7 @@ module.exports = class CollectionCsvService extends Service {
           shipping_type: collection.shipping_type,
           shipping_name: collection.shipping_name,
           discount_scope: collection.discount_scope,
+          discount_status: collection.discount_status,
           discount_type: collection.discount_type,
           discount_rate: collection.discount_rate,
           discount_percentage: collection.discount_percentage,
