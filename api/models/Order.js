@@ -216,6 +216,11 @@ module.exports = class Order extends Model {
               foreignKey: 'object_id',
               constraints: false
             })
+
+            models.Order.hasMany(models.DiscountEvent, {
+              as: 'discount_events',
+              foreignKey: 'order_id'
+            })
           },
           /**
            *

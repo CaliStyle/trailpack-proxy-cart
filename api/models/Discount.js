@@ -151,7 +151,7 @@ module.exports = class Discount extends Model {
             })
 
             models.Discount.hasMany(models.DiscountEvent, {
-              as: 'events',
+              as: 'discount_events',
               foreignKey: 'discount_id'
             })
           },
@@ -329,24 +329,44 @@ module.exports = class Discount extends Model {
           }
         },
         instanceMethods: {
+          /**
+           *
+           * @returns {module:Discount}
+           */
           start: function() {
             this.status = DISCOUNT_STATUS.ENABLED
             return this
           },
+          /**
+           *
+           * @returns {module:Discount}
+           */
           stop: function() {
             this.status = DISCOUNT_STATUS.DISABLED
             return this
           },
+          /**
+           *
+           * @returns {module:Discount}
+           */
           depleted: function () {
             this.status = DISCOUNT_STATUS.DEPLETED
             return this
           },
+          /**
+           *
+           * @param orderId
+           * @param customerId
+           * @param price
+           * @param options
+           * @returns {Promise.<TResult>|*}
+           */
           logUsage: function (orderId, customerId, price, options) {
             this.times_used++
             if (this.usage_limit > 0 && this.times_used >= this.usage_limit) {
               this.depleted()
             }
-            return this.createEvent({
+            return this.createDiscount_event({
               customer_id: customerId,
               order_id: orderId,
               price: price
@@ -357,10 +377,40 @@ module.exports = class Discount extends Model {
                 return this.save({transaction: options.transaction || null})
               })
           },
+          /**
+           *
+           * @param customerId
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          eligibleCustomer: function(customerId, options) {
+            return this.getDiscount_Event(customerId, {
+              attributes: ['id','discount_id'],
+              transaction: options.transaction || null
+            })
+              .then(notEligible => {
+                if (this.applies_once_per_customer && notEligible) {
+                  return this
+                }
+                else {
+                  return true
+                }
+              })
+              .catch(err => {
+                app.log.error(err)
+                return
+              })
+          },
+          /**
+           *
+           * @param item
+           * @param criteria
+           * @returns {*}
+           */
           discountItem: function(item, criteria) {
             criteria = criteria || []
 
-            console.log('CRITERIA', criteria)
+            app.log.debug('Discount.discountItem CRITERIA', criteria)
 
             // Set item defaults
             item.discounted_lines = item.discounted_lines || []

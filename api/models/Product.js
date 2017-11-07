@@ -721,9 +721,10 @@ module.exports = class Product extends Model {
             options = options || {}
             const criteria = []
             const discountCriteria = []
-            let collectionIds = []
+            let collectionIds = [], checkHistory = []
             // const discountedLines = this.discounted_lines || []
 
+            let resDiscounts
             return Promise.resolve()
               .then(() => {
                 return this.getCollectionIds({
@@ -795,8 +796,43 @@ module.exports = class Product extends Model {
                   return []
                 }
               })
-              .then(discounts => {
-                return this.setItemDiscountedLines(discounts, discountCriteria)
+              .then(_discounts => {
+                _discounts = _discounts || []
+
+                resDiscounts = _discounts
+
+                resDiscounts.forEach(discount => {
+                  if (
+                    discount.applies_once_per_customer
+                    && options.req
+                    && options.req.customer
+                    && options.req.customer.id
+                  ) {
+                    checkHistory.push(discount)
+                  }
+                })
+
+                if (checkHistory.length > 0) {
+                  return Promise.all(checkHistory.map(discount => {
+                    return discount.eligibleCustomer(options.req.customer.id, {
+                      transaction: options.transaction || null
+                    })
+                  }))
+                }
+                else {
+                  return []
+                }
+              })
+              .then(_eligible => {
+                _eligible = _eligible || []
+                _eligible.forEach(discount => {
+                  const i = resDiscounts.findIndex(i => i.id === discount.id)
+                  if (i > -1) {
+                    resDiscounts.splice(i, 1)
+                  }
+                })
+
+                return this.setItemDiscountedLines(resDiscounts, discountCriteria)
               })
               .catch(err => {
                 app.log.error(err)

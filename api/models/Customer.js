@@ -251,6 +251,11 @@ module.exports = class Customer extends Model {
               foreignKey: 'model_id',
               constraints: false
             })
+
+            models.Customer.hasMany(models.DiscountEvent, {
+              as: 'discount_events',
+              foreignKey: 'customer_id'
+            })
             // models.Customer.hasOne(models.Order, {
             //   targetKey: 'last_order_id',
             //   foreignKey: 'id'

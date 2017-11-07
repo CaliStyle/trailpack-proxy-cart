@@ -882,19 +882,20 @@ module.exports = class Cart extends Model {
            */
           calculateDiscounts(options) {
             options = options || {}
+
             const criteria = []
             const discountCriteria = []
             const productIds = this.line_items.map(item => item.product_id)
-            let collectionIds = []
-            // const discountedLines = this.discounted_lines || []
+            let collectionIds = [], checkHistory = []
 
+            let resDiscounts
             return Promise.resolve()
               .then(() => {
                 return this.getCollectionIds({transaction: options.transaction || null})
               })
               .then(_collections => {
-                collectionIds = _collections
-                // console.log('BROKE COLLECTION IDS', collectionIds)
+                collectionIds = _collections || []
+
                 if (this.id) {
                   criteria.push({
                     model: 'cart',
@@ -933,15 +934,12 @@ module.exports = class Cart extends Model {
                 }
               })
               .then(discounts => {
-                // console.log('BROKE DISCOUNTS', discounts)
                 discounts.forEach(discount => {
                   discountCriteria.push({
                     id: discount.discount_id,
                     [discount.model]: discount.model_id
                   })
                 })
-
-                // console.log('ItemDiscount from criteria', discountCriteria)
 
                 if (discounts.length > 0) {
                   return app.orm['Discount'].findAll({
@@ -956,19 +954,35 @@ module.exports = class Cart extends Model {
                   return []
                 }
               })
-              .then(discounts => {
-                // discounts.forEach(discount => {
-                //   discountedLines.push({
-                //     id: discount.id,
-                //     model: 'discount',
-                //     name: discount.name,
-                //     type: discount.discount_type,
-                //     price: discount.discount_rate
-                //   })
-                // })
-                // return this.setDiscountedLines(discountedLines)
-                return this.setItemsDiscountedLines(discounts, discountCriteria)
+              .then(_discounts => {
+                _discounts = _discounts || []
 
+                resDiscounts = _discounts
+
+                resDiscounts.forEach(discount => {
+                  if (discount.applies_once_per_customer && this.customer_id) {
+                    checkHistory.push(discount)
+                  }
+                })
+
+                if (checkHistory.length > 0) {
+                  return Promise.all(checkHistory.map(discount => {
+                    return discount.eligibleCustomer(this.customer_id, {transaction: options.transaction || null})
+                  }))
+                }
+                else {
+                  return []
+                }
+              })
+              .then(_eligible => {
+                _eligible = _eligible || []
+                _eligible.forEach(discount => {
+                  const i = resDiscounts.findIndex(i => i.id === discount.id)
+                  if (i > -1) {
+                    resDiscounts.splice(i, 1)
+                  }
+                })
+                return this.setItemsDiscountedLines(resDiscounts, discountCriteria)
               })
               .catch(err => {
                 app.log.error(err)
