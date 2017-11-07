@@ -305,11 +305,7 @@ module.exports = class SubscriptionService extends Service {
           throw new Errors.FoundError(Error('Subscription Not Found'))
         }
         resSubscription = _subscription
-        resSubscription.cancel_reason = null
-        resSubscription.cancelled_at = null
-        resSubscription.cancelled = false
-        resSubscription.active = true
-        return resSubscription.save({transaction: options.transaction || null})
+        return resSubscription.activate().save({transaction: options.transaction || null})
       })
       .then(() => {
         const event = {

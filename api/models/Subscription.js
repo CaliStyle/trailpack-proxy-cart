@@ -267,6 +267,50 @@ module.exports = class Subscription extends Model {
 
         },
         instanceMethods: {
+          activate: function() {
+            this.cancel_reason = null
+            this.cancelled_at = null
+            this.cancelled = false
+            this.active = true
+
+            // TODO, this may also need to trigger a new order
+            // Check if the dates need to be updated
+            const d = moment().startOf('hour')
+            const r = d.clone()
+            // console.log('CHECK DATE', d, this.renewed_at, this.renews_on)
+            if (this.unit === INTERVALS.DAY) {
+              // d.setDate(d.getDay() + this.interval)
+              d.add(this.interval, 'D')
+            }
+            else if (this.unit === INTERVALS.WEEK) {
+              // d.setMonth(d.getWeek() + this.interval);
+              d.add(this.interval, 'W')
+            }
+            else if (this.unit === INTERVALS.MONTH) {
+              // d.setMonth(d.getMonth() + this.interval)
+              d.add(this.interval, 'M')
+              // console.log(d)
+            }
+            else if (this.unit === INTERVALS.BIMONTH) {
+              d.add(this.interval * 2, 'M')
+              // d.setMonth(d.getMonth() + this.interval * 2)
+            }
+            else if (this.unit === INTERVALS.YEAR) {
+              d.add(this.interval, 'Y')
+              // d.setYear(d.getYear() + this.interval)
+            }
+            else if (this.unit === INTERVALS.BIYEAR) {
+              d.add(this.interval * 2, 'Y')
+              // d.setYear(d.getYear() + this.interval * 2)
+            }
+            // Reset Renews on date
+            if (moment() > moment(this.renews_on)) {
+              this.renewed_at = r.format('YYYY-MM-DD HH:mm:ss')
+              this.renews_on = d.format('YYYY-MM-DD HH:mm:ss')
+            }
+
+            return this
+          },
           resolveCustomer: function(options) {
             options = options || {}
             if (

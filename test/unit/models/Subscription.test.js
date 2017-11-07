@@ -160,4 +160,26 @@ describe('Subscription Model', () => {
     assert.equal(subscription.line_items[1].calculated_price, 900)
     done()
   })
+
+  it('should activate subscription and change renewal date if it in the past', (done) => {
+    const renewedAt = moment().startOf('hour').subtract(2, 'months')
+    const renewedAtNew = renewedAt.clone().add(2, 'months')
+    const renewedOn = moment().startOf('hour').subtract(1, 'months')
+    const renewedOnNew = renewedOn.clone().add(2, 'months')
+    const subscription = Subscription.build({
+      customer_id: 1,
+      renewed_at: renewedAt.format('YYYY-MM-DD HH:mm:ss'),
+      renews_on: renewedOn.format('YYYY-MM-DD HH:mm:ss'),
+      interval: 1,
+      interval_unit: 'm'
+    }).activate()
+
+    console.log('REACTIVATE SCHEDULE', subscription)
+
+    assert.equal(moment(subscription.renewed_at).format('YYYY-MM-DD HH:mm:ss'), renewedAtNew.format('YYYY-MM-DD HH:mm:ss'))
+    assert.equal(moment(subscription.renews_on).format('YYYY-MM-DD HH:mm:ss'), renewedOnNew.format('YYYY-MM-DD HH:mm:ss'))
+
+
+    done()
+  })
 })
