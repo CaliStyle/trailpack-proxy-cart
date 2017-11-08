@@ -246,13 +246,17 @@ module.exports = class ProductCsvService extends Service {
                 upload[k] = data
               }
             }
-            else if (optionsReg.exec(key)) {
+            else {
 
-              const match = optionsReg.exec(key)
-              // console.log(match)
-              if (match && typeof match[3] !== 'undefined' && match[4] !== 'undefined') {
-                const part = match[4].toLowerCase()
-                const index = Number(match[3]) - 1
+              const matchOptions = optionsReg.exec(key)
+              // console.log(matchOptions)
+              if (
+                matchOptions
+                && typeof matchOptions[3] !== 'undefined'
+                && matchOptions[4] !== 'undefined'
+              ) {
+                const part = matchOptions[4].toLowerCase()
+                const index = Number(matchOptions[3]) - 1
                 // console.log(index, part)
                 if (typeof upload.options[index] === 'undefined') {
                   upload.options[index] = {
@@ -265,14 +269,16 @@ module.exports = class ProductCsvService extends Service {
                 upload.options[index][part] = data.trim()
                 // }
               }
-            }
-            else if (propertyReg.exec(key)) {
 
-              const match = propertyReg.exec(key)
-              // console.log(match)
-              if (match && typeof match[3] !== 'undefined' && match[4] !== 'undefined') {
-                const part = match[4].toLowerCase()
-                const index = Number(match[3]) - 1
+              const matchProperties = propertyReg.exec(key)
+              // console.log(matchProperties)
+              if (
+                matchProperties
+                && typeof matchProperties[3] !== 'undefined'
+                && matchProperties[4] !== 'undefined'
+              ) {
+                const part = matchProperties[4].toLowerCase()
+                const index = Number(matchProperties[3]) - 1
                 // console.log(index, part)
                 if (typeof upload.properties[index] === 'undefined') {
                   upload.properties[index] = {
