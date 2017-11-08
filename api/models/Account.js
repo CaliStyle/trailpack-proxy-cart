@@ -54,6 +54,11 @@ module.exports = class Account extends Model {
               foreignKey: 'account_id'
               // constraints: false
             })
+
+            models.Account.hasMany(models.AccountEvent, {
+              as: 'account_events',
+              foreignKey: 'account_id'
+            })
           },
           findByIdDefault: function(id, options) {
             options = app.services.ProxyEngineService.mergeOptionDefaults(

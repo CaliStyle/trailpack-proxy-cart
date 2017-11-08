@@ -2,7 +2,7 @@
 'use strict'
 
 const Service = require('trails/service')
-const csvParser = require('babyparse')
+const csvParser = require('papaparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
@@ -209,7 +209,7 @@ module.exports = class SubscriptionCsvService extends Service {
     const Subscription = this.app.orm['Subscription']
     const resSubscription = Subscription.build(obj)
 
-    return Customer.resolve(obj.customer, {transaction: options.transaction || null})
+    return Customer.resolve(obj.customer, {transaction: options.transaction || null, create: true})
       .then(customer => {
         resCustomer = customer
         return this.app.orm['Product'].findAll({

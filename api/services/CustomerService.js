@@ -384,41 +384,51 @@ module.exports = class CustomerService extends Service {
    * @returns {*}
    */
   accountBalance(customer, options) {
+    options = options || {}
     const Customer = this.app.orm.Customer
+    let price = 0
+    let type = 'credit'
 
     if (!customer.id) {
       const err = new Errors.FoundError(Error('Customer is missing id'))
       return Promise.reject(err)
     }
-    if (!options) {
-      options = {}
-    }
 
     let resCustomer = {}
-    return Customer.findById(customer.id)
+    return Customer.resolve(customer, {
+      transaction: options.transaction || null,
+      create: false
+    })
       .then(_customer => {
         if (!_customer) {
           throw new Errors.FoundError(Error('Customer was not found'))
         }
+        if (!(_customer instanceof Customer)) {
+          throw new Error('Did not resolve instance of Customer')
+        }
+
         resCustomer = _customer
-        resCustomer.account_balance = customer.account_balance
-        return resCustomer.save({transaction: options.transaction || null})
+
+        if (resCustomer.account_balance > customer.account_balance) {
+          type = 'debit'
+          price = Math.max(0, resCustomer.account_balance - customer.account_balance)
+        }
+        else {
+          type = 'credit'
+          price = Math.max(0, customer.account_balance - resCustomer.account_balance)
+        }
+
+        return resCustomer.logAccountBalance(
+          type,
+          price,
+          null,
+          null,
+          null,
+          {transaction: options.transaction || null}
+        )
       })
       .then(() => {
-        const event = {
-          object_id: resCustomer.id,
-          object: 'customer',
-          objects: [{
-            customer: resCustomer.id
-          }],
-          type: 'customer.account_balance.updated',
-          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } account balance was updated to ${ resCustomer.account_balance }`,
-          data: resCustomer
-        }
-        return this.app.services.ProxyEngineService.publish(event.type, event, {
-          save: true,
-          transaction: options.transaction || null
-        })
+        return resCustomer.save({transaction: options.transaction || null})
       })
       .then(event => {
         return Customer.findByIdDefault(resCustomer.id, {transaction: options.transaction || null})
@@ -527,7 +537,7 @@ module.exports = class CustomerService extends Service {
     const Customer = this.app.orm['Customer']
     const Tag = this.app.orm['Tag']
     let resCustomer, resTag
-    return Customer.resolve(customer)
+    return Customer.resolve(customer, {create: false})
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
@@ -563,7 +573,7 @@ module.exports = class CustomerService extends Service {
     const Customer = this.app.orm['Customer']
     const Tag = this.app.orm['Tag']
     let resCustomer, resTag
-    return Customer.resolve(customer)
+    return Customer.resolve(customer, {create: false})
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
@@ -599,7 +609,7 @@ module.exports = class CustomerService extends Service {
     const Customer = this.app.orm['Customer']
     const Collection = this.app.orm['Collection']
     let resCustomer, resCollection
-    return Customer.resolve(customer)
+    return Customer.resolve(customer, {create: false})
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
@@ -635,7 +645,7 @@ module.exports = class CustomerService extends Service {
     const Customer = this.app.orm['Customer']
     const Collection = this.app.orm['Collection']
     let resCustomer, resCollection
-    return Customer.resolve(customer)
+    return Customer.resolve(customer, {create: false})
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer not found'))
@@ -675,7 +685,10 @@ module.exports = class CustomerService extends Service {
     const Address = this.app.orm['Address']
 
     let resCustomer
-    return Customer.resolve(customer, {transaction: options.transaction || null})
+    return Customer.resolve(customer, {
+      transaction: options.transaction || null,
+      create: false
+    })
       .then(customer => {
         if (!customer) {
           throw new Error('Unable to resolve Customer')
@@ -829,7 +842,7 @@ module.exports = class CustomerService extends Service {
     // address = Address.cleanAddress(address)
 
     let resCustomer
-    return Customer.resolve(customer, {transaction: options.transaction || null})
+    return Customer.resolve(customer, {transaction: options.transaction || null, create: false})
       .then(customer => {
         if (!customer){
           throw new Error('Unable to resolve Customer')
@@ -905,7 +918,7 @@ module.exports = class CustomerService extends Service {
     const Customer = this.app.orm['Customer']
     const Address = this.app.orm['Address']
     let resCustomer, resAddress
-    return Customer.resolve(customer, {transaction: options.transaction || null})
+    return Customer.resolve(customer, {transaction: options.transaction || null, create: false})
       .then(foundCustomer => {
         if (!foundCustomer) {
           throw new Error('Customer could not resolve')
@@ -935,7 +948,7 @@ module.exports = class CustomerService extends Service {
     options = options || {}
     const Customer = this.app.orm['Customer']
     let resCustomer
-    return Customer.resolve(customer, {transaction: options.transaction || null})
+    return Customer.resolve(customer, {transaction: options.transaction || null, create: false})
       .then(customer => {
         resCustomer = customer
         if (resCustomer.shipping_address_id && resCustomer.changed('shipping_address_id')) {

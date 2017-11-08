@@ -150,7 +150,7 @@ module.exports = class ProductVariant extends Model {
                 model: models.ItemDiscount,
                 unique: false,
                 scope: {
-                  model: 'variant'
+                  model: 'productvariant'
                 }
               },
               foreignKey: 'model_id',
@@ -367,6 +367,10 @@ module.exports = class ProductVariant extends Model {
       // The option that this Variant is
       option: helpers.JSONB('ProductVariant', app, Sequelize, 'option', {
         // name: string, value:string
+        defaultValue: {}
+      }),
+      // Property Based Pricing
+      property_pricing: helpers.JSONB('ProductVariant', app, Sequelize, 'property_pricing', {
         defaultValue: {}
       }),
       // The Barcode of the Variant

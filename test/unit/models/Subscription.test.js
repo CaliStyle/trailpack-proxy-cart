@@ -174,7 +174,7 @@ describe('Subscription Model', () => {
       interval_unit: 'm'
     }).activate()
 
-    console.log('REACTIVATE SCHEDULE', subscription)
+    // console.log('REACTIVATE SCHEDULE', subscription)
 
     assert.equal(moment(subscription.renewed_at).format('YYYY-MM-DD HH:mm:ss'), renewedAtNew.format('YYYY-MM-DD HH:mm:ss'))
     assert.equal(moment(subscription.renews_on).format('YYYY-MM-DD HH:mm:ss'), renewedOnNew.format('YYYY-MM-DD HH:mm:ss'))

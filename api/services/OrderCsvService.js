@@ -213,7 +213,7 @@ module.exports = class OrderCsvService extends Service {
     const Product = this.app.orm['Product']
     let resCustomer, resProducts
 
-    return Customer.resolve(obj.customer, {transaction: options.transaction || null})
+    return Customer.resolve(obj.customer, {transaction: options.transaction || null, create: true})
       .then(customer => {
         resCustomer = customer
         return Product.findAll({

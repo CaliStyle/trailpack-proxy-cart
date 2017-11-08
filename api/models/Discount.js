@@ -119,7 +119,7 @@ module.exports = class Discount extends Model {
                 model: models.ItemDiscount,
                 unique: false,
                 scope: {
-                  model: 'variant'
+                  model: 'productvariant'
                 }
               },
               foreignKey: 'discount_id',
@@ -411,6 +411,7 @@ module.exports = class Discount extends Model {
             criteria = criteria || []
 
             app.log.debug('Discount.discountItem CRITERIA', criteria)
+            // console.log('Discount.discountItem CRITERIA', criteria)
 
             // Set item defaults
             item.discounted_lines = item.discounted_lines || []
@@ -466,6 +467,26 @@ module.exports = class Discount extends Model {
               return item
             }
 
+            // If this discount is individual
+            if (this.discount_scope === DISCOUNT_SCOPE.INDIVIDUAL) {
+              const criteriaPair = criteria.find(d => d.discount === this.id)
+              // console.log('CRITERIA PAIR', criteriaPair)
+              if (!criteriaPair) {
+                return item
+              }
+              else if (
+                item.product_id
+                && criteriaPair['product']
+                && criteriaPair['product'].indexOf(item.product_id) === -1) {
+                return item
+              }
+              else if (
+                item.variant_id
+                && criteriaPair['productvariant']
+                && criteriaPair['productvariant'].indexOf(item.variant_id) === -1) {
+                return item
+              }
+            }
             // If this discount only applies to individual products
             // TODO Check that this is the correct criteria
             // if (
@@ -496,8 +517,11 @@ module.exports = class Discount extends Model {
             }
 
             totalDeducted = Math.min(item.price, (item.price - (item.price - discountedLine.price)))
-            discountedLine.price = totalDeducted
-            item.discounted_lines.push(discountedLine)
+
+            if (totalDeducted > 0) {
+              discountedLine.price = totalDeducted
+              item.discounted_lines.push(discountedLine)
+            }
 
             return item
 

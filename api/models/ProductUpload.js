@@ -130,6 +130,10 @@ module.exports = class ProductUpload extends Model {
         // name: string, value:string
         defaultValue: {}
       }),
+      // Property Based Pricing
+      property_pricing: helpers.JSONB('ProductUpload', app, Sequelize, 'property_pricing', {
+        defaultValue: {}
+      }),
       // 'Images Sources'
       images: helpers.JSONB('ProductUpload', app, Sequelize, 'images', {
         defaultValue: []

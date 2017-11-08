@@ -2,7 +2,7 @@
 'use strict'
 
 const Service = require('trails/service')
-const csvParser = require('babyparse')
+const csvParser = require('papaparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')
@@ -101,6 +101,9 @@ module.exports = class ProductCsvService extends Service {
           associations: [],
           tags: []
         }
+
+        const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
+        const propertyReg = new RegExp('^((Property Pricing \/).([0-9]).(Name|Value|Image))', 'g')
 
         _.each(row, (data, key) => {
           if (typeof(data) === 'undefined' || data === '') {
@@ -243,8 +246,8 @@ module.exports = class ProductCsvService extends Service {
                 upload[k] = data
               }
             }
-            else {
-              const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
+            else if (optionsReg.exec(key)) {
+
               const match = optionsReg.exec(key)
               // console.log(match)
               if (match && typeof match[3] !== 'undefined' && match[4] !== 'undefined') {
@@ -263,6 +266,27 @@ module.exports = class ProductCsvService extends Service {
                 // }
               }
             }
+            else if (propertyReg.exec(key)) {
+
+              const match = propertyReg.exec(key)
+              // console.log(match)
+              if (match && typeof match[3] !== 'undefined' && match[4] !== 'undefined') {
+                const part = match[4].toLowerCase()
+                const index = Number(match[3]) - 1
+                // console.log(index, part)
+                if (typeof upload.properties[index] === 'undefined') {
+                  upload.properties[index] = {
+                    name: '',
+                    value: '',
+                    image: ''
+                  }
+                }
+                // TODO place this as the default product
+                // if (data.trim().toLowerCase() !== 'default value') {
+                upload.properties[index][part] = data.trim()
+                // }
+              }
+            }
           }
         })
 
@@ -272,6 +296,13 @@ module.exports = class ProductCsvService extends Service {
           upload.option[option.name] = option.value
         })
         delete upload.options
+
+        // Handle Pricing Properties
+        upload.pricing_properties = {}
+        _.map(upload.properties, property => {
+          upload.pricing_properties[property.name] = property.value
+        })
+        delete upload.properties
 
         // Map images
         upload.images = upload.images.map((image, index) => {

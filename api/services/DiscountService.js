@@ -529,7 +529,7 @@ module.exports = class DiscountService extends Service {
           throw new Error('Discount did not resolve')
         }
         resDiscount = _discount
-        return Customer.resolve(customer, {transaction: options.transaction || null})
+        return Customer.resolve(customer, {transaction: options.transaction || null, create: false})
       })
       .then(_customer => {
         if (!_customer) {
@@ -569,7 +569,7 @@ module.exports = class DiscountService extends Service {
           throw new Error('Discount did not resolve')
         }
         resDiscount = _discount
-        return Customer.resolve(customer, {transaction: options.transaction || null})
+        return Customer.resolve(customer, {transaction: options.transaction || null, create: false})
       })
       .then(_customer => {
         if (!_customer) {

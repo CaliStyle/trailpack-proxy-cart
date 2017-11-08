@@ -307,22 +307,14 @@ module.exports = class OrderService extends Service {
           resOrder = order
 
           if (resCustomer instanceof Customer && deduction > 0) {
-            // Get the total deducted
-            resCustomer.setAccountBalance(Math.max(0, resCustomer.account_balance - deduction))
-            const event = {
-              object_id: resCustomer.id,
-              object: 'customer',
-              objects: [{
-                customer: resCustomer.id
-              }],
-              type: 'customer.account_balance.deducted',
-              message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } account balance was deducted by ${ deduction }`,
-              data: resCustomer
-            }
-            return this.app.services.ProxyEngineService.publish(event.type, event, {
-              save: true,
-              transaction: options.transaction || null
-            })
+            return resCustomer.logAccountBalance(
+              'debit',
+              deduction,
+              resOrder.currency,
+              null,
+              resOrder.id,
+              {transaction: options.transaction || null}
+            )
           }
           else {
             return

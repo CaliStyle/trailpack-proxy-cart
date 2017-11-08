@@ -221,6 +221,11 @@ module.exports = class Order extends Model {
               as: 'discount_events',
               foreignKey: 'order_id'
             })
+
+            models.Order.hasMany(models.AccountEvent, {
+              as: 'account_events',
+              foreignKey: 'order_id'
+            })
           },
           /**
            *

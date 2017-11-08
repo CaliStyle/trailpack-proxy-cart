@@ -2,7 +2,7 @@
 'use strict'
 
 const Service = require('trails/service')
-const csvParser = require('babyparse')
+const csvParser = require('papaparse')
 const _ = require('lodash')
 const shortid = require('shortid')
 const fs = require('fs')

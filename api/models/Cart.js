@@ -358,7 +358,7 @@ module.exports = class Cart extends Model {
             // For each item run the normal discounts
             this.line_items = this.line_items.map((item, index) => {
               discounts.forEach(discount => {
-                item = this.setItemDiscountedLines(item, discount, [])
+                item = this.setItemDiscountedLines(item, discount, criteria)
               })
 
               if (item.discounted_lines.length > 0) {
@@ -884,17 +884,16 @@ module.exports = class Cart extends Model {
             options = options || {}
 
             const criteria = []
-            const discountCriteria = []
             const productIds = this.line_items.map(item => item.product_id)
-            let collectionIds = [], checkHistory = []
+            let collectionPairs = [], discountCriteria = [], checkHistory = []
 
             let resDiscounts
             return Promise.resolve()
               .then(() => {
-                return this.getCollectionIds({transaction: options.transaction || null})
+                return this.getCollectionPairs({transaction: options.transaction || null})
               })
               .then(_collections => {
-                collectionIds = _collections || []
+                collectionPairs = _collections || []
 
                 if (this.id) {
                   criteria.push({
@@ -914,10 +913,10 @@ module.exports = class Cart extends Model {
                     model_id: productIds
                   })
                 }
-                if (collectionIds.length > 0) {
+                if (collectionPairs.length > 0) {
                   criteria.push({
                     model: 'collection',
-                    model_id: collectionIds
+                    model_id: collectionPairs.map(c => c.collection)
                   })
                 }
                 if (criteria.length > 0) {
@@ -935,10 +934,31 @@ module.exports = class Cart extends Model {
               })
               .then(discounts => {
                 discounts.forEach(discount => {
-                  discountCriteria.push({
-                    id: discount.discount_id,
-                    [discount.model]: discount.model_id
-                  })
+                  const i = discountCriteria.findIndex(d => d.discount === discount.discount_id)
+                  if (i > -1) {
+                    if (!discountCriteria[i][discount.model]) {
+                      discountCriteria[i][discount.model] = []
+                    }
+                    discountCriteria[i][discount.model].push(discount.model_id)
+                  }
+                  else {
+                    discountCriteria.push({
+                      discount: discount.discount_id,
+                      [discount.model]: [discount.model_id]
+                    })
+                  }
+                })
+
+                discountCriteria = discountCriteria.map(d => {
+                  if (d.collection) {
+                    d.collection.forEach(colId => {
+                      const i = collectionPairs.findIndex(c => c.collection = colId)
+                      if (i > -1) {
+                        d = _.merge(d, collectionPairs[i])
+                      }
+                    })
+                  }
+                  return d
                 })
 
                 if (discounts.length > 0) {
@@ -1102,11 +1122,14 @@ module.exports = class Cart extends Model {
                 })
             }
           },
-          getCollectionIds: function(options) {
+          getCollectionPairs: function(options) {
             options = options || {}
-            let collections = []
+            const collectionPairs = []
             const criteria = []
-            const productIds = this.line_items.map(item => item.product_id)
+            let productIds = this.line_items.map(item => item.product_id)
+            productIds = productIds.filter(i => i)
+            let variantIds = this.line_items.map(item => item.variant_id)
+            variantIds = variantIds.filter(i => i)
 
             return Promise.resolve()
               .then(() => {
@@ -1124,14 +1147,19 @@ module.exports = class Cart extends Model {
                   })
                 }
 
-                // console.log('BROKE CRITERIA',criteria)
+                if (variantIds.length > 0) {
+                  criteria.push({
+                    model: 'productvariant',
+                    model_id: variantIds
+                  })
+                }
 
                 if (criteria.length > 0) {
                   return app.orm['ItemCollection'].findAll({
                     where: {
                       $or: criteria
                     },
-                    attributes: ['id','collection_id'],
+                    attributes: ['id', 'collection_id', 'model','model_id'],
                     transaction: options.transaction || null
                   })
                 }
@@ -1139,8 +1167,24 @@ module.exports = class Cart extends Model {
               })
               .then(_collections => {
                 _collections = _collections || []
-                collections = [...collections, ..._collections.map(c => c.collection_id)]
-                return collections
+
+                _collections.forEach(collection => {
+                  const i = collectionPairs.findIndex(c => c.id === collection.collection_id)
+                  if (i > -1) {
+                    if (!collectionPairs[i][collection.model]) {
+                      collectionPairs[i][collection.model] = []
+                    }
+                    collectionPairs[i][collection.model].push(collection.model_id)
+                  }
+                  else {
+                    collectionPairs.push({
+                      collection: collection.collection_id,
+                      [collection.model]: [collection.model_id]
+                    })
+                  }
+                })
+
+                return collectionPairs
               })
               .catch(err => {
                 app.log.error(err)

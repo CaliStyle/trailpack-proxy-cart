@@ -815,7 +815,7 @@ module.exports = class CollectionService extends Service {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Customer.resolve(customer, {transaction: options.transaction || null})
+        return Customer.resolve(customer, {transaction: options.transaction || null, create: false})
       })
       .then(customer => {
         if (!customer) {
@@ -851,7 +851,7 @@ module.exports = class CollectionService extends Service {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = collection
-        return Customer.resolve(customer)
+        return Customer.resolve(customer, {create: false})
       })
       .then(customer => {
         if (!customer) {

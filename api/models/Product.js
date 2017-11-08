@@ -671,9 +671,9 @@ module.exports = class Product extends Model {
               })
           },
 
-          getCollectionIds: function(options) {
+          getCollectionPairs: function(options) {
             options = options || {}
-            let collections = []
+            const collectionPairs = []
             const criteria = []
 
             return Promise.resolve()
@@ -696,16 +696,30 @@ module.exports = class Product extends Model {
                     where: {
                       $or: criteria
                     },
-                    attributes: ['id','collection_id'],
+                    attributes: ['id','collection_id','model','model_id'],
                     transaction: options.transaction || null
                   })
                 }
                 return []
               })
               .then(_collections => {
-                _collections = _collections || []
-                collections = [...collections, ..._collections.map(c => c.collection_id)]
-                return collections
+                _collections.forEach(collection => {
+                  const i = collectionPairs.findIndex(c => c.id === collection.collection_id)
+                  if (i > -1) {
+                    if (!collectionPairs[i][collection.model]) {
+                      collectionPairs[i][collection.model] = []
+                    }
+                    collectionPairs[i][collection.model].push(collection.model_id)
+                  }
+                  else {
+                    collectionPairs.push({
+                      collection: collection.collection_id,
+                      [collection.model]: [collection.model_id]
+                    })
+                  }
+                })
+
+                return collectionPairs
               })
               .catch(err => {
                 app.log.error(err)
@@ -720,20 +734,19 @@ module.exports = class Product extends Model {
           calculateDiscounts(options) {
             options = options || {}
             const criteria = []
-            const discountCriteria = []
-            let collectionIds = [], checkHistory = []
+            let collectionPairs = [], discountCriteria = [], checkHistory = []
             // const discountedLines = this.discounted_lines || []
 
             let resDiscounts
             return Promise.resolve()
               .then(() => {
-                return this.getCollectionIds({
+                return this.getCollectionPairs({
                   req: options.req || null,
                   transaction: options.transaction || null
                 })
               })
               .then(_collections => {
-                collectionIds = _collections
+                collectionPairs = _collections
                 // console.log('BROKE COLLECTION IDS', collectionIds)
                 if (options.req && options.req.cart && options.req.cart.id) {
                   criteria.push({
@@ -753,10 +766,10 @@ module.exports = class Product extends Model {
                     model_id: this.id
                   })
                 }
-                if (collectionIds.length > 0) {
+                if (collectionPairs.length > 0) {
                   criteria.push({
                     model: 'collection',
-                    model_id: collectionIds
+                    model_id: collectionPairs.map(c => c.collection)
                   })
                 }
                 if (criteria.length > 0) {
@@ -773,15 +786,35 @@ module.exports = class Product extends Model {
                 }
               })
               .then(discounts => {
-                // console.log('BROKE DISCOUNTS', discounts)
                 discounts.forEach(discount => {
-                  discountCriteria.push({
-                    id: discount.discount_id,
-                    [discount.model]: discount.model_id
-                  })
+                  const i = discountCriteria.findIndex(d => d.discount === discount.discount_id)
+                  if (i > -1) {
+                    if (!discountCriteria[i][discount.model]) {
+                      discountCriteria[i][discount.model] = []
+                    }
+                    discountCriteria[i][discount.model].push(discount.model_id)
+                  }
+                  else {
+                    discountCriteria.push({
+                      discount: discount.discount_id,
+                      [discount.model]: [discount.model_id]
+                    })
+                  }
                 })
 
-                // console.log('ItemDiscount from criteria', discountCriteria)
+                discountCriteria = discountCriteria.map(d => {
+                  if (d.collection) {
+                    d.collection.forEach(colId => {
+                      const i = collectionPairs.findIndex(c => c.collection = colId)
+                      if (i > -1) {
+                        d = _.merge(d, collectionPairs[i])
+                      }
+                    })
+                  }
+                  return d
+                })
+
+                console.log('Broke Criteria', discountCriteria)
 
                 if (discounts.length > 0) {
                   return app.orm['Discount'].findAll({
@@ -1348,6 +1381,12 @@ module.exports = class Product extends Model {
       options: helpers.JSONB('Product', app, Sequelize, 'options', {
         defaultValue: PRODUCT_DEFAULTS.OPTIONS
       }),
+
+      // Property Based Pricing
+      property_pricing: helpers.JSONB('Product', app, Sequelize, 'property_pricing', {
+        defaultValue: {}
+      }),
+
       // Weight of the product, defaults to grams
       weight: {
         type: Sequelize.INTEGER,

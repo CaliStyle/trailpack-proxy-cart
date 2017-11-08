@@ -316,7 +316,8 @@ module.exports = class CartService extends Service {
             billing_address: resCart.billing_address,
             cart: resCart
           }, {
-            transaction: options.transaction || null
+            transaction: options.transaction || null,
+            create: true
           })
             .then(customer => {
               return resCart.setCustomer(customer.id, {transaction: options.transaction || null})

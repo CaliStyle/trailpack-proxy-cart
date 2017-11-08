@@ -498,7 +498,8 @@ module.exports = class ProxyCartService extends Service {
       accepts_marketing: user.accepts_marketing,
       users: [user]
     }, {
-      transaction: options.transaction || null
+      transaction: options.transaction || null,
+      create: true
     })
       .then(customer => {
         if (!customer) {

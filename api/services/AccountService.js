@@ -65,7 +65,7 @@ module.exports = class AccountService extends Service {
     }
     const Customer = this.app.orm['Customer']
     let resCustomer
-    return Customer.resolve(customer, {transaction: options.transaction || null })
+    return Customer.resolve(customer, {transaction: options.transaction || null, create: false })
       .then(customer => {
         if (!customer) {
           throw new Errors.FoundError(Error('Customer Not Found'))

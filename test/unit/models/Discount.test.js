@@ -172,4 +172,85 @@ describe('Discount Model', () => {
     done()
   })
 
+  it('should not discount a line item with a 0 discount', (done) => {
+    const discount = Discount.build({
+      id: 1,
+      handle: 'test',
+      name: 'test',
+      description: 'test',
+      code: 'test_123',
+      discount_type: 'rate',
+      discount_rate: 0,
+      discount_scope: 'global',
+      status: 'enabled'
+    })
+
+    const item = discount.discountItem({
+      product_id: 1,
+      type: 'product',
+      price: 100
+    })
+    assert.equal(item.price, 100)
+    assert.equal(item.discounted_lines.length, 0)
+    done()
+  })
+
+
+  it('should discount an individual line item with an individual discount', (done) => {
+    const discount = Discount.build({
+      id: 1,
+      handle: 'test',
+      name: 'test',
+      description: 'test',
+      code: 'test_123',
+      discount_type: 'rate',
+      discount_rate: 100,
+      discount_scope: 'individual',
+      status: 'enabled'
+    })
+
+    const item = discount.discountItem({
+      product_id: 1,
+      type: 'product',
+      price: 1000
+    }, [{
+      discount: 1,
+      product: [1]
+    }])
+    // console.log('BROKE TEST', item)
+    assert.equal(item.price, 1000)
+    assert.equal(item.discounted_lines.length, 1)
+    assert.equal(item.discounted_lines[0].rate, 100)
+    assert.equal(item.discounted_lines[0].price, 100)
+    assert.equal(item.discounted_lines[0].type, 'rate')
+    done()
+  })
+
+  it('should not discount an individual line item with an individual discount', (done) => {
+    const discount = Discount.build({
+      id: 1,
+      handle: 'test',
+      name: 'test',
+      description: 'test',
+      code: 'test_123',
+      discount_type: 'rate',
+      discount_rate: 100,
+      discount_scope: 'individual',
+      status: 'enabled'
+    })
+
+    const item = discount.discountItem({
+      product_id: 1,
+      type: 'product',
+      price: 1000
+    }, [{
+      discount: 1,
+      product: [2]
+    }])
+    console.log('BROKE TEST', item)
+    assert.equal(item.price, 1000)
+    assert.equal(item.discounted_lines.length, 0)
+    done()
+  })
+
 })

@@ -48,13 +48,39 @@ For products with only a single option, this should be set to "Default Title".
 The `*` is a place holder for the next iteration number of the option e.g. `Option / 2 name` 
 
 ## Option / * Value (Add as Necessary)
-The `*` is a place holder for the next iteration number of the option e.g. `Option / 2 value` 
+The `*` is a place holder for the next iteration number of the option e.g. `Option / 2 value`
 
 ### _Note_
 Proxy-Cart Stores all Options in a JSON format allowing for the single model field `options` so it can contain unlimited options. Continue adding option fields as necessary.
 
 ### _Note_
 If you have an `Option / * Name` column, it must also have an `Option / * Value` column.
+
+## Pricing Property / 1 Name (Default)
+If a product has a property that does not alter the SKU but alters the price, enter its name. For example, Topping.
+Imagine you are ordering a pizza. The possible variations of pizza are in the millions. So instead of creating a variant of each pizza, create a pricing property.
+
+## Pricing Property/ 1 Value (Default)
+If a product has a pricing property, enter its 
+price in cents e.g $1.00 written as 100.
+
+## Pricing Property/ 1 Image (Default)
+If a Pricing Property has an image, list the full link there.
+
+## Pricing Property / * Name (Add as Necessary)
+The `*` is a place holder for the next iteration number of the pricing property e.g. `Pricing Property / 2 name` 
+
+## Pricing Property / * Value (Add as Necessary)
+The `*` is a place holder for the next iteration number of the pricing_property e.g. `Pricing Property / 2 value`
+
+## Pricing Property / * Image (Optional Add as Necessary)
+The `*` is a place holder for the next iteration number of the pricing_property e.g. `Pricing Property / 2 image`
+
+### _Note_
+Proxy-Cart Stores all Pricing Properties in a JSON format allowing for the single model field `pricing_properties` so it can contain unlimited key value pairs. Continue adding pricing property fields as necessary.
+
+### _Note_
+If you have an `Pricing Property / * Name` column, it must also have an `Pricing Property / * Value` column.
 
 ## Image Sources
 Put the URLs for the product's images separated by a comma character e.g. `,`. Proxy-Cart will download the images during the import and re-upload them into your data store. 

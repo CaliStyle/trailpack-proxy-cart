@@ -256,6 +256,10 @@ module.exports = class Customer extends Model {
               as: 'discount_events',
               foreignKey: 'customer_id'
             })
+            models.Customer.hasMany(models.AccountEvent, {
+              as: 'account_events',
+              foreignKey: 'customer_id'
+            })
             // models.Customer.hasOne(models.Order, {
             //   targetKey: 'last_order_id',
             //   foreignKey: 'id'
@@ -317,6 +321,8 @@ module.exports = class Customer extends Model {
            */
           resolve: function(customer, options){
             options = options || {}
+            options.create = options.create || true
+
             const Customer =  this
             if (customer instanceof Customer){
               return Promise.resolve(customer)
@@ -324,7 +330,7 @@ module.exports = class Customer extends Model {
             else if (customer && _.isObject(customer) && customer.id) {
               return Customer.findById(customer.id, options)
                 .then(resCustomer => {
-                  if (!resCustomer) {
+                  if (!resCustomer && options.create !== false) {
                     return app.services.CustomerService.create(customer, options)
                   }
                   return resCustomer
@@ -342,7 +348,7 @@ module.exports = class Customer extends Model {
                 )
               )
                 .then(resCustomer => {
-                  if (!resCustomer) {
+                  if (!resCustomer && options.create !== false) {
                     return app.services.CustomerService.create(customer, {transaction: options.transaction || null})
                   }
                   return resCustomer
@@ -362,6 +368,10 @@ module.exports = class Customer extends Model {
                   }
                 )
               )
+            }
+            else if (options.create === false) {
+              const err = new Error('Customer could not be resolved or created')
+              return Promise.reject(err)
             }
             else {
               return app.services.CustomerService.create(customer, options)
@@ -531,6 +541,43 @@ module.exports = class Customer extends Model {
           setAccountBalance: function(newBalance){
             this.account_balance = newBalance
             return this
+          },
+
+          logAccountBalance: function(type, price, currency, accountId, orderId, options) {
+            options = options || {}
+            type = type || 'debit'
+            price = price || 0
+            currency = currency || 'USD'
+
+            return this.createAccount_event({
+              type: type,
+              price: price,
+              account_id: accountId,
+              order_id: orderId
+            }, {
+              transaction: options.transaction || null
+            })
+              .then(_event => {
+                const event = {
+                  object_id: this.id,
+                  object: 'customer',
+                  objects: [{
+                    customer: this.id
+                  }],
+                  type: `customer.account_balance.${type}`,
+                  message: `Customer ${ this.email || 'ID ' + this.id } account balance was ${type}ed by ${ app.services.ProxyCartService.formatCurrency(price, currency) } ${currency}`,
+                  data: this
+                }
+                return app.services.ProxyEngineService.publish(event.type, event, {
+                  save: true,
+                  transaction: options.transaction || null
+                })
+              })
+              .then(_event => {
+                const newBalance = type === 'debit' ? Math.max(0, this.account_balance - price) : this.account_balance + price
+                return this.setAccountBalance(newBalance)
+              })
+
           },
           /**
            *
