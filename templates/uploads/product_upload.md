@@ -77,7 +77,7 @@ The `*` is a place holder for the next iteration number of the pricing_property 
 The `*` is a place holder for the next iteration number of the pricing_property e.g. `Pricing Property / 2 image`
 
 ### _Note_
-Proxy-Cart Stores all Pricing Properties in a JSON format allowing for the single model field `pricing_properties` so it can contain unlimited key value pairs. Continue adding pricing property fields as necessary.
+Proxy-Cart Stores all Pricing Properties in a JSON format allowing for the single model field `property_pricing` so it can contain unlimited key value pairs. Continue adding pricing property fields as necessary.
 
 ### _Note_
 If you have an `Pricing Property / * Name` column, it must also have an `Pricing Property / * Value` column.

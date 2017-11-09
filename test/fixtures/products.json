@@ -356,5 +356,34 @@
       "Dummy Collection"
     ],
     "sku": "product-discount-123"
+  },
+  {
+    "handle": "product-with-property-pricing",
+    "title": "Product with property pricing",
+    "body": "<strong>Product with property pricing</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "property_pricing": {
+      "gold addition": {
+        "price": 100,
+        "image": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150"
+      }
+    },
+    "tags": [
+      "product-property-pricing"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "product-property-pricing-123"
   }
 ]

@@ -284,7 +284,7 @@ module.exports = class ProductCsvService extends Service {
                   upload.properties[index] = {
                     name: '',
                     value: '',
-                    image: ''
+                    image: null
                   }
                 }
                 // TODO place this as the default product
@@ -304,9 +304,12 @@ module.exports = class ProductCsvService extends Service {
         delete upload.options
 
         // Handle Pricing Properties
-        upload.pricing_properties = {}
+        upload.property_pricing = {}
         _.map(upload.properties, property => {
-          upload.pricing_properties[property.name] = property.value
+          upload.property_pricing[property.name]['price'] = property.value
+          if (property.image) {
+            upload.property_pricing[property.name]['image'] = property.image
+          }
         })
         delete upload.properties
 
