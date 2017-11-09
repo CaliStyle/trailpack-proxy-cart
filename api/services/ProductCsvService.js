@@ -94,6 +94,7 @@ module.exports = class ProductCsvService extends Service {
         const upload = {
           upload_id: uploadID,
           options: {},
+          properties: {},
           images: [],
           variant_images: [],
           vendors: [],
@@ -101,9 +102,6 @@ module.exports = class ProductCsvService extends Service {
           associations: [],
           tags: []
         }
-
-        const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
-        const propertyReg = new RegExp('^((Property Pricing \/).([0-9]).(Name|Value|Image))', 'g')
 
         _.each(row, (data, key) => {
           if (typeof(data) === 'undefined' || data === '') {
@@ -242,19 +240,36 @@ module.exports = class ProductCsvService extends Service {
                 //   upload[k] = formatted
                 // }
               }
+              else if (k === 'discounts') {
+                // Discounts uploaded this way MUST be in JSON
+                let formatted = data.toString().trim()
+                if (this.app.services.ProxyCartService.isJson(formatted)) {
+                  formatted = JSON.parse(formatted)
+                  upload[k] = formatted
+                }
+                // else {
+                //   upload[k] = formatted
+                // }
+              }
               else {
                 upload[k] = data
               }
             }
             else {
+              const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
+              const propertyReg = new RegExp('^((Property Pricing \/).([0-9]).(Name|Value|Image))', 'g')
 
               const matchOptions = optionsReg.exec(key)
-              // console.log(matchOptions)
+              // if (matchOptions) {
+              //   console.log('BROKE OPTIONS',matchOptions[2],',', matchOptions[3], ',',matchOptions[4],',', matchOptions[5])
+              // }
               if (
                 matchOptions
+                && matchOptions[2] === 'Option /'
                 && typeof matchOptions[3] !== 'undefined'
-                && matchOptions[4] !== 'undefined'
+                && typeof matchOptions[4] !== 'undefined'
               ) {
+
                 const part = matchOptions[4].toLowerCase()
                 const index = Number(matchOptions[3]) - 1
                 // console.log(index, part)
@@ -266,17 +281,22 @@ module.exports = class ProductCsvService extends Service {
                 }
                 // TODO place this as the default product
                 // if (data.trim().toLowerCase() !== 'default value') {
-                upload.options[index][part] = data.trim()
+                upload.options[index][part] = typeof data === 'string' ? data.trim() : data
+                // console.log('OPTION RESULT',upload.options[index][part])
                 // }
               }
 
               const matchProperties = propertyReg.exec(key)
-              // console.log(matchProperties)
+              // if (matchProperties) {
+              //   console.log('BROKE PROPERTIES',matchProperties[2],',', matchProperties[3], ',',matchProperties[4],',', matchProperties[5])
+              // }
               if (
                 matchProperties
+                && matchProperties[2] === 'Property Pricing /'
                 && typeof matchProperties[3] !== 'undefined'
-                && matchProperties[4] !== 'undefined'
+                && typeof matchProperties[4] !== 'undefined'
               ) {
+
                 const part = matchProperties[4].toLowerCase()
                 const index = Number(matchProperties[3]) - 1
                 // console.log(index, part)
@@ -289,7 +309,9 @@ module.exports = class ProductCsvService extends Service {
                 }
                 // TODO place this as the default product
                 // if (data.trim().toLowerCase() !== 'default value') {
-                upload.properties[index][part] = data.trim()
+                upload.properties[index][part] = typeof data === 'string' ? data.trim() : data
+
+                // console.log('PROPERTY RESULT',upload.properties[index][part])
                 // }
               }
             }
@@ -301,16 +323,19 @@ module.exports = class ProductCsvService extends Service {
         _.map(upload.options, option => {
           upload.option[option.name] = option.value
         })
+        console.log('FINAL option', upload.option)
         delete upload.options
 
         // Handle Pricing Properties
         upload.property_pricing = {}
         _.map(upload.properties, property => {
+          upload.property_pricing[property.name] = {}
           upload.property_pricing[property.name]['price'] = property.value
           if (property.image) {
             upload.property_pricing[property.name]['image'] = property.image
           }
         })
+        console.log('FINAL property_pricing', upload.property_pricing)
         delete upload.properties
 
         // Map images

@@ -549,7 +549,7 @@ module.exports = class Product extends Model {
               }
             })
 
-            console.log('FACTORED PRODUCT DISCOUNTS',factoredDiscountedLines)
+            // console.log('FACTORED PRODUCT DISCOUNTS',factoredDiscountedLines)
 
             return this.setDiscountedLines(factoredDiscountedLines)
           },
@@ -814,7 +814,7 @@ module.exports = class Product extends Model {
                   return d
                 })
 
-                console.log('Broke Criteria', discountCriteria)
+                // console.log('Broke Criteria', discountCriteria)
 
                 if (discounts.length > 0) {
                   return app.orm['Discount'].findAll({

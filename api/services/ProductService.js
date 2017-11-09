@@ -1514,6 +1514,7 @@ module.exports = class ProductService extends Service {
     product.associations = product.associations || []
     product.tags = product.tags || []
     product.options = []
+    product.property_pricing = product.property_pricing || {}
     product.google = product.google || {}
     product.amazon = product.amazon || {}
 
@@ -1596,6 +1597,7 @@ module.exports = class ProductService extends Service {
     variant.images = variant.images || []
     variant.collections = variant.collections || []
     variant.associations = variant.associations || []
+    variant.property_pricing = variant.property_pricing || {}
 
     // If the title set on parent
     if (_.isString(product.title) && _.isNil(variant.title)) {
@@ -1683,6 +1685,9 @@ module.exports = class ProductService extends Service {
     // If the weight_unit set on parent
     if (_.isString(product.weight_unit) && _.isNil(variant.weight_unit)) {
       variant.weight_unit = product.weight_unit
+    }
+    if (product.property_pricing && _.isEmpty(variant.property_pricing)) {
+      variant.property_pricing = product.property_pricing
     }
     return variant
   }
