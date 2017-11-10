@@ -2,7 +2,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
 
-describe('Admin User Checkout with Product Property Pricing', () => {
+describe('Registered User Checkout with Product Property Pricing', () => {
   let registeredUser, userID, customerID, cartID, shopID, shopProducts, orderID, transactionID
   let discountService, discountID
 
@@ -13,7 +13,7 @@ describe('Admin User Checkout with Product Property Pricing', () => {
 
     registeredUser.post('/auth/local/register')
       .send({
-        email: 'checkoutwithcollectiondiscount@example.com',
+        email: 'checkoutwithpropertypricing@example.com',
         password: 'admin1234'
       })
       .set('Accept', 'application/json')
