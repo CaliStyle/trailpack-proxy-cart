@@ -473,7 +473,17 @@ module.exports = class Subscription extends Model {
 
             return this
           },
-
+          setLineProperties: (line) => {
+            if (line.properties) {
+              for (const l in line.properties){
+                if (line.properties.hasOwnProperty(l)) {
+                  line.price = line.price + line.properties[l].price
+                  line.price_per_unit = line.price_per_unit + line.properties[l].price
+                }
+              }
+            }
+            return line
+          },
           /**
            *
            * @param lines
@@ -729,7 +739,29 @@ module.exports = class Subscription extends Model {
           },
 
           line: function(data){
+            // handle empty product
             data.Product = data.Product || {}
+            data.property_pricing = data.property_pricing || data.Product.property_pricing
+            data.properties = data.properties || []
+
+            const properties = {}
+            if (
+              data.properties.length > 0
+              && data.property_pricing
+            ) {
+              data.properties.forEach(prop => {
+                if (!prop.name) {
+                  return
+                }
+                if (data.property_pricing[prop.name]) {
+                  properties[prop.name] = data.property_pricing[prop.name]
+                  if (prop.value) {
+                    properties[prop.name]['value'] = prop.value
+                  }
+                }
+              })
+            }
+
             const line = {
               subscription_id: this.id,
               product_id: data.product_id,
@@ -740,7 +772,8 @@ module.exports = class Subscription extends Model {
               title: data.Product.title,
               variant_title: data.title,
               name: data.title === data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
-              properties: data.properties,
+              properties: properties,
+              pricing_properties: data.property_pricing,
               option: data.option,
               barcode: data.barcode,
               price: data.price * data.quantity,
@@ -815,6 +848,9 @@ module.exports = class Subscription extends Model {
 
                   lineItems[itemIndex].quantity = calculatedQty
                   lineItems[itemIndex].fulfillable_quantity = calculatedQty
+
+                  lineItems[itemIndex] = this.setLineProperties(lineItems[itemIndex])
+
                   this.line_items = lineItems
                 }
                 else {
@@ -833,7 +869,9 @@ module.exports = class Subscription extends Model {
                   item.fulfillable_quantity = calculatedQty
                   item.max_quantity = maxQuantity
                   item.properties = properties
-                  const line = this.line(item)
+                  let line = this.line(item)
+                  line = this.setLineProperties(line)
+
                   app.log.silly('Subscription.addLine NEW LINE', line)
                   lineItems.push(line)
                   this.line_items = lineItems

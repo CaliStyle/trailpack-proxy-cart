@@ -451,7 +451,10 @@ module.exports = class OrderItem extends Model {
       },
       // An array of custom information for an item that has been added to the cart. Often used to provide product customization options. For more information, see the documentation on collecting customization information on the product page.
       properties: helpers.JSONB('OrderItem', app, Sequelize, 'properties', {
-        defaultValue: []
+        defaultValue: {}
+      }),
+      property_pricing: helpers.JSONB('OrderItem', app, Sequelize, 'property_pricing', {
+        defaultValue: {}
       }),
       // States whether or not the product was taxable. Values are: true or false.
       taxable: {

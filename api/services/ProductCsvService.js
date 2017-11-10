@@ -323,7 +323,7 @@ module.exports = class ProductCsvService extends Service {
         _.map(upload.options, option => {
           upload.option[option.name] = option.value
         })
-        console.log('FINAL option', upload.option)
+        // console.log('FINAL option', upload.option)
         delete upload.options
 
         // Handle Pricing Properties
@@ -335,7 +335,7 @@ module.exports = class ProductCsvService extends Service {
             upload.property_pricing[property.name]['image'] = property.image
           }
         })
-        console.log('FINAL property_pricing', upload.property_pricing)
+        // console.log('FINAL property_pricing', upload.property_pricing)
         delete upload.properties
 
         // Map images

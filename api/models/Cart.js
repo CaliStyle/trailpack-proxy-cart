@@ -447,10 +447,6 @@ module.exports = class Cart extends Model {
               })
               return item
             })
-
-
-            // console.log('Factored results', factoredDiscountedLines)
-
             return this.setDiscountedLines(factoredDiscountedLines)
           },
           /**
@@ -538,6 +534,18 @@ module.exports = class Cart extends Model {
 
             return this
           },
+
+          setLineProperties: (line) => {
+            if (line.properties) {
+              for (const l in line.properties){
+                if (line.properties.hasOwnProperty(l)) {
+                  line.price = line.price + line.properties[l].price
+                  line.price_per_unit = line.price_per_unit + line.properties[l].price
+                }
+              }
+            }
+            return line
+          },
           /**
            *
            * @param data
@@ -546,6 +554,26 @@ module.exports = class Cart extends Model {
           line: function(data){
             // handle empty product
             data.Product = data.Product || {}
+            data.property_pricing = data.property_pricing || data.Product.property_pricing
+            data.properties = data.properties || []
+
+            const properties = {}
+            if (
+              data.properties.length > 0
+              && data.property_pricing
+            ) {
+              data.properties.forEach(prop => {
+                if (!prop.name) {
+                  return
+                }
+                if (data.property_pricing[prop.name]) {
+                  properties[prop.name] = data.property_pricing[prop.name]
+                  if (prop.value) {
+                    properties[prop.name]['value'] = prop.value
+                  }
+                }
+              })
+            }
 
             const line = {
               product_id: data.product_id,
@@ -556,7 +584,8 @@ module.exports = class Cart extends Model {
               title: data.Product.title,
               variant_title: data.title,
               name: data.title === data.Product.title ? data.title : `${data.Product.title} - ${data.title}`,
-              properties: data.properties,
+              properties: properties,
+              property_pricing: data.property_pricing,
               option: data.option,
               barcode: data.barcode,
               price: data.price * data.quantity,
@@ -645,6 +674,9 @@ module.exports = class Cart extends Model {
 
                   lineItems[itemIndex].quantity = calculatedQty
                   lineItems[itemIndex].fulfillable_quantity = calculatedQty
+
+                  lineItems[itemIndex] = this.setLineProperties(lineItems[itemIndex])
+
                   this.line_items = lineItems
                 }
                 // If new item
@@ -669,6 +701,8 @@ module.exports = class Cart extends Model {
                   item.properties = properties
                   // Set line
                   line = this.line(item)
+                  line = this.setLineProperties(line)
+
                   app.log.silly('Cart.addLine NEW LINE', line)
                   // Add line to line items
                   lineItems.push(line)

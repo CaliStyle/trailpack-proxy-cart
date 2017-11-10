@@ -373,8 +373,12 @@
     "inventory_quantity": 10000,
     "exclude_payment_types": [],
     "property_pricing": {
-      "gold addition": {
+      "engraving": {
         "price": 100,
+        "image": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150"
+      },
+      "Gold Inlay": {
+        "price": 100000,
         "image": "https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150"
       }
     },

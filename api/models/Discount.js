@@ -430,6 +430,8 @@ module.exports = class Discount extends Model {
               price: 0,
               applies: false,
               rules: {
+                start: this.starts_at,
+                end: this.ends_at,
                 applies_once: this.applies_once,
                 applies_once_per_customer: this.applies_once_per_customer,
                 applies_compound: this.applies_compound,
