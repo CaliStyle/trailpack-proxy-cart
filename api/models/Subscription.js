@@ -627,10 +627,14 @@ module.exports = class Subscription extends Model {
             this.line_items = this.line_items.map((item, index) => {
               item.discounted_lines.forEach(discountedLine => {
                 if (discountedLine.applies === true) {
+                  // New Calculated Price
                   const calculatedPrice = Math.max(0, item.calculated_price - discountedLine.price)
-                  const totalDeducted = Math.min(item.price, (item.price - (item.price - discountedLine.price)))
+                  // Total Deducted
+                  const totalDeducted = Math.min(item.calculated_price, (item.calculated_price - (item.calculated_price - discountedLine.price)))
+                  // Set item calculated price
                   item.calculated_price = calculatedPrice
-                  item.total_discounts = item.total_discounts + totalDeducted
+                  // Set item total_discounts
+                  item.total_discounts = Math.min(item.price, item.total_discounts + totalDeducted)
 
                   const fI = factoredDiscountedLines.findIndex(d => d.id === discountedLine.id)
                   if (fI > -1) {

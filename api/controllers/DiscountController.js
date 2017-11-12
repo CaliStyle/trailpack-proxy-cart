@@ -10,16 +10,25 @@ const Errors = require('proxy-engine-errors')
  * @description Generated Trails.js Controller.
  */
 module.exports = class DiscountController extends Controller {
+  /**
+   *
+   * @param req
+   * @param res
+   */
   generalStats(req, res) {
     res.json({})
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findById(req, res) {
     const orm = this.app.orm
     const Discount = orm['Discount']
-    let id = req.params.id
-    if (!id && req.discount) {
-      id = req.discount.id
-    }
+    const id = req.params.id
+
     Discount.findById(id, {})
       .then(discount => {
         if (!discount) {
@@ -34,6 +43,41 @@ module.exports = class DiscountController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  findByHandle(req, res) {
+    const orm = this.app.orm
+    const Discount = orm['Discount']
+    const handle = req.params.handle
+
+    Discount.findOne({
+      where: {
+        handle: handle
+      }
+    })
+      .then(discount => {
+        if (!discount) {
+          throw new Errors.FoundError(Error(`Discount handle ${handle} not found`))
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discount)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   findAll(req, res) {
     const orm = this.app.orm
     const Discount = orm['Discount']

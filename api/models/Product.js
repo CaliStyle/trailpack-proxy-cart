@@ -476,9 +476,11 @@ module.exports = class Product extends Model {
            *
            * @param discounts
            * @param criteria
+           * @param options
            * @returns {*}
            */
-          setItemDiscountedLines: function (discounts, criteria) {
+          setItemDiscountedLines: function (discounts, criteria, options) {
+            options = options || {}
             // Make this an array if null
             discounts = discounts || []
             // Make this an array if null
@@ -492,6 +494,22 @@ module.exports = class Product extends Model {
             // Holds list of all discount objects being tried
             let discountsArr = []
 
+            // This handles one time and threshold discounts for items already in cart.
+            if (options.req && options.req.cart) {
+              options.req.cart.line_items = options.req.cart.line_items || []
+              options.req.cart.line_items.map(item => {
+                // For each item run the normal discounts
+                discounts.forEach(discount => {
+                  item = discount.discountItem(item, criteria)
+                })
+                return item
+              })
+              options.req.cart.line_items.forEach(item => {
+                item.discounted_lines = item.discounted_lines || []
+                discountsArr = [...discountsArr, item.discounted_lines.map(line => line.id)]
+              })
+            }
+
             // For each item run the normal discounts
             discounts.forEach(discount => {
               discount.discountItem(this, criteria)
@@ -503,6 +521,7 @@ module.exports = class Product extends Model {
             })
 
             this.discounted_lines = this.discounted_lines.map(discount => {
+              discount.rules = discount.rules || {}
               // Applies once Rule
               if (discount.rules.applies_once && discountsArr.filter(d => d === discount.id).length > 1) {
                 const arrRemove = discountsArr.findIndex(d => d === discount.id)
@@ -514,7 +533,9 @@ module.exports = class Product extends Model {
               // Minimum Order Rule
               else if (
                 discount.rules.minimum_order_amount > 0
-                && this.price < discount.minimum_order_amount
+                && options.req
+                && options.req.cart
+                && (options.req.cart.total_price + this.price) < discount.minimum_order_amount
               ) {
                 discount.applies = false
               }
@@ -532,11 +553,14 @@ module.exports = class Product extends Model {
 
             this.discounted_lines.forEach(discountedLine => {
               if (discountedLine.applies === true) {
+                // New calculated price
                 const calculatedPrice = Math.max(0, this.calculated_price - discountedLine.price)
-                const totalDeducted = Math.min(this.price, (this.price - (this.price - discountedLine.price)))
-
+                // New Total Deducted
+                const totalDeducted = Math.min(this.calculated_price, (this.calculated_price - (this.calculated_price - discountedLine.price)))
+                // Set calculated price
                 this.calculated_price = calculatedPrice
-                this.total_discounts = this.total_discounts + totalDeducted
+                // Set total Discounts
+                this.total_discounts = Math.min(this.price, this.total_discounts + totalDeducted)
 
                 const fI = factoredDiscountedLines.findIndex(d => d.id === discountedLine.id)
                 if (fI > -1) {
@@ -684,6 +708,12 @@ module.exports = class Product extends Model {
                     model_id: options.req.customer.id
                   })
                 }
+                // if (options.req && options.req.cart && options.req.cart.id) {
+                //   criteria.push({
+                //     model: 'cart',
+                //     model_id: options.req.cart.id
+                //   })
+                // }
                 if (this.id) {
                   criteria.push({
                     model: 'product',
@@ -865,7 +895,7 @@ module.exports = class Product extends Model {
                   }
                 })
 
-                return this.setItemDiscountedLines(resDiscounts, discountCriteria)
+                return this.setItemDiscountedLines(resDiscounts, discountCriteria, options)
               })
               .catch(err => {
                 app.log.error(err)

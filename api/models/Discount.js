@@ -384,12 +384,17 @@ module.exports = class Discount extends Model {
            * @returns {Promise.<T>}
            */
           eligibleCustomer: function(customerId, options) {
-            return this.getDiscount_Event(customerId, {
+            return this.getDiscount_events({
+              where: {
+                customer_id: customerId
+              },
+              limit: 1,
               attributes: ['id','discount_id'],
               transaction: options.transaction || null
             })
-              .then(notEligible => {
-                if (this.applies_once_per_customer && notEligible) {
+              .then(_previousUsages => {
+                _previousUsages = _previousUsages || []
+                if (this.applies_once_per_customer && _previousUsages.length > 0) {
                   return this
                 }
                 else {
@@ -423,8 +428,6 @@ module.exports = class Discount extends Model {
               id: this.id,
               model: 'discount',
               type: null,
-              rate: null,
-              percentage: null,
               name: this.name,
               scope: this.discount_scope,
               price: 0,

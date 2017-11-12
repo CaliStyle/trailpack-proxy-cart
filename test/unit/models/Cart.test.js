@@ -104,4 +104,48 @@ describe('Cart Model', () => {
     assert.equal(cart.line_items[1].calculated_price, 900)
     done()
   })
+
+  it('should not discount an item more than it\'s price', (done) => {
+    let cart = Cart.build({
+      line_items: [{
+        product_id: 1,
+        type: 'product',
+        price: 1000
+      }]
+    })
+    const discount1 = Discount.build({
+      id: 1,
+      handle: 'test-1',
+      name: 'test 1',
+      description: 'test 1',
+      code: 'test_123-1',
+      discount_type: 'rate',
+      discount_rate: 10000,
+      discount_scope: 'global',
+      applies_once: false,
+      status: 'enabled'
+    })
+    const discount2 = Discount.build({
+      id: 2,
+      handle: 'test-2',
+      name: 'test 2',
+      description: 'test 2',
+      code: 'test_123-2',
+      discount_type: 'rate',
+      discount_rate: 10000,
+      discount_scope: 'global',
+      applies_once: false,
+      status: 'enabled'
+    })
+    cart = cart.setItemsDiscountedLines([discount1, discount2])
+    // console.log('BUILT',cart.toJSON().discounted_lines)
+    // console.log('BUILT',cart.toJSON().line_items)
+    assert.equal(cart.total_discounts, 1000)
+    assert.equal(cart.discounted_lines.length, 2)
+    assert.equal(cart.line_items.length, 1)
+    assert.equal(cart.line_items[0].calculated_price, 0)
+    assert.equal(cart.line_items[0].total_discounts, 1000)
+    assert.equal(cart.line_items[0].price, 1000)
+    done()
+  })
 })
