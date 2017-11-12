@@ -470,6 +470,7 @@ module.exports = class Discount extends Model {
             }
 
             // If this discount is individual
+            // If this discount only applies to individual products
             if (this.discount_scope === DISCOUNT_SCOPE.INDIVIDUAL) {
               const criteriaPair = criteria.find(d => d.discount === this.id)
               // console.log('CRITERIA PAIR', criteriaPair)
@@ -489,23 +490,19 @@ module.exports = class Discount extends Model {
                 return item
               }
             }
-            // If this discount only applies to individual products
-            // TODO Check that this is the correct criteria
-            // if (
-            //   this.discount_scope === DISCOUNT_SCOPE.INDIVIDUAL
-            //   && !criteria.some(pair =>
-            //     pair['product'] === item.product_id
-            //     || pair['variant'] === item.variant_id
-            //   )
-            // ) {
-            //   // return item
-            // }
+
             // Set the type
             // If this is rate
             if (this.discount_type === DISCOUNT_TYPES.RATE) {
               discountedLine.rate = this.discount_rate
               discountedLine.type = DISCOUNT_TYPES.RATE
               discountedLine.price = discountedLine.rate
+            }
+            // If this is a threshold
+            else if (this.discount_type === DISCOUNT_TYPES.THRESHOLD) {
+              discountedLine.threshold = this.discount_threshold
+              discountedLine.type = DISCOUNT_TYPES.THRESHOLD
+              discountedLine.price = discountedLine.threshold
             }
             // If this is a percentage
             else if (this.discount_type === DISCOUNT_TYPES.PERCENTAGE) {
@@ -518,9 +515,17 @@ module.exports = class Discount extends Model {
               return item
             }
 
+            // Set the total deducted
             totalDeducted = Math.min(item.price, (item.price - (item.price - discountedLine.price)))
 
+            // If the totalDeducted is greater then zero, add the discount line.
             if (totalDeducted > 0) {
+
+              // If this is a threshold discount, subtract from the threshold for the rest of this iteration
+              if (discountedLine.type === DISCOUNT_TYPES.THRESHOLD) {
+                this.discount_threshold = Math.max(0, this.discount_threshold - totalDeducted)
+              }
+
               discountedLine.price = totalDeducted
               item.discounted_lines.push(discountedLine)
             }
@@ -577,10 +582,13 @@ module.exports = class Discount extends Model {
         values: _.values(DISCOUNT_TYPES),
         defaultValue: DISCOUNT_TYPES.RATE
       },
-      // The value of the discount. Required when creating a percentage-based discount. See the discount_type property to learn more about how value is interpreted.
+      // The value of the discount. See the discount_type property to learn more about how value is interpreted.
       discount_rate: {
-        type: Sequelize.FLOAT,
-        defaultValue: 0.0
+        type: Sequelize.INTEGER
+      },
+      // The value of the discount. See the discount_type property to learn more about how value is interpreted.
+      discount_threshold: {
+        type: Sequelize.INTEGER
       },
       // The value of the discount. Required when creating a rate-based discount. See the discount_type property to learn more about how value is interpreted.
       discount_percentage: {

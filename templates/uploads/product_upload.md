@@ -56,24 +56,32 @@ Proxy-Cart Stores all Options in a JSON format allowing for the single model fie
 ### _Note_
 If you have an `Option / * Name` column, it must also have an `Option / * Value` column.
 
-## Pricing Property / 1 Name (Default)
+
+
+## Property Pricing/ 1 Name (Default)
 If a product has a property that does not alter the SKU but alters the price, enter its name. For example, Topping.
 Imagine you are ordering a pizza. The possible variations of pizza are in the millions. So instead of creating a variant of each pizza, create a pricing property.
 
-## Pricing Property/ 1 Value (Default)
+## Property Pricing / 1 Group (Default)
+Grouping for Property Pricing.
+
+## Property Pricing / 1 Value (Default)
 If a product has a pricing property, enter its 
 price in cents e.g $1.00 written as 100.
 
-## Pricing Property/ 1 Image (Default)
+## Property Pricing / 1 Image (Default)
 If a Pricing Property has an image, list the full link there.
 
-## Pricing Property / * Name (Add as Necessary)
+## Property Pricing / * Name (Add as Necessary)
 The `*` is a place holder for the next iteration number of the pricing property e.g. `Pricing Property / 2 name` 
 
-## Pricing Property / * Value (Add as Necessary)
+## Property Pricing / * Group (Add as Necessary)
+The `*` is a place holder for the next iteration number of the pricing property e.g. `Pricing Property / 2 group` 
+
+## Property Pricing / * Value (Add as Necessary)
 The `*` is a place holder for the next iteration number of the pricing_property e.g. `Pricing Property / 2 value`
 
-## Pricing Property / * Image (Optional Add as Necessary)
+## Property Pricing / * Image (Optional Add as Necessary)
 The `*` is a place holder for the next iteration number of the pricing_property e.g. `Pricing Property / 2 image`
 
 ### _Note_

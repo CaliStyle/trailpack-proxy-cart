@@ -257,12 +257,9 @@ module.exports = class ProductCsvService extends Service {
             }
             else {
               const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
-              const propertyReg = new RegExp('^((Property Pricing \/).([0-9]).(Name|Value|Image))', 'g')
+              const propertyReg = new RegExp('^((Property Pricing \/).([0-9]).(Name|Group|Value|Image))', 'g')
 
               const matchOptions = optionsReg.exec(key)
-              // if (matchOptions) {
-              //   console.log('BROKE OPTIONS',matchOptions[2],',', matchOptions[3], ',',matchOptions[4],',', matchOptions[5])
-              // }
               if (
                 matchOptions
                 && matchOptions[2] === 'Option /'
@@ -287,9 +284,6 @@ module.exports = class ProductCsvService extends Service {
               }
 
               const matchProperties = propertyReg.exec(key)
-              // if (matchProperties) {
-              //   console.log('BROKE PROPERTIES',matchProperties[2],',', matchProperties[3], ',',matchProperties[4],',', matchProperties[5])
-              // }
               if (
                 matchProperties
                 && matchProperties[2] === 'Property Pricing /'
@@ -303,6 +297,7 @@ module.exports = class ProductCsvService extends Service {
                 if (typeof upload.properties[index] === 'undefined') {
                   upload.properties[index] = {
                     name: '',
+                    group: null,
                     value: '',
                     image: null
                   }
@@ -331,6 +326,9 @@ module.exports = class ProductCsvService extends Service {
         _.map(upload.properties, property => {
           upload.property_pricing[property.name] = {}
           upload.property_pricing[property.name]['price'] = property.value
+          if (property.group) {
+            upload.property_pricing[property.name]['group'] = property.group
+          }
           if (property.image) {
             upload.property_pricing[property.name]['image'] = property.image
           }

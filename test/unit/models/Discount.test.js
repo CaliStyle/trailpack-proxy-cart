@@ -70,6 +70,58 @@ describe('Discount Model', () => {
     done()
   })
 
+  it('should discount a line item up until it\'s threshold', (done) => {
+    const discount = Discount.build({
+      id: 1,
+      handle: 'test',
+      name: 'test',
+      description: 'test',
+      code: 'test_123',
+      discount_type: 'threshold',
+      discount_threshold: 150,
+      discount_scope: 'global',
+      status: 'enabled'
+    })
+
+    const item = discount.discountItem({
+      product_id: 1,
+      type: 'product',
+      price: 100
+    })
+
+    const item2 = discount.discountItem({
+      product_id: 2,
+      type: 'product',
+      price: 100
+    })
+
+    const item3 = discount.discountItem({
+      product_id: 3,
+      type: 'product',
+      price: 100
+    })
+
+    console.log('BROKE DISCOUNT', discount, item, item2, item3)
+
+    assert.equal(item.price, 100)
+    assert.equal(item.discounted_lines.length, 1)
+    assert.equal(item.discounted_lines[0].threshold, 150)
+    assert.equal(item.discounted_lines[0].price, 100)
+    assert.equal(item.discounted_lines[0].type, 'threshold')
+
+    assert.equal(item2.price, 100)
+    assert.equal(item2.discounted_lines.length, 1)
+    assert.equal(item2.discounted_lines[0].threshold, 50)
+    assert.equal(item2.discounted_lines[0].price, 50)
+    assert.equal(item2.discounted_lines[0].type, 'threshold')
+
+    assert.equal(item3.price, 100)
+    assert.equal(item3.discounted_lines.length, 0)
+
+
+    done()
+  })
+
   it('should discount a line item with percentage of price', (done) => {
     const discount = Discount.build({
       id: 1,
