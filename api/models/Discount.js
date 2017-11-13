@@ -64,6 +64,12 @@ module.exports = class Discount extends Model {
               const bodyDoc = app.services.RenderGenericService.renderSync(values.body)
               values.body_html = bodyDoc.document
             }
+          },
+          beforeUpdate: function(values, options) {
+            if (values.body) {
+              const bodyDoc = app.services.RenderGenericService.renderSync(values.body)
+              values.body_html = bodyDoc.document
+            }
           }
         },
         classMethods: {
