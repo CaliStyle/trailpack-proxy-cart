@@ -138,6 +138,19 @@ module.exports = class OrderItem extends Model {
           }
         },
         instanceMethods: {
+          /**
+           * Resets the defaults so they can be recalculated
+           * @returns {*}
+           */
+          resetDefaults: function() {
+            this.calculated_price = 0
+            this.total_discounts = 0
+            this.total_shipping = 0
+            this.total_coupons = 0
+            this.total_taxes = 0
+
+            return this
+          },
           addShipping: function(shipping, options) {
             options = options || {}
           },

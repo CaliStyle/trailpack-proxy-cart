@@ -389,5 +389,28 @@
       "Dummy Collection"
     ],
     "sku": "product-property-pricing-123"
+  },
+  {
+    "handle": "physical-product",
+    "title": "Physical Product",
+    "body": "<strong>Physical Product</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "physical",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": true,
+    "requires_subscription": false,
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "physical-product"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "physical-product-123"
   }
 ]

@@ -3,8 +3,9 @@
 const assert = require('assert')
 const supertest = require('supertest')
 const _ = require('lodash')
+const qs = require('qs')
 
-describe('Admin User Manual Fulfillment', () => {
+describe('Admin User Manual Fulfillment Digital', () => {
   let adminUser, userID, customerID, cartID, shopID, shopProducts, orderID, fulfillmentID
 
   before((done) => {
@@ -45,7 +46,7 @@ describe('Admin User Manual Fulfillment', () => {
         assert.equal(res.body.total_discounts, 0)
         assert.equal(res.body.pricing_overrides.length, 0)
         assert.equal(res.body.total_overrides, 0)
-        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_due, shopProducts[9].price)
         done(err)
       })
   })
@@ -111,15 +112,16 @@ describe('Admin User Manual Fulfillment', () => {
         })
 
         // Fulfillment
+        fulfillmentID = res.body.order.fulfillments[0].id
         assert.equal(res.body.order.fulfillments.length, 1)
         res.body.order.fulfillments.forEach(fulfillment => {
           assert.equal(fulfillment.status, 'pending')
           assert.equal(fulfillment.order_id, orderID)
         })
+        assert.equal(res.body.order.total_pending_fulfillments, 1)
         assert.equal(res.body.order.total_fulfilled_fulfillments, 0)
         assert.equal(res.body.order.total_sent_fulfillments, 0)
         assert.equal(res.body.order.total_partial_fulfillments, 0)
-        assert.equal(res.body.order.total_pending_fulfillments, 1)
         assert.equal(res.body.order.total_cancelled_fulfillments, 0)
 
         // Transactions
@@ -146,17 +148,62 @@ describe('Admin User Manual Fulfillment', () => {
         done(err)
       })
   })
-  it('should fulfill pending fulfillment by id', (done) => {
+  it('should set pending manual to fulfilled by fulfillment id', (done) => {
+    // console.log('USER STORY FULFILLMENT', fulfillmentID)
     adminUser
       .post(`/order/${orderID}/send`)
-      .send([{
-        fulfillment: fulfillmentID
-      }])
+      .send([
+        {
+          id: fulfillmentID
+        }
+      ])
       .expect(200)
       .end((err, res) => {
-        console.log('fulfillment user story',res.body)
+        // console.log('USER STORY FULFILMENT',res.body)
+
+        // This is a digital good
+        assert.equal(res.body.fulfillment_status, 'fulfilled')
+        assert.equal(res.body.status, 'closed')
+        assert.notEqual(res.body.closed_at, null)
+
+        assert.equal(res.body.fulfillments.length, 1)
+        res.body.fulfillments.forEach(fulfillment => {
+          assert.equal(fulfillment.status, 'fulfilled')
+          assert.equal(fulfillment.order_id, orderID)
+        })
+        assert.equal(res.body.total_pending_fulfillments, 0)
+        assert.equal(res.body.total_fulfilled_fulfillments, 1)
+        assert.equal(res.body.total_sent_fulfillments, 0)
+        assert.equal(res.body.total_partial_fulfillments, 0)
+        assert.equal(res.body.total_cancelled_fulfillments, 0)
+
+
+        res.body.order_items.forEach(item => {
+          assert.equal(item.order_id, orderID)
+          assert.equal(item.fulfillment_status, 'fulfilled')
+          assert.equal(item.fulfillment_id, res.body.fulfillments[0].id)
+        })
 
         done(err)
       })
   })
+  // it('should update manual fulfillments', (done) => {
+  //   adminUser
+  //     .post(`/order/${orderID}/fulfill`)
+  //     .send([
+  //       {
+  //         id: fulfillmentID,
+  //         status: 'fulfilled',
+  //         tracking_company: 'USPS',
+  //         tracking_number: '1234',
+  //         status_url: 'https://usps.com/tracking/1234'
+  //       }
+  //     ])
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       console.log('fulfillment user story',res.body)
+  //
+  //       done(err)
+  //     })
+  // })
 })

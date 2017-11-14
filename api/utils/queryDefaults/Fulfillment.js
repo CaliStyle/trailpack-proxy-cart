@@ -8,6 +8,7 @@ module.exports = {
           attributes: [
             'id',
             'quantity',
+            'requires_shipping',
             'fulfillment_status',
             'fulfillment_service'
           ]

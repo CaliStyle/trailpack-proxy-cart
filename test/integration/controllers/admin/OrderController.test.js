@@ -11,6 +11,7 @@ describe('Admin User OrderController', () => {
   let cartToken
   let shopProducts
   let transactionID
+  let fulfillmentID
 
   before((done) => {
     shopProducts = global.app.shopProducts
@@ -124,6 +125,7 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillments[0].status, 'pending')
         assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
+        fulfillmentID = res.body.fulfillments[0].id
 
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 100000)
@@ -534,6 +536,7 @@ describe('Admin User OrderController', () => {
     adminUser
       .post(`/order/${orderID}/fulfill`)
       .send({
+        id: fulfillmentID,
         status: 'sent',
         status_url: 'https://cali-style.com/status',
         tracking_company: 'UPS',

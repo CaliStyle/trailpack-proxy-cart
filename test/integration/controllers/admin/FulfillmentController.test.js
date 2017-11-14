@@ -38,8 +38,18 @@ describe('Admin User FulfillmentController', () => {
         done(err)
       })
   })
-  it.skip('should create a manual fulfillment',() => {
+  it.skip('should create a manual fulfillment',(done) => {
+    adminUser
+      .post('/fulfillment')
+      .send({
 
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('GENERAL STATS')
+        assert.ok(res.body)
+        done(err)
+      })
   })
   it.skip('should update a manual fulfillment',() => {
 

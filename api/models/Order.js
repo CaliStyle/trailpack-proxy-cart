@@ -749,6 +749,8 @@ module.exports = class Order extends Model {
             fulfillments = fulfillments || []
             options = options || {}
 
+            let toFulfill = []
+
             return this.resolveOrderItems({
               transaction: options.transaction || null,
               reload: options.reload || null
@@ -760,35 +762,27 @@ module.exports = class Order extends Model {
                 })
               })
               .then(() => {
-                if (_.isArray(fulfillments)) {
-                  fulfillments = fulfillments.filter(fulfillment => {
-                    const resFulfillment = this.fulfillments.find(f => f.id == fulfillment.fulfillment_id)
-                    if (resFulfillment) {
-                      return resFulfillment.fulfill({
-                        status: fulfillment.status || resFulfillment.status,
-                        status_url: fulfillment.status_url || resFulfillment.status_url,
-                        tracking_company: fulfillment.tracking_company || resFulfillment.tracking_company,
-                        tracking_number: fulfillment.tracking_number || resFulfillment.tracking_number,
-                        receipt: fulfillment.receipt || resFulfillment.receipt
-                      }, {transaction: options.transaction || null })
-                    }
+                toFulfill = fulfillments.map(fulfillment => this.fulfillments.find(f => f.id === fulfillment.id))
+                // Remove empties
+                toFulfill = toFulfill.filter(f => f)
+                // console.log('BROKE FULFILL', toFulfill)
+                return this.sequelize.Promise.mapSeries(toFulfill, resFulfillment => {
+                  if (!resFulfillment instanceof app.orm['Fulfillment']) {
+                    throw new Error('resFulfillment is not an instance of Fulfillment')
+                  }
+                  const fulfillment = fulfillments.find(f => f.id === resFulfillment.id)
+                  const update = {
+                    status: fulfillment.status || resFulfillment.status,
+                    status_url: fulfillment.status_url || resFulfillment.status_url,
+                    tracking_company: fulfillment.tracking_company || resFulfillment.tracking_company,
+                    tracking_number: fulfillment.tracking_number || resFulfillment.tracking_number,
+                    receipt: fulfillment.receipt || resFulfillment.receipt
+                  }
+                  // console.log('UPDATE', update)
+                  return resFulfillment.fulfillUpdate(update, {
+                    transaction: options.transaction || null
                   })
-                  return this.sequelize.Promise.mapSeries(fulfillments, fulfillment => fulfillment)
-                }
-                else if (_.isObject(fulfillments)){
-                  return this.sequelize.Promise.mapSeries(this.fulfillments, resFulfillment => {
-                    return resFulfillment.fulfill({
-                      status: fulfillments.status || resFulfillment.status,
-                      status_url: fulfillments.status_url || resFulfillment.status_url,
-                      tracking_company: fulfillments.tracking_company || resFulfillment.tracking_company,
-                      tracking_number: fulfillments.tracking_number || resFulfillment.tracking_number,
-                      receipt: fulfillments.receipt || resFulfillment.receipt
-                    }, {transaction: options.transaction || null })
-                  })
-                }
-                else {
-                  return
-                }
+                })
               })
               .then(() => {
                 return this.saveFulfillmentStatus({transaction: options.transaction || null})

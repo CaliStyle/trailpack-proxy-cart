@@ -212,7 +212,7 @@ module.exports = class Fulfillment extends Model {
            *
            * @param data
            */
-          fulfill: function (data, options) {
+          fulfillUpdate: function (data, options) {
             data = data || {}
             options = options || {}
             return this.resolveOrderItems({
@@ -400,6 +400,7 @@ module.exports = class Fulfillment extends Model {
               fulfillmentStatus = FULFILLMENT_STATUS.CANCELLED
             }
 
+            this.has_shipping = this.order_items.some(i => i.requires_shipping === true)
             this.status = fulfillmentStatus
             this.total_items = totalQty
             this.total_fulfilled = totalFulfillments
@@ -473,6 +474,11 @@ module.exports = class Fulfillment extends Model {
       // The URL pointing to the order status web page.
       status_url: {
         type: Sequelize.STRING
+      },
+      // If this fulfillment contains items that need to be shipped.
+      has_shipping: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
       // The name of the fulfillment service provider
       service: {

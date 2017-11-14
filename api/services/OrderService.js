@@ -1461,14 +1461,14 @@ module.exports = class OrderService extends Service {
     let resOrder
     const Order = this.app.orm['Order']
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status}`)
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status}`)
         }
-        resOrder = order
+        resOrder = _order
         return resOrder.removeShipping(shipping, {transaction: options.transaction || null})
       })
   }
@@ -1488,14 +1488,14 @@ module.exports = class OrderService extends Service {
     let resOrder
     const Order = this.app.orm['Order']
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status}`)
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status}`)
         }
-        resOrder = order
+        resOrder = _order
         return resOrder.addTaxes(taxes, {transaction: options.transaction || null})
       })
   }
@@ -1515,14 +1515,14 @@ module.exports = class OrderService extends Service {
     let resOrder
     const Order = this.app.orm['Order']
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status}`)
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status}`)
         }
-        resOrder = order
+        resOrder = _order
         return resOrder.removeTaxes(taxes, {transaction: options.transaction || null})
       })
   }
@@ -1536,21 +1536,96 @@ module.exports = class OrderService extends Service {
    */
   fulfill(order, fulfillments, options) {
     options = options || {}
-    if (!fulfillments) {
-      throw new Errors.FoundError(Error('Fulfillments is not defined'))
+    fulfillments = fulfillments || []
+
+    // Make this an array
+    if (!_.isArray(fulfillments)) {
+      fulfillments = [fulfillments]
+    }
+
+    let resOrder
+    const Order = this.app.orm['Order']
+    return Order.resolve(order, options)
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status}`)
+        }
+        resOrder = _order
+        // if this is missing id, this means we will be updating all fulfillment on the order.
+        if (fulfillments.every(f => !f.id) && fulfillments.length === 1) {
+          return resOrder.getFulfillments({transaction: options.transaciton || null})
+        }
+        else {
+          return []
+        }
+      })
+      .then(_fulfillments => {
+        _fulfillments = _fulfillments || []
+        // Map the ID with the data from the fulfillment object
+        _fulfillments.map(f => {
+          return _.merge({
+            id: f.id
+          }, fulfillments[0])
+        })
+
+        fulfillments = [...fulfillments, ..._fulfillments]
+
+        console.log('BROKE',fulfillments)
+
+        return resOrder.fulfill(fulfillments, {transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param fulfillments
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  send(order, fulfillments, options) {
+    options = options || {}
+    fulfillments = fulfillments || []
+    if (typeof fulfillments === 'string') {
+      fulfillments = [fulfillments]
     }
     let resOrder
     const Order = this.app.orm['Order']
     return Order.resolve(order, options)
-      .then(order => {
-        if (!order) {
+      .then(_order => {
+        if (!_order) {
           throw new Errors.FoundError(Error('Order not found'))
         }
-        if (order.status !== ORDER_STATUS.OPEN) {
-          throw new Error(`Order is already ${order.status}`)
+        if (_order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${_order.status}`)
         }
-        resOrder = order
-        return resOrder.fulfill(fulfillments, {transaction: options.transaction || null})
+        resOrder = _order
+
+        if (fulfillments.length === 0) {
+          return resOrder.getFulfillments({transaction: options.transaction || null})
+        }
+        else {
+          return []
+        }
+      })
+      .then(_fulfillments => {
+        _fulfillments = _fulfillments || []
+
+        fulfillments = [...fulfillments, ..._fulfillments]
+
+        return Order.sequelize.Promise.mapSeries(fulfillments, fulfillment => {
+          return this.app.services.FulfillmentService.sendFulfillment(
+            resOrder,
+            fulfillment,
+            {transaction: options.transaction || null}
+          )
+        })
       })
       .then(() => {
         return resOrder.reload({ transaction: options.transaction || null }) // Order.findByIdDefault(resOrder.id)

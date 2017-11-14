@@ -121,6 +121,29 @@ module.exports = class FulfillmentController extends Controller {
    */
   update(req, res) {
     const FulfillmentService = this.app.services.FulfillmentService
+    lib.Validator.validateFulfillment.update(req.body)
+      .then(values => {
+        req.body.id = req.params.id
+        return FulfillmentService.update(req.body)
+      })
+      .then(fulfillment => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, fulfillment)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   * Cancel Fulfillment
+   * @param req
+   * @param res
+   */
+  cancel(req, res) {
+    const FulfillmentService = this.app.services.FulfillmentService
     lib.Validator.validateFulfillment.cancel(req.body)
       .then(values => {
         req.body.id = req.params.id

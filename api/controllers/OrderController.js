@@ -475,11 +475,26 @@ module.exports = class OrderController extends Controller {
   // TODO
   send(req, res) {
     const orderId = req.params.id
+
     if (!orderId) {
       const err = new Error('Order Id is required')
       return res.serverError(err)
     }
-    res.json({})
+
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.send(req.body)
+      .then(values => {
+        return OrderService.send(orderId, req.body)
+      })
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
   }
 
   /**
