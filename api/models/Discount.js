@@ -610,7 +610,6 @@ module.exports = class Discount extends Model {
         defaultValue: 0.0
       },
 
-      // TODO allow product includes
       // List of product types allowed to discount
       discount_product_include: helpers.JSONB('Discount', app, Sequelize, 'discount_product_include', {
         defaultValue: []
@@ -619,6 +618,16 @@ module.exports = class Discount extends Model {
       discount_product_exclude: helpers.JSONB('Discount', app, Sequelize, 'discount_product_exclude', {
         defaultValue: []
       }),
+
+      // List of customer types allowed to discount
+      discount_customer_include: helpers.JSONB('Discount', app, Sequelize, 'discount_customer_include', {
+        defaultValue: []
+      }),
+      // List of customer_type [<string>] to forcefully excluded from discount modifiers
+      discount_customer_exclude: helpers.JSONB('Discount', app, Sequelize, 'discount_customer_exclude', {
+        defaultValue: []
+      }),
+
       // List of product_type [<string>] to forcefully excluded from shipping modifiers
       shipping_product_exclude: helpers.JSONB('Discount', app, Sequelize, 'shipping_product_exclude', {
         defaultValue: []

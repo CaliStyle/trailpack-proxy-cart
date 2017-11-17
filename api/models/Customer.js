@@ -193,18 +193,6 @@ module.exports = class Customer extends Model {
               foreignKey: 'model_id',
               constraints: false
             })
-            models.Customer.belongsToMany(models.Coupon, {
-              as: 'coupons',
-              through: {
-                model: models.ItemCoupon,
-                unique: false,
-                scope: {
-                  model: 'customer'
-                }
-              },
-              foreignKey: 'model_id',
-              constraints: false
-            })
             models.Customer.hasOne(models.Cart, {
               as: 'default_cart',
               foreignKey: 'default_cart_id'
@@ -1029,6 +1017,12 @@ module.exports = class Customer extends Model {
         values: _.values(CUSTOMER_STATE),
         defaultValue: CUSTOMER_STATE.ENABLED
       },
+
+      type: {
+        type: Sequelize.STRING,
+        defaultValue: 'default'
+      },
+
       // If customer is tax exempt
       tax_exempt: {
         type: Sequelize.BOOLEAN,

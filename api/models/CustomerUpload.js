@@ -5,7 +5,8 @@
 
 const Model = require('trails/model')
 const helpers = require('proxy-engine-helpers')
-
+const CUSTOMER_STATE = require('../../lib').Enums.CUSTOMER_STATE
+const _ = require('lodash')
 /**
  * @module CustomerUpload
  * @description Customer Upload Model
@@ -152,6 +153,18 @@ module.exports = class CustomerUpload extends Model {
       billing_postal_code: {
         type: Sequelize.STRING
       },
+
+      state: {
+        type: Sequelize.ENUM,
+        values: _.values(CUSTOMER_STATE),
+        defaultValue: CUSTOMER_STATE.ENABLED
+      },
+
+      type: {
+        type: Sequelize.STRING,
+        defaultValue: 'default'
+      },
+
       // 'Collections'
       collections: helpers.JSONB('CustomerUpload', app, Sequelize, 'collections', {
         defaultValue: []

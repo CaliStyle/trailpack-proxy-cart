@@ -224,7 +224,7 @@ describe('Admin User Manual Fulfillment Physical', () => {
       })
   })
   it('should update manual fulfillments to fulfilled with tracking info', (done) => {
-    console.log('USER STORY FULFILLMENT ID', fulfillmentID)
+    // console.log('USER STORY FULFILLMENT ID', fulfillmentID)
     adminUser
       .post(`/order/${orderID}/fulfill`)
       .send([
@@ -238,7 +238,7 @@ describe('Admin User Manual Fulfillment Physical', () => {
       ])
       .expect(200)
       .end((err, res) => {
-        console.log('USER STORY FULFILMENT',res.body)
+        //console.log('USER STORY FULFILMENT',res.body)
 
         // This is a physical good
         assert.equal(res.body.fulfillment_status, 'fulfilled')

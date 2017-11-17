@@ -5,19 +5,78 @@ const Template = require('trailpack-proxy-email').Template
 
 module.exports = class Order extends Template {
   created(order) {
-    const orderItems = order.order_items.map(item => {
-      return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
+    let orderItems = '<h5>Order Items</h5>'
+    orderItems = orderItems + `
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Qty</th>
+      <th>Price</th>
+    </tr>
+  </thead>
+<tbody>`
+
+    orderItems = orderItems + order.order_items.map(item => {
+      return `
+<tr>
+  <td>${ item.name }</td>
+  <td>${item.quantity }</td>
+  <td>${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</td>
+</tr>`
     }).join('\n')
+
+    orderItems = orderItems + '</tbody></table>'
+
+    let taxes = '', taxesTotal = ''
+    if (order.tax_lines.length > 0) {
+      taxes = '<h5>Taxes</h5>\n'
+      taxes = taxes + order.tax_lines.map(item => {
+        return `<p>${ item.name } ${ this.app.services.ProxyCartService.formatCurrency(item.price, order.currency)}</p>`
+      }).join('\n')
+
+      taxesTotal = `<p>Taxes: ${ this.app.services.ProxyCartService.formatCurrency(order.total_tax, order.currency)}</p>`
+    }
+
+    let shipping = '', shippingTotal = ''
+    if (order.shipping_lines.length > 0) {
+      shipping = '<h5>Shipping</h5>\n'
+      shipping = shipping + order.shipping_lines.map(item => {
+        return `<p>${ item.name } ${ this.app.services.ProxyCartService.formatCurrency(item.price, order.currency)}</p>`
+      }).join('\n')
+
+      shippingTotal = `<p>Shipping: ${ this.app.services.ProxyCartService.formatCurrency(order.total_shipping, order.currency)}</p>`
+    }
+
+    let discounted = '', discountedTotal = ''
+    if (order.discounted_lines.length > 0) {
+      discounted = '<h5>discounted</h5>\n'
+      discounted = discounted + order.discounted_lines.map(item => {
+        return `<p>${ item.name } - ${ this.app.services.ProxyCartService.formatCurrency(item.price, order.currency)}</p>`
+      }).join('\n')
+
+      discountedTotal = `<p>Discounts: - ${ this.app.services.ProxyCartService.formatCurrency(order.total_discounts, order.currency)}</p>\n`
+    }
+
+    let overrides = '', overridesTotal = ''
+    if (order.pricing_overrides.length > 0) {
+      overrides = '<h5>Price Overrides</h5>\n'
+      overrides = overrides + order.pricing_overrides.map(item => {
+        return `<p>${ item.name } - ${ this.app.services.ProxyCartService.formatCurrency(item.price, order.currency)}</p>`
+      }).join('\n')
+
+      overridesTotal = `<p>Price Overrides: - ${ this.app.services.ProxyCartService.formatCurrency(order.total_discounts, order.currency)}</p>\n`
+    }
 
     return `<h1>Order ${ order.name } Created</h1>
 <p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your order was created and is being processed.</p>
 <p>Order Number: ${ order.name }</p>
-<h5>Order Items</h5>
-${orderItems}
+${orderItems}${discounted}${overrides}${shipping}${taxes}
 <p>------------------------</p>
 <p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price, order.currency)}</p>
-<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price / 100, order.currency)}</p>
+${discountedTotal}${overridesTotal}${shippingTotal}${taxesTotal}
+<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price, order.currency)}</p>
 <p>------------------------</p>
 <p>Thank you!</p>`
   }
@@ -41,12 +100,26 @@ ${orderItems}
       return `<p>${ item.name } x ${item.quantity } - ${ this.app.services.ProxyCartService.formatCurrency(item.calculated_price, order.currency)}</p>`
     }).join('\n')
 
+    let refunded
+    if (order.refunded_lines.length > 0) {
+      refunded = '<h5>Refunded</h5>'
+      refunded = refunded + order.refunded_lines.map(item => {
+        return `<p>${ item.name } - ${ this.app.services.ProxyCartService.formatCurrency(item.price, order.currency)}</p>`
+      }).join('\n')
+    }
+
     return `<h1>Order ${ order.name } Cancelled</h1>
 <p>Dear ${order.Customer ? order.Customer.getSalutation() : 'Customer'},</p>
 <p>Your order has been cancelled.</p>
 <p>Order Number: ${ order.name }</p>
 <h5>Order Items</h5>
 ${orderItems}
+${refunded}
+<p>------------------------</p>
+<p>Subtotal: ${ this.app.services.ProxyCartService.formatCurrency(order.subtotal_price, order.currency)}</p>
+<p>Total: ${ this.app.services.ProxyCartService.formatCurrency(order.total_price, order.currency)}</p>
+<p>Refunded: ${ this.app.services.ProxyCartService.formatCurrency(order.total_refunds, order.currency)}</p>
+<p>------------------------</p>
 <p>Thank you!</p>`
   }
 

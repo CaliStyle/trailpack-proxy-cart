@@ -767,7 +767,7 @@ module.exports = class Order extends Model {
                 toFulfill = toFulfill.filter(f => f)
                 // console.log('BROKE FULFILL', toFulfill)
                 return this.sequelize.Promise.mapSeries(toFulfill, resFulfillment => {
-                  if (!resFulfillment instanceof app.orm['Fulfillment']) {
+                  if (!(resFulfillment instanceof app.orm['Fulfillment'])) {
                     throw new Error('resFulfillment is not an instance of Fulfillment')
                   }
                   const fulfillment = fulfillments.find(f => f.id === resFulfillment.id)

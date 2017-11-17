@@ -126,18 +126,6 @@ module.exports = class Product extends Model {
               foreignKey: 'model_id',
               constraints: false
             })
-            models.Product.belongsToMany(models.Coupon, {
-              as: 'coupons',
-              through: {
-                model: models.ItemCoupon,
-                unique: false,
-                scope: {
-                  model: 'product'
-                }
-              },
-              foreignKey: 'model_id',
-              constraints: false
-            })
 
             models.Product.hasOne(models.Metadata, {
               as: 'metadata',
