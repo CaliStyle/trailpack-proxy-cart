@@ -413,7 +413,15 @@ const App = {
     },
     proxyEngine: {
       live_mode: false,
-      profile: 'testProfile'
+      profile: 'testProfile',
+      crons_config: {
+        profiles: {
+          testProfile: [
+            'AccountsCron.expired',
+            'AccountsCron.willExpire'
+          ]
+        }
+      }
     }
   }
 }

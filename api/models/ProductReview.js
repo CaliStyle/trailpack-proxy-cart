@@ -24,6 +24,10 @@ module.exports = class ProductReview extends Model {
             models.ProductReview.belongsTo(models.Product, {
               // as: 'product_id'
             })
+            models.ProductReview.belongsTo(models.ProductVariant, {
+              foreignKey: 'variant_id'
+              // as: 'product_id'
+            })
             models.ProductReview.belongsTo(models.User, {
               // as: 'product_id'
             })
@@ -85,6 +89,10 @@ module.exports = class ProductReview extends Model {
       },
       // The ID of the product Reviewed
       product_id: {
+        type: Sequelize.INTEGER
+      },
+      // The ID of the product Reviewed
+      variant_id: {
         type: Sequelize.INTEGER
       },
       // The ID of the metadata Reviewed

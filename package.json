@@ -1,6 +1,6 @@
 {
   "name": "trailpack-proxy-cart",
-  "version": "2.1.24",
+  "version": "2.1.25",
   "description": "eCommerce - Trailpack for Proxy Engine",
   "homepage": "https://cali-style.com",
   "author": {
@@ -20,9 +20,9 @@
   "dependencies": {
     "boom": "^6.0.0",
     "currency-formatter": "^1.2.1",
-    "geolib": "^2.0.22",
+    "geolib": "^2.0.24",
     "joi": "^10.2.2",
-    "moment": "^2.18.1",
+    "moment": "^2.19.2",
     "multer": "^1.2.1",
     "papaparse": "^4.3.6",
     "proxy-engine-errors": "^1.0.1",
@@ -37,7 +37,7 @@
     "trailpack": "^2.0.0",
     "trailpack-proxy-cart-countries": "^0.0.7",
     "trailpack-proxy-email": "^2.1.0",
-    "trailpack-proxy-engine": "^2.1.2",
+    "trailpack-proxy-engine": "^2.1.4",
     "trailpack-proxy-generics": "^2.1.0",
     "trailpack-proxy-notifications": "^2.1.0",
     "trailpack-proxy-passport": "^2.1.2",
