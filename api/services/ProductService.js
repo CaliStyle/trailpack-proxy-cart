@@ -877,6 +877,7 @@ module.exports = class ProductService extends Service {
   /**
    *
    * @param id
+   * @param options
    */
   removeVariant(id, options){
     options = options || {}

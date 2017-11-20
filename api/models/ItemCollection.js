@@ -42,6 +42,9 @@ module.exports = class ItemCollection extends Model {
         unique: 'collection_model',
         notNull: true,
         references: null
+      },
+      position: {
+        type: Sequelize.INTEGER
       }
     }
   }

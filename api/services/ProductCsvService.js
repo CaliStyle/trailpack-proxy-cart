@@ -257,7 +257,7 @@ module.exports = class ProductCsvService extends Service {
             }
             else {
               const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
-              const propertyReg = new RegExp('^((Property Pricing \/).([0-9]).(Name|Group|Value|Image))', 'g')
+              const propertyReg = new RegExp('^((Property Pricing \/).([0-9]).(Name|Group|Value|Image|Multi Select))', 'g')
 
               const matchOptions = optionsReg.exec(key)
               if (
@@ -329,8 +329,20 @@ module.exports = class ProductCsvService extends Service {
           if (property.group) {
             upload.property_pricing[property.name]['group'] = property.group
           }
+          else {
+            upload.property_pricing[property.name]['group'] = null
+          }
           if (property.image) {
             upload.property_pricing[property.name]['image'] = property.image
+          }
+          else {
+            upload.property_pricing[property.name]['image'] = null
+          }
+          if (property.multi_select) {
+            upload.property_pricing[property.name]['multi_select'] = property.multi_select
+          }
+          else {
+            upload.property_pricing[property.name]['multi_select'] = true
           }
         })
         // console.log('FINAL property_pricing', upload.property_pricing)
