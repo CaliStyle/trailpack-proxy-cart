@@ -366,7 +366,8 @@ const App = {
     },
     // Proxy Email
     proxyEmail: {
-
+      default_lang: 'en',
+      languages: ['en']
     },
     // Proxy Generics
     proxyGenerics: {

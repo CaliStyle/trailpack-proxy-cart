@@ -1300,6 +1300,54 @@ module.exports = class ProductController extends Controller {
         return res.serverError(err)
       })
   }
+
+
+
+
+  /**
+   * upload uploadReviewCSV
+   * @param req
+   * @param res
+   */
+  uploadReviewCSV(req, res) {
+    const ProductCsvService = this.app.services.ProductCsvService
+    const csv = req.file
+
+    if (!csv) {
+      const err = new Error('File failed to upload, check input name is "csv" and try again.')
+      return res.serverError(err)
+    }
+
+    ProductCsvService.productReviewCsv(csv.path)
+      .then(result => {
+        return res.json({
+          file: req.file,
+          result: result
+        })
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  processReviewUpload(req, res) {
+    const ProductCsvService = this.app.services.ProductCsvService
+    ProductCsvService.processProductReviewUpload(req.params.id)
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+
+
   /**
    *
    * @param req

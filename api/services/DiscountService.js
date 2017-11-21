@@ -339,7 +339,7 @@ module.exports = class DiscountService extends Service {
     const errors = []
     let discountsTotal = 0
 
-    this.app.log.debug('DiscountService.startThisHour', start.format('YYYY-MM-DD HH:mm:ss'), end.format('YYYY-MM-DD HH:mm:ss'))
+    this.app.log.debug('DiscountService.expireThisHour', start.format('YYYY-MM-DD HH:mm:ss'), end.format('YYYY-MM-DD HH:mm:ss'))
 
     return Discount.batch({
       where: {
