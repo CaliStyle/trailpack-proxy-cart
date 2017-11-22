@@ -20,6 +20,10 @@ module.exports = class ProductUpload extends Model {
       store: 'uploads',
       options: {
         underscored: true,
+        enums: {
+          INTERVALS: INTERVALS,
+          INVENTORY_POLICY: INVENTORY_POLICY
+        },
         classMethods: {
           /**
            *

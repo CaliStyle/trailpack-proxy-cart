@@ -15,6 +15,9 @@ module.exports = class Shop extends Model {
     return {
       options: {
         underscored: true,
+        enums: {
+          UNITS: UNITS
+        },
         // defaultScope: {
         //   where: {
         //     live_mode: app.config.proxyEngine.live_mode

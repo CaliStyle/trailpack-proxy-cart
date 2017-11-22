@@ -22,6 +22,24 @@ module.exports = class ProductVariant extends Model {
     return {
       options: {
         underscored: true,
+        enums: {
+          /**
+           * Expose UNITS enums
+           */
+          UNITS: UNITS,
+          /**
+           * Expose INTERVALS enums
+           */
+          INTERVALS: INTERVALS,
+          /**
+           * Expose INVENTORY_POLICY enums
+           */
+          INVENTORY_POLICY: INVENTORY_POLICY,
+          /**
+           * Expose VARIANT_DEFAULTS
+           */
+          VARIANT_DEFAULTS: VARIANT_DEFAULTS,
+        },
         // paranoid: !app.config.proxyCart.allow.destroy_variant,
         // defaultScope: {
         //   where: {
@@ -57,22 +75,6 @@ module.exports = class ProductVariant extends Model {
           }
         },
         classMethods: {
-          /**
-           * Expose UNITS enums
-           */
-          UNITS: UNITS,
-          /**
-           * Expose INTERVALS enums
-           */
-          INTERVALS: INTERVALS,
-          /**
-           * Expose INVENTORY_POLICY enums
-           */
-          INVENTORY_POLICY: INVENTORY_POLICY,
-          /**
-           * Expose VARIANT_DEFAULTS
-           */
-          VARIANT_DEFAULTS: VARIANT_DEFAULTS,
           /**
            * Associate the Model
            * @param models
@@ -173,6 +175,15 @@ module.exports = class ProductVariant extends Model {
               },
               foreignKey: 'object_id',
               constraints: false
+            })
+            models.ProductVariant.belongsToMany(models.Vendor, {
+              as: 'vendors',
+              through: {
+                model: models.VendorProduct,
+                unique: false,
+              },
+              foreignKey: 'variant_id',
+              // constraints: false
             })
             // models.ProductVariant.belongsToMany(models.Collection, {
             //   as: 'collections',

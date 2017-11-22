@@ -14,6 +14,9 @@ module.exports = class AccountEvent extends Model {
     return {
       options: {
         underscored: true,
+        enums: {
+          ACCOUNT_EVENT_TYPE: ACCOUNT_EVENT_TYPE
+        },
         associate: (models) => {
           models.AccountEvent.belongsTo(models.Account, {
             foreignKey: 'account_id'

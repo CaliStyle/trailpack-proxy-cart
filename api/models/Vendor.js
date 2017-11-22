@@ -242,6 +242,14 @@ module.exports = class Vendor extends Model {
       phone: {
         type: Sequelize.STRING
       },
+      // The id of the vendor's shipping address
+      shipping_address_id: {
+        type: Sequelize.INTEGER
+      },
+      // The id of the vendor's billing address
+      billing_address_id: {
+        type: Sequelize.INTEGER
+      },
       // Live Mode
       live_mode: {
         type: Sequelize.BOOLEAN,

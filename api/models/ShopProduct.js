@@ -13,7 +13,10 @@ module.exports = class ShopProduct extends Model {
   static config (app, Sequelize) {
     return {
       options: {
-        underscored: true
+        underscored: true,
+        enums: {
+          INVENTORY_POLICY: INVENTORY_POLICY
+        }
       }
     }
   }

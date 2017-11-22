@@ -19,6 +19,11 @@ module.exports = class Discount extends Model {
     return {
       options: {
         underscored: true,
+        enums: {
+          DISCOUNT_TYPES: DISCOUNT_TYPES,
+          DISCOUNT_STATUS: DISCOUNT_STATUS,
+          DISCOUNT_SCOPE: DISCOUNT_SCOPE
+        },
         // defaultScope: {
         //   where: {
         //     live_mode: app.config.proxyEngine.live_mode
@@ -73,8 +78,6 @@ module.exports = class Discount extends Model {
           }
         },
         classMethods: {
-          DISCOUNT_TYPES: DISCOUNT_TYPES,
-          DISCOUNT_STATUS: DISCOUNT_STATUS,
           /**
            * Associate the Model
            * @param models

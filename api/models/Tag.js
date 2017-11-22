@@ -196,6 +196,8 @@ module.exports = class Tag extends Model {
       // The Tag Name
       name: {
         type: Sequelize.STRING,
+        // primaryKey: true,
+        // allowNull: false,
         unique: true,
         notNull: true,
         set: function(val) {

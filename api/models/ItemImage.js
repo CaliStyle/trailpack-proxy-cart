@@ -13,10 +13,21 @@ module.exports = class ItemImage extends Model {
   static config (app, Sequelize) {
     return {
       options: {
-        underscored: true
-      },
-      classMethods: {
-        IMAGE_MODELS: IMAGE_MODELS
+        underscored: true,
+        enums: {
+          IMAGE_MODELS: IMAGE_MODELS
+        },
+        classMethods: {
+          /**
+           * Associate the Model
+           * @param models
+           */
+          associate: (models) => {
+            models.ItemImage.belongsTo(models.Image, {
+              foreignKey: 'image_id'
+            })
+          }
+        }
       }
     }
   }

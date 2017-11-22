@@ -23,6 +23,13 @@ module.exports = class Transaction extends Model {
     return {
       options: {
         underscored: true,
+        enums: {
+          TRANSACTION_ERRORS: TRANSACTION_ERRORS,
+          TRANSACTION_STATUS: TRANSACTION_STATUS,
+          TRANSACTION_KIND: TRANSACTION_KIND,
+          TRANSACTION_DEFAULTS: TRANSACTION_DEFAULTS
+        },
+        description: 'A Transaction is a representation of a purchasing event.',
         // defaultScope: {
         //   where: {
         //     live_mode: app.config.proxyEngine.live_mode
@@ -79,10 +86,6 @@ module.exports = class Transaction extends Model {
           }
         },
         classMethods: {
-          TRANSACTION_ERRORS: TRANSACTION_ERRORS,
-          TRANSACTION_STATUS: TRANSACTION_STATUS,
-          TRANSACTION_KIND: TRANSACTION_KIND,
-          TRANSACTION_DEFAULTS: TRANSACTION_DEFAULTS,
           /**
            * Associate the Model
            * @param models

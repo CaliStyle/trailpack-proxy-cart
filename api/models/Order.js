@@ -31,6 +31,18 @@ module.exports = class Order extends Model {
       options: {
         autoSave: true,
         underscored: true,
+        enums: {
+          ORDER_STATUS: ORDER_STATUS,
+          ORDER_CANCEL: ORDER_CANCEL,
+          ORDER_FINANCIAL: ORDER_FINANCIAL,
+          ORDER_FULFILLMENT: ORDER_FULFILLMENT,
+          ORDER_FULFILLMENT_KIND: ORDER_FULFILLMENT_KIND,
+          PAYMENT_KIND: PAYMENT_KIND,
+          PAYMENT_PROCESSING_METHOD: PAYMENT_PROCESSING_METHOD,
+          TRANSACTION_STATUS: TRANSACTION_STATUS,
+          TRANSACTION_KIND: TRANSACTION_KIND,
+          FULFILLMENT_STATUS: FULFILLMENT_STATUS,
+        },
         // defaultScope: {
         //   where: {
         //     live_mode: app.config.proxyEngine.live_mode
@@ -112,16 +124,6 @@ module.exports = class Order extends Model {
           }
         },
         classMethods: {
-          ORDER_STATUS: ORDER_STATUS,
-          ORDER_CANCEL: ORDER_CANCEL,
-          ORDER_FINANCIAL: ORDER_FINANCIAL,
-          ORDER_FULFILLMENT: ORDER_FULFILLMENT,
-          ORDER_FULFILLMENT_KIND: ORDER_FULFILLMENT_KIND,
-          PAYMENT_KIND: PAYMENT_KIND,
-          PAYMENT_PROCESSING_METHOD: PAYMENT_PROCESSING_METHOD,
-          TRANSACTION_STATUS: TRANSACTION_STATUS,
-          TRANSACTION_KIND: TRANSACTION_KIND,
-          FULFILLMENT_STATUS: FULFILLMENT_STATUS,
           /**
            * Associate the Model
            * @param models
@@ -195,6 +197,10 @@ module.exports = class Order extends Model {
             models.Order.hasOne(models.Cart, {
               foreignKey: 'order_id'
             })
+            // models.Order.belongsTo(models.Cart, {
+            //   targetKey: 'token',
+            //   foreignKey: 'cart_token'
+            // })
             models.Order.belongsTo(models.Customer, {
               foreignKey: 'customer_id'
             })
@@ -1953,7 +1959,14 @@ module.exports = class Order extends Model {
   }
 
   static schema (app, Sequelize) {
+
     return {
+      // Unique identifier for a particular order.
+      token: {
+        type: Sequelize.STRING,
+        unique: true
+      },
+
       // Unique identifier for a particular cart that is attached to a particular order.
       cart_token: {
         type: Sequelize.STRING,
@@ -1969,11 +1982,7 @@ module.exports = class Order extends Model {
         //   key: 'token'
         // }
       },
-      // Unique identifier for a particular order.
-      token: {
-        type: Sequelize.STRING,
-        unique: true
-      },
+
       customer_id: {
         type: Sequelize.INTEGER,
         allowNull: true

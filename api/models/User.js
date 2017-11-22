@@ -67,14 +67,16 @@ module.exports = class User extends Model {
               as: 'orders',
               foreignKey: 'user_id'
             })
-            // models.User.belongsTo(models.Customer, {
-            //   as: 'current_customer_id',
-            //   foreignKey: 'id'
-            // })
-            // models.User.belongsTo(models.Cart, {
-            //   as: 'current_cart_id',
-            //   foreignKey: 'id'
-            // })
+
+            models.User.belongsTo(models.Customer, {
+              as: 'current_customer',
+              foreignKey: 'current_customer_id'
+            })
+            models.User.belongsTo(models.Cart, {
+              as: 'current_cart',
+              foreignKey: 'current_cart_id',
+              constraints: false
+            })
             // models.User.belongsToMany(models.Cart, {
             //   as: 'carts',
             //   through: {

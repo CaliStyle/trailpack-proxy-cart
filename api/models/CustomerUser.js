@@ -11,7 +11,21 @@ module.exports = class CustomerUser extends Model {
   static config (app, Sequelize) {
     return {
       options: {
-        underscored: true
+        underscored: true,
+        classMethods: {
+          /**
+           * Associate the Model
+           * @param models
+           */
+          associate: (models) => {
+            models.CustomerUser.belongsTo(models.Customer, {
+              foreignKey: 'customer_id'
+            })
+            models.CustomerUser.belongsTo(models.User, {
+              foreignKey: 'user_id'
+            })
+          }
+        }
       }
     }
   }

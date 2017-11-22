@@ -23,6 +23,13 @@ module.exports = class Collection extends Model {
     return {
       options: {
         underscored: true,
+        enums: {
+          COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
+          COLLECTION_PURPOSE: COLLECTION_PURPOSE,
+          COLLECTION_DISCOUNT_SCOPE: COLLECTION_DISCOUNT_SCOPE,
+          COLLECTION_DISCOUNT_TYPE: COLLECTION_DISCOUNT_TYPE,
+          COLLECTION_TAX_TYPE: COLLECTION_TAX_TYPE,
+        },
         scopes: {
           live: {
             where: {
@@ -58,11 +65,6 @@ module.exports = class Collection extends Model {
           }
         },
         classMethods: {
-          COLLECTION_SORT_ORDER: COLLECTION_SORT_ORDER,
-          COLLECTION_PURPOSE: COLLECTION_PURPOSE,
-          COLLECTION_DISCOUNT_SCOPE: COLLECTION_DISCOUNT_SCOPE,
-          COLLECTION_DISCOUNT_TYPE: COLLECTION_DISCOUNT_TYPE,
-          COLLECTION_TAX_TYPE: COLLECTION_TAX_TYPE,
           /**
            *
            * @param models

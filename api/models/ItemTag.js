@@ -13,10 +13,21 @@ module.exports = class ItemTag extends Model {
   static config (app, Sequelize) {
     return {
       options: {
-        underscored: true
-      },
-      classMethods: {
-        TAG_MODELS: TAG_MODELS
+        underscored: true,
+        enums: {
+          TAG_MODELS: TAG_MODELS
+        },
+        classMethods: {
+          /**
+           * Associate the Model
+           * @param models
+           */
+          associate: (models) => {
+            models.ItemTag.belongsTo(models.Tag, {
+              foreignKey: 'tag_id'
+            })
+          }
+        }
       }
     }
   }

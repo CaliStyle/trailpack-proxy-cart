@@ -13,10 +13,27 @@ module.exports = class ItemRefund extends Model {
   static config (app, Sequelize) {
     return {
       options: {
-        underscored: true
-      },
-      classMethods: {
-        REFUND_MODELS: REFUND_MODELS
+        underscored: true,
+        enums: {
+          REFUND_MODELS: REFUND_MODELS
+        },
+        classMethods: {
+          /**
+           * Associate the Model
+           * @param models
+           */
+          associate: (models) => {
+            models.ItemRefund.belongsTo(models.Refund, {
+              foreignKey: 'refund_id'
+            })
+            // models.ItemRefund.belongsTo(models.Transaction, {
+            //   foreignKey: 'transaction_id'
+            // })
+            // models.ItemRefund.belongsTo(models.OrderItem, {
+            //   foreignKey: 'order_item_id'
+            // })
+          }
+        }
       }
     }
   }

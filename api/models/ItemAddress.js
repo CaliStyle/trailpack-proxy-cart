@@ -11,7 +11,18 @@ module.exports = class ItemAddress extends Model {
   static config (app, Sequelize) {
     return {
       options: {
-        underscored: true
+        underscored: true,
+        classMethods: {
+          /**
+           * Associate the Model
+           * @param models
+           */
+          associate: (models) => {
+            models.ItemAddress.belongsTo(models.Address, {
+              foreignKey: 'address_id'
+            })
+          }
+        }
       }
     }
   }

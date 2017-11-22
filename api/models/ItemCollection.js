@@ -12,10 +12,21 @@ module.exports = class ItemCollection extends Model {
   static config (app,Sequelize) {
     return {
       options: {
-        underscored: true
-      },
-      classMethods: {
-        COLLECTION_MODELS: COLLECTION_MODELS
+        underscored: true,
+        enums: {
+          COLLECTION_MODELS: COLLECTION_MODELS
+        },
+        classMethods: {
+          /**
+           * Associate the Model
+           * @param models
+           */
+          associate: (models) => {
+            models.ItemCollection.belongsTo(models.Collection, {
+              foreignKey: 'collection_id'
+            })
+          }
+        }
       }
     }
   }

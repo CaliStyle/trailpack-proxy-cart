@@ -23,6 +23,10 @@ module.exports = class Subscription extends Model {
     return {
       options: {
         underscored: true,
+        enums: {
+          INTERVALS: INTERVALS,
+          SUBSCRIPTION_CANCEL: SUBSCRIPTION_CANCEL
+        },
         // defaultScope: {
         //   where: {
         //     live_mode: app.config.proxyEngine.live_mode
@@ -81,8 +85,7 @@ module.exports = class Subscription extends Model {
           }
         },
         classMethods: {
-          INTERVALS: INTERVALS,
-          SUBSCRIPTION_CANCEL: SUBSCRIPTION_CANCEL,
+
           /**
            * Associate the Model
            * @param models
@@ -1432,6 +1435,12 @@ module.exports = class Subscription extends Model {
 
   static schema (app, Sequelize) {
     return {
+      // Unique identifier for a particular subscription.
+      token: {
+        type: Sequelize.STRING,
+        unique: true
+      },
+      // The id of the Shop that created this subscription
       shop_id: {
         type: Sequelize.INTEGER,
         // references: {
@@ -1469,11 +1478,6 @@ module.exports = class Subscription extends Model {
       },
       email: {
         type: Sequelize.STRING
-      },
-      // Unique identifier for a particular subscription.
-      token: {
-        type: Sequelize.STRING,
-        unique: true
       },
       // The interval of the subscription, defaults to 0 months
       interval: {

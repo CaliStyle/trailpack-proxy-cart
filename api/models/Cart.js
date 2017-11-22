@@ -20,6 +20,9 @@ module.exports = class Cart extends Model {
   static config (app, Sequelize) {
     return {
       options: {
+        enums: {
+          CART_STATUS: CART_STATUS
+        },
         underscored: true,
         // defaultScope: {
         //   where: {
@@ -55,7 +58,6 @@ module.exports = class Cart extends Model {
 
         },
         classMethods: {
-          CART_STATUS: CART_STATUS,
           /**
            * Associate the Model
            * @param models

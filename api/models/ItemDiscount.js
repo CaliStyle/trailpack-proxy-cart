@@ -13,16 +13,22 @@ module.exports = class ItemDiscount extends Model {
   static config (app, Sequelize) {
     return {
       options: {
-        underscored: true
-      },
-      classMethods: {
-        DISCOUNT_MODELS: DISCOUNT_MODELS,
-        // associate: (models) => {
-        //   models.ItemDiscount.belongsTo(models.Discount, {
-        //     // targetKey: 'discount_id'
-        //     unique: 'discount_model',
-        //   })
-        // }
+        underscored: true,
+        enums: {
+          DISCOUNT_MODELS: DISCOUNT_MODELS
+        },
+        classMethods: {
+          /**
+           * Associate the Model
+           * @param models
+           */
+          associate: (models) => {
+            // TODO, fix the foreign constraint so that this works again
+            // models.ItemDiscount.belongsTo(models.Discount, {
+            //   foreignKey: 'discount_id'
+            // })
+          }
+        }
       }
     }
   }

@@ -40,15 +40,20 @@ module.exports = class FulfillmentEvent extends Model {
               })
           }
         },
+        enums: {
+          FULFILLMENT_EVENT_STATUS: FULFILLMENT_EVENT_STATUS
+        },
         classMethods: {
-          FULFILLMENT_EVENT_STATUS: FULFILLMENT_EVENT_STATUS,
+
           /**
            * Associate the Model
            * @param models
            */
-          // associate: (models) => {
-          //
-          // }
+          associate: (models) => {
+            models.FulfillmentEvent.belongsTo(models.Fulfillment, {
+              foreignKey: 'fulfillment_id'
+            })
+          },
           resolve: function(fulfillmentEvent, options){
             const FulfillmentEvent =  this
             if (fulfillmentEvent instanceof FulfillmentEvent){
@@ -84,6 +89,10 @@ module.exports = class FulfillmentEvent extends Model {
 
   static schema (app, Sequelize) {
     return {
+      fulfillment_id: {
+        type: Sequelize.INTEGER,
+        notNull: true
+      },
       status: {
         type: Sequelize.ENUM,
         values: _.values(FULFILLMENT_EVENT_STATUS)

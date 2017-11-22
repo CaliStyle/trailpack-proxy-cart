@@ -34,7 +34,7 @@ module.exports = class VendorProduct extends Model {
         type: Sequelize.INTEGER,
         unique: 'vendor_product'
       },
-      product_variant_id: {
+      variant_id: {
         type: Sequelize.INTEGER,
         unique: 'vendor_product'
       },

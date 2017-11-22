@@ -20,6 +20,9 @@ module.exports = class Customer extends Model {
     return {
       options: {
         underscored: true,
+        enums: {
+          CUSTOMER_STATE: CUSTOMER_STATE
+        },
         // defaultScope: {
         //   where: {
         //     live_mode: app.config.proxyEngine.live_mode
@@ -74,7 +77,7 @@ module.exports = class Customer extends Model {
           }
         },
         classMethods: {
-          CUSTOMER_STATE: CUSTOMER_STATE,
+
           /**
            * Associate the Model
            * @param models

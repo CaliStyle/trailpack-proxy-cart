@@ -58,9 +58,11 @@ module.exports = class ProxyCartTrailpack extends Trailpack {
     if (!this.app.config.proxyGenerics) {
       return Promise.reject(new Error('No configuration found at config.proxyGenerics!'))
     }
+
     if (!this.app.config.proxyPermissions) {
       return Promise.reject(new Error('No configuration found at config.proxyPermissions!'))
     }
+
     if (!this.app.config.proxyPassport) {
       return Promise.reject(new Error('No configuration found at config.proxyPassport!'))
     }
