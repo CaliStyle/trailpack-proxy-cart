@@ -528,7 +528,7 @@ describe('Admin User ProductController', () => {
       })
   })
   // TODO complete test
-  it('should show associations of product', (done) => {
+  it('should show associations of a product', (done) => {
     adminUser
       .get(`/product/${createdProductID}/associations`)
       .expect(200)
@@ -549,6 +549,7 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
+
   // TODO complete test
   it('should show relations of product', (done) => {
     adminUser
@@ -822,6 +823,54 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
+
+
+  // TODO complete test
+  it('should add association to product variant', (done) => {
+    adminUser
+      .post(`/product/variant/${createdVariantID}/addAssociation/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        console.log(err, res.body)
+        assert.equal(res.body.id, createdVariantID)
+        done(err)
+      })
+  })
+  // TODO complete test
+  it('should show associations of a product variant', (done) => {
+    adminUser
+      .get(`/product/variant/${createdVariantID}/associations`)
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.headers['x-pagination-total'])
+        assert.ok(res.headers['x-pagination-pages'])
+        assert.ok(res.headers['x-pagination-page'])
+        assert.ok(res.headers['x-pagination-limit'])
+        assert.ok(res.headers['x-pagination-offset'])
+        assert.ok(res.headers['x-pagination-sort'])
+        assert.equal(res.headers['x-pagination-total'], '1')
+        assert.equal(res.headers['x-pagination-offset'], '0')
+        assert.equal(res.headers['x-pagination-limit'], '10')
+        assert.equal(res.headers['x-pagination-page'], '1')
+        assert.equal(res.headers['x-pagination-pages'], '1')
+        console.log('Show Associations', createdVariantID, res.body)
+        assert.equal(res.body.length, 1)
+        done(err)
+      })
+  })
+
+  it('should remove association to product variant', (done) => {
+    adminUser
+      .post(`/product/variant/${createdVariantID}/removeAssociation/1`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, createdVariantID)
+        done(err)
+      })
+  })
+
   // TODO complete test
   it('should make removeVariant post adminUser', (done) => {
     adminUser

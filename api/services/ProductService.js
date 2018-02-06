@@ -172,6 +172,7 @@ module.exports = class ProductService extends Service {
       calculated_price: product.calculated_price,
       tax_code: product.tax_code,
       published: product.published,
+      available: product.available,
       published_scope: product.published_scope,
       weight: product.weight,
       weight_unit: product.weight_unit,
@@ -442,6 +443,7 @@ module.exports = class ProductService extends Service {
           body: product.body || resProduct.body,
           type: product.type || resProduct.type,
           published_scope: product.published_scope || resProduct.published_scope,
+          available: product.available,
           average_shipping: product.average_shipping,
           property_pricing: product.property_pricing,
           exclude_payment_types: product.exclude_payment_types,
@@ -1275,6 +1277,81 @@ module.exports = class ProductService extends Service {
       })
   }
 
+
+  /**
+   *
+   * @param productVariant
+   * @param association
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  addVariantAssociation(productVariant, association, options){
+    options = options || {}
+    const ProductVariant = this.app.orm['ProductVariant']
+    let resProductVariant, resAssociation
+    return ProductVariant.resolve(productVariant, {transaction: options.transaction || null})
+      .then(_productVariant => {
+        if (!_productVariant) {
+          throw new Errors.FoundError(Error('ProductVariant not found'))
+        }
+        resProductVariant = _productVariant
+        return ProductVariant.resolve(association, {transaction: options.transaction || null})
+      })
+      .then(_association => {
+        if (!_association) {
+          throw new Errors.FoundError(Error('ProductVariant not found'))
+        }
+        resAssociation = _association
+        return resProductVariant.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
+      })
+      .then(hasAssociation => {
+        if (!hasAssociation) {
+          return resProductVariant.addAssociation(resAssociation.id, {transaction: options.transaction || null})
+        }
+        return false
+      })
+      .then(newAssociation => {
+        return ProductVariant.findByIdDefault(resProductVariant.id, {transaction: options.transaction || null})
+      })
+  }
+
+  /**
+   *
+   * @param productVariant
+   * @param association
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  removeVariantAssociation(productVariant, association, options){
+    options = options || {}
+    const ProductVariant = this.app.orm['ProductVariant']
+    let resProductVariant, resAssociation
+    return ProductVariant.resolve(productVariant, {transaction: options.transaction || null})
+      .then(_productVariant => {
+        if (!_productVariant) {
+          throw new Errors.FoundError(Error('ProductVariant not found'))
+        }
+        resProductVariant = _productVariant
+        return ProductVariant.resolve(association, {transaction: options.transaction || null})
+      })
+      .then(_association => {
+        if (!_association) {
+          throw new Errors.FoundError(Error('ProductVariant not found'))
+        }
+        resAssociation = _association
+        return resProductVariant.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
+      })
+      .then(hasAssociation => {
+        if (hasAssociation) {
+          return resProductVariant.removeAssociation(resAssociation.id, {transaction: options.transaction || null})
+        }
+        return false
+      })
+      .then(removedAssociation => {
+        return ProductVariant.findByIdDefault(resProductVariant.id, {transaction: options.transaction || null})
+      })
+  }
+
   /**
    *
    * @param product
@@ -1542,6 +1619,10 @@ module.exports = class ProductService extends Service {
     if (_.isNil(product.published)) {
       product.published = PRODUCT_DEFAULTS.PUBLISHED
     }
+    // If not established availability status, default status
+    if (_.isNil(product.available)) {
+      product.available = PRODUCT_DEFAULTS.AVAILABLE
+    }
     // If not a weight, default weight
     if (_.isNil(product.weight)) {
       product.weight = PRODUCT_DEFAULTS.WEIGHT
@@ -1605,7 +1686,7 @@ module.exports = class ProductService extends Service {
       variant.title = product.title
     }
     // If the price is set on parent
-    if (product.price  && !variant.price) {
+    if (product.price && !variant.price) {
       variant.price = product.price
     }
     // If the option is set on parent

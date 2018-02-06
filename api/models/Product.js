@@ -1395,6 +1395,11 @@ module.exports = class Product extends Model {
       unpublished_at: {
         type: Sequelize.DATE
       },
+      // If product is available and has not been discontinued
+      available: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: PRODUCT_DEFAULTS.AVAILABLE
+      },
       // Options for the product (size, color, etc.)
       options: helpers.JSONB('Product', app, Sequelize, 'options', {
         defaultValue: PRODUCT_DEFAULTS.OPTIONS

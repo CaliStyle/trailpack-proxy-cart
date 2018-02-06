@@ -440,6 +440,11 @@ module.exports = class ProductVariant extends Model {
       unpublished_at: {
         type: Sequelize.DATE
       },
+      // If product is available and has not been discontinued
+      available: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: VARIANT_DEFAULTS.AVAILABLE
+      },
       // If Variant needs to be shipped
       requires_shipping: {
         type: Sequelize.BOOLEAN,

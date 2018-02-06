@@ -933,6 +933,123 @@ module.exports = class ProductController extends Controller {
   }
 
   /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO, do this the actual way.
+  associations(req, res) {
+    const Product = this.app.orm['Product']
+    const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at','DESC']]
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+    Product.findById(productId, {
+      attributes: ['id']
+    })
+      .then(product => {
+        return product.getAssociations({
+          limit: limit,
+          offset: offset,
+          order: sort
+        })
+      })
+      .then(associations => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, associations.length, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, associations)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+
+  /**
+   * Add an association to a product
+   * @param req
+   * @param res
+   */
+  addVariantAssociation(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.addVariantAssociation(req.params.id, req.params.association)
+      .then(product => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   * Remove an association from a product
+   * @param req
+   * @param res
+   */
+  removeVariantAssociation(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.removeVariantAssociation(req.params.id, req.params.association)
+      .then(product => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  // TODO, do this the actual way.
+  variantAssociations(req, res) {
+    const ProductVariant = this.app.orm['ProductVariant']
+    const variantId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at','DESC']]
+
+    if (!variantId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+    ProductVariant.findById(variantId, {
+      attributes: ['id']
+    })
+      .then(product => {
+        return product.getAssociations({
+          limit: limit,
+          offset: offset,
+          order: sort
+        })
+      })
+      .then(associations => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, associations.length, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, associations)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
    * Add an shop to a product
    * @param req
    * @param res
@@ -1006,45 +1123,6 @@ module.exports = class ProductController extends Controller {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, shops.count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, shops.rows)
-      })
-      .then(result => {
-        return res.json(result)
-      })
-      .catch(err => {
-        return res.serverError(err)
-      })
-  }
-  /**
-   *
-   * @param req
-   * @param res
-   */
-  // TODO, do this the actual way.
-  associations(req, res) {
-    const Product = this.app.orm['Product']
-    const productId = req.params.id
-    const limit = Math.max(0,req.query.limit || 10)
-    const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || [['created_at','DESC']]
-
-    if (!productId) {
-      const err = new Error('A product id is required')
-      return res.send(401, err)
-    }
-    Product.findById(productId, {
-      attributes: ['id']
-    })
-      .then(product => {
-        return product.getAssociations({
-          limit: limit,
-          offset: offset,
-          order: sort
-        })
-      })
-      .then(associations => {
-        // Paginate
-        this.app.services.ProxyEngineService.paginate(res, associations.length, limit, offset, sort)
-        return this.app.services.ProxyPermissionsService.sanitizeResult(req, associations)
       })
       .then(result => {
         return res.json(result)
