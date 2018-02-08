@@ -1196,7 +1196,6 @@ module.exports = class Subscription extends Model {
                 }
               })
               .then(discounts => {
-                // console.log('BROKE DISCOUNTS', discounts)
                 discounts.forEach(discount => {
                   const i = discountCriteria.findIndex(d => d.discount === discount.discount_id)
                   if (i > -1) {

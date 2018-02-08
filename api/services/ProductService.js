@@ -1213,29 +1213,68 @@ module.exports = class ProductService extends Service {
   addAssociation(product, association, options){
     options = options || {}
     const Product = this.app.orm['Product']
-    let resProduct, resAssociation
+    const ProductVariant = this.app.orm['ProductVariant']
+    let resProduct, resVariant, resAssociationProduct, resAssociationVariant, through
+
+    if (!product || !association) {
+      throw new Errors.FoundError(Error('Product or Association was not provided'))
+    }
+
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = _product
+        // If this product object also provided a sku
+        if (product.sku) {
+          return ProductVariant.resolve(product)
+        }
+        return
+      })
+      .then(_variant => {
+        if (_variant) {
+          resVariant = _variant
+        }
         return Product.resolve(association, {transaction: options.transaction || null})
       })
       .then(_association => {
         if (!_association) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resAssociation = _association
-        return resProduct.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
+        resAssociationProduct = _association
+        // If this product object also provided a sku
+        if (association.sku) {
+          return ProductVariant.resolve(association)
+        }
+        return
+      })
+      .then(_variantAssociation => {
+        if (_variantAssociation) {
+          resAssociationVariant = _variantAssociation
+        }
+
+        through = resVariant && resAssociationVariant ? {
+          variant_id: resVariant.id,
+          associated_variant_id: resAssociationVariant.id,
+        } : { }
+
+        // Check if the association exists
+        return resProduct.hasAssociation(resAssociationProduct.id, {
+          transaction: options.transaction || null,
+          through: through
+        })
       })
       .then(hasAssociation => {
         if (!hasAssociation) {
-          return resProduct.addAssociation(resAssociation.id, {transaction: options.transaction || null})
+          return resProduct.addAssociation(resAssociationProduct.id, {
+            transaction: options.transaction || null,
+            through: through
+          })
         }
         return false
       })
-      .then(newAssociation => {
+      .then(_newAssociation => {
         return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
@@ -1250,29 +1289,69 @@ module.exports = class ProductService extends Service {
   removeAssociation(product, association, options){
     options = options || {}
     const Product = this.app.orm['Product']
-    let resProduct, resAssociation
+    const ProductVariant = this.app.orm['ProductVariant']
+    let resProduct, resVariant, resAssociationProduct, resAssociationVariant, through
+
+    if (!product || !association) {
+      throw new Errors.FoundError(Error('Product or Association was not provided'))
+    }
+
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
           throw new Errors.FoundError(Error('Product not found'))
         }
         resProduct = _product
+        // If this product object also provided a sku
+        if (product.sku) {
+          return ProductVariant.resolve(product)
+        }
+        return
+      })
+      .then(_variant => {
+        if (_variant) {
+          resVariant = _variant
+        }
         return Product.resolve(association, {transaction: options.transaction || null})
       })
       .then(_association => {
         if (!_association) {
           throw new Errors.FoundError(Error('Product not found'))
         }
-        resAssociation = _association
-        return resProduct.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
+        resAssociationProduct = _association
+        // If this association is an object and also provided a sku
+        if (association.sku) {
+          return ProductVariant.resolve(association)
+        }
+        return
+      })
+      .then(_variantAssociation => {
+        if (_variantAssociation) {
+          resAssociationVariant = _variantAssociation
+        }
+
+        // If this request was for variants
+        through = resVariant && resAssociationVariant ? {
+          variant_id: resVariant.id,
+          associated_variant_id: resAssociationVariant.id,
+        } : { }
+
+        // Check if the association exists
+        return resProduct.hasAssociation(resAssociationProduct.id, {
+          transaction: options.transaction || null,
+          through: through
+        })
       })
       .then(hasAssociation => {
         if (hasAssociation) {
-          return resProduct.removeAssociation(resAssociation.id, {transaction: options.transaction || null})
+          return resProduct.removeAssociation(resAssociationProduct.id, {
+            transaction: options.transaction || null,
+            through: through
+          })
         }
         return false
       })
-      .then(removedAssociation => {
+      .then(_newAssociation => {
         return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
@@ -1289,6 +1368,11 @@ module.exports = class ProductService extends Service {
     options = options || {}
     const ProductVariant = this.app.orm['ProductVariant']
     let resProductVariant, resAssociation
+
+    if (!productVariant || !association) {
+      throw new Errors.FoundError(Error('Variant or Association was not provided'))
+    }
+
     return ProductVariant.resolve(productVariant, {transaction: options.transaction || null})
       .then(_productVariant => {
         if (!_productVariant) {
@@ -1326,6 +1410,11 @@ module.exports = class ProductService extends Service {
     options = options || {}
     const ProductVariant = this.app.orm['ProductVariant']
     let resProductVariant, resAssociation
+
+    if (!productVariant || !association) {
+      throw new Errors.FoundError(Error('Variant or Association was not provided'))
+    }
+
     return ProductVariant.resolve(productVariant, {transaction: options.transaction || null})
       .then(_productVariant => {
         if (!_productVariant) {

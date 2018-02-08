@@ -103,18 +103,22 @@ module.exports = class ProductCsvService extends Service {
           tags: []
         }
 
+        // clear the row key if it's data is undefined
         _.each(row, (data, key) => {
           if (typeof(data) === 'undefined' || data === '') {
             row[key] = null
           }
         })
 
+        // Omit parts of the row that are completely nil
         row = _.omitBy(row, _.isNil)
 
+        // If the resulting row is empty, then skip
         if (_.isEmpty(row)) {
           return Promise.resolve({})
         }
 
+        // For each row key normalize the data
         _.each(row, (data, key) => {
           if (typeof(data) !== 'undefined' && data !== null && data !== '') {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
@@ -160,8 +164,8 @@ module.exports = class ProductCsvService extends Service {
                 }))
               }
               else if (k === 'associations') {
-                upload[k] = data.toString().split(',').map(collection => {
-                  return collection.trim()
+                upload[k] = data.toString().split(',').map(association => {
+                  return association.trim()
                 })
               }
               else if (k === 'exclude_payment_types') {
@@ -404,7 +408,7 @@ module.exports = class ProductCsvService extends Service {
             }
           }
         })
-        // Filter out undefined
+        // Filter out undefined tags
         upload.tags = upload.tags.filter(tag => tag)
         // Get only Unique names
         upload.tags = _.uniqBy(upload.tags, 'name')
@@ -412,6 +416,9 @@ module.exports = class ProductCsvService extends Service {
         // Map associations
         upload.associations = upload.associations.map(association => {
           const product = association.split(/:(.+)/)
+
+          // console.log('BROKE ASSOCIATION', product)
+
           const handle = this.app.services.ProxyCartService.handle(product[0])
           const sku = this.app.services.ProxyCartService.title(product[1])
           const res = {}
@@ -420,6 +427,8 @@ module.exports = class ProductCsvService extends Service {
             if (sku && sku !== '') {
               res.sku = sku
             }
+
+            // console.log('BROKE ASSOCIATION', res)
             return res
           }
           return
@@ -546,6 +555,7 @@ module.exports = class ProductCsvService extends Service {
           })
           // Handle associations
           products = products.map(product => {
+            console.log('BROKE ASSOCIATIONS', product.associations)
             if (product.associations) {
               product.associations.forEach(a => {
                 const association = {

@@ -217,8 +217,8 @@ describe('Subscription Model', () => {
       status: 'enabled'
     })
     subscription = subscription.setItemsDiscountedLines([discount1, discount2])
-    console.log('BUILT',subscription.toJSON().discounted_lines)
-    console.log('BUILT',subscription.toJSON().line_items)
+    // console.log('BUILT',subscription.toJSON().discounted_lines)
+    // console.log('BUILT',subscription.toJSON().line_items)
     assert.equal(subscription.total_discounts, 1000)
     assert.equal(subscription.discounted_lines.length, 2)
     assert.equal(subscription.line_items.length, 1)

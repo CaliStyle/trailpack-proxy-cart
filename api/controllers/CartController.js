@@ -49,7 +49,7 @@ module.exports = class CartController extends Controller {
           return res.json(result)
         })
         .catch(err => {
-          console.log('CartController.init', err)
+          this.app.log.error('CartController.init', err)
           return res.serverError(err)
         })
     }
