@@ -345,7 +345,7 @@ module.exports = class ProductCsvService extends Service {
             upload.property_pricing[property.name]['image'] = null
           }
 
-          if (property.multi_select) {
+          if (property.multi_select !== 'undefined') {
             upload.property_pricing[property.name]['multi_select'] = property.multi_select
           }
           else {
