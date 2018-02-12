@@ -1228,9 +1228,12 @@ module.exports = class ProductService extends Service {
         resProduct = _product
         // If this product object also provided a sku
         if (product.sku) {
-          return ProductVariant.resolve(product)
+          return ProductVariant.resolve(product, {transaction: options.transaction || null})
         }
-        return
+        // Return the default Variant
+        else {
+          return resProduct.getDefaultVariant({transaction: options.transaction || null})
+        }
       })
       .then(_variant => {
         if (_variant) {
@@ -1247,7 +1250,10 @@ module.exports = class ProductService extends Service {
         if (association.sku) {
           return ProductVariant.resolve(association)
         }
-        return
+        // Return the default Variant
+        else {
+          return resAssociationProduct.getDefaultVariant({transaction: options.transaction || null})
+        }
       })
       .then(_variantAssociation => {
         if (_variantAssociation) {
@@ -1386,11 +1392,23 @@ module.exports = class ProductService extends Service {
           throw new Errors.FoundError(Error('ProductVariant not found'))
         }
         resAssociation = _association
-        return resProductVariant.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
+        return resProductVariant.hasAssociation(resAssociation.id, {
+          transaction: options.transaction || null,
+          through: {
+            product_id: resProductVariant.product_id,
+            associated_product_id: resAssociation.product_id
+          }
+        })
       })
       .then(hasAssociation => {
         if (!hasAssociation) {
-          return resProductVariant.addAssociation(resAssociation.id, {transaction: options.transaction || null})
+          return resProductVariant.addAssociation(resAssociation.id, {
+            transaction: options.transaction || null,
+            through: {
+              product_id: resProductVariant.product_id,
+              associated_product_id: resAssociation.product_id
+            }
+          })
         }
         return false
       })
@@ -1428,11 +1446,23 @@ module.exports = class ProductService extends Service {
           throw new Errors.FoundError(Error('ProductVariant not found'))
         }
         resAssociation = _association
-        return resProductVariant.hasAssociation(resAssociation.id, {transaction: options.transaction || null})
+        return resProductVariant.hasAssociation(resAssociation.id, {
+          transaction: options.transaction || null,
+          through: {
+            product_id: resProductVariant.product_id,
+            associated_product_id: resAssociation.product_id
+          }
+        })
       })
       .then(hasAssociation => {
         if (hasAssociation) {
-          return resProductVariant.removeAssociation(resAssociation.id, {transaction: options.transaction || null})
+          return resProductVariant.removeAssociation(resAssociation.id, {
+            transaction: options.transaction || null,
+            through: {
+              product_id: resProductVariant.product_id,
+              associated_product_id: resAssociation.product_id
+            }
+          })
         }
         return false
       })

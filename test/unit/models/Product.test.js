@@ -50,8 +50,8 @@ describe('Product Model', () => {
       status: 'enabled'
     })
     product = product.setItemDiscountedLines([discount1, discount2])
-    console.log('BUILT',product.toJSON().discounted_lines)
-    console.log('BUILT',product.toJSON().line_items)
+    // console.log('BUILT',product.toJSON().discounted_lines)
+    // console.log('BUILT',product.toJSON().line_items)
     assert.equal(product.total_discounts, 200)
     assert.equal(product.discounted_lines.length, 2)
     assert.equal(product.discounted_lines[0].price, 100)
@@ -80,8 +80,8 @@ describe('Product Model', () => {
       status: 'enabled'
     })
     product = product.setItemDiscountedLines([discount1])
-    console.log('BUILT',product.toJSON().discounted_lines)
-    console.log('BUILT',product.toJSON().line_items)
+    // console.log('BUILT',product.toJSON().discounted_lines)
+    // console.log('BUILT',product.toJSON().line_items)
     assert.equal(product.total_discounts, 100)
     assert.equal(product.discounted_lines.length, 1)
     assert.equal(product.price, 1000)

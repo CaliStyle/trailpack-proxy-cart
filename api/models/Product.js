@@ -1035,6 +1035,35 @@ module.exports = class Product extends Model {
            * @param options
            * @returns {*}
            */
+          getDefaultVariant: function(options) {
+            options = options || {}
+            if (
+              this.variants
+              && this.variants.every(v => v instanceof app.orm['ProductVariant'])
+              && this.variants.some(v => v.position === 1)
+              && options.reload !== true
+            ) {
+              return Promise.resolve(this.variants.find(v => v.position === 1))
+            }
+            else {
+              return this.getVariants({
+                where: {
+                  position: 1
+                },
+                limit: 1,
+                transaction: options.transaction || null
+              })
+                .then(variants => {
+                  const variant = variants[0] || null
+                  return variant
+                })
+            }
+          },
+          /**
+           *
+           * @param options
+           * @returns {*}
+           */
           resolveAssociations: function(options) {
             options = options || {}
             if (

@@ -940,6 +940,8 @@ module.exports = class ProductController extends Controller {
   // TODO, do this the actual way.
   associations(req, res) {
     const Product = this.app.orm['Product']
+    const ProductAssociation = this.app.orm['ProductAssociation']
+    const ProductVariant = this.app.orm['ProductVariant']
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
@@ -949,19 +951,29 @@ module.exports = class ProductController extends Controller {
       const err = new Error('A product id is required')
       return res.send(401, err)
     }
-    Product.findById(productId, {
-      attributes: ['id']
-    })
+    let resAssociations
+    Product.resolve(productId, { attributes: ['id'] })
       .then(product => {
-        return product.getAssociations({
+        return ProductAssociation.findAndCount({
+          where: {
+            product_id: product.id,
+          },
           limit: limit,
           offset: offset,
           order: sort
         })
       })
       .then(associations => {
+        resAssociations = associations
+        return ProductVariant.findAll({
+          where: {
+            id: resAssociations.rows.map(a => a.associated_variant_id).filter(v => v)
+          }
+        })
+      })
+      .then(associations => {
         // Paginate
-        this.app.services.ProxyEngineService.paginate(res, associations.length, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, resAssociations.count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, associations)
       })
       .then(result => {
@@ -979,8 +991,13 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   addVariantAssociation(req, res){
+    const variant = req.params.variant ? {
+      product_id: req.params.id,
+      id: req.params.variant
+    } : req.params.id
+
     const ProductService = this.app.services.ProductService
-    ProductService.addVariantAssociation(req.params.id, req.params.association)
+    ProductService.addVariantAssociation(variant, req.params.association)
       .then(product => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
       })
@@ -997,8 +1014,13 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   removeVariantAssociation(req, res){
+    const variant = req.params.variant ? {
+      product_id: req.params.id,
+      id: req.params.variant
+    } : req.params.id
+
     const ProductService = this.app.services.ProductService
-    ProductService.removeVariantAssociation(req.params.id, req.params.association)
+    ProductService.removeVariantAssociation(variant, req.params.association)
       .then(product => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
       })
@@ -1017,28 +1039,41 @@ module.exports = class ProductController extends Controller {
   // TODO, do this the actual way.
   variantAssociations(req, res) {
     const ProductVariant = this.app.orm['ProductVariant']
+    const ProductAssociation = this.app.orm['ProductAssociation']
     const variantId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
     const sort = req.query.sort || [['created_at','DESC']]
 
     if (!variantId) {
-      const err = new Error('A product id is required')
+      const err = new Error('A product variant id is required')
       return res.send(401, err)
     }
-    ProductVariant.findById(variantId, {
+    let resAssociations
+    ProductVariant.resolve(variantId, {
       attributes: ['id']
     })
-      .then(product => {
-        return product.getAssociations({
+      .then(productVariant => {
+        return ProductAssociation.findAndCount({
+          where: {
+            variant_id: productVariant.id,
+          },
           limit: limit,
           offset: offset,
           order: sort
         })
       })
       .then(associations => {
+        resAssociations = associations
+        return ProductVariant.findAll({
+          where: {
+            id: resAssociations.rows.map(a => a.associated_variant_id).filter(v => v)
+          }
+        })
+      })
+      .then(associations => {
         // Paginate
-        this.app.services.ProxyEngineService.paginate(res, associations.length, limit, offset, sort)
+        this.app.services.ProxyEngineService.paginate(res, resAssociations.count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, associations)
       })
       .then(result => {
@@ -1054,7 +1089,7 @@ module.exports = class ProductController extends Controller {
    * @param req
    * @param res
    */
-  addShop(req, res){
+  addShop(req, res) {
     const ProductService = this.app.services.ProductService
     ProductService.addShop(req.params.id, req.params.shop)
       .then(product => {

@@ -209,6 +209,13 @@ module.exports = class ProductVariant extends Model {
             options = _.defaultsDeep(options, queryDefaults.ProductVariant.default(app))
             return this.findById(id, options)
           },
+          findAllDefault: function(options) {
+            options = app.services.ProxyEngineService.mergeOptionDefaults(
+              queryDefaults.ProductVariant.default(app),
+              options || {}
+            )
+            return this.findAll(options)
+          },
           resolve: function(variant, options){
             options = options || {}
             const Variant = this

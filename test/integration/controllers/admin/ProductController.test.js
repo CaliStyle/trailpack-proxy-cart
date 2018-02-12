@@ -544,7 +544,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-limit'], '10')
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
-        // console.log('Show Associations', createdProductID, res.body)
+        console.log('Show Associations', createdProductID, res.body)
         assert.equal(res.body.length, 1)
         done(err)
       })

@@ -555,7 +555,6 @@ module.exports = class ProductCsvService extends Service {
           })
           // Handle associations
           products = products.map(product => {
-            console.log('BROKE ASSOCIATIONS', product.associations)
             if (product.associations) {
               product.associations.forEach(a => {
                 const association = {
