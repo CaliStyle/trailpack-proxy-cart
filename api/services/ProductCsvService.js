@@ -295,7 +295,7 @@ module.exports = class ProductCsvService extends Service {
                 && typeof matchProperties[4] !== 'undefined'
               ) {
 
-                const part = matchProperties[4].toLowerCase()
+                const part = matchProperties[4].toLowerCase().replace(' ','_')
                 const index = Number(matchProperties[3]) - 1
                 // console.log(index, part)
                 if (typeof upload.properties[index] === 'undefined') {
@@ -330,18 +330,21 @@ module.exports = class ProductCsvService extends Service {
         _.map(upload.properties, property => {
           upload.property_pricing[property.name] = {}
           upload.property_pricing[property.name]['price'] = property.value
+
           if (property.group) {
             upload.property_pricing[property.name]['group'] = property.group
           }
           else {
             upload.property_pricing[property.name]['group'] = null
           }
+
           if (property.image) {
             upload.property_pricing[property.name]['image'] = property.image
           }
           else {
             upload.property_pricing[property.name]['image'] = null
           }
+
           if (property.multi_select) {
             upload.property_pricing[property.name]['multi_select'] = property.multi_select
           }
