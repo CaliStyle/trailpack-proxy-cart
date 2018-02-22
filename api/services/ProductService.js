@@ -1220,6 +1220,8 @@ module.exports = class ProductService extends Service {
       throw new Errors.FoundError(Error('Product or Association was not provided'))
     }
 
+    // console.log('BROKE ASSOCIATION', product, association)
+
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
@@ -1263,7 +1265,12 @@ module.exports = class ProductService extends Service {
         through = resVariant && resAssociationVariant ? {
           variant_id: resVariant.id,
           associated_variant_id: resAssociationVariant.id,
+          // position:
         } : { }
+
+        if (association.position !== 'undefined') {
+          through.position = association.position
+        }
 
         // Check if the association exists
         return resProduct.hasAssociation(resAssociationProduct.id, {
@@ -1805,9 +1812,13 @@ module.exports = class ProductService extends Service {
       variant.title = product.title
     }
     // If the price is set on parent
+    // if (_.isNumber(product.price) && _.isNil(variant.price)) {
+    //   variant.price = product.price
+    // }
     if (product.price && !variant.price) {
       variant.price = product.price
     }
+
     // If the option is set on parent
     if (_.isObject(product.option)  && _.isNil(variant.option)) {
       variant.option = product.option

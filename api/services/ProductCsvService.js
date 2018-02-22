@@ -30,6 +30,7 @@ module.exports = class ProductCsvService extends Service {
       const options = {
         header: true,
         dynamicTyping: true,
+        encoding: 'utf-8',
         step: (results, parser) => {
           parser.pause()
           lineNumber++
@@ -132,6 +133,12 @@ module.exports = class ProductCsvService extends Service {
               }
               else if (k === 'seo_description') {
                 upload[k] = this.app.services.ProxyCartService.description(data)
+              }
+              else if (k === 'price') {
+                upload[k] = parseInt(data)
+              }
+              else if (k === 'compare_at_price') {
+                upload[k] = parseInt(data)
               }
               else if (k === 'tags') {
                 upload[k] = _.uniq(data.toString().split(',').map(tag => {
@@ -559,13 +566,14 @@ module.exports = class ProductCsvService extends Service {
           // Handle associations
           products = products.map(product => {
             if (product.associations) {
-              product.associations.forEach(a => {
+              product.associations.forEach((a, index) => {
                 const association = {
                   upload_id: uploadId,
                   product_handle: product.handle || null,
                   product_sku: product.sku || null,
                   associated_product_handle: a.handle || null,
                   associated_product_sku: a.sku || null,
+                  position: index + 1
                 }
                 associations.push(association)
               })
@@ -692,6 +700,7 @@ module.exports = class ProductCsvService extends Service {
       const options = {
         header: true,
         dynamicTyping: true,
+        encoding: 'utf-8',
         step: (results, parser) => {
           parser.pause()
           lineNumber++
@@ -771,7 +780,7 @@ module.exports = class ProductCsvService extends Service {
             const i = values.indexOf(key.replace(/^\s+|\s+$/g, ''))
             const k = keys[i]
             if (i > -1 && k) {
-              if (k == 'handle') {
+              if (k === 'handle') {
                 // Can be a Product handle or a Product Handle with SKU
                 upload[k] = this.app.services.ProxyCartService.splitHandle(data)
               }
@@ -945,7 +954,8 @@ module.exports = class ProductCsvService extends Service {
           sku: association.product_sku
         }, {
           handle: association.associated_product_handle,
-          sku: association.associated_product_sku
+          sku: association.associated_product_sku,
+          position: association.position
         }, {
           transaction: options.transaction || null
         })

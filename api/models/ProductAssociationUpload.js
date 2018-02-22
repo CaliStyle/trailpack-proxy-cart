@@ -98,6 +98,10 @@ module.exports = class ProductAssociationUpload extends Model {
           this.setDataValue('associated_product_sku', app.services.ProxyCartService.sku(val))
         }
       },
+      position: {
+        type: Sequelize.INTEGER,
+        defaultValue: 1
+      },
       live_mode: {
         type: Sequelize.BOOLEAN,
         defaultValue: app.config.proxyEngine.live_mode

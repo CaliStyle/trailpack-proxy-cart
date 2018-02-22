@@ -41,7 +41,11 @@ module.exports = class ProductAssociation extends Model {
         type: Sequelize.STRING,
         unique: 'productassociation_association',
         references: null
-      }
+      },
+      position: {
+        type: Sequelize.INTEGER,
+        defaultValue: 1
+      },
     }
   }
 }

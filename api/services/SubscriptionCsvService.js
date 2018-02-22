@@ -28,6 +28,7 @@ module.exports = class SubscriptionCsvService extends Service {
       const options = {
         header: true,
         dynamicTyping: true,
+        encoding: 'utf-8',
         step: (results, parser) => {
           parser.pause()
           lineNumber++

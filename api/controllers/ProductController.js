@@ -945,7 +945,7 @@ module.exports = class ProductController extends Controller {
     const productId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || [['created_at','DESC']]
+    const sort = req.query.sort || [['position','ASC']]
 
     if (!productId) {
       const err = new Error('A product id is required')
@@ -1043,7 +1043,7 @@ module.exports = class ProductController extends Controller {
     const variantId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || [['created_at','DESC']]
+    const sort = req.query.sort || [['position','ASC']]
 
     if (!variantId) {
       const err = new Error('A product variant id is required')
@@ -1072,6 +1072,7 @@ module.exports = class ProductController extends Controller {
         })
       })
       .then(associations => {
+        // console.log('BROKE ASSOCIATIONS', associations)
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, resAssociations.count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, associations)
