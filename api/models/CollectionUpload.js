@@ -21,8 +21,8 @@ module.exports = class CollectionUpload extends Model {
 
   static config (app, Sequelize) {
     return {
-      migrate: 'drop', //override default models configurations if needed
-      store: 'uploads',
+      // migrate: 'drop', //override default models configurations if needed
+      // store: 'uploads',
       options: {
         underscored: true,
         classMethods: {

@@ -1061,22 +1061,6 @@ module.exports = class Cart extends Model {
 
             this.resetDefaults()
             this.setLineItems(this.line_items)
-
-            // Get Cart Collections
-            // return app.services.CollectionService.cartCollections(this)
-            //   .then(resCollections => {
-            //     collections = resCollections
-            //     // Calculate taxes
-            //     return app.services.TaxService.calculate(this, collections, app.orm['Cart'])
-            //   })
-            //   .then(tax => {
-            //     // Calculate Shipping
-            //     return app.services.ShippingService.calculate(this, collections, app.orm['Cart'])
-            //   })
-              // .then(shipping => {
-              //   // Calculate Collection Discounts
-              //   return app.services.DiscountService.calculateCollections(this, collections, app.orm['Cart'])
-              // })
             return Promise.resolve()
               .then(() => {
                 return this.calculateDiscounts({transaction: options.transaction || null})

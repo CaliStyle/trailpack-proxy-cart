@@ -13,7 +13,7 @@ module.exports = class ProductAssociationUpload extends Model {
   static config (app, Sequelize) {
     return {
       // migrate: 'drop', //override default models configurations if needed
-      store: 'uploads',
+      // store: 'uploads',
       options: {
         underscored: true,
         classMethods: {

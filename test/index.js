@@ -5,7 +5,7 @@ const assert = require('assert')
 const supertest = require('supertest')
 
 before(function(done) {
-  this.timeout(10000)
+  this.timeout(15000)
 
   global.app = new TrailsApp(require('./app'))
   // return global.app.start().catch(global.app.stop)

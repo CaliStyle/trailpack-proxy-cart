@@ -30,13 +30,13 @@ const stores = {
   sqlitedev: {
     adapter: require('sails-disk')
   },
-  uploads: {
-    database: 'ProxyCart',
-    storage: './test/test.uploads.sqlite',
-    host: '127.0.0.1',
-    dialect: 'sqlite',
-    logging: false
-  }
+  // uploads: {
+  //   database: 'ProxyCart',
+  //   storage: './test/test.uploads.sqlite',
+  //   host: '127.0.0.1',
+  //   dialect: 'sqlite',
+  //   logging: false
+  // }
 }
 
 if (ORM === 'waterline') {
@@ -51,9 +51,22 @@ else if (ORM === 'sequelize') {
       dialect: 'postgres',
       logging: false
     }
+    stores.uploads = {
+      database: 'ProxyCart',
+      host: '127.0.0.1',
+      dialect: 'postgres',
+      logging: false
+    }
   }
   else {
     stores.sqlitedev = {
+      database: 'ProxyCart',
+      storage: './test/test.sqlite',
+      host: '127.0.0.1',
+      dialect: 'sqlite',
+      logging: false
+    }
+    stores.uploads = {
       database: 'ProxyCart',
       storage: './test/test.sqlite',
       host: '127.0.0.1',
