@@ -293,26 +293,30 @@ module.exports = class TransactionService extends Service {
             return resOrder.Customer.getDefaultSource({transaction: options.transaction || null})
               .then(resSource => {
 
+                if (!resSource) {
+                  throw new Error('Order Customer is missing a default source')
+                }
+
                 const transaction = Transaction.build({
                   // Set the customer id (in case we can save this source)
                   customer_id: resOrder.customer_id,
                   // Set the order id
                   order_id: resOrder.id,
                   // Set the source if it is given
-                  source_id: resSource.id || null,
+                  source_id: resSource ? resSource.id : null,
                   // Set the order currency
                   currency: resOrder.currency,
                   // Set the amount for this transaction and handle if it is a split transaction
                   amount: totalNew,
                   // Copy the entire payment details to this transaction
                   payment_details: {
-                    gateway: resSource.gateway,
+                    gateway: resSource ? resSource.gateway : null,
                     source: resSource,
                   },
                   // Specify the gateway to use
                   gateway: resSource.gateway,
                   // Set the device (that input the credit card) or null
-                  device_id: resSource.device_id || null,
+                  device_id: resSource ? resSource.device_id : null,
                   // The kind of this new transaction
                   kind: resOrder.payment_kind,
                   // Set the Description

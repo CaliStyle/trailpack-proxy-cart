@@ -312,8 +312,8 @@ module.exports = class Cart extends Model {
               }
 
               this.total_items = this.total_items + item.quantity
-              this.subtotal_price = this.subtotal_price + item.price * item.quantity
-              this.total_line_items_price = this.total_line_items_price + item.price * item.quantity
+              this.subtotal_price = this.subtotal_price + item.price
+              this.total_line_items_price = this.total_line_items_price + item.price
             })
             return this.setTotals()
           },

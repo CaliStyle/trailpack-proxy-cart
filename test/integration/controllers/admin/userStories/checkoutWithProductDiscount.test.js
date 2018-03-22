@@ -194,4 +194,133 @@ describe('Admin User Checkout with Product Discount', () => {
         done(err)
       })
   })
+
+  it('should add multiple products to cart', done => {
+    adminUser
+      .post('/cart/addItems')
+      .send({
+        line_items: [
+          {
+            product_id: shopProducts[12].id,
+            quantity: 2
+          }
+        ]
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+        // console.log('user story', res.body)
+        res.body.line_items.forEach(item => {
+          assert.equal(item.discounted_lines.length, 1)
+        })
+        // Discounts
+        assert.equal(res.body.discounted_lines.length, 1)
+        res.body.discounted_lines.forEach(discount => {
+          assert.equal(discount.name, 'product with discount')
+          assert.equal(discount.price, 100)
+          assert.equal(discount.applies, true)
+          assert.notEqual(discount.lines.indexOf(0), -1)
+        })
+        assert.equal(res.body.total_discounts, 100)
+        assert.equal(res.body.total_due, (shopProducts[12].price * 2) - 100)
+
+        done(err)
+      })
+  })
+
+  it('should checkout and item', (done) => {
+    adminUser
+      .post('/cart/checkout')
+      .send({
+        payment_kind: 'immediate',
+        transaction_kind: 'sale',
+        payment_details: [
+          {
+            gateway: 'payment_processor',
+            gateway_token: '123'
+          }
+        ],
+        fulfillment_kind: 'immediate'
+      })
+      .expect(200)
+      .end((err, res) => {
+        orderID = res.body.order.id
+
+        assert.ok(res.body.order.id)
+        assert.ok(res.body.order.token)
+        assert.equal(res.body.order.customer_id, customerID)
+        assert.equal(res.body.order.payment_kind, 'immediate')
+        assert.equal(res.body.order.transaction_kind, 'sale')
+        assert.equal(res.body.order.fulfillment_kind, 'immediate')
+
+        assert.equal(res.body.order.currency, 'USD')
+        assert.equal(res.body.order.source_name, 'api')
+        assert.equal(res.body.order.processing_method, 'checkout')
+        assert.equal(res.body.order.financial_status, 'paid')
+
+        // This is a digital good
+        assert.equal(res.body.order.fulfillment_status, 'fulfilled')
+        assert.equal(res.body.order.status, 'closed')
+        assert.equal(_.isString(res.body.order.closed_at), true)
+
+        // Discounts
+        assert.equal(res.body.order.discounted_lines.length, 1)
+        res.body.order.discounted_lines.forEach(discount => {
+          assert.equal(discount.name, 'product with discount')
+          assert.equal(discount.price, 100)
+          // console.log('USER STORY', discount)
+        })
+
+        // Pricing
+        assert.equal(res.body.order.total_line_items_price, (shopProducts[12].price * 2))
+        assert.equal(res.body.order.subtotal_price, (shopProducts[12].price * 2))
+        assert.equal(res.body.order.total_price, (shopProducts[12].price * 2) - 100)
+        assert.equal(res.body.order.total_due, 0)
+        assert.equal(res.body.order.total_discounts, 100)
+        assert.equal(res.body.order.total_captured, (shopProducts[12].price * 2) - 100)
+
+        // Order Items
+        assert.equal(res.body.order.order_items.length, 1)
+        assert.equal(res.body.order.total_items, 2)
+        assert.equal(res.body.order.order_items[0].price, (shopProducts[12].price * 2))
+        assert.equal(res.body.order.order_items[0].price_per_unit, shopProducts[12].price)
+        assert.equal(res.body.order.order_items[0].calculated_price, (shopProducts[12].price * 2) - 100)
+        assert.equal(res.body.order.order_items[0].total_discounts, 100)
+
+        res.body.order.order_items.forEach(item => {
+          assert.equal(item.order_id, orderID)
+          assert.equal(item.fulfillment_status, 'fulfilled')
+          assert.equal(item.fulfillment_id, res.body.order.fulfillments[0].id)
+        })
+
+        // Fulfillment
+        assert.equal(res.body.order.fulfillments.length, 1)
+        res.body.order.fulfillments.forEach(fulfillment => {
+          assert.equal(fulfillment.status, 'fulfilled')
+          assert.equal(fulfillment.order_id, orderID)
+        })
+        assert.equal(res.body.order.total_pending_fulfillments, 0)
+        assert.equal(res.body.order.total_sent_fulfillments, 0)
+        assert.equal(res.body.order.total_fulfilled_fulfillments, 1)
+        assert.equal(res.body.order.total_partial_fulfillments, 0)
+
+        // Transactions
+        assert.equal(res.body.order.transactions.length, 1)
+        transactionID = res.body.order.transactions[0].id
+        res.body.order.transactions.forEach(transaction => {
+          assert.equal(transaction.kind, 'sale')
+          assert.equal(transaction.status, 'success')
+          assert.equal(transaction.source_name, 'web')
+          assert.equal(transaction.order_id, orderID)
+        })
+        assert.equal(res.body.order.total_pending, 0)
+        assert.equal(res.body.order.total_authorized, 0)
+        assert.equal(res.body.order.total_voided, 0)
+        assert.equal(res.body.order.total_cancelled, 0)
+        assert.equal(res.body.order.total_refunds, 0)
+        assert.equal(res.body.order.total_captured, (shopProducts[12].price * 2) - 100)
+
+        done(err)
+      })
+  })
 })

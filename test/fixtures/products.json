@@ -412,5 +412,30 @@
       "Dummy Collection"
     ],
     "sku": "physical-product-123"
+  },
+  {
+    "handle": "product-quantity-test",
+    "title": "Product Quantity Test",
+    "body": "<strong>Product Quantity Test</strong>",
+    "vendors": [
+      "Great Scott Inc"
+    ],
+    "type": "digital",
+    "price": "100000",
+    "published": true,
+    "inventory_policy": "continue",
+    "requires_shipping": false,
+    "requires_subscription": true,
+    "subscription_interval": 1,
+    "subscription_unit": "m",
+    "inventory_quantity": 10000,
+    "exclude_payment_types": [],
+    "tags": [
+      "purchase-history"
+    ],
+    "collections": [
+      "Dummy Collection"
+    ],
+    "sku": "purchase-quantity-123"
   }
 ]
