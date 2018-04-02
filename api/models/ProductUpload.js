@@ -125,6 +125,11 @@ module.exports = class ProductUpload extends Model {
         type: Sequelize.BOOLEAN
         // defaultValue: true
       },
+      // 'Available'
+      available: {
+        type: Sequelize.BOOLEAN
+        // defaultValue: true
+      },
       // { 'Option / * Name' : 'Option / * Value' }
       // options: helpers.ARRAY('ProductUpload', app, Sequelize, Sequelize.JSONB, 'options', {
       //   defaultValue: []
@@ -202,7 +207,7 @@ module.exports = class ProductUpload extends Model {
         // defaultValue: true
       },
       // 'Variant Taxable'
-      taxable: {
+      requires_taxes: {
         type: Sequelize.BOOLEAN
         // defaultValue: true
       },

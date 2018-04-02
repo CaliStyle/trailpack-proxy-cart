@@ -201,6 +201,23 @@ module.exports = class ProductCsvService extends Service {
               else if (k === 'inventory_policy') {
                 upload[k] = data.toString().toLowerCase().trim()
               }
+              // Booleans
+              else if (k === 'published') {
+                upload[k] = data.toString().toLowerCase().trim() === 'false' ? false : true
+              }
+              else if (k === 'available') {
+                upload[k] = data.toString().toLowerCase().trim() === 'false' ? false : true
+              }
+              else if (k === 'requires_shipping') {
+                upload[k] = data.toString().toLowerCase().trim() === 'false' ? false : true
+              }
+              else if (k === 'requires_taxes') {
+                upload[k] = data.toString().toLowerCase().trim() === 'false' ? false : true
+              }
+              else if (k === 'requires_subscription') {
+                upload[k] = data.toString().toLowerCase().trim() === 'false' ? false : true
+              }
+              // Shopping
               else if (k === 'g_product_category') {
                 google['g_product_category'] = data.toString().trim()
               }
