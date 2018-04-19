@@ -37,7 +37,7 @@
     "trailpack": "^2.0.0",
     "trailpack-proxy-cart-countries": "^0.0.7",
     "trailpack-proxy-email": "^2.1.0",
-    "trailpack-proxy-engine": "^2.1.4",
+    "trailpack-proxy-engine": "^2.1.9",
     "trailpack-proxy-generics": "^2.1.0",
     "trailpack-proxy-notifications": "^2.1.1",
     "trailpack-proxy-passport": "^2.1.2",
