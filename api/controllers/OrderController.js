@@ -608,6 +608,28 @@ module.exports = class OrderController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addItems(req, res) {
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateOrder.addItems(req.body)
+      .then(values => {
+        return OrderService.addItems(req.params.id, req.body)
+      })
+      .then(order => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
   /**
    *
    * @param req

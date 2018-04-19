@@ -85,6 +85,28 @@ module.exports = class ProductService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
+  resolveItems(items, options) {
+    options = options || {}
+    if (!Array.isArray(items)) {
+      items = [items]
+    }
+    const Sequelize = this.app.orm['Product'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(items, item => {
+        return this.resolveItem(item, {
+          transaction: t
+        })
+      })
+    })
+  }
+  /**
+   * Add Multiple Products
+   * @param products
+   * @param options
+   * @returns {Promise.<*>}
+   */
   addProducts(products, options) {
     options = options || {}
     if (!Array.isArray(products)) {

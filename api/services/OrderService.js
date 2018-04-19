@@ -1284,6 +1284,79 @@ module.exports = class OrderService extends Service {
    * @param options
    * @returns {Promise.<TResult>}
    */
+  addItems(order, items, options) {
+    options = options || {}
+    if (!items) {
+      throw new Errors.FoundError(Error('Item is not defined'))
+    }
+    let resOrder, resItems
+    const Order = this.app.orm['Order']
+    const Sequelize = this.app.orm['Product'].sequelize
+    return Order.resolve(order, options)
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        if (order.status !== ORDER_STATUS.OPEN) {
+          throw new Error(`Order is already ${order.status} and can not be modified`)
+        }
+        // bind the dao
+        resOrder = order
+        return resOrder.resolveOrderItems({ transaction: options.transaction || null })
+      })
+      .then(() => {
+        // Resolve the item of the new order item
+        return this.app.services.ProductService.resolveItems(items, { transaction: options.transaction || null })
+      })
+      .then(_items => {
+        if (!_items) {
+          throw new Error('Could not resolve product and variant')
+        }
+        // Setup Transaction
+        return Sequelize.transaction(t => {
+          return Sequelize.Promise.mapSeries(items, item => {
+            // Build the item
+            const resItem = resOrder.buildOrderItem(item, item.quantity, item.properties)
+            resItems.push(resItem)
+            // Add the item
+            return resOrder.addItem(resItem, { transaction: options.transaction || null })
+          })
+        })
+      })
+      .then(createdItem => {
+        return resOrder.recalculate({ transaction: options.transaction || null })
+      })
+      .then(() => {
+        // Track Event
+        const event = {
+          object_id: resOrder.id,
+          object: 'order',
+          objects: [{
+            order: resOrder.id
+          }, {
+            customer: resOrder.customer_id
+          }],
+          type: 'order.items.created',
+          message: `Items added to Order ${resOrder.name}`,
+          data: resItems
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
+      })
+      .then(event => {
+        return resOrder //Order.findByIdDefault(resOrder.id)
+      })
+  }
+
+  /**
+   *
+   * @param order
+   * @param item
+   * @param options
+   * @returns {Promise.<TResult>}
+   */
   updateItem(order, item, options) {
     options = options || {}
     if (!item) {
