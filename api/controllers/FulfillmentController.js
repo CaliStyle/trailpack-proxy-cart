@@ -124,7 +124,7 @@ module.exports = class FulfillmentController extends Controller {
     lib.Validator.validateFulfillment.update(req.body)
       .then(values => {
         req.body.id = req.params.id
-        return FulfillmentService.update(req.body)
+        return FulfillmentService.updateFulfillment(req.body)
       })
       .then(fulfillment => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, fulfillment)
