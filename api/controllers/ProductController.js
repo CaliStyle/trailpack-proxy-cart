@@ -94,7 +94,7 @@ module.exports = class ProductController extends Controller {
     // const Tag = orm['Tag']
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || 'title DESC'
+    const sort = req.query.sort || [['title', 'DESC']]
     const term = req.query.term
     const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
     const defaults = _.defaultsDeep(where, {
@@ -1527,6 +1527,65 @@ module.exports = class ProductController extends Controller {
       where: {
         product_id: productId
       },
+      offset: offset,
+      limit: limit
+    })
+      .then(variants => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, variants.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, variants.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  variantsSearch(req, res) {
+    const Variant = this.app.orm['ProductVariant']
+    const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['sku', 'DESC']]
+    const term = req.query.term
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
+
+    if (!productId) {
+      const err = new Error('A product id is required')
+      return res.send(401, err)
+    }
+
+    const defaults = _.defaultsDeep(where, {
+      product_id: productId,
+      $or: [
+        {
+          title: {
+            $iLike: `%${term}%`
+          }
+        },
+        {
+          sku: {
+            $iLike: `%${term}%`
+          }
+        }
+        // {
+        //   '$tags.name$': {
+        //     $iLike: `%${term}%`
+        //   }
+        // },
+        // {
+        //   '$collections.title$': {
+        //     $iLike: `%${term}%`
+        //   }
+        // }
+      ]
+    })
+
+    Variant.findAndCount({
+      order: sort,
+      where: defaults,
       offset: offset,
       limit: limit
     })
