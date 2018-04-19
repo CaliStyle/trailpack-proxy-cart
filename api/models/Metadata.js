@@ -132,6 +132,12 @@ module.exports = class Metadata extends Model {
       user_id: {
         type: Sequelize.INTEGER
       },
+      order_id: {
+        type: Sequelize.INTEGER
+      },
+      order_item_id: {
+        type: Sequelize.INTEGER
+      },
       live_mode: {
         type: Sequelize.BOOLEAN,
         defaultValue: app.config.proxyEngine.live_mode

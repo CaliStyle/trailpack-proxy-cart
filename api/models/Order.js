@@ -232,6 +232,11 @@ module.exports = class Order extends Model {
               as: 'account_events',
               foreignKey: 'order_id'
             })
+
+            models.Order.hasOne(models.Metadata, {
+              as: 'metadata',
+              foreignKey: 'order_id'
+            })
           },
           /**
            *

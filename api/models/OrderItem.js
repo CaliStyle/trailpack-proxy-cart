@@ -105,6 +105,11 @@ module.exports = class OrderItem extends Model {
               foreignKey: 'model_id',
               constraints: false
             })
+
+            models.OrderItem.hasOne(models.Metadata, {
+              as: 'metadata',
+              foreignKey: 'order_item_id'
+            })
           },
           resolve: function(item, options){
             options = options || {}
