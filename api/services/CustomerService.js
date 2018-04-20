@@ -600,6 +600,29 @@ module.exports = class CustomerService extends Service {
   }
 
   /**
+   * Add Multiple collections
+   * @param collections
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addCollections(collections, options) {
+    options = options || {}
+    if (!Array.isArray(collections)) {
+      collections = [collections]
+    }
+    const Sequelize = this.app.orm['Customer'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(collections, collection => {
+        return this.addCollection(collection, {
+          transaction: t
+        })
+      })
+    })
+  }
+
+  /**
    *
    * @param customer
    * @param collection
@@ -741,6 +764,29 @@ module.exports = class CustomerService extends Service {
       .then(resAddress => {
         return resAddress
       })
+  }
+
+  /**
+   * Add Multiple Users
+   * @param users
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addUsers(users, options) {
+    options = options || {}
+    if (!Array.isArray(users)) {
+      users = [users]
+    }
+    const Sequelize = this.app.orm['Customer'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(users, user => {
+        return this.addUser(user, {
+          transaction: t
+        })
+      })
+    })
   }
 
   /**

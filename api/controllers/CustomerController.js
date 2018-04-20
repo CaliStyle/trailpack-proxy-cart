@@ -1580,6 +1580,66 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  addUser(req, res) {
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id or a user in session are required')
+      return res.send(401, err)
+    }
+
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.addUser(customerId, req.body)
+      .then(users => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, users)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.addCollection', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addUsers(req, res) {
+    let customerId = req.params.id
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id or a user in session are required')
+      return res.send(401, err)
+    }
+
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.addUsers(customerId, req.body)
+      .then(users => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, users)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.addCollection', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   addTag(req, res){
     const CustomerService = this.app.services.CustomerService
     CustomerService.addTag(req.params.id, req.params.tag)
@@ -1666,6 +1726,26 @@ module.exports = class CustomerController extends Controller {
     CustomerService.addCollection(req.params.id, req.params.collection)
       .then(collection => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.addCollection', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   * add a customer to a collection
+   * @param req
+   * @param res
+   */
+  addCollections(req, res){
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.addCollections(req.params.id, req.body)
+      .then(collections => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections)
       })
       .then(result => {
         return res.json(result)

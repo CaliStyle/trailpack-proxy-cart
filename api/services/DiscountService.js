@@ -431,6 +431,28 @@ module.exports = class DiscountService extends Service {
   }
 
   /**
+   * Add Multiple products
+   * @param products
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addProducts(products, options) {
+    options = options || {}
+    if (!Array.isArray(products)) {
+      products = [products]
+    }
+    const Sequelize = this.app.orm['Discount'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(products, product => {
+        return this.addProduct(product, {
+          transaction: t
+        })
+      })
+    })
+  }
+  /**
    *
    * @param discount
    * @param product
@@ -469,6 +491,7 @@ module.exports = class DiscountService extends Service {
         return resDiscount
       })
   }
+
 
   /**
    *
@@ -510,6 +533,28 @@ module.exports = class DiscountService extends Service {
       })
   }
 
+  /**
+   * Add Multiple customers
+   * @param customers
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addCustomers(customers, options) {
+    options = options || {}
+    if (!Array.isArray(customers)) {
+      customers = [customers]
+    }
+    const Sequelize = this.app.orm['Discount'].sequelize
+    // const addedCustomers = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(customers, customer => {
+        return this.addCustomer(customer, {
+          transaction: t
+        })
+      })
+    })
+  }
   /**
    *
    * @param discount
@@ -670,6 +715,28 @@ module.exports = class DiscountService extends Service {
       })
   }
 
+  /**
+   * Add Multiple collections
+   * @param collections
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addCollections(collections, options) {
+    options = options || {}
+    if (!Array.isArray(collections)) {
+      collections = [collections]
+    }
+    const Sequelize = this.app.orm['Discount'].sequelize
+    // const addedCollections = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(collections, collection => {
+        return this.addCollection(collection, {
+          transaction: t
+        })
+      })
+    })
+  }
   /**
    *
    * @param discount

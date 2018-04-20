@@ -207,6 +207,27 @@ module.exports = class DiscountController extends Controller {
    * @param req
    * @param res
    */
+  addProducts(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.addProducts(req.params.id, req.body)
+      .then(product => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('ProductController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   removeProduct(req, res) {
     const DiscountService = this.app.services.DiscountService
 
@@ -277,6 +298,27 @@ module.exports = class DiscountController extends Controller {
     const DiscountService = this.app.services.DiscountService
 
     DiscountService.addCustomer(req.params.id, req.params.customer)
+      .then(customer => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addCustomers(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.addCustomers(req.params.id, req.body)
       .then(customer => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
       })
@@ -449,6 +491,27 @@ module.exports = class DiscountController extends Controller {
     const DiscountService = this.app.services.DiscountService
 
     DiscountService.addCollection(req.params.id, req.params.collection)
+      .then(collection => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addCollections(req, res) {
+    const DiscountService = this.app.services.DiscountService
+
+    DiscountService.addCollections(req.params.id, req.body)
       .then(collection => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
       })
