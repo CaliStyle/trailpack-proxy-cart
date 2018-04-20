@@ -436,7 +436,7 @@ module.exports = class DiscountService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addProducts(products, options) {
+  addProducts(discount, products, options) {
     options = options || {}
     if (!Array.isArray(products)) {
       products = [products]
@@ -446,7 +446,7 @@ module.exports = class DiscountService extends Service {
     // Setup Transaction
     return Sequelize.transaction(t => {
       return Sequelize.Promise.mapSeries(products, product => {
-        return this.addProduct(product, {
+        return this.addProduct(discount, product, {
           transaction: t
         })
       })
@@ -539,7 +539,7 @@ module.exports = class DiscountService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addCustomers(customers, options) {
+  addCustomers(discount, customers, options) {
     options = options || {}
     if (!Array.isArray(customers)) {
       customers = [customers]
@@ -549,7 +549,7 @@ module.exports = class DiscountService extends Service {
     // Setup Transaction
     return Sequelize.transaction(t => {
       return Sequelize.Promise.mapSeries(customers, customer => {
-        return this.addCustomer(customer, {
+        return this.addCustomer(discount, customer, {
           transaction: t
         })
       })
@@ -717,11 +717,12 @@ module.exports = class DiscountService extends Service {
 
   /**
    * Add Multiple collections
+   * @param discount
    * @param collections
    * @param options
    * @returns {Promise.<*>}
    */
-  addCollections(collections, options) {
+  addCollections(discount, collections, options) {
     options = options || {}
     if (!Array.isArray(collections)) {
       collections = [collections]
@@ -731,7 +732,7 @@ module.exports = class DiscountService extends Service {
     // Setup Transaction
     return Sequelize.transaction(t => {
       return Sequelize.Promise.mapSeries(collections, collection => {
-        return this.addCollection(collection, {
+        return this.addCollection(discount, collection, {
           transaction: t
         })
       })

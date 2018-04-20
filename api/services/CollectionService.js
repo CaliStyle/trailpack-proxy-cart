@@ -204,6 +204,30 @@ module.exports = class CollectionService extends Service {
   }
 
   /**
+   * Add Multiple Collections
+   * @param collection
+   * @param collections
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addCollections(collection, collections, options) {
+    options = options || {}
+    if (!Array.isArray(collections)) {
+      collections = [collections]
+    }
+    const Sequelize = this.app.orm['Collection'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(collections, collection => {
+        return this.addCollection(collection, collection, {
+          transaction: t
+        })
+      })
+    })
+  }
+
+  /**
    *
    * @param collection
    * @param subCollection
@@ -277,6 +301,29 @@ module.exports = class CollectionService extends Service {
       })
   }
 
+  /**
+   * Add Multiple Products
+   * @param collection
+   * @param products
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addProducts(collection, products, options) {
+    options = options || {}
+    if (!Array.isArray(products)) {
+      products = [products]
+    }
+    const Sequelize = this.app.orm['Collection'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(products, product => {
+        return this.addProduct(collection, product, {
+          transaction: t
+        })
+      })
+    })
+  }
   /**
    *
    * @param collection
@@ -427,6 +474,30 @@ module.exports = class CollectionService extends Service {
       .then(collection => {
         return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
+  }
+
+  /**
+   * Add Multiple Customers
+   * @param collection
+   * @param customers
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addCustomers(collection, customers, options) {
+    options = options || {}
+    if (!Array.isArray(customers)) {
+      customers = [customers]
+    }
+    const Sequelize = this.app.orm['Collection'].sequelize
+    // const addedProducts = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(customers, customer => {
+        return this.addCustomer(collection, customer, {
+          transaction: t
+        })
+      })
+    })
   }
 
   /**

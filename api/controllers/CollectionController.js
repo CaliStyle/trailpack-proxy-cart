@@ -232,6 +232,26 @@ module.exports = class CollectionController extends Controller {
    * @param req
    * @param res
    */
+  addCollections(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addCollections(req.params.id, req.body)
+      .then(collection => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
   addCollection(req, res) {
     const CollectionService = this.app.services.CollectionService
 
@@ -312,6 +332,27 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addProducts(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addProducts(req.params.id, req.body)
+      .then(collection => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -488,6 +529,26 @@ module.exports = class CollectionController extends Controller {
       })
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addCustomers(req, res) {
+    const CollectionService = this.app.services.CollectionService
+
+    CollectionService.addCustomers(req.params.id, req.body)
+      .then(collection => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CollectionController.update', err)
+        return res.serverError(err)
+      })
+  }
   /**
    *
    * @param req

@@ -605,7 +605,7 @@ module.exports = class CustomerService extends Service {
    * @param options
    * @returns {Promise.<*>}
    */
-  addCollections(collections, options) {
+  addCollections(customer, collections, options) {
     options = options || {}
     if (!Array.isArray(collections)) {
       collections = [collections]
@@ -615,7 +615,7 @@ module.exports = class CustomerService extends Service {
     // Setup Transaction
     return Sequelize.transaction(t => {
       return Sequelize.Promise.mapSeries(collections, collection => {
-        return this.addCollection(collection, {
+        return this.addCollection(customer, collection, {
           transaction: t
         })
       })
@@ -768,11 +768,12 @@ module.exports = class CustomerService extends Service {
 
   /**
    * Add Multiple Users
+   * @param customer
    * @param users
    * @param options
    * @returns {Promise.<*>}
    */
-  addUsers(users, options) {
+  addUsers(customer, users, options) {
     options = options || {}
     if (!Array.isArray(users)) {
       users = [users]
@@ -782,7 +783,7 @@ module.exports = class CustomerService extends Service {
     // Setup Transaction
     return Sequelize.transaction(t => {
       return Sequelize.Promise.mapSeries(users, user => {
-        return this.addUser(user, {
+        return this.addUser(customer, user, {
           transaction: t
         })
       })
