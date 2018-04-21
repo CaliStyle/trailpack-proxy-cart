@@ -432,6 +432,7 @@ module.exports = class DiscountService extends Service {
 
   /**
    * Add Multiple products
+   * @param discount
    * @param products
    * @param options
    * @returns {Promise.<*>}
@@ -488,7 +489,7 @@ module.exports = class DiscountService extends Service {
         return
       })
       .then(() => {
-        return resDiscount
+        return resProduct
       })
   }
 
@@ -529,12 +530,13 @@ module.exports = class DiscountService extends Service {
         return
       })
       .then(() => {
-        return resDiscount
+        return resProduct
       })
   }
 
   /**
    * Add Multiple customers
+   * @param discount
    * @param customers
    * @param options
    * @returns {Promise.<*>}
@@ -591,7 +593,7 @@ module.exports = class DiscountService extends Service {
         return
       })
       .then(() => {
-        return resDiscount
+        return resCustomer
       })
   }
 
@@ -631,7 +633,7 @@ module.exports = class DiscountService extends Service {
         return
       })
       .then(() => {
-        return resDiscount
+        return resCustomer
       })
   }
 
@@ -671,7 +673,7 @@ module.exports = class DiscountService extends Service {
         return
       })
       .then(() => {
-        return resDiscount
+        return resCart
       })
   }
 
@@ -711,7 +713,7 @@ module.exports = class DiscountService extends Service {
         return
       })
       .then(() => {
-        return resDiscount
+        return resCart
       })
   }
 
@@ -774,7 +776,7 @@ module.exports = class DiscountService extends Service {
         return
       })
       .then(() => {
-        return resDiscount
+        return resCollection
       })
   }
 
@@ -814,7 +816,7 @@ module.exports = class DiscountService extends Service {
         return
       })
       .then(() => {
-        return resDiscount
+        return resCollection
       })
   }
 }

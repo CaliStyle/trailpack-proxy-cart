@@ -588,5 +588,45 @@ module.exports = class DiscountController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  events(req, res) {
+    const Event = this.app.orm['Event']
+    const discountId = req.params.id
+
+    if (!discountId && !req.user) {
+      const err = new Error('A discount id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    Event.findAndCount({
+      order: sort,
+      where: {
+        object_id: discountId,
+        object: 'discount'
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(events => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, events.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, events.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 
