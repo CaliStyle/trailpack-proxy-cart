@@ -4,6 +4,8 @@
 const Controller = require('trails/controller')
 const Errors = require('proxy-engine-errors')
 const lib = require('../../lib')
+const CART_STATUS = require('../../lib').Enums.CART_STATUS
+
 /**
  * @module CartController
  * @description Cart Controller.
@@ -219,7 +221,33 @@ module.exports = class CartController extends Controller {
         console.log('CartController.create', err)
         return res.serverError(err)
       })
+  }
 
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  draft(req, res) {
+    const CartService = this.app.services.CartService
+    req.body.status = CART_STATUS.DRAFT
+    lib.Validator.validateCart.create(req.body)
+      .then(values => {
+        return CartService.create(req.body)
+      })
+      .then(cart => {
+        if (!cart) {
+          throw new Error('Unexpected Error while creating cart')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        console.log('CartController.draft', err)
+        return res.serverError(err)
+      })
   }
 
   /**
