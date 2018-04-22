@@ -588,8 +588,8 @@ describe('Admin User CustomerController', () => {
         // assert.ok(res.body.shipping_address.address_1)
         // assert.ok(res.body.shipping_address.city)
 
-        // Accounts
-        assert.equal(res.body.accounts.length, 1)
+        // Accounts (DEPRECATED)
+        // assert.equal(res.body.accounts.length, 1)
 
         done(err)
       })

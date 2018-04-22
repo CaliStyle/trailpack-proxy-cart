@@ -32,14 +32,14 @@ module.exports = {
           model: app.orm['Cart'],
           as: 'default_cart'
         },
-        {
-          model: app.orm['Collection'],
-          as: 'collections'
-        },
-        {
-          model: app.orm['Account'],
-          as: 'accounts'
-        },
+        // {
+        //   model: app.orm['Collection'],
+        //   as: 'collections'
+        // },
+        // {
+        //   model: app.orm['Account'],
+        //   as: 'accounts'
+        // },
         // {
         //   model: app.orm['Event'],
         //   as: 'events'

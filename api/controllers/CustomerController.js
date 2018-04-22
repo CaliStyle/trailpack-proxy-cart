@@ -1828,6 +1828,50 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  discounts(req, res) {
+    const Discount = this.app.orm['Discount']
+    const customerId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!customerId) {
+      const err = new Error('A customer id is required')
+      return res.send(401, err)
+    }
+
+    Discount.findAndCount({
+      include: [
+        {
+          model: this.app.orm['Customer'],
+          as: 'customers',
+          where: {
+            id: customerId
+          }
+        }
+      ],
+      order: sort,
+      offset: offset,
+      limit: limit
+    })
+      .then(discounts => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, discounts.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discounts.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   event(req, res) {
     const Event = this.app.orm['Event']
     const eventId = req.params.event
