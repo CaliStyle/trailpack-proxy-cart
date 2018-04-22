@@ -877,6 +877,24 @@ module.exports = class ProductController extends Controller {
       })
   }
   /**
+   * add a product to a collection
+   * @param req
+   * @param res
+   */
+  addCollections(req, res){
+    const ProductService = this.app.services.ProductService
+    ProductService.addCollections(req.params.id, req.body)
+      .then(product => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
    * remove a product from a collection
    * @param req
    * @param res
@@ -886,6 +904,45 @@ module.exports = class ProductController extends Controller {
     ProductService.removeCollection(req.params.id, req.params.collection)
       .then(product => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  collections(req, res) {
+    const Collection = this.app.orm['Collection']
+    const productId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!productId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    Collection.findAndCountDefault({
+      order: sort,
+      include: [
+        {
+          model: this.app.orm['Product'],
+          as: 'products',
+          where: {
+            id: productId
+          }
+        }
+      ],
+      offset: offset,
+      limit: limit
+    })
+      .then(collections => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections.rows)
       })
       .then(result => {
         return res.json(result)

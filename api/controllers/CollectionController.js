@@ -416,31 +416,69 @@ module.exports = class CollectionController extends Controller {
       return res.send(401, err)
     }
 
-    Product.findAndCountDefault({
-      include: [
-        {
-          model: this.app.orm['Collection'],
-          as: 'collections',
-          where: {
-            id: collectionId
-          }
-        }
-      ],
-      order: sort,
-      offset: offset,
-      limit: limit
+    // const Collection = this.app.orm['Collection']
+    const ItemCollection = this.app.orm['ItemCollection']
+
+    let count = 0
+
+    ItemCollection.findAndCount({
+      where: {
+        collection_id: collectionId,
+        model: 'product'
+      },
+      attributes: ['model_id'],
+      limit: limit,
+      offset: offset
     })
-      .then(products => {
-        // Paginate
-        this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
-        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
+    .then(arr => {
+      count = arr.count
+      const productIds = arr.rows.map(model => model.model_id)
+      return Product.findAllDefault({
+        where: {
+          id: productIds
+        },
+        req: req
       })
-      .then(result => {
-        return res.json(result)
-      })
-      .catch(err => {
-        return res.serverError(err)
-      })
+    })
+    .then(products => {
+      // Paginate
+      this.app.services.ProxyEngineService.paginate(res, count, limit, offset, sort)
+      return this.app.services.ProxyPermissionsService.sanitizeResult(req, products)
+    })
+    .then(result => {
+      return res.json(result)
+    })
+    .catch(err => {
+      return res.serverError(err)
+    })
+
+    // Product.findAndCount({
+    //   include: [
+    //     {
+    //       model: this.app.orm['Collection'],
+    //       as: 'collections',
+    //       required: true,
+    //       where: {
+    //         id: collectionId
+    //       }
+    //     }
+    //   ],
+    //   order: sort,
+    //   offset: offset,
+    //   limit: limit
+    // })
+    //   .then(products => {
+    //     console.log('BROKE PRODUCTS', products)
+    //     // Paginate
+    //     this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
+    //     return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
+    //   })
+    //   .then(result => {
+    //     return res.json(result)
+    //   })
+    //   .catch(err => {
+    //     return res.serverError(err)
+    //   })
   }
 
   /**
@@ -626,6 +664,50 @@ module.exports = class CollectionController extends Controller {
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, customers.count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, customers.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  discounts(req, res) {
+    const Discount = this.app.orm['Discount']
+    const collectionId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!collectionId) {
+      const err = new Error('A collection id is required')
+      return res.send(401, err)
+    }
+
+    Discount.findAndCount({
+      include: [
+        {
+          model: this.app.orm['Collection'],
+          as: 'collections',
+          where: {
+            id: collectionId
+          }
+        }
+      ],
+      order: sort,
+      offset: offset,
+      limit: limit
+    })
+      .then(discounts => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, discounts.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discounts.rows)
       })
       .then(result => {
         return res.json(result)

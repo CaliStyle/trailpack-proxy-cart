@@ -1501,6 +1501,30 @@ module.exports = class ProductService extends Service {
   }
 
   /**
+   * Add Multiple collections
+   * @param product
+   * @param collections
+   * @param options
+   * @returns {Promise.<*>}
+   */
+  addCollections(product, collections, options) {
+    options = options || {}
+    if (!Array.isArray(collections)) {
+      collections = [collections]
+    }
+    const Sequelize = this.app.orm['Product'].sequelize
+    // const addedCollections = []
+    // Setup Transaction
+    return Sequelize.transaction(t => {
+      return Sequelize.Promise.mapSeries(collections, collection => {
+        return this.addCollection(product, collection, {
+          transaction: t
+        })
+      })
+    })
+  }
+
+  /**
    *
    * @param product
    * @param collection

@@ -192,6 +192,8 @@ describe('Admin User CollectionController', () => {
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
         assert.ok(res.body)
+        assert.equal(res.body.length, 1)
+        console.log('BROKE COLLECTION PRODUCTS', res.body)
         done(err)
       })
   })
