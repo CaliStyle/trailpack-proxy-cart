@@ -103,5 +103,44 @@ module.exports = class UserController extends ModelPermissions {
   reviews(req, res) {
 
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  passports(req, res) {
+    const Passport = this.app.orm['Passport']
+    const userId = req.params.id
+
+    if (!userId && !req.user) {
+      const err = new Error('A user id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = Math.max(0, req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    Passport.findAndCount({
+      user: sort,
+      where: {
+        user_id: userId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(passports => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, passports.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, passports.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
 }
 

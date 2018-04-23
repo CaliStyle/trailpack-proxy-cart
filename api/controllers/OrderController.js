@@ -193,6 +193,41 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
+  customer(req, res){
+    const orm = this.app.orm
+    const Order = orm['Order']
+    const Customer = orm['Customer']
+    Order.findById(req.params.id, {
+      attributes: ['id', 'customer_id']
+    })
+      .then(order => {
+        if (!order) {
+          throw new Errors.FoundError(Error(`Order id ${ req.params.id } not found`))
+        }
+        if (!order.customer_id) {
+          throw new Errors.FoundError(Error(`Order id ${ req.params.id } customer not found`))
+        }
+        return Customer.findById(order.customer_id)
+      })
+      .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error(`Order id ${ req.params.id } customer not found`))
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   create(req, res) {
     const OrderService = this.app.services.OrderService
     const CartService = this.app.services.CartService
