@@ -51,7 +51,8 @@ module.exports = class CartService extends Service {
       owners: cart.owners,
       ip: cart.ip,
       client_details: cart.client_details,
-      user_id: cart.user_id
+      user_id: cart.user_id,
+      status: cart.status || CART_STATUS.OPEN
     }, {
       include: [
         {
@@ -261,10 +262,15 @@ module.exports = class CartService extends Service {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
 
-        if (_cart.status !== CART_STATUS.OPEN) {
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
           // TODO CREATE PROPER ERROR
-          throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+          throw new Error(`Cart is already ${_cart.status}`)
         }
+
+        // if (_cart.status !== CART_STATUS.OPEN) {
+        //   // TODO CREATE PROPER ERROR
+        //   throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        // }
 
         resCart = _cart
 
@@ -639,6 +645,114 @@ module.exports = class CartService extends Service {
             return resolve(resCart)
           })
         })
+      })
+  }
+
+  /**
+   *
+   * @param cart
+   * @param shipping
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  addShipping(cart, shipping, options) {
+    options = options || {}
+    if (!shipping) {
+      throw new Errors.FoundError(Error('Shipping is not defined'))
+    }
+    let resCart
+    const Cart = this.app.orm['Cart']
+    return Cart.resolve(cart, options)
+      .then(cart => {
+        if (!cart) {
+          throw new Errors.FoundError(Error('Cart not found'))
+        }
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) === -1) {
+          throw new Error(`Cart is already ${cart.status}`)
+        }
+        resCart = cart
+        return resCart.addShipping(shipping, {transaction: options.transaction || null})
+      })
+  }
+
+  /**
+   *
+   * @param cart
+   * @param shipping
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  removeShipping(cart, shipping, options) {
+    options = options || {}
+    if (!shipping) {
+      throw new Errors.FoundError(Error('Shipping is not defined'))
+    }
+    let resCart
+    const Cart = this.app.orm['Cart']
+    return Cart.resolve(cart, options)
+      .then(_cart => {
+        if (!_cart) {
+          throw new Errors.FoundError(Error('Cart not found'))
+        }
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) === -1) {
+          throw new Error(`Cart is already ${cart.status}`)
+        }
+        resCart = _cart
+        return resCart.removeShipping(shipping, {transaction: options.transaction || null})
+      })
+  }
+
+  /**
+   *
+   * @param cart
+   * @param taxes
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  addTaxes(cart, taxes, options) {
+    options = options || {}
+    if (!taxes) {
+      throw new Errors.FoundError(Error('Taxes is not defined'))
+    }
+    let resCart
+    const Cart = this.app.orm['Cart']
+    return Cart.resolve(cart, options)
+      .then(_cart => {
+        if (!_cart) {
+          throw new Errors.FoundError(Error('Cart not found'))
+        }
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) === -1) {
+          throw new Error(`Cart is already ${cart.status}`)
+        }
+        resCart = _cart
+        return resCart.addTaxes(taxes, {transaction: options.transaction || null})
+      })
+  }
+
+  /**
+   *
+   * @param cart
+   * @param taxes
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  removeTaxes(cart, taxes, options) {
+    options = options || {}
+    if (!taxes) {
+      throw new Errors.FoundError(Error('Taxes is not defined'))
+    }
+    let resCart
+    const Cart = this.app.orm['Cart']
+    return Cart.resolve(cart, options)
+      .then(_cart => {
+        if (!_cart) {
+          throw new Errors.FoundError(Error('Cart not found'))
+        }
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) === -1) {
+          throw new Error(`Cart is already ${cart.status}`)
+        }
+        resCart = _cart
+        return resCart.removeTaxes(taxes, {transaction: options.transaction || null})
       })
   }
 
