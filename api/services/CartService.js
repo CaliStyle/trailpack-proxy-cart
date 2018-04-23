@@ -819,7 +819,7 @@ module.exports = class CartService extends Service {
     if (cart.ip) {
       cart.update_ip = cart.ip
     }
-    if (cart.status === CART_STATUS.OPEN) {
+    if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) > -1) {
       return cart.recalculate({transaction: options.transaction || null})
     }
     else {
