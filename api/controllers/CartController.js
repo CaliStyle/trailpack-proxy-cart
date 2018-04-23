@@ -425,6 +425,94 @@ module.exports = class CartController extends Controller {
   }
 
   /**
+   *
+   * @param req
+   * @param res
+   */
+  addShipping(req, res) {
+    const CartService = this.app.services.CartService
+    lib.Validator.validateCart.addShipping(req.body)
+      .then(values => {
+        return CartService.addShipping(req.params.id, req.body)
+      })
+      .then(cart => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeShipping(req, res) {
+    const CartService = this.app.services.CartService
+    lib.Validator.validateCart.removeShipping(req.body)
+      .then(values => {
+        return CartService.removeShipping(req.params.id, req.body)
+      })
+      .then(cart => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  addTaxes(req, res) {
+    const CartService = this.app.services.CartService
+    lib.Validator.validateCart.addTaxes(req.body)
+      .then(values => {
+        return CartService.addTaxes(req.params.id, req.body)
+      })
+      .then(cart => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  removeTaxes(req, res) {
+    const CartService = this.app.services.CartService
+    lib.Validator.validateCart.removeTaxes(req.body)
+      .then(values => {
+        return CartService.removeTaxes(req.params.id, req.body)
+      })
+      .then(cart => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, cart)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
    * ADMIN ONLY FEATURE
    * @param req
    * @param res
