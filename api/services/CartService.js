@@ -446,6 +446,10 @@ module.exports = class CartService extends Service {
         if (!_cart) {
           throw new Error('Cart could not be resolved')
         }
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
+          throw new Error(`Cart is already ${_cart.status}`)
+        }
+
         resCart = _cart
         resCart.pricing_overrides = overrides
         resCart.pricing_override_id = admin.id
@@ -501,8 +505,8 @@ module.exports = class CartService extends Service {
         if (!_cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
-        if (_cart.status !== CART_STATUS.OPEN) {
-          throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
+          throw new Error(`Cart is already ${_cart.status}`)
         }
 
         resCart = _cart
@@ -546,8 +550,8 @@ module.exports = class CartService extends Service {
         if (!_cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
-        if (_cart.status !== CART_STATUS.OPEN) {
-          throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
+          throw new Error(`Cart is already ${_cart.status}`)
         }
 
         resCart = _cart
@@ -584,8 +588,8 @@ module.exports = class CartService extends Service {
         if (!_cart) {
           throw new Errors.FoundError(Error('Cart Not Found'))
         }
-        if (_cart.status !== CART_STATUS.OPEN) {
-          throw new Errors.FoundError(Error(`Cart is not ${CART_STATUS.OPEN}`))
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
+          throw new Error(`Cart is already ${_cart.status}`)
         }
         resCart = _cart
         resCart.clear()
@@ -663,14 +667,14 @@ module.exports = class CartService extends Service {
     let resCart
     const Cart = this.app.orm['Cart']
     return Cart.resolve(cart, options)
-      .then(cart => {
-        if (!cart) {
+      .then(_cart => {
+        if (!_cart) {
           throw new Errors.FoundError(Error('Cart not found'))
         }
-        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) === -1) {
-          throw new Error(`Cart is already ${cart.status}`)
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
+          throw new Error(`Cart is already ${_cart.status}`)
         }
-        resCart = cart
+        resCart = _cart
         return resCart.addShipping(shipping, {transaction: options.transaction || null})
       })
   }
@@ -694,8 +698,8 @@ module.exports = class CartService extends Service {
         if (!_cart) {
           throw new Errors.FoundError(Error('Cart not found'))
         }
-        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) === -1) {
-          throw new Error(`Cart is already ${cart.status}`)
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
+          throw new Error(`Cart is already ${_cart.status}`)
         }
         resCart = _cart
         return resCart.removeShipping(shipping, {transaction: options.transaction || null})
@@ -721,8 +725,8 @@ module.exports = class CartService extends Service {
         if (!_cart) {
           throw new Errors.FoundError(Error('Cart not found'))
         }
-        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) === -1) {
-          throw new Error(`Cart is already ${cart.status}`)
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
+          throw new Error(`Cart is already ${_cart.status}`)
         }
         resCart = _cart
         return resCart.addTaxes(taxes, {transaction: options.transaction || null})
@@ -748,8 +752,8 @@ module.exports = class CartService extends Service {
         if (!_cart) {
           throw new Errors.FoundError(Error('Cart not found'))
         }
-        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(cart.status) === -1) {
-          throw new Error(`Cart is already ${cart.status}`)
+        if ([CART_STATUS.OPEN, CART_STATUS.DRAFT].indexOf(_cart.status) === -1) {
+          throw new Error(`Cart is already ${_cart.status}`)
         }
         resCart = _cart
         return resCart.removeTaxes(taxes, {transaction: options.transaction || null})

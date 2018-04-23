@@ -743,6 +743,197 @@ module.exports = class Cart extends Model {
               return Promise.resolve(this)
             }
           },
+
+          /**
+           *
+           * @param shipping
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          addShipping: function(shipping, options) {
+            shipping = shipping || []
+            options = options || {}
+
+            return this.resolveOrderItems({
+              transaction: options.transaction || null,
+              reload: options.reload || null
+            })
+              .then(() => {
+                const shippingLines = this.shipping_lines
+
+                if (_.isArray(shipping)) {
+                  shipping.forEach(ship => {
+                    const i = _.findIndex(shippingLines, (s) => {
+                      return s.name === ship.name
+                    })
+                    // Make sure shipping price is a number
+                    ship.price = app.services.ProxyCartService.normalizeCurrency(parseInt(ship.price))
+                    if (i > -1) {
+                      shippingLines[i] = ship
+                    }
+                    else {
+                      shippingLines.push(ship)
+                    }
+                  })
+                }
+                else if (_.isObject(shipping)){
+                  const i = _.findIndex(shippingLines, (s) => {
+                    return s.name === shipping.name
+                  })
+                  // Make sure shipping price is a number
+                  shipping.price = app.services.ProxyCartService.normalizeCurrency(parseInt(shipping.price))
+
+                  if (i > -1) {
+                    shippingLines[i] = shipping
+                  }
+                  else {
+                    shippingLines.push(shipping)
+                  }
+                }
+                this.shipping_lines = shippingLines
+                return this.save({transaction: options.transaction || null})
+              })
+              .then(() => {
+                return this.recalculate({transaction: options.transaction || null})
+              })
+          },
+          /**
+           *
+           * @param shipping
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          removeShipping: function(shipping, options){
+            shipping = shipping || []
+            options = options || {}
+
+            return this.resolveOrderItems({
+              transaction: options.transaction || null,
+              reload: options.reload || null
+            })
+              .then(() => {
+                const shippingLines = this.shipping_lines
+
+                if (_.isArray(shipping)) {
+                  shipping.forEach(ship => {
+                    const i = _.findIndex(shippingLines, (s) => {
+                      return s.name === ship.name
+                    })
+                    if (i > -1) {
+                      shippingLines.splice(i, 1)
+                    }
+                  })
+                }
+                else if (_.isObject(shipping)) {
+                  const i = _.findIndex(shippingLines, (s) => {
+                    return s.name === shipping.name
+                  })
+                  if (i > -1) {
+                    shippingLines.splice(i, 1)
+                  }
+                }
+                this.shipping_lines = shippingLines
+                return this.save({transaction: options.transaction || null})
+              })
+              .then(() => {
+                return this.recalculate({transaction: options.transaction || null})
+              })
+          },
+          /**
+           *
+           * @param taxes
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          addTaxes: function(taxes, options) {
+            taxes = taxes || []
+            options = options || {}
+
+            return this.resolveOrderItems({
+              transaction: options.transaction || null,
+              reload: options.reload || null
+            })
+              .then(() => {
+                const taxLines = this.tax_lines
+
+                if (_.isArray(taxes)) {
+                  taxes.forEach(tax => {
+                    const i = _.findIndex(taxLines, (s) => {
+                      return s.name === tax.name
+                    })
+                    // Make sure taxes price is a number
+                    tax.price = app.services.ProxyCartService.normalizeCurrency(parseInt(tax.price))
+                    if (i > -1) {
+                      taxLines[i] = tax
+                    }
+                    else {
+                      taxLines.push(tax)
+                    }
+                  })
+                }
+                else if (_.isObject(taxes)) {
+                  const i = _.findIndex(taxLines, (s) => {
+                    return s.name === taxes.name
+                  })
+                  // Make sure taxes price is a number
+                  taxes.price = app.services.ProxyCartService.normalizeCurrency(parseInt(taxes.price))
+
+                  if (i > -1) {
+                    taxLines[i] = taxes
+                  }
+                  else {
+                    taxLines.push(taxes)
+                  }
+                }
+                this.tax_lines = taxLines
+                return this.save({transaction: options.transaction || null})
+              })
+              .then(() => {
+                return this.recalculate({transaction: options.transaction || null})
+              })
+          },
+          /**
+           *
+           * @param taxes
+           * @param options
+           * @returns {Promise.<T>}
+           */
+          removeTaxes: function(taxes, options){
+            taxes = taxes || []
+            options = options || {}
+
+            return this.resolveOrderItems({
+              transaction: options.transaction || null,
+              reload: options.reload || null
+            })
+              .then(() => {
+                const taxLines = this.tax_lines
+
+                if (_.isArray(taxes)) {
+                  taxes.forEach(tax => {
+                    const i = _.findIndex(taxLines, (s) => {
+                      return s.name === tax.name
+                    })
+                    if (i > -1) {
+                      taxLines.splice(i, 1)
+                    }
+                  })
+                }
+                else if (_.isObject(taxes)) {
+                  const i = _.findIndex(taxLines, (s) => {
+                    return s.name === taxes.name
+                  })
+                  if (i > -1) {
+                    taxLines.splice(i, 1)
+                  }
+                }
+                this.tax_lines = taxLines
+                return this.save({transaction: options.transaction || null})
+              })
+              .then(() => {
+                return this.recalculate({transaction: options.transaction || null})
+              })
+          },
           /**
            *
            * @param status
