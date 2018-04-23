@@ -5,6 +5,9 @@
 const Service = require('trails/service')
 const _ = require('lodash')
 const Errors = require('proxy-engine-errors')
+
+const CUSTOMER_STATE = require('../../lib/enums').CUSTOMER_STATE
+
 /**
  * @module CustomerService
  * @description Customer Service
@@ -1212,6 +1215,98 @@ module.exports = class CustomerService extends Service {
       .then(account => {
         source.account_id = account.id
         return this.app.services.AccountService.updateSource(account, source, updates)
+      })
+  }
+
+  /**
+   *
+   * @param customer
+   * @param options
+   * @returns {Promise}
+   */
+  enable(customer, options) {
+    options = options || {}
+    const Customer = this.app.orm['Customer']
+
+    if (!customer.id) {
+      const err = new Errors.FoundError(Error('Customer is missing id'))
+      return Promise.reject(err)
+    }
+
+    let resCustomer
+    return Customer.findByIdDefault(customer.id, options)
+      .then(_customer => {
+        if (!_customer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resCustomer = _customer
+        return resCustomer.update({state: CUSTOMER_STATE.ENABLED})
+      })
+      .then(customer => {
+        // return resCustomer.reload()
+        const event = {
+          object_id: resCustomer.id,
+          object: 'customer',
+          objects: [{
+            customer: resCustomer.id
+          }],
+          type: 'customer.enabled',
+          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } enabled`,
+          data: resCustomer
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
+      })
+      .then(event => {
+        return resCustomer
+      })
+  }
+
+  /**
+   *
+   * @param customer
+   * @param options
+   * @returns {Promise}
+   */
+  disable(customer, options) {
+    options = options || {}
+    const Customer = this.app.orm['Customer']
+
+    if (!customer.id) {
+      const err = new Errors.FoundError(Error('Customer is missing id'))
+      return Promise.reject(err)
+    }
+
+    let resCustomer
+    return Customer.findByIdDefault(customer.id, options)
+      .then(_customer => {
+        if (!_customer) {
+          throw new Errors.FoundError(Error('Customer not found'))
+        }
+        resCustomer = _customer
+        return resCustomer.update({state: CUSTOMER_STATE.DISABLED})
+      })
+      .then(customer => {
+        // return resCustomer.reload()
+        const event = {
+          object_id: resCustomer.id,
+          object: 'customer',
+          objects: [{
+            customer: resCustomer.id
+          }],
+          type: 'customer.disabled',
+          message: `Customer ${ resCustomer.email || 'ID ' + resCustomer.id } disabled`,
+          data: resCustomer
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
+      })
+      .then(event => {
+        return resCustomer
       })
   }
 

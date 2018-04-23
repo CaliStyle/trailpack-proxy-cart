@@ -2038,4 +2038,44 @@ module.exports = class CustomerController extends Controller {
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  enable(req, res){
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.enable(req.params.id)
+      .then(customer => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.removeTag', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  disable(req, res){
+    const CustomerService = this.app.services.CustomerService
+    CustomerService.disable(req.params.id)
+      .then(customer => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('CustomerController.removeTag', err)
+        return res.serverError(err)
+      })
+  }
 }
