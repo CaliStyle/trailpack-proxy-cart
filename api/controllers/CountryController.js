@@ -17,6 +17,7 @@ module.exports = class CountryController extends Controller {
   country(req, res) {
 
   }
+
   createCountry(req, res) {
     const CountryService = this.app.services.CountryService
     lib.Validator.validateCountry.createCountry(req.body)
@@ -90,6 +91,45 @@ module.exports = class CountryController extends Controller {
           as: 'provinces'
         }
       ]
+    })
+      .then(countries => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, countries.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, countries.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  countryProvinces(req, res) {
+    const countryId = this.req.params['id']
+    const Province  = this.app.orm['Province']
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!countryId) {
+      const err = new Error('A country id is required')
+      return res.send(401, err)
+    }
+
+    Province.findAndCount({
+      where: {
+        country_id: countryId
+      },
+      order: sort,
+      offset: offset,
+      limit: limit,
+      req: req
     })
       .then(countries => {
         // Paginate
