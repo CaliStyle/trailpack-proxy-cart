@@ -131,6 +131,9 @@ module.exports = class ProductCsvService extends Service {
               else if (k === 'title') {
                 upload[k] = this.app.services.ProxyCartService.title(data)
               }
+              else if (k === 'seo_title') {
+                upload[k] = this.app.services.ProxyCartService.title(data)
+              }
               else if (k === 'seo_description') {
                 upload[k] = this.app.services.ProxyCartService.description(data)
               }

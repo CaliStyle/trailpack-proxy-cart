@@ -410,6 +410,11 @@ module.exports = class ProductVariant extends Model {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
+      // Default currency of the variant
+      currency: {
+        type: Sequelize.STRING,
+        defaultValue: VARIANT_DEFAULTS.CURRENCY
+      },
       // The discounts applied to the product
       discounted_lines: helpers.JSONB('ProductVariant', app, Sequelize, 'discounted_lines', {
         defaultValue: []
@@ -419,10 +424,10 @@ module.exports = class ProductVariant extends Model {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
-      // Default currency of the variant
-      currency: {
-        type: Sequelize.STRING,
-        defaultValue: VARIANT_DEFAULTS.CURRENCY
+      // The total count of orders created with this product
+      total_orders: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       // The fulfillment generic that handles this request
       fulfillment_service: {

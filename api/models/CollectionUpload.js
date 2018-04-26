@@ -92,6 +92,14 @@ module.exports = class CollectionUpload extends Model {
       description: {
         type: Sequelize.STRING
       },
+      // 'SEO Title'
+      seo_title: {
+        type: Sequelize.STRING
+      },
+      // 'SEO Description'
+      seo_description: {
+        type: Sequelize.TEXT
+      },
       excerpt: {
         type: Sequelize.TEXT
       },
@@ -181,6 +189,10 @@ module.exports = class CollectionUpload extends Model {
         defaultValue: []
       }),
       discounts: helpers.JSONB('CollectionUpload', app, Sequelize, 'discounts', {
+        defaultValue: []
+      }),
+      // 'Tags'
+      tags: helpers.JSONB('CollectionUpload', app, Sequelize, 'tags', {
         defaultValue: []
       }),
       live_mode: {

@@ -423,6 +423,20 @@ module.exports = class Collection extends Model {
         }
         // unique: true
       },
+      // SEO title
+      seo_title: {
+        type: Sequelize.STRING,
+        set: function(val) {
+          this.setDataValue('seo_title', app.services.ProxyCartService.title(val))
+        }
+      },
+      // SEO description
+      seo_description: {
+        type: Sequelize.TEXT,
+        set: function(val) {
+          this.setDataValue('seo_description', app.services.ProxyCartService.description(val))
+        }
+      },
       // The purpose of the collection
       primary_purpose: {
         type: Sequelize.ENUM,

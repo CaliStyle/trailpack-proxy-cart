@@ -90,7 +90,8 @@ module.exports = class CollectionCsvService extends Service {
           upload_id: uploadID,
           options: {},
           images: [],
-          collections: []
+          collections: [],
+          tags: []
         }
 
         _.each(row, (data, key) => {
@@ -114,10 +115,16 @@ module.exports = class CollectionCsvService extends Service {
                 upload[k] = this.app.services.ProxyCartService.splitHandle(data.toString())
               }
               else if (k === 'title') {
-                upload[k] = data.toString().trim().substring(0,255)
+                upload[k] = this.app.services.ProxyCartService.title(data)
               }
               else if (k === 'description') {
-                upload[k] = data.toString().trim().substring(0,255)
+                upload[k] = this.app.services.ProxyCartService.description(data)
+              }
+              else if (k === 'seo_title') {
+                upload[k] = this.app.services.ProxyCartService.title(data)
+              }
+              else if (k === 'seo_description') {
+                upload[k] = this.app.services.ProxyCartService.description(data)
               }
               else if (k === 'discount_product_include') {
                 upload[k] = data.toString().split(',').map(discount => {
@@ -143,6 +150,11 @@ module.exports = class CollectionCsvService extends Service {
                 upload[k] = data.toString().split('|').map(images => {
                   return images.trim()
                 })
+              }
+              else if (k === 'tags') {
+                upload[k] = _.uniq(data.toString().split(',').map(tag => {
+                  return tag.toLowerCase().trim()
+                }))
               }
               else {
                 upload[k] = data
@@ -171,6 +183,19 @@ module.exports = class CollectionCsvService extends Service {
         upload.collections = upload.collections.filter(collection => collection)
         // Get only Unique handles
         upload.collections = _.uniqBy(upload.collections, 'handle')
+
+        // Map tags
+        upload.tags = upload.tags.map(tag => {
+          if (tag !== '') {
+            return {
+              name: this.app.services.ProxyCartService.name(tag)
+            }
+          }
+        })
+        // Filter out undefined tags
+        upload.tags = upload.tags.filter(tag => tag)
+        // Get only Unique names
+        upload.tags = _.uniqBy(upload.tags, 'name')
 
         // If not collection handle, resolve without doing anything or throwing an error
         if (!upload.handle) {
@@ -207,6 +232,8 @@ module.exports = class CollectionCsvService extends Service {
           handle: collection.handle,
           title: collection.title,
           description: collection.description,
+          seo_title: collection.seo_title,
+          seo_description: collection.seo_description,
           excerpt: collection.excerpt,
           body: collection.body,
           primary_purpose: collection.primary_purpose,

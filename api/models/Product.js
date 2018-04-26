@@ -1397,6 +1397,11 @@ module.exports = class Product extends Model {
         type: Sequelize.STRING,
         defaultValue: PRODUCT_DEFAULTS.CURRENCY
       },
+      // The total count of orders created with this product
+      total_orders: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
       // Discounts applied
       discounted_lines: helpers.JSONB('Product', app, Sequelize, 'discounted_lines', {
         defaultValue: PRODUCT_DEFAULTS.DISCOUNTED_LINES

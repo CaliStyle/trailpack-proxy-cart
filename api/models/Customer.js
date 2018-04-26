@@ -1050,6 +1050,11 @@ module.exports = class Customer extends Model {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
+      // The total count of orders created
+      total_orders: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
       // The amount the customer has as a credit on their account
       account_balance: {
         type: Sequelize.INTEGER,
