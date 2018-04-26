@@ -4,6 +4,7 @@
 const Controller = require('trails/controller')
 const lib = require('../../lib')
 const Errors = require('proxy-engine-errors')
+const _ = require('lodash')
 
 /**
  * @module DiscountController
@@ -93,6 +94,52 @@ module.exports = class DiscountController extends Controller {
       where: where
     })
       .then(discounts => {
+        this.app.services.ProxyEngineService.paginate(res, discounts.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, discounts.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  search(req, res) {
+    const orm = this.app.orm
+    const Discount = orm['Discount']
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['name', 'ASC']]
+    const term = req.query.term
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
+    const defaults = _.defaults(where, {
+      $or: [
+        {
+          name: {
+            $iLike: `%${term}%`
+          },
+          code: {
+            $iLike: `%${term}%`
+          }
+        }
+      ]
+    })
+    // console.log('DiscountController.search', term)
+    Discount.findAndCount({
+      where: defaults,
+      order: sort,
+      offset: offset,
+      req: req,
+      limit: limit
+    })
+      .then(discounts => {
+        // Paginate
         this.app.services.ProxyEngineService.paginate(res, discounts.count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, discounts.rows)
       })

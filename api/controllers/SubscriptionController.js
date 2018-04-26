@@ -3,6 +3,7 @@
 const Controller = require('trails/controller')
 const Errors = require('proxy-engine-errors')
 const lib = require('../../lib')
+const _ = require('lodash')
 
 /**
  * @module SubscriptionController
@@ -133,6 +134,54 @@ module.exports = class SubscriptionController extends Controller {
       offset: offset,
       limit: limit,
       where: where
+    })
+      .then(subscriptions => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, subscriptions.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, subscriptions.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  search(req, res) {
+    const orm = this.app.orm
+    const Subscription = orm['Subscription']
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+    const term = req.query.term
+    const where = this.app.services.ProxyEngineService.jsonCritera(req.query.where)
+    const defaults = _.defaults(where, {
+      $or: [
+        {
+          token: {
+            $iLike: `%${term}%`
+          }
+        },
+        {
+          email: {
+            $iLike: `%${term}%`
+          }
+        }
+      ]
+    })
+    // console.log('SubscriptionController.search', term)
+    Subscription.findAndCountDefault({
+      where: defaults,
+      subscription: sort,
+      offset: offset,
+      req: req,
+      limit: limit
     })
       .then(subscriptions => {
         // Paginate

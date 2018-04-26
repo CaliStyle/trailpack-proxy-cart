@@ -115,6 +115,87 @@ module.exports = class VendorController extends Controller {
    * @param req
    * @param res
    */
+  products(req, res) {
+    const Product = this.app.orm['Product']
+    const vendorId = req.params.id
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    if (!vendorId) {
+      const err = new Error('A vendor id is required')
+      return res.send(401, err)
+    }
+
+    // const Vendor = this.app.orm['Vendor']
+    const VendorProduct = this.app.orm['VendorProduct']
+
+    let count = 0
+
+    VendorProduct.findAndCount({
+      where: {
+        vendor_id: vendorId
+      },
+      attributes: ['product_id'],
+      limit: limit,
+      offset: offset
+    })
+      .then(arr => {
+        count = arr.count
+        const productIds = arr.rows.map(model => model.product_id)
+        return Product.findAllDefault({
+          where: {
+            id: productIds
+          },
+          req: req
+        })
+      })
+      .then(products => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, products)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+
+    // Product.findAndCount({
+    //   include: [
+    //     {
+    //       model: this.app.orm['Vendor'],
+    //       as: 'vendors',
+    //       required: true,
+    //       where: {
+    //         id: vendorId
+    //       }
+    //     }
+    //   ],
+    //   order: sort,
+    //   offset: offset,
+    //   limit: limit
+    // })
+    //   .then(products => {
+    //     console.log('BROKE PRODUCTS', products)
+    //     // Paginate
+    //     this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
+    //     return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
+    //   })
+    //   .then(result => {
+    //     return res.json(result)
+    //   })
+    //   .catch(err => {
+    //     return res.serverError(err)
+    //   })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   processUpload(req, res) {
     const VendorCsvService = this.app.services.VendorCsvService
     VendorCsvService.processVendorUpload(req.params.id)
