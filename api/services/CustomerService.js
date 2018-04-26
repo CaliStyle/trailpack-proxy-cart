@@ -1228,13 +1228,8 @@ module.exports = class CustomerService extends Service {
     options = options || {}
     const Customer = this.app.orm['Customer']
 
-    if (!customer.id) {
-      const err = new Errors.FoundError(Error('Customer is missing id'))
-      return Promise.reject(err)
-    }
-
     let resCustomer
-    return Customer.findByIdDefault(customer.id, options)
+    return Customer.resolve(customer, options)
       .then(_customer => {
         if (!_customer) {
           throw new Errors.FoundError(Error('Customer not found'))
@@ -1274,13 +1269,8 @@ module.exports = class CustomerService extends Service {
     options = options || {}
     const Customer = this.app.orm['Customer']
 
-    if (!customer.id) {
-      const err = new Errors.FoundError(Error('Customer is missing id'))
-      return Promise.reject(err)
-    }
-
     let resCustomer
-    return Customer.findByIdDefault(customer.id, options)
+    return Customer.resolve(customer, options)
       .then(_customer => {
         if (!_customer) {
           throw new Errors.FoundError(Error('Customer not found'))

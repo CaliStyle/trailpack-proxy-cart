@@ -1209,6 +1209,69 @@ module.exports = class OrderService extends Service {
 
   /**
    *
+   * @param overrides
+   * @param id
+   * @param admin
+   * @param options
+   * @returns {Promise}
+   */
+  pricingOverrides(overrides, id, admin, options){
+    options = options || {}
+    const Order = this.app.orm['Order']
+    // Standardize the input
+    if (_.isObject(overrides) && overrides.pricing_overrides){
+      overrides = overrides.pricing_overrides
+    }
+    overrides = overrides.map(override => {
+      // Add the admin id to the override
+      override.admin_id = override.admin_id ? override.admin_id : admin.id
+      // Make sure price is a number
+      override.price = this.app.services.ProxyOrderService.normalizeCurrency(parseInt(override.price))
+      return override
+    })
+    let resOrder
+    return Order.resolve(id, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Error('Order could not be resolved')
+        }
+        if ([ORDER_STATUS.OPEN, ORDER_STATUS.DRAFT].indexOf(_order.status) === -1) {
+          throw new Error(`Order is already ${_order.status}`)
+        }
+
+        resOrder = _order
+        resOrder.pricing_overrides = overrides
+        resOrder.pricing_override_id = admin.id
+
+        return resOrder.save({transaction: options.transaction || null})
+      })
+      .then(createdItem => {
+        return resOrder.recalculate({ transaction: options.transaction || null })
+      })
+      .then(() => {
+        // Track Event
+        const event = {
+          object_id: resOrder.id,
+          object: 'order',
+          objects: [{
+            order: resOrder.id
+          }],
+          type: 'order.pricingOverride',
+          message: `Order ${resOrder.name} pricing overrides updated`,
+          data: resOrder
+        }
+        return this.app.services.ProxyEngineService.publish(event.type, event, {
+          save: true,
+          transaction: options.transaction || null
+        })
+      })
+      .then(event => {
+        return resOrder //Order.findByIdDefault(resOrder.id)
+      })
+  }
+
+  /**
+   *
    * @param order
    * @param item
    * @param options

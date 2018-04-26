@@ -623,6 +623,42 @@ module.exports = class OrderController extends Controller {
   }
 
   /**
+   * ADMIN ONLY FEATURE
+   * @param req
+   * @param res
+   */
+  pricingOverrides(req, res) {
+    const OrderService = this.app.services.OrderService
+    let id = req.params.id
+
+    if (!id && req.body.id) {
+      id = req.body.id
+    }
+
+    if (!id && req.order) {
+      id = req.order.id
+    }
+
+    lib.Validator.validateOrder.pricingOverrides(req.body)
+      .then(values => {
+        return OrderService.pricingOverrides(req.body, id, req.user)
+      })
+      .then(order => {
+        if (!order) {
+          throw new Error('Unexpected Error while overriding prices')
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        // console.log('ProductController.removeItemsFromOrder', err)
+        return res.serverError(err)
+      })
+  }
+
+  /**
    *
    * @param req
    * @param res
