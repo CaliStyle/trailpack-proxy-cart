@@ -1436,6 +1436,7 @@ module.exports = class Cart extends Model {
                     })
                 }
                 else {
+
                   return this.shipping_address
                     .merge(shippingUpdate)
                     .save({transaction: options.transaction || null})
