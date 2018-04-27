@@ -237,6 +237,7 @@ module.exports = class OrderService extends Service {
             total_items: obj.total_items,
             shop_id: obj.shop_id || null,
             has_shipping: obj.has_shipping,
+            has_taxes: obj.has_taxes,
             has_subscription: obj.has_subscription,
             email: obj.email || resCustomer.email || null,
 
@@ -408,18 +409,38 @@ module.exports = class OrderService extends Service {
         if ([FULFILLMENT_STATUS.PENDING, FULFILLMENT_STATUS.NONE, FULFILLMENT_STATUS.SENT].indexOf(resOrder.fulfillment_status) === -1 || resOrder.cancelled_at) {
           throw new Error(`${order.name} can not be updated as it is already being fulfilled`)
         }
+
         if (order.billing_address) {
           resOrder.billing_address = _.extend(resOrder.billing_address, order.billing_address)
           resOrder.billing_address = this.app.services.ProxyCartService.validateAddress(resOrder.billing_address)
+          return this.app.services.GeolocationGenericService.locate(resOrder.billing_address)
+            .then(latLng => {
+              resOrder.billing_address = _.defaults(resOrder.billing_address, latLng)
+            })
+            .catch(err => {
+              return
+            })
         }
+        return
+      })
+      .then(() => {
         if (order.shipping_address) {
           resOrder.shipping_address = _.extend(resOrder.shipping_address, order.shipping_address)
           resOrder.shipping_address = this.app.services.ProxyCartService.validateAddress(resOrder.shipping_address)
+          return this.app.services.GeolocationGenericService.locate(resOrder.shipping_address)
+            .then(latLng => {
+              resOrder.shipping_address = _.defaults(resOrder.shipping_address, latLng)
+            })
+            .catch(err => {
+              return
+            })
         }
+        return
+      })
+      .then(() => {
         if (order.buyer_accepts_marketing) {
           resOrder.buyer_accepts_marketing = order.buyer_accepts_marketing
         }
-
         return resOrder.save({transaction: options.transaction || null})
       })
 
@@ -1798,7 +1819,7 @@ module.exports = class OrderService extends Service {
       .then(() => {
         return {
           order: resOrder,
-          transactions: [resTransaction]
+          transaction: resTransaction
         }
       })
   }
@@ -1832,7 +1853,7 @@ module.exports = class OrderService extends Service {
       .then(() => {
         return {
           order: resOrder,
-          transactions: [resTransaction]
+          transaction: resTransaction
         }
       })
   }
@@ -1866,7 +1887,7 @@ module.exports = class OrderService extends Service {
       .then(() => {
         return {
           order: resOrder,
-          transactions: [resTransaction]
+          transaction: resTransaction
         }
       })
   }
@@ -1900,7 +1921,7 @@ module.exports = class OrderService extends Service {
       .then(() => {
         return {
           order: resOrder,
-          transactions: [resTransaction]
+          transaction: resTransaction
         }
       })
   }
@@ -1934,7 +1955,7 @@ module.exports = class OrderService extends Service {
       .then(() => {
         return {
           order: resOrder,
-          transactions: [resTransaction]
+          transaction: resTransaction
         }
       })
   }
@@ -1968,7 +1989,7 @@ module.exports = class OrderService extends Service {
       .then(() => {
         return {
           order: resOrder,
-          transactions: [resTransaction]
+          transaction: resTransaction
         }
       })
   }
@@ -2001,7 +2022,7 @@ module.exports = class OrderService extends Service {
       .then(() => {
         return {
           order: resOrder,
-          transactions: [resTransaction]
+          transaction: resTransaction
         }
       })
   }
@@ -2024,7 +2045,7 @@ module.exports = class OrderService extends Service {
           throw new Errors.FoundError(Error('Order not found'))
         }
         resOrder = _order
-        return this.app.services.FulfillmentService.update(fulfillment, {transaction: options.transaction || null})
+        return this.app.services.FulfillmentService.manualUpdateFulfillment(fulfillment, {transaction: options.transaction || null})
       })
       .then(_fulfillment => {
         if (!_fulfillment) {
@@ -2036,7 +2057,7 @@ module.exports = class OrderService extends Service {
       .then(() => {
         return {
           order: resOrder,
-          fulfillments: [resFulfillment]
+          fulfillment: resFulfillment
         }
       })
   }

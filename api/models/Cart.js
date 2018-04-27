@@ -293,17 +293,12 @@ module.exports = class Cart extends Model {
             this.total_items = 0
             this.subtotal_price = 0
             this.total_line_items_price = 0
-
+            this.has_shipping = this.line_items.some(item => item.requires_shipping)
+            this.has_taxes = this.line_items.some(item => item.requires_taxes)
             this.line_items.forEach(item => {
               // Check if at least one time requires shipping
               if (item.requires_shipping) {
                 this.total_weight = this.total_weight + item.grams
-                this.has_shipping = true
-              }
-
-              // Check if at least one item requires taxes
-              if (item.requires_taxes) {
-                this.has_taxes = true
               }
 
               // Check if at least one item requires subscription

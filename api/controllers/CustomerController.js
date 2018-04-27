@@ -640,6 +640,50 @@ module.exports = class CustomerController extends Controller {
    * @param req
    * @param res
    */
+  accountSources(req, res) {
+    const Source = this.app.orm['Source']
+    let customerId = req.params.id
+    const accountId = req.params.account
+
+    if (!customerId && req.user) {
+      customerId = req.user.current_customer_id
+    }
+    if (!customerId && !req.user) {
+      const err = new Error('A customer id and a user in session are required')
+      return res.send(401, err)
+    }
+
+    const limit = Math.max(0,req.query.limit || 10)
+    const offset = Math.max(0, req.query.offset || 0)
+    const sort = req.query.sort || [['created_at', 'DESC']]
+
+    Source.findAndCount({
+      order: sort,
+      where: {
+        customer_id: customerId,
+        account_id: accountId
+      },
+      offset: offset,
+      limit: limit
+    })
+      .then(sources => {
+        // Paginate
+        this.app.services.ProxyEngineService.paginate(res, sources.count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, sources.rows)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   order(req, res) {
     const Order = this.app.orm['Order']
     const orderId = req.params.order

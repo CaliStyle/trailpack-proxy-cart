@@ -410,6 +410,33 @@ module.exports = class FulfillmentService extends Service {
       })
   }
 
+  /**
+   *
+   * @param fulfillment
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  manualUpdateFulfillment(fulfillment, options) {
+    options = options || {}
+    const Fulfillment = this.app.orm['Fulfillment']
+    let resFulfillment
+    return Fulfillment.resolve(fulfillment, {transaction: options.transaction || null})
+      .then(_fulfillment => {
+        if (!_fulfillment) {
+          throw new Error('Fulfillment not found')
+        }
+        resFulfillment = _fulfillment
+
+        return resFulfillment.fulfillUpdate(
+          fulfillment,
+          {transaction: options.transaction || null}
+        )
+      })
+      .then(() => {
+        return resFulfillment.save({transaction: options.transaction || null})
+      })
+  }
+
   beforeCreate(fulfillment, options){
     return Promise.resolve(fulfillment)
   }

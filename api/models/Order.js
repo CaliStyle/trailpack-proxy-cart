@@ -1809,6 +1809,9 @@ module.exports = class Order extends Model {
                   totalItems = totalItems + item.quantity
                 })
 
+                this.has_shipping = this.order_items.some(item => item.requires_shipping)
+                this.has_taxes = this.order_items.some(item => item.requires_taxes)
+
                 // Set the Total Items
                 this.total_items = totalItems
 
