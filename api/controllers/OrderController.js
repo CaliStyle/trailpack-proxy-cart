@@ -859,6 +859,173 @@ module.exports = class OrderController extends Controller {
    * @param req
    * @param res
    */
+  authorizeTransaction(req, res) {
+    const id = req.params.id
+    const transaction = req.params.transaction
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateTransaction.authorize(req.body)
+      .then(values => {
+        return OrderService.authorizeTransaction(id, transaction)
+      })
+      .then(orderAndTransactions => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndTransactions)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  captureTransaction(req, res) {
+    const id = req.params.id
+    const transaction = req.params.transaction
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateTransaction.capture(req.body)
+      .then(values => {
+        return OrderService.captureTransaction(id, transaction)
+      })
+      .then(orderAndTransactions => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndTransactions)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  payTransaction(req, res) {
+    const id = req.params.id
+    const transaction = req.params.transaction
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateTransaction.sale(req.body)
+      .then(values => {
+        return OrderService.payTransaction(id, transaction)
+      })
+      .then(orderAndTransactions => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndTransactions)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  voidTransaction(req, res) {
+    const id = req.params.id
+    const transaction = req.params.transaction
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateTransaction.void(req.body)
+      .then(values => {
+        return OrderService.voidTransaction(id, transaction)
+      })
+      .then(orderAndTransactions => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndTransactions)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  refundTransaction(req, res) {
+    const id = req.params.id
+    const transaction = req.params.transaction
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateTransaction.refund(req.body)
+      .then(values => {
+        return OrderService.refundTransaction(id, transaction)
+      })
+      .then(orderAndTransactions => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndTransactions)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  retryTransaction(req, res) {
+    const id = req.params.id
+    const transaction = req.params.transaction
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateTransaction.retry(req.body)
+      .then(values => {
+        return OrderService.retryTransaction(id, transaction)
+      })
+      .then(orderAndTransactions => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndTransactions)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  cancelTransaction(req, res) {
+    const id = req.params.id
+    const transaction = req.params.transaction
+    const OrderService = this.app.services.OrderService
+    lib.Validator.validateTransaction.cancel(req.body)
+      .then(values => {
+        return OrderService.cancelTransaction(id, transaction)
+      })
+      .then(orderAndTransactions => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndTransactions)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   fulfill(req, res) {
     const OrderService = this.app.services.OrderService
     lib.Validator.validateOrder.fulfill(req.body)
@@ -867,6 +1034,26 @@ module.exports = class OrderController extends Controller {
       })
       .then(order => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, order)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  updateFulfillment(req, res) {
+    const OrderService = this.app.services.OrderService
+
+    OrderService.updateFulfillment(req.params.id, req.params.fulfillment)
+      .then(orderAndFulfillments => {
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndFulfillments)
       })
       .then(result => {
         return res.json(result)

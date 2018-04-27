@@ -1768,6 +1768,279 @@ module.exports = class OrderService extends Service {
       })
   }
 
+
+  /**
+   * @param order
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  authorizeTransaction(order, transaction, options) {
+    options = options || {}
+
+    const Order = this.app.orm['Order']
+    let resOrder, resTransaction
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = _order
+        return this.app.services.TransactionService.authorize(transaction, {transaction: options.transaction || null})
+      })
+      .then(_transaction => {
+        if (!_transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        resTransaction = _transaction
+        return resOrder.reload({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return {
+          order: resOrder,
+          transactions: [resTransaction]
+        }
+      })
+  }
+
+  /**
+   * @param order
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  captureTransaction(order, transaction, options) {
+    options = options || {}
+
+    const Order = this.app.orm['Order']
+    let resOrder, resTransaction
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = _order
+        return this.app.services.TransactionService.capture(transaction, {transaction: options.transaction || null})
+      })
+      .then(_transaction => {
+        if (!_transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        resTransaction = _transaction
+        return resOrder.reload({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return {
+          order: resOrder,
+          transactions: [resTransaction]
+        }
+      })
+  }
+
+  /**
+   * @param order
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  payTransaction(order, transaction, options) {
+    options = options || {}
+
+    const Order = this.app.orm['Order']
+    let resOrder, resTransaction
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = _order
+        return this.app.services.TransactionService.sale(transaction, {transaction: options.transaction || null})
+      })
+      .then(_transaction => {
+        if (!_transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        resTransaction = _transaction
+        return resOrder.reload({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return {
+          order: resOrder,
+          transactions: [resTransaction]
+        }
+      })
+  }
+
+  /**
+   * @param order
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  refundTransaction(order, transaction, options) {
+    options = options || {}
+
+    const Order = this.app.orm['Order']
+    let resOrder, resTransaction
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = _order
+        return this.app.services.TransactionService.refund(transaction, {transaction: options.transaction || null})
+      })
+      .then(_transaction => {
+        if (!_transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        resTransaction = _transaction
+        return resOrder.reload({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return {
+          order: resOrder,
+          transactions: [resTransaction]
+        }
+      })
+  }
+
+  /**
+   * @param order
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  retryTransaction(order, transaction, options) {
+    options = options || {}
+
+    const Order = this.app.orm['Order']
+    let resOrder, resTransaction
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = _order
+        return this.app.services.TransactionService.retry(transaction, {transaction: options.transaction || null})
+      })
+      .then(_transaction => {
+        if (!_transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        resTransaction = _transaction
+        return resOrder.reload({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return {
+          order: resOrder,
+          transactions: [resTransaction]
+        }
+      })
+  }
+
+  /**
+   * @param order
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  cancelTransaction(order, transaction, options) {
+    options = options || {}
+
+    const Order = this.app.orm['Order']
+    let resOrder, resTransaction
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = _order
+        return this.app.services.TransactionService.cancel(transaction, {transaction: options.transaction || null})
+      })
+      .then(_transaction => {
+        if (!_transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        resTransaction = _transaction
+        return resOrder.reload({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return {
+          order: resOrder,
+          transactions: [resTransaction]
+        }
+      })
+  }
+  /**
+   * @param order
+   * @param transaction
+   * @param options
+   * @returns {Promise.<transaction>}
+   */
+  voidTransaction(order, transaction, options) {
+    options = options || {}
+
+    const Order = this.app.orm['Order']
+    let resOrder, resTransaction
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = _order
+        return this.app.services.TransactionService.void(transaction, {transaction: options.transaction || null})
+      })
+      .then(_transaction => {
+        if (!_transaction) {
+          throw new Errors.FoundError(Error('Transaction not found'))
+        }
+        resTransaction = _transaction
+        return resOrder.reload({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return {
+          order: resOrder,
+          transactions: [resTransaction]
+        }
+      })
+  }
+
+
+  /**
+   * @param order
+   * @param fulfillment
+   * @param options
+   * @returns {Promise.<fulfillment>}
+   */
+  updateFulfillment(order, fulfillment, options) {
+    options = options || {}
+
+    const Order = this.app.orm['Order']
+    let resOrder, resFulfillment
+    return Order.resolve(order, {transaction: options.transaction || null})
+      .then(_order => {
+        if (!_order) {
+          throw new Errors.FoundError(Error('Order not found'))
+        }
+        resOrder = _order
+        return this.app.services.FulfillmentService.update(fulfillment, {transaction: options.transaction || null})
+      })
+      .then(_fulfillment => {
+        if (!_fulfillment) {
+          throw new Errors.FoundError(Error('Fulfillment not found'))
+        }
+        resFulfillment = _fulfillment
+        return resOrder.reload({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return {
+          order: resOrder,
+          fulfillments: [resFulfillment]
+        }
+      })
+  }
+
   retryThisHour() {
     //
 
