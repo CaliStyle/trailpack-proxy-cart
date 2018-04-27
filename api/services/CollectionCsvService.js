@@ -256,7 +256,8 @@ module.exports = class CollectionCsvService extends Service {
           discount_product_include: collection.discount_product_include,
           discount_product_exclude: collection.discount_product_exclude,
           collections: collection.collections,
-          images: collection.images
+          images: collection.images,
+          tags: collection.tags
         }
         return this.app.services.CollectionService.add(create, {transaction: options.transaction || null})
           .then((createdCollection) => {

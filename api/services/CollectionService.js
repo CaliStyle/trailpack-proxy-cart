@@ -47,6 +47,7 @@ module.exports = class CollectionService extends Service {
     const Collection =  this.app.orm['Collection']
     const Image =  this.app.orm['Image']
     const Discount = this.app.orm['Discount']
+    const Tag = this.app.orm['Tag']
     let discounts = []
 
     let resCollection
@@ -62,7 +63,8 @@ module.exports = class CollectionService extends Service {
       'discount_product_exclude',
       'discount_product_include',
       'discount_rate',
-      'discount_percentage'
+      'discount_percentage',
+      'tags'
     ])
     if (collection.discount_type && collection.discount_type) {
       discounts.push({
@@ -126,11 +128,26 @@ module.exports = class CollectionService extends Service {
       })
       .then(discounts => {
         if (discounts && discounts.length > 0) {
-          return resCollection.setDiscounts(discounts.map( d => d.id), {transaction: options.transaction || null})
+          return resCollection.setDiscounts(discounts.map(d => d.id), {transaction: options.transaction || null})
         }
         return
       })
-      .then(() => {
+      .then(discounts => {
+        // console.log('createdCollection',createdCollection)
+        if (collection.tags && collection.tags.length > 0) {
+          collection.tags = _.sortedUniq(collection.tags.filter(n => n))
+          return Tag.transformTags(collection.tags, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(tags => {
+        if (tags && tags.length > 0) {
+          // Add Tags
+          return resCollection.setTags(tags.map(tag => tag.id), {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(tags => {
         return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
@@ -144,13 +161,14 @@ module.exports = class CollectionService extends Service {
     options = options || {}
     const Collection =  this.app.orm['Collection']
     const Image =  this.app.orm['Image']
+    const Tag =  this.app.orm['Tag']
 
     if (!collection.id) {
       const err = new Errors.FoundError(Error('Collection is missing id'))
       return Promise.reject(err)
     }
 
-    const update = _.omit(collection,['id','created_at','updated_at','collections','images'])
+    const update = _.omit(collection,['id','created_at','updated_at','collections','images', 'tags'])
 
     let resCollection
     return Collection.resolve(collection, {transaction: options.transaction || null})
@@ -195,6 +213,21 @@ module.exports = class CollectionService extends Service {
               transaction: options.transaction || null
             })
           })
+        }
+        return
+      })
+      .then(images => {
+        // console.log('createdCollection',createdCollection)
+        if (collection.tags && collection.tags.length > 0) {
+          collection.tags = _.sortedUniq(collection.tags.filter(n => n))
+          return Tag.transformTags(collection.tags, {transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(tags => {
+        if (tags && tags.length > 0) {
+          // Add Tags
+          return resCollection.setTags(tags.map(tag => tag.id), {transaction: options.transaction || null})
         }
         return
       })

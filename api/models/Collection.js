@@ -70,6 +70,7 @@ module.exports = class Collection extends Model {
            * @param models
            */
           associate: (models) => {
+            // Product Assoc
             models.Collection.belongsToMany(models.Product, {
               as: 'products',
               through: {
@@ -84,45 +85,7 @@ module.exports = class Collection extends Model {
               otherKey: 'model_id',
               constraints: false
             })
-            models.Collection.belongsToMany(models.Customer, {
-              as: 'customers',
-              through: {
-                model: models.ItemCollection,
-                unique: false,
-                scope: {
-                  model: 'customer'
-                },
-                constraints: false
-              },
-              foreignKey: 'collection_id',
-              otherKey: 'model_id',
-              constraints: false
-            })
-            models.Collection.belongsToMany(models.Discount, {
-              as: 'discounts',
-              through: {
-                model: models.ItemDiscount,
-                unique: false,
-                scope: {
-                  model: 'collection'
-                }
-              },
-              foreignKey: 'model_id',
-              constraints: false
-            })
-            models.Collection.belongsToMany(models.Tag, {
-              as: 'tags',
-              through: {
-                model: models.ItemTag,
-                unique: false,
-                scope: {
-                  model: 'collection'
-                }
-              },
-              foreignKey: 'model_id',
-              otherKey: 'tag_id',
-              constraints: false
-            })
+            // Collection Assoc
             models.Collection.belongsToMany(models.Collection, {
               as: 'collections',
               through: {
@@ -137,6 +100,35 @@ module.exports = class Collection extends Model {
               otherKey: 'collection_id',
               constraints: false
             })
+            // Customer Assoc
+            models.Collection.belongsToMany(models.Customer, {
+              as: 'customers',
+              through: {
+                model: models.ItemCollection,
+                unique: false,
+                scope: {
+                  model: 'customer'
+                },
+                constraints: false
+              },
+              foreignKey: 'collection_id',
+              otherKey: 'model_id',
+              constraints: false
+            })
+            // Discount Assoc
+            models.Collection.belongsToMany(models.Discount, {
+              as: 'discounts',
+              through: {
+                model: models.ItemDiscount,
+                unique: false,
+                scope: {
+                  model: 'collection'
+                }
+              },
+              foreignKey: 'model_id',
+              constraints: false
+            })
+            // Images Assoc
             models.Collection.belongsToMany(models.Image, {
               as: 'images',
               through: {
@@ -150,9 +142,23 @@ module.exports = class Collection extends Model {
               foreignKey: 'model_id',
               constraints: false
             })
+            // Metadata Assoc
             models.Collection.hasOne(models.Metadata, {
               as: 'metadata',
               foreignKey: 'collection_id'
+            })
+            models.Collection.belongsToMany(models.Tag, {
+              as: 'tags',
+              through: {
+                model: models.ItemTag,
+                unique: false,
+                scope: {
+                  model: 'collection'
+                }
+              },
+              foreignKey: 'model_id',
+              otherKey: 'tag_id',
+              constraints: false
             })
           },
           findByIdDefault: function(id, options) {
@@ -353,6 +359,38 @@ module.exports = class Collection extends Model {
           }
         },
         instanceMethods: {
+          /**
+           * TODO, this should likely be done with a view
+           * Format return data
+           * Converts tags to array of strings
+           * Returns only metadata data
+           */
+          toJSON: function() {
+            // Make JSON
+            const resp = this instanceof app.orm['Collection'] ? this.get({ plain: true }) : this
+            // Set Defaults
+            // resp.calculated_price = resp.price
+
+            // Transform Tags to array on toJSON
+            if (resp.tags) {
+              // console.log(resp.tags)
+              resp.tags = resp.tags.map(tag => {
+                if (tag && _.isString(tag)) {
+                  return tag
+                }
+                else if (tag && tag.name && tag.name !== '') {
+                  return tag.name
+                }
+              })
+            }
+            // Transform Metadata to plain on toJSON
+            if (resp.metadata) {
+              if (typeof resp.metadata.data !== 'undefined') {
+                resp.metadata = resp.metadata.data
+              }
+            }
+            return resp
+          },
           /**
            *
            * @param options

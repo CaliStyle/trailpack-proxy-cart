@@ -24,6 +24,12 @@ module.exports = {
           attributes: {
             exclude: ['src','created_at','updated_at']
           }
+        },
+        {
+          model: app.orm['Tag'],
+          as: 'tags',
+          attributes: ['name', 'id'],
+          order: [['name', 'ASC']]
         }
       ]
       // order: [

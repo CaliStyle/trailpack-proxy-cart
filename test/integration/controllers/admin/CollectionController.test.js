@@ -127,6 +127,17 @@ describe('Admin User CollectionController', () => {
       })
   })
   // TODO complete test
+  it('should remove tag to collection', (done) => {
+    adminUser
+      .post(`/collection/${collectionID}/removeTag/test`)
+      .send()
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, collectionID)
+        done(err)
+      })
+  })
+  // TODO complete test
   it('should list tags of a collection', (done) => {
     adminUser
       .get(`/collection/${collectionID}/tags`)

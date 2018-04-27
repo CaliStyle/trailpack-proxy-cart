@@ -81,7 +81,7 @@ module.exports = class ProductService extends Service {
   }
   /**
    * Add Multiple Products
-   * @param products
+   * @param items
    * @param options
    * @returns {Promise.<*>}
    */
