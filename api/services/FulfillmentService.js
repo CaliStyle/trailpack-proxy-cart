@@ -426,13 +426,14 @@ module.exports = class FulfillmentService extends Service {
           throw new Error('Fulfillment not found')
         }
         resFulfillment = _fulfillment
-
+        // console.log('BROKE manualUpdateFulfillment', fulfillment)
         return resFulfillment.fulfillUpdate(
           fulfillment,
           {transaction: options.transaction || null}
         )
       })
-      .then(() => {
+      .then((_update) => {
+        // console.log('BROKE', _update)
         return resFulfillment.save({transaction: options.transaction || null})
       })
   }

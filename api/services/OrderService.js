@@ -2034,9 +2034,9 @@ module.exports = class OrderService extends Service {
    * @param options
    * @returns {Promise.<fulfillment>}
    */
-  updateFulfillment(order, fulfillment, options) {
+  manualUpdateFulfillment(order, fulfillment, options) {
     options = options || {}
-
+    // console.log('BROKE OrderService.manualUpdateFulfillment', fulfillment)
     const Order = this.app.orm['Order']
     let resOrder, resFulfillment
     return Order.resolve(order, {transaction: options.transaction || null})

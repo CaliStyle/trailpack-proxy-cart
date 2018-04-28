@@ -1050,8 +1050,10 @@ module.exports = class OrderController extends Controller {
    */
   updateFulfillment(req, res) {
     const OrderService = this.app.services.OrderService
+    const fulfillment = req.body
+    fulfillment.id = req.params.fulfillment
 
-    OrderService.updateFulfillment(req.params.id, req.params.fulfillment)
+    OrderService.manualUpdateFulfillment(req.params.id, fulfillment)
       .then(orderAndFulfillments => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, orderAndFulfillments)
       })

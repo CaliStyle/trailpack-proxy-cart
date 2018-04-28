@@ -777,4 +777,110 @@ describe('Admin User OrderController', () => {
         done(err)
       })
   })
+
+  it('should add item to a new cart', (done) => {
+    adminUser
+      .post('/cart')
+      .send({
+        customer_id: 1,
+        line_items: [
+          {
+            product_id: shopProducts[1].id
+          }
+        ]
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+        assert.ok(res.body.token)
+        cartID = res.body.id
+        cartToken = res.body.token
+        done(err)
+      })
+  })
+  it('should create an order', (done) => {
+    adminUser
+      .post('/order')
+      .send({
+        shipping_address: {
+          first_name: 'Scott',
+          last_name: 'Wyatt',
+          address_1: '1 Infinite Loop',
+          city: 'Cupertino',
+          province: 'California',
+          country: 'United States',
+          postal_code: '95014'
+        },
+        cart_token: cartToken,
+        email: 'example@example.com',
+        payment_kind: 'immediate',
+        payment_details: [
+          {
+            gateway: 'payment_processor',
+            gateway_token: '123'
+          }
+        ]
+      })
+      .expect(200)
+      .end((err, res) => {
+        orderID = res.body.id
+        assert.ok(res.body.id)
+        assert.equal(res.body.cart_token, cartToken)
+        assert.equal(res.body.email, 'example@example.com')
+        // Shipping
+        assert.equal(res.body.shipping_address.first_name, 'Scott')
+        assert.equal(res.body.shipping_address.last_name, 'Wyatt')
+        assert.equal(res.body.shipping_address.address_1, '1 Infinite Loop')
+        assert.equal(res.body.shipping_address.city, 'Cupertino')
+        assert.equal(res.body.shipping_address.province, 'California')
+        assert.equal(res.body.shipping_address.province_code, 'CA')
+        assert.equal(res.body.shipping_address.country_code, 'US')
+        assert.equal(res.body.shipping_address.country, 'United States')
+        assert.equal(res.body.shipping_address.postal_code, '95014')
+        assert.equal(res.body.total_items, 1)
+        // Transactions
+        assert.equal(res.body.transactions.length, 1)
+        assert.equal(res.body.transactions[0].order_id, orderID)
+
+        // Fulfillments
+        // Defaults to not immediately fulfilled: fulfillment_status: none
+        assert.ok(res.body.order_items[0].fulfillment_id)
+        assert.equal(res.body.order_items[0].fulfillment_status, 'pending')
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'pending')
+        assert.equal(res.body.fulfillment_status, 'pending')
+        assert.equal(res.body.total_pending_fulfillments, 1)
+        fulfillmentID = res.body.fulfillments[0].id
+
+        assert.equal(res.body.financial_status, 'authorized')
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 100000)
+        assert.equal(res.body.total_authorized, 100000)
+        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_items, 1)
+
+        done(err)
+      })
+  })
+  it('should update order fulfillment', (done) => {
+    adminUser
+      .put(`/order/${orderID}/fulfillment/${fulfillmentID}`)
+      .send({
+        status: 'sent',
+        status_url: 'test',
+        tracking_company: 'test',
+        tracking_number: '123'
+      })
+      .expect(200)
+      .end((err, res) => {
+        // console.log('BROKE MANUAL FULFILLMENT UPDATE', res.body)
+        assert.equal(res.body.order.fulfillment_status, 'sent')
+        assert.equal(res.body.fulfillment.status, 'sent')
+        assert.equal(res.body.fulfillment.status_url, 'test')
+        assert.equal(res.body.fulfillment.tracking_company, 'test')
+        assert.equal(res.body.fulfillment.tracking_number, '123')
+        done(err)
+      })
+  })
 })
