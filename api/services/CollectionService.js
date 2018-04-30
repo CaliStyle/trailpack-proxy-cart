@@ -51,7 +51,8 @@ module.exports = class CollectionService extends Service {
     let discounts = []
 
     let resCollection
-    const create = _.omit(collection, [
+
+    let create = _.omit(collection, [
       'collections',
       'images',
       'discounts',
@@ -66,6 +67,9 @@ module.exports = class CollectionService extends Service {
       'discount_percentage',
       'tags'
     ])
+
+    create = _.omitBy(create, _.isNil)
+
     if (collection.discount_type && collection.discount_type) {
       discounts.push({
         name: collection.discount_name || collection.title,

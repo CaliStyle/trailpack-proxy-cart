@@ -228,7 +228,7 @@ module.exports = class CollectionCsvService extends Service {
 
       return this.app.orm.Collection.sequelize.Promise.mapSeries(collections, collection => {
 
-        const create = {
+        let create = {
           handle: collection.handle,
           title: collection.title,
           description: collection.description,
@@ -259,6 +259,9 @@ module.exports = class CollectionCsvService extends Service {
           images: collection.images,
           tags: collection.tags
         }
+
+        create = _.omitBy(create, _.isNil)
+
         return this.app.services.CollectionService.add(create, {transaction: options.transaction || null})
           .then((createdCollection) => {
             if (!createdCollection) {
