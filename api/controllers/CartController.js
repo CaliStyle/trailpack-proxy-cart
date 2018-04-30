@@ -184,6 +184,41 @@ module.exports = class CartController extends Controller {
    * @param req
    * @param res
    */
+  customer(req, res){
+    const orm = this.app.orm
+    const Cart = orm['Cart']
+    const Customer = orm['Customer']
+    Cart.findById(req.params.id, {
+      attributes: ['id', 'customer_id']
+    })
+      .then(cart => {
+        if (!cart) {
+          throw new Errors.FoundError(Error(`Cart id ${ req.params.id } not found`))
+        }
+        if (!cart.customer_id) {
+          throw new Errors.FoundError(Error(`Cart id ${ req.params.id } customer not found`))
+        }
+        return Customer.findById(cart.customer_id)
+      })
+      .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error(`Cart id ${ req.params.id } customer not found`))
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
   create(req, res) {
     const CartService = this.app.services.CartService
 
@@ -326,7 +361,7 @@ module.exports = class CartController extends Controller {
       .then(values => {
 
         const cartId = req.params.id || req.body.cart.id
-        const customerId = req.params.customer || req.body.customer.id
+        const customerId = req.params.customer || req.body.customer.id || req.body.cart.customer_id
 
         if (!cartId && req.cart) {
           req.body.cart = req.cart

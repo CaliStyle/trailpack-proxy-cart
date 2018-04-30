@@ -386,7 +386,12 @@ const App = {
     proxyGenerics: {
       payment_processor: {
         adapter: require('./fixtures/FakePayment'),
-        options: {}
+        options: {
+          public: '123',
+          secret: '123'
+        },
+        type: 'payment_processor',
+        name: 'Default'
       },
       email_provider: {
         adapter: require('./fixtures/FakeEmail'),
