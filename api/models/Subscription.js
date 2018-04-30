@@ -55,6 +55,14 @@ module.exports = class Subscription extends Model {
             }
           }
         },
+        indexes: [
+          // Creates a gin index on data with the jsonb_path_ops operator
+          {
+            fields: ['line_items'],
+            using: 'gin',
+            operator: 'jsonb_path_ops'
+          }
+        ],
         hooks: {
           beforeCreate: (values, options) => {
             return app.services.SubscriptionService.beforeCreate(values)

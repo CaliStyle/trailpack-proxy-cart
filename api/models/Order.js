@@ -70,6 +70,14 @@ module.exports = class Order extends Model {
             }
           }
         },
+        indexes: [
+          // Creates a gin index on data with the jsonb_path_ops operator
+          {
+            fields: ['client_details'],
+            using: 'gin',
+            operator: 'jsonb_path_ops'
+          }
+        ],
         hooks: {
           /**
            *

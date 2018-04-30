@@ -36,6 +36,19 @@ module.exports = class Cart extends Model {
             }
           }
         },
+        indexes: [
+          // Creates a gin index on data with the jsonb_path_ops operator
+          {
+            fields: ['line_items'],
+            using: 'gin',
+            operator: 'jsonb_path_ops'
+          },
+          {
+            fields: ['client_details'],
+            using: 'gin',
+            operator: 'jsonb_path_ops'
+          }
+        ],
         hooks: {
           beforeCreate: (values, options) => {
             return app.services.CartService.beforeCreate(values, options)

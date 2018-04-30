@@ -528,6 +528,7 @@ module.exports = class Customer extends Model {
           setLastOrder: function(order){
             this.last_order_name = order.name
             this.last_order_id = order.id
+            this.total_orders = this.total_orders++
             return this
           },
           /**
@@ -1047,6 +1048,11 @@ module.exports = class Customer extends Model {
       },
       // The total amount the customer has spent
       total_spent: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      // The total amount the customer has spent
+      avg_spent: {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
