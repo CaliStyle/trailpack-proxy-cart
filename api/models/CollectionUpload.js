@@ -90,15 +90,21 @@ module.exports = class CollectionUpload extends Model {
         }
       },
       description: {
-        type: Sequelize.STRING
+        type: Sequelize.TEXT
       },
       // 'SEO Title'
       seo_title: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        set: function(val) {
+          this.setDataValue('seo_title', app.services.ProxyCartService.title(val))
+        }
       },
       // 'SEO Description'
       seo_description: {
-        type: Sequelize.TEXT
+        type: Sequelize.STRING,
+        set: function(val) {
+          this.setDataValue('seo_description', app.services.ProxyCartService.description(val))
+        }
       },
       excerpt: {
         type: Sequelize.TEXT
