@@ -51,6 +51,8 @@ module.exports = class CustomerService extends Service {
       first_name: customer.first_name,
       last_name: customer.last_name,
       email: customer.email,
+      phone: customer.phone,
+      company: customer.company,
       note: customer.note,
       accepts_marketing: customer.accepts_marketing,
       state: customer.state,
@@ -307,7 +309,7 @@ module.exports = class CustomerService extends Service {
           throw new Errors.FoundError(Error('Customer not found'))
         }
         resCustomer = _customer
-        const update = _.omit(customer, ['tags', 'metadata', 'shipping_address','billing_address','default_address'])
+        const update = _.omit(customer, ['tags', 'metadata', 'shipping_address', 'billing_address', 'default_address'])
         return resCustomer.update(update)
       })
       .then(updatedCustomer => {
@@ -657,7 +659,7 @@ module.exports = class CustomerService extends Service {
         return resCustomer
       })
       .then(collection => {
-        return Customer.findByIdDefault(resCustomer.id)
+        return resCollection
       })
   }
 
@@ -693,7 +695,7 @@ module.exports = class CustomerService extends Service {
         return resCustomer
       })
       .then(collection => {
-        return Customer.findByIdDefault(resCustomer.id)
+        return resCollection
       })
   }
 

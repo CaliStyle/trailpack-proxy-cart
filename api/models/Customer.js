@@ -998,6 +998,10 @@ module.exports = class Customer extends Model {
       company: {
         type: Sequelize.STRING
       },
+      // Customer Company if not a User
+      phone: {
+        type: Sequelize.STRING
+      },
 
       // Customers Email if there is one
       email: {
