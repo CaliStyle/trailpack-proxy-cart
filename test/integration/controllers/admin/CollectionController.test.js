@@ -164,7 +164,7 @@ describe('Admin User CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, collectionID)
+        assert.equal(res.body.id, 1)
         done(err)
       })
   })
@@ -204,7 +204,7 @@ describe('Admin User CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, collectionID)
+        assert.equal(res.body.id, 1)
         done(err)
       })
   })
@@ -215,7 +215,7 @@ describe('Admin User CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, collectionID)
+        assert.equal(res.body.id, customerID)
         done(err)
       })
   })
@@ -246,7 +246,7 @@ describe('Admin User CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.id, collectionID)
+        assert.equal(res.body.id, customerID)
         done(err)
       })
   })
@@ -256,7 +256,8 @@ describe('Admin User CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.collections.length, 2)
+        // assert.equal(res.body.collections.length, 2)
+        assert.equal(res.body.id, collection2ID)
         done(err)
       })
   })
@@ -287,7 +288,7 @@ describe('Admin User CollectionController', () => {
       .send()
       .expect(200)
       .end((err, res) => {
-        assert.equal(res.body.collections.length, 1)
+        assert.equal(res.body.id, collection2ID)
         done(err)
       })
   })

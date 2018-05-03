@@ -574,7 +574,8 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
+        return resCustomer
+        // return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -610,7 +611,8 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id)
+        return resCustomer
+        // return Collection.findByIdDefault(resCollection.id)
       })
   }
 }
