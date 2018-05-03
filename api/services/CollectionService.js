@@ -297,7 +297,8 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(() => {
-        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
+        return resSubCollection
+        // return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -334,7 +335,8 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
+        return resSubCollection
+        // return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
@@ -395,7 +397,7 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
+        return resProduct
       })
   }
 
@@ -433,7 +435,8 @@ module.exports = class CollectionService extends Service {
         return resCollection
       })
       .then(collection => {
-        return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
+        return resProduct
+        // return Collection.findByIdDefault(resCollection.id, {transaction: options.transaction || null})
       })
   }
 
