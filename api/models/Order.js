@@ -1888,13 +1888,21 @@ module.exports = class Order extends Model {
            */
           sendCreatedEmail(options) {
             options = options || {}
+            let resEmail
             return app.emails.Order.created(this, {
               send_email: app.config.proxyCart.emails.orderCreated
             }, {
               transaction: options.transaction || null
             })
               .then(email => {
-                return this.notifyCustomer(email, {transaction: options.transaction || null})
+                resEmail = email
+                return this.notifyCustomer(resEmail, {transaction: options.transaction || null})
+              })
+              .then(notification => {
+                if (_.get(app.config.proxyCart, 'notifications.admin.orderCreated')) {
+                  return app.services.ProxyCartService.notifyAdmins(resEmail, {transaction: options.transaction || null})
+                }
+                return notification
               })
               .catch(err => {
                 app.log.error(err)

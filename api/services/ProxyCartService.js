@@ -28,6 +28,37 @@ module.exports = class ProxyCartService extends Service {
     this.customer = require('../../lib/middleware/customer')
   }
 
+  notifyAdmins(preNotification, options) {
+    options = options || {}
+    const User = this.app.orm.User
+
+    if (!preNotification) {
+      return Promise.reject('No Notification to send to Admins')
+    }
+
+    return User.findAll({
+      include: [
+        {
+          model: this.app.orm['Role'],
+          as: 'roles',
+          where: {
+            name: 'admin'
+          }
+        }
+      ]
+    })
+      .then(users => {
+        if (!users || users.length === 0) {
+          throw new Error('No Admins to send emails to')
+        }
+        return this.app.services.NotificationService.create(preNotification, users, {transaction: options.transaction || null})
+          .then(notes => {
+            this.app.log.debug('NOTIFY ADMINS', users.map(u => u.id), preNotification.send_email, notes.users.map(u => u.id))
+            return notes
+          })
+      })
+  }
+
   /**
    *
    * @param url

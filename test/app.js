@@ -363,6 +363,11 @@ const App = {
         subscriptionWillRenew: true,
         subscriptionRenewed: true,
         transactionFailed: true
+      },
+      notifications: {
+        admin: {
+          orderCreated: true
+        }
       }
     },
     proxyNotifications: {

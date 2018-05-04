@@ -85,6 +85,11 @@ module.exports = {
     subscriptionFailed: false,
     transactionFailed: false
   },
+  notifications: {
+    admin: {
+      orderCreated: true
+    }
+  },
   // Events to allow "publish"
   events: {},
 }

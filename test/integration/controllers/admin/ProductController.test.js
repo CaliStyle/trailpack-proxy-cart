@@ -941,6 +941,32 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
+
+  it('It should upload and update product_upload.csv', (done) => {
+    adminUser
+      .post('/product/uploadCSV')
+      .attach('file', 'test/fixtures/product_upload.csv')
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.result.upload_id)
+        uploadID = res.body.result.upload_id
+        assert.equal(res.body.result.products, 18)
+        assert.equal(res.body.result.errors.length, 1)
+        done(err)
+      })
+  })
+  it('It should process upload and update', (done) => {
+    adminUser
+      .post(`/product/processUpload/${uploadID}`)
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.products, 15)
+        assert.equal(res.body.variants, 18)
+        assert.equal(res.body.errors.length, 0)
+        done(err)
+      })
+  })
   // TODO list associations
   it('It should get product with uploaded association', (done) => {
     adminUser
