@@ -528,7 +528,6 @@ module.exports = class Customer extends Model {
           setLastOrder: function(order){
             this.last_order_name = order.name
             this.last_order_id = order.id
-            this.total_orders = this.total_orders++
             return this
           },
           /**
@@ -537,6 +536,11 @@ module.exports = class Customer extends Model {
            */
           setTotalSpent: function(orderTotalDue) {
             this.total_spent = this.total_spent + orderTotalDue
+            return this
+          },
+
+          setTotalOrders: function() {
+            this.total_orders = this.total_orders + 1
             return this
           },
           /**

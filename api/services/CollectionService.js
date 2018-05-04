@@ -293,7 +293,7 @@ module.exports = class CollectionService extends Service {
         return resCollection.hasCollection(resSubCollection.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
-        console.log('HAS COLLECTION', resCollection.id, resSubCollection.id, hasCollection)
+        // console.log('HAS COLLECTION', resCollection.id, resSubCollection.id, hasCollection)
         if (!hasCollection) {
           // return ItemCollection.create({
           //   collection_id: resCollection.id,

@@ -16,6 +16,11 @@ module.exports = class ItemCustomer extends Model {
         enums: {
           CUSTOMER_MODELS: CUSTOMER_MODELS
         },
+        indexes: [
+          {
+            fields: ['customer_id', 'model', 'model_id', 'position']
+          }
+        ],
         classMethods: {
           /**
            * Associate the Model

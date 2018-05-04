@@ -29,8 +29,10 @@ describe('CartService', () => {
         throw new Error('This should have thrown an error')
       })
       .catch(err => {
-        assert.equal(err.message, 'Cart is already closed')
-        done(err)
+        // console.log('BROKE ERR', err)
+        assert.equal(err, 'Error: Cart is already closed')
+        // done(err)
+        done()
       })
   })
 })

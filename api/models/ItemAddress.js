@@ -12,6 +12,11 @@ module.exports = class ItemAddress extends Model {
     return {
       options: {
         underscored: true,
+        indexes: [
+          {
+            fields: ['address_id', 'model', 'model_id', 'address']
+          }
+        ],
         classMethods: {
           /**
            * Associate the Model

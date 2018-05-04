@@ -326,6 +326,7 @@ module.exports = class OrderService extends Service {
             return resCustomer
               .setTotalSpent(totalPrice)
               .setLastOrder(resOrder)
+              .setTotalOrders()
               .save({transaction: options.transaction || null})
           }
           else {

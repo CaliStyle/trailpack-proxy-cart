@@ -16,6 +16,11 @@ module.exports = class ItemCollection extends Model {
         enums: {
           COLLECTION_MODELS: COLLECTION_MODELS
         },
+        indexes: [
+          {
+            fields: ['collection_id', 'model', 'model_id', 'position']
+          }
+        ],
         classMethods: {
           /**
            * Associate the Model
