@@ -306,27 +306,36 @@ module.exports = class CollectionController extends Controller {
       return res.send(401, err)
     }
 
-    Collection.findAndCountDefault({
-      order: sort,
-      // where: {
-      //   '$collections.id$': collectionId
-      // },
-      include: [
-        {
-          model: this.app.orm['Collection'],
-          as: 'collections',
-          where: {
-            id: collectionId
-          }
-        }
-      ],
-      offset: offset,
-      limit: limit
+    const ItemCollection = this.app.orm['ItemCollection']
+
+    let count = 0
+
+    // console.log('FIND COLLECTION COLLECTIONS for ', collectionId, limit, offset)
+
+    ItemCollection.findAndCount({
+      where: {
+        collection_id: collectionId,
+        model: 'collection'
+      },
+      attributes: ['model_id'],
+      limit: limit,
+      offset: offset
     })
+      .then(arr => {
+        // console.log('BROKE PRE', arr)
+        count = arr.count
+        const collectionIds = arr.rows.map(model => model.model_id)
+        return Collection.findAll({
+          where: {
+            id: collectionIds
+          }
+        })
+      })
       .then(collections => {
+        // console.log('BROKE COLLECTIONS', collections)
         // Paginate
-        this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
-        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections.rows)
+        this.app.services.ProxyEngineService.paginate(res, count, limit, offset, sort)
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections)
       })
       .then(result => {
         return res.json(result)
@@ -334,6 +343,35 @@ module.exports = class CollectionController extends Controller {
       .catch(err => {
         return res.serverError(err)
       })
+
+    // Collection.findAndCount({
+    //   order: sort,
+    //   // where: {
+    //   //   '$collections.id$': collectionId
+    //   // },
+    //   include: [
+    //     {
+    //       model: this.app.orm['Collection'],
+    //       as: 'collections',
+    //       where: {
+    //         id: collectionId
+    //       }
+    //     }
+    //   ],
+    //   offset: offset,
+    //   limit: limit
+    // })
+    //   .then(collections => {
+    //     // Paginate
+    //     this.app.services.ProxyEngineService.paginate(res, collections.count, limit, offset, sort)
+    //     return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections.rows)
+    //   })
+    //   .then(result => {
+    //     return res.json(result)
+    //   })
+    //   .catch(err => {
+    //     return res.serverError(err)
+    //   })
   }
 
   /**
@@ -409,7 +447,7 @@ module.exports = class CollectionController extends Controller {
     const collectionId = req.params.id
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || [['created_at', 'DESC']]
+    const sort = req.query.sort || [['title', 'ASC']]
 
     if (!collectionId) {
       const err = new Error('A collection id is required')

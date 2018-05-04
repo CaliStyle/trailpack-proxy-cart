@@ -253,7 +253,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        console.log('CartController.create', err)
+        this.app.log.error('CartController.create', err)
         return res.serverError(err)
       })
   }
@@ -280,7 +280,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        console.log('CartController.draft', err)
+        this.app.log.error('CartController.draft', err)
         return res.serverError(err)
       })
   }
@@ -313,7 +313,6 @@ module.exports = class CartController extends Controller {
     }
     lib.Validator.validateCart.update(req.body)
       .then(values => {
-        console.log(values)
         return CartService.update(id, req.body)
       })
       .then(cart => {
@@ -336,7 +335,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.create', err)
+        this.app.log.error('CartController.update', err)
         return res.serverError(err)
       })
 
@@ -394,7 +393,7 @@ module.exports = class CartController extends Controller {
         })
       })
       .catch(err => {
-        console.log(err)
+        this.app.log.error('CartController.checkout', err)
         return res.serverError(err)
       })
   }
@@ -424,7 +423,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.addItemsToCart', err)
+        this.app.log.error('CartController.addItems', err)
         return res.serverError(err)
       })
   }
@@ -454,7 +453,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.removeItemsFromCart', err)
+        this.app.log.error('CartController.removeItems', err)
         return res.serverError(err)
       })
   }
@@ -477,6 +476,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
+        this.app.log.error('CartController.addShipping', err)
         return res.serverError(err)
       })
   }
@@ -499,6 +499,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
+        this.app.log.error('CartController.removeShipping', err)
         return res.serverError(err)
       })
   }
@@ -521,6 +522,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
+        this.app.log.error('CartController.addTaxes', err)
         return res.serverError(err)
       })
   }
@@ -543,6 +545,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
+        this.app.log.error('CartController.removeTaxes', err)
         return res.serverError(err)
       })
   }
@@ -578,7 +581,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.removeItemsFromCart', err)
+        this.app.log.error('CartController.pricingOverrides', err)
         return res.serverError(err)
       })
   }
@@ -608,7 +611,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.clearCart', err)
+        this.app.log.error('CartController.clear', err)
         return res.serverError(err)
       })
   }
@@ -664,6 +667,7 @@ module.exports = class CartController extends Controller {
       })
       .catch(err => {
         // console.log('ProductController.clearCart', err)
+        this.app.log.error('CartController.login', err)
         return res.serverError(err)
       })
   }
@@ -720,6 +724,7 @@ module.exports = class CartController extends Controller {
         return res.json(result)
       })
       .catch(err => {
+        this.app.log.error('CartController.switchCart', err)
         return res.serverError(err)
       })
   }

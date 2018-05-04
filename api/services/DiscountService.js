@@ -129,14 +129,19 @@ module.exports = class DiscountService extends Service {
   start(identifier, options) {
     options = options || {}
     const Discount = this.app.orm['Discount']
+    let resDiscount
     return Discount.resolve(identifier, {transaction: options.transaction || null})
       .then(_discount => {
         if (!_discount) {
           throw new Error('Discount did not resolve')
         }
-        return _discount
+        resDiscount = _discount
+        return resDiscount
           .start({transaction: options.transaction || null})
           .save({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resDiscount
       })
   }
 
@@ -149,14 +154,19 @@ module.exports = class DiscountService extends Service {
   expire(identifier, options) {
     options = options || {}
     const Discount = this.app.orm['Discount']
+    let resDiscount
     return Discount.resolve(identifier, {transaction: options.transaction || null})
       .then(_discount => {
         if (!_discount) {
           throw new Error('Discount did not resolve')
         }
-        return _discount
+        resDiscount = _discount
+        return resDiscount
           .stop({transaction: options.transaction || null})
           .save({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resDiscount
       })
   }
 

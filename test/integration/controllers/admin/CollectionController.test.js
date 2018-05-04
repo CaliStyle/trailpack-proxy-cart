@@ -193,7 +193,7 @@ describe('Admin User CollectionController', () => {
         assert.equal(res.headers['x-pagination-pages'], '1')
         assert.ok(res.body)
         assert.equal(res.body.length, 1)
-        console.log('BROKE COLLECTION PRODUCTS', res.body)
+        // console.log('BROKE COLLECTION PRODUCTS', res.body)
         done(err)
       })
   })
@@ -252,12 +252,26 @@ describe('Admin User CollectionController', () => {
   })
   it('should add collection to collection', (done) => {
     adminUser
-      .post(`/collection/${collectionID}/collection/${collection2ID}`)
+      .put(`/collection/${collectionID}/collection/${collection2ID}`)
       .send()
       .expect(200)
       .end((err, res) => {
-        // assert.equal(res.body.collections.length, 2)
+        console.log(`added ${collection2ID} to ${collectionID}`)
         assert.equal(res.body.id, collection2ID)
+        done(err)
+      })
+  })
+  it('should add collections to collection', (done) => {
+    adminUser
+      .put(`/collection/${collectionID}/collections`)
+      .send([
+        {id: 1},
+        {id: collection2ID}
+      ])
+      .expect(200)
+      .end((err, res) => {
+        // assert.equal(res.body.collections.length, 2)
+        assert.equal(res.body.length, 2)
         done(err)
       })
   })
@@ -277,21 +291,21 @@ describe('Admin User CollectionController', () => {
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
-
-        // assert.equal(res.body.length, 2)
+        console.log('BROKE COLLECTIONS COLLECTIONS', res.body)
+        assert.equal(res.body.length, 3)
         done(err)
       })
   })
-  it('should should remove collection from collection', (done) => {
-    adminUser
-      .del(`/collection/${collectionID}/collection/${collection2ID}`)
-      .send()
-      .expect(200)
-      .end((err, res) => {
-        assert.equal(res.body.id, collection2ID)
-        done(err)
-      })
-  })
+  // it('should should remove collection from collection', (done) => {
+  //   adminUser
+  //     .del(`/collection/${collectionID}/collection/${collection2ID}`)
+  //     .send()
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.equal(res.body.id, collection2ID)
+  //       done(err)
+  //     })
+  // })
 
   it('It should upload collection_upload.csv', (done) => {
     adminUser

@@ -893,6 +893,7 @@ module.exports = class ProductCsvService extends Service {
               errors.push(err.message)
               return
             }
+
             if (target.metadata) {
               target.metadata.data = metadata.data
               return target.metadata.save({transaction: options.transaction || null})

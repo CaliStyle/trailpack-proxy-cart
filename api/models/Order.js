@@ -423,6 +423,37 @@ module.exports = class Order extends Model {
               return Promise.resolve(this)
             }
           },
+
+          /**
+           *
+           * @param preNotification
+           * @param options
+           */
+          notifyAdministratorsService: function(preNotification, options) {
+            options = options || {}
+
+            // if (this.customer_id) {
+            //   return this.resolveCustomer({
+            //     attributes: ['id', 'email', 'company', 'first_name', 'last_name', 'full_name'],
+            //     transaction: options.transaction || null,
+            //     reload: options.reload || null
+            //   })
+            //     .then(() => {
+            //       // if (this.Customer && this.Customer instanceof app.orm['Customer']) {
+            //       //   return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
+            //       // }
+            //       // else {
+            //       //   return
+            //       // }
+            //     })
+            //     .then(() => {
+            //       return this
+            //     })
+            // }
+            // else {
+            //   return Promise.resolve(this)
+            // }
+          },
           /**
            *
            * @param shipping

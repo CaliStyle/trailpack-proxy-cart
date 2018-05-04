@@ -96,8 +96,10 @@ module.exports = class Collection extends Model {
                 },
                 constraints: false
               },
-              foreignKey: 'model_id',
-              otherKey: 'collection_id',
+              // foreignKey: 'model_id',
+              // otherKey: 'collection_id',
+              foreignKey: 'collection_id',
+              otherKey: 'model_id',
               constraints: false
             })
             // Customer Assoc

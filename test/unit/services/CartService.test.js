@@ -10,7 +10,7 @@ describe('CartService', () => {
     CartService = global.app.services['CartService']
     Cart = global.app.services.ProxyEngineService.getModel('Cart')
   })
-  it('should not allow a closed cart to checkout', () => {
+  it('should not allow a closed cart to checkout', (done) => {
     let resCart
     CartService.create({})
       .then(cart => {
@@ -29,7 +29,8 @@ describe('CartService', () => {
         throw new Error('This should have thrown an error')
       })
       .catch(err => {
-        assert.equal(err.message, 'Error: Cart is not open')
+        assert.equal(err.message, 'Cart is already closed')
+        done(err)
       })
   })
 })

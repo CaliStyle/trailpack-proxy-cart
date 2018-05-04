@@ -256,8 +256,8 @@ module.exports = class CollectionService extends Service {
     // const addedProducts = []
     // Setup Transaction
     return Sequelize.transaction(t => {
-      return Sequelize.Promise.mapSeries(collections, collection => {
-        return this.addCollection(collection, collection, {
+      return Sequelize.Promise.mapSeries(collections, subCollection => {
+        return this.addCollection(collection, subCollection, {
           transaction: t
         })
       })
@@ -274,6 +274,7 @@ module.exports = class CollectionService extends Service {
   addCollection(collection, subCollection, options){
     options = options || {}
     const Collection = this.app.orm['Collection']
+    // const ItemCollection = this.app.orm['ItemCollection']
     let resCollection, resSubCollection
     return Collection.resolve(collection, {transaction: options.transaction || null})
       .then(collection => {
@@ -283,18 +284,25 @@ module.exports = class CollectionService extends Service {
         resCollection = collection
         return Collection.resolve(subCollection, {transaction: options.transaction || null})
       })
-      .then(subCollection => {
-        if (!subCollection) {
+      .then(_subCollection => {
+        if (!_subCollection) {
           throw new Errors.FoundError(Error('Sub Collection not found'))
         }
-        resSubCollection = subCollection
+        resSubCollection = _subCollection
+        // console.log('BROKE', resCollection.id, resSubCollection.id)
         return resCollection.hasCollection(resSubCollection.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
+        console.log('HAS COLLECTION', resCollection.id, resSubCollection.id, hasCollection)
         if (!hasCollection) {
+          // return ItemCollection.create({
+          //   collection_id: resCollection.id,
+          //   model_id: resSubCollection.id,
+          //   model: 'collection'
+          // }, {transaction: options.transaction || null})
           return resCollection.addCollection(resSubCollection.id, {transaction: options.transaction || null})
         }
-        return resCollection
+        return
       })
       .then(() => {
         return resSubCollection
