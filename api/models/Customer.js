@@ -543,6 +543,11 @@ module.exports = class Customer extends Model {
             this.total_orders = this.total_orders + 1
             return this
           },
+
+          setAvgSpent: function() {
+            this.avg_spent = this.total_spent / this.total_orders
+            return this
+          },
           /**
            *
            * @param newBalance
