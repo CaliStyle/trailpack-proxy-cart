@@ -1249,7 +1249,7 @@ module.exports = class OrderService extends Service {
       // Add the admin id to the override
       override.admin_id = override.admin_id ? override.admin_id : admin.id
       // Make sure price is a number
-      override.price = this.app.services.ProxyOrderService.normalizeCurrency(parseInt(override.price))
+      override.price = this.app.services.ProxyCartService.normalizeCurrency(parseInt(override.price))
       return override
     })
     let resOrder
