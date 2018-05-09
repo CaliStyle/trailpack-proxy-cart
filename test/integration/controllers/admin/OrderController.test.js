@@ -226,7 +226,7 @@ describe('Admin User OrderController', () => {
       .post(`/order/${orderID}/updateItem`)
       .send({
         product_id: shopProducts[2].id,
-        quantity: 1,
+        quantity: 2,
         properties: [{ hello: 'moon' }]
       })
       .expect(200)

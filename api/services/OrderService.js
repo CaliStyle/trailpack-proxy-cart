@@ -240,6 +240,7 @@ module.exports = class OrderService extends Service {
             has_taxes: obj.has_taxes,
             has_subscription: obj.has_subscription,
             email: obj.email || resCustomer.email || null,
+            phone: obj.phone || resCustomer.phone || null,
 
             // Types
             fulfillment_kind: obj.fulfillment_kind || this.app.config.get('proxyCart.orders.fulfillment_kind'),

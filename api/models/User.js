@@ -180,6 +180,9 @@ module.exports = class User extends Model {
         // },
         allowNull: true
       },
+      phone: {
+        type: Sequelize.STRING
+      },
       // Live Mode
       // TODO: Discussion: should this be moved to proxy permissions?
       live_mode: {

@@ -526,6 +526,7 @@ module.exports = class ProxyCartService extends Service {
     return Customer.resolve({
       id: user.current_customer_id,
       email: user.email,
+      phone: user.phone,
       accepts_marketing: user.accepts_marketing,
       users: [user]
     }, {

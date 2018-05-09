@@ -1554,20 +1554,44 @@ module.exports = class Order extends Model {
                   return
                 }
 
-                prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
-                prevOrderItem.price = prevOrderItem.price + orderItem.price
-                prevOrderItem.calculated_price = prevOrderItem.calculated_price + orderItem.calculated_price
-                prevOrderItem.weight = prevOrderItem.weight + orderItem.weight
-                prevOrderItem.total_weight = prevOrderItem.total_weight + orderItem.total_weight
+                if (options.add) {
+                  prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
+                  prevOrderItem.price = prevOrderItem.price + orderItem.price
+                  prevOrderItem.calculated_price = prevOrderItem.calculated_price + orderItem.calculated_price
+                  prevOrderItem.weight = prevOrderItem.weight + orderItem.weight
+                  prevOrderItem.total_weight = prevOrderItem.total_weight + orderItem.total_weight
+                }
+                else if (options.remove) {
+                  prevOrderItem.quantity = prevOrderItem.quantity - orderItem.quantity
+                  prevOrderItem.price = prevOrderItem.price - orderItem.price
+                  prevOrderItem.calculated_price = prevOrderItem.calculated_price - orderItem.calculated_price
+                  prevOrderItem.weight = prevOrderItem.weight - orderItem.weight
+                  prevOrderItem.total_weight = prevOrderItem.total_weight - orderItem.total_weight
+                }
+                else {
+                  prevOrderItem.quantity = orderItem.quantity
+                  prevOrderItem.price = orderItem.price * orderItem.quantity
+                  prevOrderItem.calculated_price = orderItem.calculated_price * orderItem.quantity
+                  prevOrderItem.weight = orderItem.weight
+                  prevOrderItem.total_weight = orderItem.total_weight
+                }
 
                 if (orderItem.properties) {
                   prevOrderItem.properties = orderItem.properties
                 }
 
-                return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
-                  .then(() =>{
-                    return prevOrderItem.save({transaction: options.transaction || null})
-                  })
+                if (prevOrderItem.quantity <= 0) {
+                  return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
+                    .then(() =>{
+                      return prevOrderItem.destroy({transaction: options.transaction || null})
+                    })
+                }
+                else {
+                  return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
+                    .then(() =>{
+                      return prevOrderItem.save({transaction: options.transaction || null})
+                    })
+                }
               })
               .then(() => {
                 return this.reload({transaction: options.transaction || null})
@@ -2137,6 +2161,10 @@ module.exports = class Order extends Model {
         validate: {
           isEmail: true
         }
+      },
+      // Phone number
+      phone: {
+        type: Sequelize.STRING
       },
       // manual: Delay 3rd party processing
       // immediate: Immediately process 3rd party payment processing
