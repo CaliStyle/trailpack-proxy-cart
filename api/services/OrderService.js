@@ -419,6 +419,7 @@ module.exports = class OrderService extends Service {
           return this.app.services.GeolocationGenericService.locate(resOrder.billing_address)
             .then(latLng => {
               resOrder.billing_address = _.defaults(resOrder.billing_address, latLng)
+              return
             })
             .catch(err => {
               return
@@ -433,6 +434,7 @@ module.exports = class OrderService extends Service {
           return this.app.services.GeolocationGenericService.locate(resOrder.shipping_address)
             .then(latLng => {
               resOrder.shipping_address = _.defaults(resOrder.shipping_address, latLng)
+              return
             })
             .catch(err => {
               return
@@ -444,9 +446,17 @@ module.exports = class OrderService extends Service {
         if (order.buyer_accepts_marketing) {
           resOrder.buyer_accepts_marketing = order.buyer_accepts_marketing
         }
+        if (order.email) {
+          resOrder.email = order.email
+        }
+        if (order.phone) {
+          resOrder.phone = order.phone
+        }
+        if (order.note) {
+          resOrder.note = order.note
+        }
         return resOrder.save({transaction: options.transaction || null})
       })
-
       .then(() => {
         return resOrder.sendUpdatedEmail({transaction: options.transaction || null})
       })
