@@ -45,6 +45,19 @@ module.exports = class AccountService extends Service {
            return detail
          })
       }
+      else if (_.isNumber(detail.source)) {
+        return this.app.orm['Source'].findById(detail.source)
+          .then(source => {
+            // Convert to plain object
+            source = source instanceof this.app.orm['Source'] ? source.get({plain: true }) : source
+            delete detail.gateway_token
+            detail.source = source
+            return detail
+          })
+          .catch(err => {
+            return detail
+          })
+      }
       else {
         return detail
       }

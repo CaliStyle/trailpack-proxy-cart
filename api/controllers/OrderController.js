@@ -235,22 +235,28 @@ module.exports = class OrderController extends Controller {
 
     lib.Validator.validateOrder.create(req.body)
       .then(values => {
-        if (req.body.cart || req.body.cart_token) {
+        if (req.body.cart || req.body.cart_token || req.body.cart_id) {
           if (!req.body.cart) {
             req.body.cart = {}
           }
           if (req.body.cart_token) {
             req.body.cart.token = req.body.cart_token
           }
+          if (req.body.cart_id) {
+            req.body.cart.id = req.body.cart_id
+          }
           // console.log('cart checkout order.create', req.body.cart)
           return CartService.prepareForOrder(req)
         }
-        else if (req.body.subscription || req.body.subscription_token) {
+        else if (req.body.subscription || req.body.subscription_token || req.body.subscription_id) {
           if (!req.body.subscription) {
             req.body.subscription = {}
           }
           if (req.body.subscription_token) {
             req.body.subscription.token = req.body.subscription_token
+          }
+          if (req.body.subscription_id) {
+            req.body.subscription.id = req.body.subscription_id
           }
           return SubscriptionService.prepareForOrder(req.body.subscription)
         }
