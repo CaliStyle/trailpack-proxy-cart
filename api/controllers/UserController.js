@@ -55,7 +55,6 @@ module.exports = class UserController extends ModelPermissions {
       const err = new Error('A user id or a user in session are required')
       return res.send(401, err)
     }
-    // console.log('IS BROKE', userId)
 
     const limit = Math.max(0, req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)

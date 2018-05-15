@@ -43,7 +43,6 @@ module.exports = class ProductController extends Controller {
    */
   findByHandle(req, res){
     const Product = this.app.orm['Product']
-    // console.log('ProductController.findByHandle', req.params.handle)
     Product.findByHandleDefault(req.params.handle, {req: req})
       .then(product => {
         if (!product) {
@@ -66,7 +65,6 @@ module.exports = class ProductController extends Controller {
    */
   resolve(req, res){
     const Product = this.app.orm['Product']
-    // console.log('ProductController.findByHandle', req.params.handle)
     Product.resolve(req.params.id, {req: req})
       .then(product => {
         if (!product) {
@@ -121,7 +119,6 @@ module.exports = class ProductController extends Controller {
         // }
       ]
     })
-    // console.log('ProductController.search', term)
     Product.findAndCountDefault({
       where: defaults,
       order: sort,
@@ -190,7 +187,6 @@ module.exports = class ProductController extends Controller {
       req: req
     })
       .then(products => {
-        // console.log('Count THIS', products.count)
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
@@ -1129,7 +1125,6 @@ module.exports = class ProductController extends Controller {
         })
       })
       .then(associations => {
-        // console.log('BROKE ASSOCIATIONS', associations)
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, resAssociations.count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, associations)
@@ -1320,7 +1315,6 @@ module.exports = class ProductController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.addVendor', err)
         return res.serverError(err)
       })
   }
@@ -1339,7 +1333,6 @@ module.exports = class ProductController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.removeVariant', err)
         return res.serverError(err)
       })
   }

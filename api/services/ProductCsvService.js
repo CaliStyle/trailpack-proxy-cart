@@ -47,7 +47,6 @@ module.exports = class ProductCsvService extends Service {
         },
         complete: (results, file) => {
           console.timeEnd('csv')
-          // console.log('Parsing complete:', results, file)
           results.upload_id = uploadID
           ProxyEngineService.count('ProductUpload', { where: { upload_id: uploadID }})
             .then(count => {
@@ -300,7 +299,6 @@ module.exports = class ProductCsvService extends Service {
 
                 const part = matchOptions[4].toLowerCase()
                 const index = Number(matchOptions[3]) - 1
-                // console.log(index, part)
                 if (typeof upload.options[index] === 'undefined') {
                   upload.options[index] = {
                     name: '',
@@ -310,7 +308,6 @@ module.exports = class ProductCsvService extends Service {
                 // TODO place this as the default product
                 // if (data.trim().toLowerCase() !== 'default value') {
                 upload.options[index][part] = typeof data === 'string' ? data.trim() : data
-                // console.log('OPTION RESULT',upload.options[index][part])
                 // }
               }
 
@@ -324,7 +321,6 @@ module.exports = class ProductCsvService extends Service {
 
                 const part = matchProperties[4].toLowerCase().replace(' ','_')
                 const index = Number(matchProperties[3]) - 1
-                // console.log(index, part)
                 if (typeof upload.properties[index] === 'undefined') {
                   upload.properties[index] = {
                     name: '',
@@ -336,8 +332,6 @@ module.exports = class ProductCsvService extends Service {
                 // TODO place this as the default product
                 // if (data.trim().toLowerCase() !== 'default value') {
                 upload.properties[index][part] = typeof data === 'string' ? data.trim() : data
-
-                // console.log('PROPERTY RESULT',upload.properties[index][part])
                 // }
               }
             }
@@ -349,7 +343,6 @@ module.exports = class ProductCsvService extends Service {
         _.map(upload.options, option => {
           upload.option[option.name] = option.value
         })
-        // console.log('FINAL option', upload.option)
         delete upload.options
 
         // Handle Pricing Properties
@@ -379,7 +372,6 @@ module.exports = class ProductCsvService extends Service {
             upload.property_pricing[property.name]['multi_select'] = true
           }
         })
-        // console.log('FINAL property_pricing', upload.property_pricing)
         delete upload.properties
 
         // Map images
@@ -447,8 +439,6 @@ module.exports = class ProductCsvService extends Service {
         upload.associations = upload.associations.map(association => {
           const product = association.split(/:(.+)/)
 
-          // console.log('BROKE ASSOCIATION', product)
-
           const handle = this.app.services.ProxyCartService.handle(product[0])
           const sku = this.app.services.ProxyCartService.title(product[1])
           const res = {}
@@ -458,7 +448,6 @@ module.exports = class ProductCsvService extends Service {
               res.sku = sku
             }
 
-            // console.log('BROKE ASSOCIATION', res)
             return res
           }
           return
@@ -737,7 +726,6 @@ module.exports = class ProductCsvService extends Service {
         },
         complete: (results, file) => {
           console.timeEnd('csv')
-          // console.log('Parsing complete:', results, file)
           results.upload_id = uploadID
           ProxyEngineService.count('ProductMetaUpload', { where: { upload_id: uploadID }})
             .then(count => {

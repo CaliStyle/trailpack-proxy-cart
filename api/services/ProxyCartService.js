@@ -578,7 +578,6 @@ module.exports = class ProxyCartService extends Service {
    * @param next
    */
   serializeCart(cart, next) {
-    // console.log('SERIALIZE CART')
     if (typeof next != 'function') {
       throw new Error('instance#serializeCart requires a callback function')
     }
@@ -592,7 +591,6 @@ module.exports = class ProxyCartService extends Service {
    * @param next
    */
   deserializeCart(id, options, next) {
-    // console.log('DESERIALIZE CART')
     options = options || {}
     if (typeof next != 'function') {
       throw new Error('instance#deserializeCart requires a callback function')

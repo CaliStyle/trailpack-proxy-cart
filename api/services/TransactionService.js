@@ -510,8 +510,6 @@ module.exports = class TransactionService extends Service {
     const start = moment().startOf('hour')
       .subtract(this.app.config.get('proxyCart.transactions.authorization_exp_days') || 0, 'days')
 
-    // console.log('START TIME', start.format('YYYY-MM-DD HH:mm:ss'))
-
     // let errorsTotal = 0
     let transactionsTotal = 0
 

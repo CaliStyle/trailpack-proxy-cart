@@ -102,7 +102,6 @@ module.exports = class CollectionService extends Service {
         return []
       })
       .then(collections => {
-        // console.log('THESE COLLECTIONS RESOLVED', collections)
         if (collections && collections.length > 0) {
           return resCollection.setCollections(collections.map( c => c.id), {transaction: options.transaction || null})
         }
@@ -137,7 +136,6 @@ module.exports = class CollectionService extends Service {
         return
       })
       .then(discounts => {
-        // console.log('createdCollection',createdCollection)
         if (collection.tags && collection.tags.length > 0) {
           collection.tags = _.sortedUniq(collection.tags.filter(n => n))
           return Tag.transformTags(collection.tags, {transaction: options.transaction || null})
@@ -209,7 +207,6 @@ module.exports = class CollectionService extends Service {
         }
       })
       .then(images => {
-        // console.log('THESE COLLECTIONS RESOLVED', collections)
         if (images && images.length > 0) {
           return Collection.sequelize.Promise.mapSeries(images, (image, index) => {
             return resCollection.addImage(image.id, {
@@ -221,7 +218,6 @@ module.exports = class CollectionService extends Service {
         return
       })
       .then(images => {
-        // console.log('createdCollection',createdCollection)
         if (collection.tags && collection.tags.length > 0) {
           collection.tags = _.sortedUniq(collection.tags.filter(n => n))
           return Tag.transformTags(collection.tags, {transaction: options.transaction || null})
@@ -289,11 +285,9 @@ module.exports = class CollectionService extends Service {
           throw new Errors.FoundError(Error('Sub Collection not found'))
         }
         resSubCollection = _subCollection
-        // console.log('BROKE', resCollection.id, resSubCollection.id)
         return resCollection.hasCollection(resSubCollection.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
-        // console.log('HAS COLLECTION', resCollection.id, resSubCollection.id, hasCollection)
         if (!hasCollection) {
           // return ItemCollection.create({
           //   collection_id: resCollection.id,

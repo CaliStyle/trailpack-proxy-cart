@@ -130,7 +130,6 @@ module.exports = class DiscountController extends Controller {
         }
       ]
     })
-    // console.log('DiscountController.search', term)
     Discount.findAndCount({
       where: defaults,
       order: sort,
@@ -244,7 +243,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.update', err)
         return res.serverError(err)
       })
   }
@@ -265,7 +263,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.update', err)
         return res.serverError(err)
       })
   }
@@ -286,7 +283,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.update', err)
         return res.serverError(err)
       })
   }
@@ -352,7 +348,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -373,7 +368,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -394,7 +388,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -459,7 +452,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CartController.update', err)
         return res.serverError(err)
       })
   }
@@ -480,7 +472,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CartController.update', err)
         return res.serverError(err)
       })
   }
@@ -545,7 +536,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -566,7 +556,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -587,7 +576,6 @@ module.exports = class DiscountController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }

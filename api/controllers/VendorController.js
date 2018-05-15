@@ -89,7 +89,6 @@ module.exports = class VendorController extends Controller {
         }
       ]
     })
-    // console.log('VendorController.search', term)
     Vendor.findAndCount({
       where: defaults,
       order: sort,
@@ -178,7 +177,6 @@ module.exports = class VendorController extends Controller {
     //   limit: limit
     // })
     //   .then(products => {
-    //     console.log('BROKE PRODUCTS', products)
     //     // Paginate
     //     this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
     //     return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)

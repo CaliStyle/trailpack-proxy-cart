@@ -45,7 +45,6 @@ module.exports = class CustomerCsvService extends Service {
         },
         complete: (results, file) => {
           console.timeEnd('csv')
-          // console.log('Parsing complete:', results, file)
           results.upload_id = uploadID
           ProxyEngineService.count('CustomerUpload', { where: { upload_id: uploadID }})
             .then(count => {
@@ -80,7 +79,6 @@ module.exports = class CustomerCsvService extends Service {
    * @param uploadID
    */
   csvCustomerRow(row, uploadID) {
-    // console.log(row)
     const CustomerUpload = this.app.orm.CustomerUpload
     const values = _.values(CUSTOMER_UPLOAD)
     const keys = _.keys(CUSTOMER_UPLOAD)
@@ -200,7 +198,6 @@ module.exports = class CustomerCsvService extends Service {
 
         // Convert to normal object
         customer = customer instanceof this.app.orm['CustomerUpload'] ? customer.get({plain: true}) : customer
-        // console.log('BROKE', customer)
         _.each(customer, (value, key) => {
           if (key.indexOf('shipping_') > -1) {
             const newKey = key.replace('shipping_', '')
@@ -221,7 +218,6 @@ module.exports = class CustomerCsvService extends Service {
         if (_.isEmpty(create.billing_address)) {
           delete create.billing_address
         }
-        // console.log('UPLOAD ADDRESS', create.shipping_address, create.billing_address)
         return this.app.services.CustomerService.create(create, {transaction: options.transaction || null})
           .then(() => {
             customersTotal++

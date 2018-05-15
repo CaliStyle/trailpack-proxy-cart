@@ -45,13 +45,11 @@ module.exports = class FulfillmentService extends Service {
         if (!resFulfillment.order_items) {
           throw new Error('Fulfillment missing order_items')
         }
-        // console.log('REQUIRES SHIPPING', resFulfillment.order_items.some(i => i.requires_shipping === true))
         // If a manually supplied and a non-shippable item, mark as fully fulfilled
         if (
           resFulfillment.service === FULFILLMENT_SERVICE.MANUAL
           && !resFulfillment.order_items.some(i => i.requires_shipping === true)
         ){
-          // console.log('BROKE MANUAL DIGITAL SHIPPING', resFulfillment.order_items)
           resFulfillment.fulfilled()
           return Fulfillment.sequelize.Promise.mapSeries(resFulfillment.order_items, item => {
             item.fulfillment_status = resFulfillment.status
@@ -66,7 +64,6 @@ module.exports = class FulfillmentService extends Service {
           resFulfillment.service === FULFILLMENT_SERVICE.MANUAL
           && resFulfillment.order_items.some(i => i.requires_shipping === true)
         ){
-          // console.log('BROKE MANUAL PHYSICAL SHIPPING', resFulfillment.order_items)
           resFulfillment.sent()
           return Fulfillment.sequelize.Promise.mapSeries(resFulfillment.order_items, item => {
             item.fulfillment_status = resFulfillment.status
@@ -77,7 +74,6 @@ module.exports = class FulfillmentService extends Service {
           })
         }
         else {
-          // console.log('BROKE NOT MANUAL', resFulfillment.order_items)
           return this.app.services.FulfillmentGenericService.createOrder(resFulfillment, resFulfillment.service)
             .then(result => {
               resFulfillment[result.status]()
@@ -426,14 +422,12 @@ module.exports = class FulfillmentService extends Service {
           throw new Error('Fulfillment not found')
         }
         resFulfillment = _fulfillment
-        // console.log('BROKE manualUpdateFulfillment', fulfillment)
         return resFulfillment.fulfillUpdate(
           fulfillment,
           {transaction: options.transaction || null}
         )
       })
       .then((_update) => {
-        // console.log('BROKE', _update)
         return resFulfillment.save({transaction: options.transaction || null})
       })
   }

@@ -45,7 +45,7 @@ module.exports = class ProductAssociation extends Model {
       position: {
         type: Sequelize.INTEGER,
         defaultValue: 1
-      },
+      }
     }
   }
 }

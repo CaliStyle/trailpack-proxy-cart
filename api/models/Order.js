@@ -1185,8 +1185,12 @@ module.exports = class Order extends Model {
               }
             })
 
+            // If this a draft style order with 0 items in it
+            if (this.total_items === 0) {
+              financialStatus = ORDER_FINANCIAL.PENDING
+            }
             // If this item is completely free
-            if (this.total_price === 0) {
+            else if (this.total_price === 0 && this.total_items > 0) {
               financialStatus = ORDER_FINANCIAL.PAID
             }
             // Total Authorized is the Price of the Order and there are no Capture/Sale transactions and 0 voided
@@ -1195,40 +1199,61 @@ module.exports = class Order extends Model {
               && totalSale === 0
               && totalVoided === 0
               && totalRefund === 0
+              && this.total_items > 0
             ) {
-              // console.log('SHOULD BE: authorized')
               financialStatus = ORDER_FINANCIAL.AUTHORIZED
             }
             // Total Authorized is the Price of the Order and there are no Capture/Sale transactions
-            else if (totalAuthorized === totalVoided && totalVoided > 0) {
-              // console.log('SHOULD BE: voided')
+            else if (
+              totalAuthorized === totalVoided
+              && totalVoided > 0
+              && this.total_items > 0
+            ) {
               financialStatus = ORDER_FINANCIAL.VOIDED
             }
-            else if (this.total_price === totalVoided && totalVoided > 0) {
-              // console.log('SHOULD BE: voided')
+            else if (
+              this.total_price === totalVoided
+              && totalVoided > 0
+              && this.total_items > 0
+            ) {
               financialStatus = ORDER_FINANCIAL.VOIDED
             }
             // Total Sale is the Price of the order and there are no refunds
-            else if (totalSale === this.total_price && totalRefund === 0) {
-              // console.log('SHOULD BE: paid')
+            else if (
+              totalSale === this.total_price
+              && totalRefund === 0
+              && this.total_items > 0
+            ) {
               financialStatus = ORDER_FINANCIAL.PAID
             }
             // Total Sale is not yet the Price of the order and there are no refunds
-            else if (totalSale < this.total_price && totalSale > 0 && totalRefund === 0) {
-              // console.log('SHOULD BE: partially_paid')
+            else if (
+              totalSale < this.total_price
+              && totalSale > 0
+              && totalRefund === 0
+              && this.total_items > 0
+            ) {
               financialStatus = ORDER_FINANCIAL.PARTIALLY_PAID
             }
             // Total Sale is the Total Price and Total Refund is Total Price
-            else if (this.total_price ===  totalRefund) {
-              // console.log('SHOULD BE: refunded')
+            else if (
+              this.total_price ===  totalRefund
+              && this.total_items > 0
+            ) {
               financialStatus = ORDER_FINANCIAL.REFUNDED
             }
             // Total Sale is the Total Price but Total Refund is less than the Total Price
-            else if (totalRefund < this.total_price && totalRefund > 0) {
-              // console.log('SHOULD BE: partially_refunded')
+            else if (
+              totalRefund < this.total_price
+              && totalRefund > 0
+              && this.total_items > 0
+            ) {
               financialStatus = ORDER_FINANCIAL.PARTIALLY_REFUNDED
             }
-            else if (this.total_price === totalCancelled) {
+            else if (
+              this.total_price === totalCancelled
+              && this.total_items > 0
+            ) {
               financialStatus = ORDER_FINANCIAL.CANCELLED
             }
 
@@ -1274,30 +1299,30 @@ module.exports = class Order extends Model {
             let totalCancelledFulfillments = 0
 
             this.fulfillments.forEach(fulfillment => {
-              if (fulfillment.status == FULFILLMENT_STATUS.FULFILLED) {
+              if (fulfillment.status === FULFILLMENT_STATUS.FULFILLED) {
                 totalFulfillments++
               }
-              else if (fulfillment.status == FULFILLMENT_STATUS.PARTIAL) {
+              else if (fulfillment.status === FULFILLMENT_STATUS.PARTIAL) {
                 totalPartialFulfillments++
               }
-              else if (fulfillment.status == FULFILLMENT_STATUS.SENT) {
+              else if (fulfillment.status === FULFILLMENT_STATUS.SENT) {
                 totalSentFulfillments++
               }
-              else if (fulfillment.status == FULFILLMENT_STATUS.NONE) {
+              else if (fulfillment.status === FULFILLMENT_STATUS.NONE) {
                 totalNonFulfillments++
               }
-              else if (fulfillment.status == FULFILLMENT_STATUS.PENDING) {
+              else if (fulfillment.status === FULFILLMENT_STATUS.PENDING) {
                 totalPendingFulfillments++
               }
-              else if (fulfillment.status == FULFILLMENT_STATUS.CANCELLED) {
+              else if (fulfillment.status === FULFILLMENT_STATUS.CANCELLED) {
                 totalCancelledFulfillments++
               }
             })
 
-            if (totalFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
+            if (totalFulfillments === this.fulfillments.length && this.fulfillments.length > 0) {
               fulfillmentStatus = ORDER_FULFILLMENT.FULFILLED
             }
-            else if (totalSentFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
+            else if (totalSentFulfillments === this.fulfillments.length && this.fulfillments.length > 0) {
               fulfillmentStatus = ORDER_FULFILLMENT.SENT
             }
             else if (totalPartialFulfillments > 0) {
@@ -1306,14 +1331,14 @@ module.exports = class Order extends Model {
             else if (totalNonFulfillments >= this.fulfillments.length && this.fulfillments.length > 0) {
               fulfillmentStatus = ORDER_FULFILLMENT.NONE // back to default
             }
-            else if (totalCancelledFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
+            else if (totalCancelledFulfillments === this.fulfillments.length && this.fulfillments.length > 0) {
               fulfillmentStatus = ORDER_FULFILLMENT.CANCELLED // back to default
             }
-            else if (totalPendingFulfillments == this.fulfillments.length && this.fulfillments.length > 0) {
+            else if (totalPendingFulfillments === this.fulfillments.length && this.fulfillments.length > 0) {
               fulfillmentStatus = ORDER_FULFILLMENT.PENDING // back to default
             }
             // IF done or cancelled
-            if (fulfillmentStatus == ORDER_FULFILLMENT.FULFILLED || fulfillmentStatus == ORDER_FULFILLMENT.CANCELLED) {
+            if (fulfillmentStatus === ORDER_FULFILLMENT.FULFILLED || fulfillmentStatus === ORDER_FULFILLMENT.CANCELLED) {
               this.status = ORDER_STATUS.CLOSED
             }
 
@@ -1439,6 +1464,7 @@ module.exports = class Order extends Model {
           buildOrderItem: function(item, qty, properties) {
             qty = qty || 0
             item.Product = item.Product || {}
+            item.images = item.images || []
             const OrderItem = app.orm['OrderItem']
 
             return OrderItem.build({
@@ -1451,7 +1477,7 @@ module.exports = class Order extends Model {
               variant_title: item.title,
               sku: item.sku,
               type: item.type,
-              name: item.title == item.Product.title ? item.title : `${item.Product.title} - ${item.title}`,
+              name: item.title === item.Product.title ? item.title : `${item.Product.title} - ${item.title}`,
               quantity: qty,
               properties: properties,
               option: item.option,
@@ -1614,7 +1640,9 @@ module.exports = class Order extends Model {
             return Promise.resolve()
               .then(() => {
                 const prevOrderItem = this.order_items.find(item =>
-                  item.product_id === orderItem.product_id && item.variant_id === orderItem.variant_id)
+                  item.product_id === orderItem.product_id
+                  && item.variant_id === orderItem.variant_id
+                )
 
                 if (!prevOrderItem) {
                   return

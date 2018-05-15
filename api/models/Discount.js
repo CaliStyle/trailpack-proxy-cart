@@ -425,7 +425,6 @@ module.exports = class Discount extends Model {
             criteria = criteria || []
 
             app.log.debug('Discount.discountItem CRITERIA', criteria)
-            // console.log('Discount.discountItem CRITERIA', criteria)
 
             // Set item defaults
             item.discounted_lines = item.discounted_lines || []
@@ -485,7 +484,6 @@ module.exports = class Discount extends Model {
             // If this discount only applies to individual products
             if (this.discount_scope === DISCOUNT_SCOPE.INDIVIDUAL) {
               const criteriaPair = criteria.find(d => d.discount === this.id)
-              // console.log('CRITERIA PAIR', criteriaPair)
               if (!criteriaPair) {
                 return item
               }

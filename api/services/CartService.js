@@ -526,7 +526,6 @@ module.exports = class CartService extends Service {
         })
       })
       .then(resolvedItems => {
-        // console.log('CartService.addItemsToCart', cart)
         return resCart.save({transaction: options.transaction || null})
       })
   }
@@ -799,12 +798,10 @@ module.exports = class CartService extends Service {
     // Will return default shop if blank
     return this.app.orm['Shop'].resolve(cart.shop_id, {transaction: options.transaction || null})
       .then(shop => {
-        // console.log('CartService.beforeCreate', shop)
         cart.shop_id = shop.id
         return cart.recalculate({transaction: options.transaction || null})
       })
       .catch(err => {
-        // console.log('CartService.beforeCreate', err)
         return cart.recalculate({transaction: options.transaction || null})
       })
   }

@@ -60,7 +60,8 @@ module.exports = class ItemCollection extends Model {
         references: null
       },
       position: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 1
       }
     }
   }

@@ -46,7 +46,6 @@ module.exports = class VendorCsvService extends Service {
         },
         complete: (results, file) => {
           console.timeEnd('csv')
-          // console.log('Parsing complete:', results, file)
           results.upload_id = uploadID
           ProxyEngineService.count('VendorUpload', { where: { upload_id: uploadID }})
             .then(count => {
@@ -81,7 +80,6 @@ module.exports = class VendorCsvService extends Service {
    * @param uploadID
    */
   csvVendorRow(row, uploadID) {
-    // console.log(row)
     const VendorUpload = this.app.orm.VendorUpload
     const values = _.values(VENDOR_UPLOAD)
     const keys = _.keys(VENDOR_UPLOAD)
@@ -184,7 +182,6 @@ module.exports = class VendorCsvService extends Service {
         if (_.isEmpty(create.billing_address)) {
           delete create.billing_address
         }
-        // console.log('UPLOAD VENDOR', create)
         return this.transformFromRow(create)
           .catch(err => {
             errors.push(err.message)

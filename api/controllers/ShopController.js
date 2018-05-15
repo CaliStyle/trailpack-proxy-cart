@@ -82,7 +82,6 @@ module.exports = class ShopController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ShopController.create', err)
         return res.serverError(err)
       })
   }

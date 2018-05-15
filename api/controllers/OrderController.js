@@ -167,7 +167,6 @@ module.exports = class OrderController extends Controller {
         }
       ]
     })
-    console.log('OrderController.search', term)
     Order.findAndCountDefault({
       where: defaults,
       order: sort,
@@ -245,7 +244,6 @@ module.exports = class OrderController extends Controller {
           if (req.body.cart_id) {
             req.body.cart.id = req.body.cart_id
           }
-          // console.log('cart checkout order.create', req.body.cart)
           return CartService.prepareForOrder(req)
         }
         else if (req.body.subscription || req.body.subscription_token || req.body.subscription_id) {
@@ -268,11 +266,9 @@ module.exports = class OrderController extends Controller {
         if (!preparedOrder) {
           throw new Error('Not Ready For Order')
         }
-        // console.log('cart checkout order.create', preparedOrder)
         return OrderService.create(preparedOrder)
       })
       .then(order => {
-        // console.log('CartController.checkout Order', data)
         if (!order) {
           throw new Error('Unexpected Error while creating order')
         }
@@ -282,7 +278,6 @@ module.exports = class OrderController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('cart checkout order.create', err)
         return res.serverError(err)
       })
   }
@@ -604,7 +599,6 @@ module.exports = class OrderController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('OrderController.addTag', err)
         return res.serverError(err)
       })
   }
@@ -623,7 +617,6 @@ module.exports = class OrderController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('OrderController.removeTag', err)
         return res.serverError(err)
       })
   }
@@ -659,7 +652,6 @@ module.exports = class OrderController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.removeItemsFromOrder', err)
         return res.serverError(err)
       })
   }
@@ -735,6 +727,9 @@ module.exports = class OrderController extends Controller {
    */
   removeItem(req, res) {
     const OrderService = this.app.services.OrderService
+    if (req.params.item) {
+      req.body.id = req.params.item
+    }
     lib.Validator.validateOrder.removeItem(req.body)
       .then(values => {
         return OrderService.removeItem(req.params.id, req.body)

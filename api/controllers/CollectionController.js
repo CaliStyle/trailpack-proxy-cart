@@ -194,7 +194,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.create', err)
         return res.serverError(err)
       })
 
@@ -222,7 +221,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -243,7 +241,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -263,7 +260,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -284,7 +280,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -310,8 +305,6 @@ module.exports = class CollectionController extends Controller {
 
     let count = 0
 
-    // console.log('FIND COLLECTION COLLECTIONS for ', collectionId, limit, offset)
-
     ItemCollection.findAndCount({
       where: {
         collection_id: collectionId,
@@ -322,7 +315,6 @@ module.exports = class CollectionController extends Controller {
       offset: offset
     })
       .then(arr => {
-        // console.log('BROKE PRE', arr)
         count = arr.count
         const collectionIds = arr.rows.map(model => model.model_id)
         return Collection.findAll({
@@ -332,7 +324,6 @@ module.exports = class CollectionController extends Controller {
         })
       })
       .then(collections => {
-        // console.log('BROKE COLLECTIONS', collections)
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, collections)
@@ -390,7 +381,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -411,7 +401,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -432,7 +421,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -506,7 +494,6 @@ module.exports = class CollectionController extends Controller {
     //   limit: limit
     // })
     //   .then(products => {
-    //     console.log('BROKE PRODUCTS', products)
     //     // Paginate
     //     this.app.services.ProxyEngineService.paginate(res, products.count, limit, offset, sort)
     //     return this.app.services.ProxyPermissionsService.sanitizeResult(req, products.rows)
@@ -535,7 +522,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -556,7 +542,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -621,7 +606,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -641,7 +625,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -662,7 +645,6 @@ module.exports = class CollectionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CollectionController.update', err)
         return res.serverError(err)
       })
   }
@@ -771,7 +753,6 @@ module.exports = class CollectionController extends Controller {
 
     CollectionCsvService.collectionCsv(csv.path)
       .then(result => {
-        // console.log('CollectionController.uploadCSV',result)
         return res.json({
           file: req.file,
           result: result

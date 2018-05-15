@@ -85,7 +85,6 @@ module.exports = class CustomerController extends Controller {
         }
       ]
     })
-    // console.log('CustomerController.search', term)
     Customer.findAndCount({
       where: defaults,
       order: sort,
@@ -286,14 +285,12 @@ module.exports = class CustomerController extends Controller {
         return CustomerService.create(req.body)
       })
       .then(customer => {
-        // console.log('Customer Request', req.customer)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
       })
       .then(result => {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.create', err)
         return res.serverError(err)
       })
 
@@ -321,14 +318,12 @@ module.exports = class CustomerController extends Controller {
         })
       })
       .then(customer => {
-        // console.log('Customer Request', req.customer)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
       })
       .then(result => {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.create', err)
         return res.serverError(err)
       })
 
@@ -363,7 +358,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -388,7 +382,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -482,7 +475,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.clearCustomer', err)
         return res.serverError(err)
       })
   }
@@ -812,7 +804,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -848,7 +839,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -884,7 +874,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -920,7 +909,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -959,7 +947,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -989,7 +976,6 @@ module.exports = class CustomerController extends Controller {
         return SubscriptionService.addItems(req.body, subscriptionId)
       })
       .then(subscription => {
-        // console.log('ProductController.addItemsToSubscription',data)
         if (!subscription) {
           throw new Error('Unexpected Error while adding items')
         }
@@ -999,7 +985,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.addItemsToSubscription', err)
         return res.serverError(err)
       })
   }
@@ -1036,7 +1021,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.removeItemsFromSubscription', err)
         return res.serverError(err)
       })
   }
@@ -1047,7 +1031,6 @@ module.exports = class CustomerController extends Controller {
    * @param res
    */
   subscriptions(req, res) {
-    // console.log('I WAS CALLED')
     const Subscription = this.app.orm['Subscription']
     let customerId = req.params.id
 
@@ -1227,7 +1210,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
 
@@ -1295,7 +1277,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -1342,7 +1323,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -1450,7 +1430,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
 
@@ -1494,7 +1473,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -1537,7 +1515,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.update', err)
         return res.serverError(err)
       })
   }
@@ -1644,7 +1621,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.addCollection', err)
         return res.serverError(err)
       })
   }
@@ -1674,7 +1650,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.addCollection', err)
         return res.serverError(err)
       })
   }
@@ -1694,7 +1669,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.addTag', err)
         return res.serverError(err)
       })
   }
@@ -1756,7 +1730,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.removeTag', err)
         return res.serverError(err)
       })
   }
@@ -1775,7 +1748,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.addCollection', err)
         return res.serverError(err)
       })
   }
@@ -1795,7 +1767,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.addCollection', err)
         return res.serverError(err)
       })
   }
@@ -1862,7 +1833,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.removeCollection', err)
         return res.serverError(err)
       })
   }
@@ -2098,7 +2068,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.removeTag', err)
         return res.serverError(err)
       })
   }
@@ -2118,7 +2087,6 @@ module.exports = class CustomerController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('CustomerController.removeTag', err)
         return res.serverError(err)
       })
   }

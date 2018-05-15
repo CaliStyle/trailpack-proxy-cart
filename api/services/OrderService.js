@@ -133,9 +133,6 @@ module.exports = class OrderService extends Service {
           }
           // Map the gateway names being used
           const paymentGatewayNames = obj.payment_details.map(detail => { return detail.gateway })
-          // console.log('OrderService.create', resShippingAddress, resBillingAddress)
-
-          // console.log('Broke', totalDue, totalPrice)
           const accountBalanceIndex = _.findIndex(obj.pricing_overrides, {name: 'Account Balance'})
           // Account balance has been applied, check to update it.
           if (accountBalanceIndex > -1) {
@@ -1743,7 +1740,7 @@ module.exports = class OrderService extends Service {
 
         fulfillments = [...fulfillments, ..._fulfillments]
 
-        console.log('BROKE',fulfillments)
+        // console.log('BROKE',fulfillments)
 
         return resOrder.fulfill(fulfillments, {transaction: options.transaction || null})
       })

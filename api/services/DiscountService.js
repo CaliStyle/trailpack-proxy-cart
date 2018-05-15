@@ -243,10 +243,8 @@ module.exports = class DiscountService extends Service {
             discountedLine.percentage = collection.discount_percentage
             discountedLine.type = COLLECTION_DISCOUNT_TYPE.PERCENTAGE
           }
-          // console.log('cart checkout', obj.line_items)
           // Determine Scope
           // if (collection.discount_scope == COLLECTION_DISCOUNT_SCOPE.GLOBAL) {
-            // console.log('FIXED', collection.discount_type, COLLECTION_DISCOUNT_TYPE.FIXED)
 
           // If cart or subscription
           if (['cart','subscription'].indexOf(type) > -1) {
@@ -258,10 +256,8 @@ module.exports = class DiscountService extends Service {
               if (collection.discount_product_exclude.indexOf(item.type) > -1) {
                 return item
               }
-              // console.log('cart checkout products', collection.products)
               // Check if Individual Scope
               const inProducts = collection.products.some(product => product.id === item.product_id)
-              // console.log('cart checkout apply individual', inProducts)
               if (collection.discount_scope === COLLECTION_DISCOUNT_SCOPE.INDIVIDUAL && inProducts === false) {
                 return item
               }
@@ -278,7 +274,6 @@ module.exports = class DiscountService extends Service {
 
               const calculatedPrice = Math.max(0, item.calculated_price - lineDiscountedLine.price)
               const totalDeducted = Math.min(item.price, (item.price - (item.price - lineDiscountedLine.price)))
-              // console.log('cart checkout', item.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
               // Publish this to the parent discounted lines
               publish = true
               item.discounted_lines.push(lineDiscountedLine)
@@ -323,7 +318,6 @@ module.exports = class DiscountService extends Service {
 
             const calculatedPrice = Math.max(0, resObj.calculated_price - lineDiscountedLine.price)
             const totalDeducted = Math.min(resObj.price,(resObj.price - (resObj.price - lineDiscountedLine.price)))
-            // console.log('Product Collections Discounts', resObj.price, totalDeducted, calculatedPrice, lineDiscountedLine.price)
             // Publish this to the parent discounted lines
             resObj.setCalculatedPrice(calculatedPrice)
             discountedLine.price = discountedLine.price + totalDeducted

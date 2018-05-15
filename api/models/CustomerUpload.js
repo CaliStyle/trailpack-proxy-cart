@@ -43,7 +43,6 @@ module.exports = class CustomerUpload extends Model {
                 .then(batched => {
                   if (count >= (options.regressive ? options.limit : options.offset + options.limit)) {
                     options.offset = options.regressive ? 0 : options.offset + options.limit
-                    // console.log('Broke run again', count)
                     return recursiveQuery(options)
                   }
                   else {

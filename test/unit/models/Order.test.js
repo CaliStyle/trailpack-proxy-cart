@@ -25,7 +25,8 @@ describe('Order Model', () => {
     const resOrder = Order.build({
       fulfillment_kind: 'immediate',
       has_subscription: true,
-      total_price: 10
+      total_price: 10,
+      total_items: 1
     }, {
       include: [{
         model: Transaction,
@@ -64,7 +65,8 @@ describe('Order Model', () => {
     const resOrder = Order.build({
       fulfillment_kind: 'immediate',
       has_subscription: true,
-      total_price: 10
+      total_price: 10,
+      total_items: 1
     }, {
       include: [{
         model: Transaction,
@@ -101,7 +103,8 @@ describe('Order Model', () => {
   it('should resolve Fulfill Immediately', (done) => {
     const resOrder = Order.build({
       fulfillment_kind: 'immediate',
-      total_price: 10
+      total_price: 10,
+      total_items: 1
     }, {
       include: [{
         model: Transaction,
@@ -138,7 +141,8 @@ describe('Order Model', () => {
   it('should not resolve Fulfill Immediately because of failure', (done) => {
     const resOrder = Order.build({
       fulfillment_kind: 'immediate',
-      total_price: 10
+      total_price: 10,
+      total_items: 1
     }, {
       include: [{
         model: Transaction,
@@ -175,7 +179,8 @@ describe('Order Model', () => {
   it('should not resolve Fulfill Immediately because of manual', (done) => {
     const resOrder = Order.build({
       fulfillment_kind: 'manual',
-      total_price: 10
+      total_price: 10,
+      total_items: 1
     }, {
       include: [{
         model: Transaction,
@@ -212,7 +217,8 @@ describe('Order Model', () => {
   it('should not resolve Fulfill Immediately because of manual and failure', (done) => {
     const resOrder = Order.build({
       fulfillment_kind: 'manual',
-      total_price: 10
+      total_price: 10,
+      total_items: 1
     }, {
       include: [{
         model: Transaction,
@@ -252,7 +258,8 @@ describe('Order Model', () => {
       shop_id: 1,
       customer_id: 1,
       fulfillment_kind: 'immediate',
-      total_price: 10
+      total_price: 10,
+      total_items: 1
     }, {
       include: [{
         model: Transaction,
@@ -319,7 +326,7 @@ describe('Order Model', () => {
           })
       })
       .then(() => {
-        const retry = resOrder.transactions.filter(transaction => transaction.status == 'failure')[0]
+        const retry = resOrder.transactions.filter(transaction => transaction.status === 'failure')[0]
         return global.app.services.TransactionService.retry(retry)
       })
       .then(transaction => {
@@ -386,7 +393,6 @@ describe('Order Model', () => {
           })
       })
       .then(order => {
-        // console.log('THIS ORDER', resOrder.toJSON())
         assert.equal(resOrder.financial_status, 'pending')
         assert.equal(resOrder.fulfillment_status, 'pending')
         assert.equal(resOrder.total_pending_fulfillments, 1)
@@ -404,7 +410,6 @@ describe('Order Model', () => {
           })
       })
       .then((order) => {
-        // console.log('THIS ORDER', resOrder.toJSON())
         assert.equal(resOrder.financial_status, 'pending')
         assert.equal(resOrder.fulfillment_status, 'pending')
         assert.equal(resOrder.total_pending_fulfillments, 1)

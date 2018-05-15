@@ -175,7 +175,6 @@ module.exports = class SubscriptionController extends Controller {
         }
       ]
     })
-    // console.log('SubscriptionController.search', term)
     Subscription.findAndCountDefault({
       where: defaults,
       subscription: sort,
@@ -220,7 +219,6 @@ module.exports = class SubscriptionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -241,7 +239,6 @@ module.exports = class SubscriptionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -262,7 +259,6 @@ module.exports = class SubscriptionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -282,7 +278,6 @@ module.exports = class SubscriptionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -306,7 +301,6 @@ module.exports = class SubscriptionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('SubscriptionController.update', err)
         return res.serverError(err)
       })
   }
@@ -325,7 +319,6 @@ module.exports = class SubscriptionController extends Controller {
         return SubscriptionService.addItems(req.body, id)
       })
       .then(subscription => {
-        // console.log('ProductController.addItemsToSubscription',data)
         if (!subscription) {
           throw new Error('Unexpected Error while adding items')
         }
@@ -335,7 +328,6 @@ module.exports = class SubscriptionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.addItemsToSubscription', err)
         return res.serverError(err)
       })
   }
@@ -365,10 +357,46 @@ module.exports = class SubscriptionController extends Controller {
         return res.json(result)
       })
       .catch(err => {
-        // console.log('ProductController.removeItemsFromSubscription', err)
         return res.serverError(err)
       })
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   */
+  customer(req, res){
+    const orm = this.app.orm
+    const Subscription = orm['Subscription']
+    const Customer = orm['Customer']
+    Subscription.findById(req.params.id, {
+      attributes: ['id', 'customer_id']
+    })
+      .then(subscription => {
+        if (!subscription) {
+          throw new Errors.FoundError(Error(`Subscription id ${ req.params.id } not found`))
+        }
+        if (!subscription.customer_id) {
+          throw new Errors.FoundError(Error(`Subscription id ${ req.params.id } customer not found`))
+        }
+        return Customer.findById(subscription.customer_id)
+      })
+      .then(customer => {
+        if (!customer) {
+          throw new Errors.FoundError(Error(`Subscription id ${ req.params.id } customer not found`))
+        }
+        return this.app.services.ProxyPermissionsService.sanitizeResult(req, customer)
+      })
+      .then(result => {
+        return res.json(result)
+      })
+      .catch(err => {
+        return res.serverError(err)
+      })
+  }
+
+
 
   /**
    * upload CSV
