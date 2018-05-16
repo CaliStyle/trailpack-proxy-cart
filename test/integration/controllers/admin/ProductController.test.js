@@ -389,6 +389,7 @@ describe('Admin User ProductController', () => {
       .end((err, res) => {
         assert.equal(res.body[0].id, createdProductID)
         assert.equal(res.body[0].title, 'Burton Custom Freestyle 151 Gen 2')
+        assert.deepEqual(res.body[0].options, ['width','size'])
         // Metadata
         assert.equal(res.body[0].metadata.test, 'new value')
         // Collections
@@ -435,6 +436,7 @@ describe('Admin User ProductController', () => {
       .end((err, res) => {
         assert.equal(res.body.id, createdProductID)
         assert.equal(res.body.title, 'Burton Custom Freestyle 151 Gen 2')
+        assert.deepEqual(res.body.options, ['width','size'])
         // Variants
         assert.equal(res.body.variants.length, 3)
         let variantPos = 1
@@ -778,6 +780,41 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
+  it('should find updated product', (done) => {
+    adminUser
+      .get(`/product/${createdProductID}`)
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, createdProductID)
+        assert.equal(res.body.title, 'Burton Custom Freestyle 151 Gen 2')
+        assert.deepEqual(res.body.options, ['width','size','hover'])
+        assert.equal(res.body.total_variants, 4)
+        // Variants
+        assert.equal(res.body.variants.length, 4)
+        let variantPos = 1
+        res.body.variants.forEach(variant => {
+          assert.equal(variant.product_id, createdProductID)
+          assert.equal(variant.position, variantPos)
+          variantPos++
+        })
+
+        // Images
+        assert.equal(res.body.images.length, 4)
+        let imagePos = 1
+        res.body.images.forEach(image => {
+          assert.equal(image.product_id, createdProductID)
+          assert.ok(image.src)
+          assert.ok(image.full)
+          assert.ok(image.thumbnail)
+          assert.ok(image.small)
+          assert.ok(image.medium)
+          assert.ok(image.large)
+          assert.equal(image.position, imagePos)
+          imagePos++
+        })
+        done(err)
+      })
+  })
   it('Create a New image and add it to a product variant', (done) => {
     adminUser
       .post(`/product/${createdProductID}/variant/${createdVariantID}/image/create`)
@@ -871,32 +908,31 @@ describe('Admin User ProductController', () => {
       })
   })
 
-  // TODO complete test
   it('should make removeVariant post adminUser', (done) => {
     adminUser
       .post(`/product/${createdProductID}/variant/${firstVariantID}/remove`)
       .send({})
       .expect(200)
       .end((err, res) => {
-        // assert.equal(res.body.total_variants, 3)
-        // res.body.variants.forEach(variant => {
-        //   assert.notEqual(variant.id, firstVariantID)
-        // })
+        assert.equal(res.body.id, firstVariantID)
         done(err)
       })
   })
+
   it('Variant and it\'s images should be removed', (done) => {
     adminUser
       .get(`/product/${createdProductID}`)
       .expect(200)
       .end((err, res) => {
+        assert.deepEqual(res.body.options, ['width','size','hover'])
         assert.equal(res.body.total_variants, 3)
         assert.equal(res.body.variants.length, 3)
         assert.equal(res.body.images.length, 4)
         done(err)
       })
   })
-  // TODO complete test
+  // TODO refactor and complete test
+  // Currently returns just the ID, should return the removed product
   it('should make removeProducts post adminUser', (done) => {
     adminUser
       .post('/product/removeProducts')
@@ -905,6 +941,8 @@ describe('Admin User ProductController', () => {
       }])
       .expect(200)
       .end((err, res) => {
+        // console.log('working on remove product',res.body)
+        // assert.equal(res.body[0], createdProductID)
         done(err)
       })
   })

@@ -226,10 +226,10 @@ module.exports = class ProductVariant extends Model {
             else if (variant && _.isObject(variant) && variant.id) {
               return Variant.findById(variant.id, options)
                 .then(resVariant => {
-                  if (!resVariant) {
+                  if (!resVariant && options.reject !== false) {
                     throw new Errors.FoundError(Error(`Variant ${variant.id} not found`))
                   }
-                  return resVariant
+                  return resVariant || variant
                 })
             }
             else if (variant && _.isObject(variant) && variant.sku) {
@@ -239,19 +239,19 @@ module.exports = class ProductVariant extends Model {
                 }
               }, options))
                 .then(resVariant => {
-                  if (!resVariant) {
+                  if (!resVariant && options.reject !== false) {
                     throw new Errors.FoundError(Error(`Variant ${variant.sku} not found`))
                   }
-                  return resVariant
+                  return resVariant || variant
                 })
             }
             else if (variant && _.isNumber(variant)) {
               return Variant.findById(variant, options)
                 .then(resVariant => {
-                  if (!resVariant) {
+                  if (!resVariant && options.reject !== false) {
                     throw new Errors.FoundError(Error(`Variant ${variant} not found`))
                   }
-                  return resVariant
+                  return resVariant || variant
                 })
             }
             else if (variant && _.isString(variant)) {
@@ -261,10 +261,10 @@ module.exports = class ProductVariant extends Model {
                 }
               }, options))
                 .then(resVariant => {
-                  if (!resVariant) {
+                  if (!resVariant && options.reject !== false) {
                     throw new Errors.FoundError(Error(`Variant ${variant} not found`))
                   }
-                  return resVariant
+                  return resVariant || variant
                 })
             }
             else {

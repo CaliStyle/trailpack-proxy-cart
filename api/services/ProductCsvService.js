@@ -411,9 +411,15 @@ module.exports = class ProductCsvService extends Service {
         // Map collections
         upload.collections = upload.collections.map(collection => {
           if (collection !== '') {
+            let position
+            if (/:/.test(collection)) {
+              position = Number(collection.split(':')[1])
+              collection = collection.split(':')[0]
+            }
             return {
               handle: this.app.services.ProxyCartService.handle(collection),
-              title: collection
+              title: collection,
+              position: position
             }
           }
         })

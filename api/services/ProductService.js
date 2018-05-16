@@ -144,10 +144,12 @@ module.exports = class ProductService extends Service {
     })
       .then(resProduct => {
         if (!resProduct) {
+          // console.log('CREATING', product)
           // Create a new Product
           return this.createProduct(product, options)
         }
         else {
+          // console.log('UPDATING', product)
           // Set ID in case it's missing in this transaction
           product.id = resProduct.id
           // Update the existing product
@@ -443,11 +445,12 @@ module.exports = class ProductService extends Service {
     // const Metadata = this.app.orm['Metadata']
 
     const productOptions = []
+
     if (!product.id) {
       throw new Errors.FoundError(Error('Product is missing id'))
     }
 
-    let resProduct = {}
+    let resProduct
     return Product.findByIdDefault(product.id, {
       transaction: options.transaction || null
     })
@@ -546,6 +549,7 @@ module.exports = class ProductService extends Service {
             })
             resProduct.images = _.concat(resProduct.images, newImages)
           }
+
           return _.extend(variant, variantToUpdate)
         })
 
@@ -595,7 +599,8 @@ module.exports = class ProductService extends Service {
         resProduct.variants.forEach(variant => {
           if (variant.option) {
             const keys = Object.keys(variant.option)
-            resProduct.options = _.union(resProduct.options, keys)
+            // resProduct.options = _.union(resProduct.options, keys)
+            update.options = _.union(update.options, keys)
           }
         })
 
@@ -679,16 +684,22 @@ module.exports = class ProductService extends Service {
       })
       .then(vendors => {
         return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
-          if (variant instanceof Variant) {
-            return variant.save({
-              transaction: options.transaction || null
+          return Variant.resolve(variant, {
+            transaction: options.transaction || null,
+            reject: false
+          })
+            .then(variant => {
+              if (variant instanceof Variant) {
+                return variant.save({
+                  transaction: options.transaction || null
+                })
+              }
+              else {
+                return resProduct.createVariant(variant, {
+                  transaction: options.transaction || null
+                })
+              }
             })
-          }
-          else {
-            return resProduct.createVariant(variant, {
-              transaction: options.transaction || null
-            })
-          }
         })
       })
       .then(variants => {
@@ -774,6 +785,7 @@ module.exports = class ProductService extends Service {
     const Product = this.app.orm['Product']
     const Variant = this.app.orm['ProductVariant']
     let resProduct, resVariant, productOptions = []
+
     return Product.resolve(product, {transaction: options.transaction || null})
       .then(_product => {
         if (!_product) {
@@ -813,7 +825,7 @@ module.exports = class ProductService extends Service {
         })
       })
       .then(updatedVariants => {
-        resProduct.options = product.options
+        resProduct.options = productOptions
         resProduct.total_variants = updatedVariants.length
         return resProduct.save({transaction: options.transaction || null})
       })
