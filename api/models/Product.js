@@ -1025,7 +1025,10 @@ module.exports = class Product extends Model {
               return Promise.resolve(this)
             }
             else {
-              return this.getVariants({transaction: options.transaction || null})
+              return this.getVariants({
+                limit: 500,
+                transaction: options.transaction || null
+              })
                 .then(variants => {
                   variants = variants || []
                   this.variants = variants
