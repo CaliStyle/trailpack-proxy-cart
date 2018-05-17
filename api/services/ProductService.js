@@ -143,17 +143,17 @@ module.exports = class ProductService extends Service {
       transaction: options.transaction || null
     })
       .then(resProduct => {
-        if (!resProduct) {
-          // console.log('CREATING', product)
-          // Create a new Product
-          return this.createProduct(product, options)
-        }
-        else {
+        if (resProduct instanceof Product) {
           // console.log('UPDATING', product)
           // Set ID in case it's missing in this transaction
           product.id = resProduct.id
           // Update the existing product
           return this.updateProduct(product, options)
+        }
+        else {
+          // console.log('CREATING', product)
+          // Create a new Product
+          return this.createProduct(product, options)
         }
       })
   }
@@ -446,21 +446,36 @@ module.exports = class ProductService extends Service {
 
     const productOptions = []
 
-    if (!product.id) {
-      throw new Errors.FoundError(Error('Product is missing id'))
-    }
+    // if (!product.id) {
+    //   throw new Errors.FoundError(Error('Product is missing id'))
+    // }
 
-    let resProduct
-    return Product.findByIdDefault(product.id, {
+    let resProduct, update = {}
+    return Product.resolve(product, {
       transaction: options.transaction || null
     })
       .then(_product => {
-        if (!_product){
+        if (!_product) {
           throw new Error('Product not found')
         }
         resProduct = _product
+        return resProduct.resolveVariants({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resProduct.resolveCollections({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resProduct.resolveImages({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resProduct.resolveMetadata({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resProduct.resolveAssociations({transaction: options.transaction || null})
+      })
+      .then(() => {
 
-        const update = {
+        update = {
           host: product.host || resProduct.host,
           handle: product.handle || resProduct.handle,
           seo_title: product.seo_title || resProduct.seo_title,
@@ -481,19 +496,19 @@ module.exports = class ProductService extends Service {
 
         // force array of variants
         product.variants = product.variants || []
-        // force array of variants
+        // force array of images
         product.images = product.images || []
-        // force array of variants
+        // force array of tags
         product.tags = product.tags || []
-        // force array of variants
+        // force array of collections
         product.collections = product.collections || []
-        // force array of variants
+        // force array of associations
         product.associations = product.associations || []
 
         // If product is getting published
         if (product.published === true && resProduct.published === false) {
-          resProduct.published = resProduct.variants[0].published = product.published
-          resProduct.published_at = resProduct.variants[0].published_at = new Date()
+          update.published = resProduct.variants[0].published = product.published
+          update.published_at = resProduct.variants[0].published_at = new Date()
         }
         // If product is getting unpublished
         if (product.published === false && resProduct.published === true) {
@@ -515,29 +530,29 @@ module.exports = class ProductService extends Service {
         }
         // if the compare_at_price is changing
         if (product.compare_at_price) {
-          resProduct.variants[0].compare_at_price = product.compare_at_price
+          update.compare_at_price = resProduct.variants[0].compare_at_price = product.compare_at_price
         }
         // Update seo_title if provided, else update it if a new product title
         if (product.seo_title) {
-          resProduct.seo_title = product.seo_title //.substring(0,255)
+          update.seo_title = product.seo_title //.substring(0,255)
         }
         // Update product_seo title
         if (product.title && !product.seo_title) {
-          resProduct.seo_title = product.title //.substring(0,255)
+          update.seo_title = product.title //.substring(0,255)
         }
         // Update seo_description if provided, else update it if a new product body
         if (product.seo_description) {
-          resProduct.seo_description = this.app.services.ProxyCartService.description(product.seo_description)
+          update.seo_description = this.app.services.ProxyCartService.description(product.seo_description)
         }
         // Update seo_description
         if (!product.seo_description && product.body) {
-          resProduct.seo_description = this.app.services.ProxyCartService.description(product.body)
+          update.seo_description = this.app.services.ProxyCartService.description(product.body)
         }
 
         // Update Existing Variant
         resProduct.variants = resProduct.variants.map(variant => {
           // Find the existing variant
-          const variantToUpdate = _.find(product.variants, { id: variant.id })
+          const variantToUpdate = product.variants.find(v => variant.id === v.id || variant.sku === v.sku) || {}
           // Add new Images
           if (variantToUpdate && variantToUpdate.images) {
             let newImages = variantToUpdate.images.filter(image => !image.id)
@@ -549,12 +564,23 @@ module.exports = class ProductService extends Service {
             })
             resProduct.images = _.concat(resProduct.images, newImages)
           }
+          for (const k in variantToUpdate){
+            if (variantToUpdate.hasOwnProperty(k) && variantToUpdate.hasOwnProperty(k)) {
+              if (!_.isNil(variantToUpdate[k])) {
+                variant[k] = variantToUpdate[k]
+              }
+            }
+          }
 
-          return _.extend(variant, variantToUpdate)
+          return variant
         })
 
         // Create a List of new Variants
-        product.variants = product.variants.filter(variant => !variant.id)
+        product.variants = product.variants.filter(
+          variant => !resProduct.variants.find(v => {
+            return v.id === variant.id || v.sku === variant.sku
+          })
+        )
         // Build the new Variants
         product.variants = product.variants.map((variant) => {
           // Set the product id of the variant
@@ -565,7 +591,7 @@ module.exports = class ProductService extends Service {
           if (variant.images.length > 0) {
             // Update the master image if new/updated attributes are defined
             resProduct.images = resProduct.images.map(image => {
-              return _.extend(image, _.find(variant.images, { id: image.id }))
+              return _.extend(image, variant.images.find(i => i.id === image.id || i.src === image.src ))
             })
 
             // Create a list of new variant images
@@ -606,16 +632,31 @@ module.exports = class ProductService extends Service {
 
         // Update existing Images
         resProduct.images = resProduct.images.map(image => {
-          return _.extend(image, _.find(product.images, { id: image.id }))
+          const imageToUpdate = product.images.find(i => i.id === image.id || i.src === image.src) || {}
+
+          for (const k in imageToUpdate){
+            if (imageToUpdate.hasOwnProperty(k) && imageToUpdate.hasOwnProperty(k)) {
+              if (!_.isNil(imageToUpdate[k])) {
+                image[k] = imageToUpdate[k]
+              }
+            }
+          }
+
+          return image
         })
 
         // Create a List of new Images
-        product.images = product.images.filter(image => !image.id)
+        product.images = product.images.filter(
+          image => !resProduct.images.find(i => {
+            return i.id === image.id || i.src === image.src
+          })
+        )
+
+        // Map the new images with their product id
         product.images = product.images.map(image => {
           image.product_id = resProduct.id
           return Image.build(image)
         })
-
         // Join all the images
         resProduct.images = _.sortBy(_.concat(resProduct.images, product.images), 'position')
         // Set the Positions
@@ -657,10 +698,6 @@ module.exports = class ProductService extends Service {
         }
         return
       })
-      .then(collections => {
-        // Resolve the metadata in case this is missing it
-        return resProduct.resolveMetadata({transaction: options.transaction || null})
-      })
       .then(() => {
         // if product metadata.
         if (product.metadata && _.isObject(product.metadata)) {
@@ -684,22 +721,22 @@ module.exports = class ProductService extends Service {
       })
       .then(vendors => {
         return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
-          return Variant.resolve(variant, {
-            transaction: options.transaction || null,
-            reject: false
-          })
-            .then(variant => {
-              if (variant instanceof Variant) {
-                return variant.save({
-                  transaction: options.transaction || null
-                })
-              }
-              else {
-                return resProduct.createVariant(variant, {
-                  transaction: options.transaction || null
-                })
-              }
+          if (variant instanceof Variant) {
+            // console.log('broke saving', variant.id)
+            return variant.save({
+              transaction: options.transaction || null
             })
+                .catch(err => {
+                  console.log(err)
+                  return variant
+                })
+          }
+          else {
+            // console.log('BROKE creating', variant.sku)
+            return resProduct.createVariant(variant, {
+              transaction: options.transaction || null
+            })
+          }
         })
       })
       .then(variants => {

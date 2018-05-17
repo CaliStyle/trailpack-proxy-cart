@@ -402,7 +402,7 @@ module.exports = class Product extends Model {
            * @param options
            * @returns {*}
            */
-          resolve: function(product, options){
+          resolve: function(product, options) {
             options = options || {}
             const Product =  this
 
@@ -412,10 +412,10 @@ module.exports = class Product extends Model {
             else if (product && _.isObject(product) && product.id) {
               return Product.findById(product.id, options)
                 .then(resProduct => {
-                  if (!resProduct) {
+                  if (!resProduct && options.reject !== false) {
                     throw new Errors.FoundError(Error(`Product id ${product.id} not found`))
                   }
-                  return resProduct
+                  return resProduct || product
                 })
             }
             else if (product && _.isObject(product) && product.handle) {
@@ -425,19 +425,19 @@ module.exports = class Product extends Model {
                 }
               }, options))
                 .then(resProduct => {
-                  if (!resProduct) {
+                  if (!resProduct && options.reject !== false) {
                     throw new Errors.FoundError(Error(`Product handle ${product.handle} not found`))
                   }
-                  return resProduct
+                  return resProduct || product
                 })
             }
             else if (product && _.isNumber(product)) {
               return Product.findById(product, options)
                 .then(resProduct => {
-                  if (!resProduct) {
+                  if (!resProduct && options.reject !== false) {
                     throw new Errors.FoundError(Error(`Product id ${product} not found`))
                   }
-                  return resProduct
+                  return resProduct || product
                 })
             }
             else if (product && _.isString(product)) {
@@ -446,16 +446,21 @@ module.exports = class Product extends Model {
                 where: { handle: product }
               }))
                 .then(resProduct => {
-                  if (!resProduct) {
+                  if (!resProduct && options.reject !== false) {
                     throw new Errors.FoundError(Error(`Product handle ${product} not found`))
                   }
-                  return resProduct
+                  return resProduct || product
                 })
             }
             else {
-              // TODO create proper error
-              const err = new Error(`Unable to resolve Product ${product}`)
-              return Promise.reject(err)
+              if (options.reject !== false) {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Product ${product}`)
+                return Promise.reject(err)
+              }
+              else {
+                return Promise.resovle(product)
+              }
             }
           }
         },

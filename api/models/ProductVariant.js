@@ -268,9 +268,14 @@ module.exports = class ProductVariant extends Model {
                 })
             }
             else {
-              // TODO create proper error
-              const err = new Error(`Unable to resolve Variant ${variant}`)
-              return Promise.reject(err)
+              if (options.reject !== false) {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Variant ${variant}`)
+                return Promise.reject(err)
+              }
+              else {
+                return Promise.resolve(variant)
+              }
             }
           }
         },

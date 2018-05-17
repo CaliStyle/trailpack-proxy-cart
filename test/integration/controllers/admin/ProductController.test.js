@@ -13,6 +13,7 @@ describe('Admin User ProductController', () => {
   let uploadID
   let uploadMetaID
   let createdVariantID
+  let firstProductImageId
 
   before((done) => {
 
@@ -161,7 +162,7 @@ describe('Admin User ProductController', () => {
           weight_unit: 'lb',
           images: [
             {
-              src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+              src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=29&w=350&h=150',
               alt: 'Hello World'
             }
           ],
@@ -173,7 +174,7 @@ describe('Admin User ProductController', () => {
               option: { size: '44in' },
               images: [
                 {
-                  src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+                  src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=30&w=350&h=150',
                   alt: 'Hello World 2'
                 }
               ]
@@ -279,6 +280,7 @@ describe('Admin User ProductController', () => {
         assert.notEqual(res.body.tags.indexOf('outdoor'), -1)
         // Images
         assert.equal(res.body.images.length, 2)
+        firstProductImageId = res.body.images[0].id
         let imagePos = 1
         res.body.images.forEach(image => {
           assert.equal(image.product_id, createdProductID)
@@ -354,12 +356,12 @@ describe('Admin User ProductController', () => {
           images: [
             // Updates Image alt Tag
             {
-              id: firstVariantID,
+              id: firstProductImageId,
               alt: 'Hello World 2 Updated'
             },
             // Creates new Image
             {
-              src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+              src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=31&w=350&h=150',
               alt: 'Hello World 3'
             }
           ],
@@ -377,7 +379,7 @@ describe('Admin User ProductController', () => {
               option: { size: '36in' },
               images: [
                 {
-                  src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150',
+                  src: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=32&w=350&h=150',
                   alt: 'Hello World 4'
                 }
               ]
@@ -1263,12 +1265,20 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-page'], '1')
         assert.equal(res.headers['x-pagination-pages'], '1')
 
+        // console.log('WORKING HERE', res.body[0])
         res.body.forEach(product => {
+          assert.equal(product.images.length, 2)
+          // let variantPos = 0
           let imagePos = 0
           product.images.forEach(image => {
             imagePos++
             assert.equal(image.position, imagePos)
           })
+          // NOTE: Variants are not included in this request
+          // product.variants.forEach(variant => {
+          //   variantPos++
+          //   assert.equal(variant.position, variantPos)
+          // })
         })
 
         assert.equal(res.body.length, 1)

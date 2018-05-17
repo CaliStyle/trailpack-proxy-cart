@@ -2,7 +2,8 @@
 'use strict'
 
 const Model = require('trails/model')
-
+const Errors = require('proxy-engine-errors')
+const _ = require('lodash')
 /**
  * @module ProductImage
  * @description Product Image Model
@@ -51,7 +52,65 @@ module.exports = class ProductImage extends Model {
             })
           },
           resolve: function(image, options) {
-            //
+            options = options || {}
+            const Image =  this
+
+            if (image instanceof Image){
+              return Promise.resolve(image)
+            }
+            else if (image && _.isObject(image) && image.id) {
+              return Image.findById(image.id, options)
+                .then(resImage => {
+                  if (!resImage && options.reject !== false) {
+                    throw new Errors.FoundError(Error(`Image id ${image.id} not found`))
+                  }
+                  return resImage || image
+                })
+            }
+            else if (image && _.isObject(image) && image.src) {
+              return Image.findOne(app.services.ProxyEngineService.mergeOptionDefaults({
+                where: {
+                  src: image.src
+                }
+              }, options))
+                .then(resImage => {
+                  if (!resImage && options.reject !== false) {
+                    throw new Errors.FoundError(Error(`Image src ${image.src} not found`))
+                  }
+                  return resImage || image
+                })
+            }
+            else if (image && _.isNumber(image)) {
+              return Image.findById(image, options)
+                .then(resImage => {
+                  if (!resImage && options.reject !== false) {
+                    throw new Errors.FoundError(Error(`Image id ${image} not found`))
+                  }
+                  return resImage || image
+                })
+            }
+            else if (image && _.isString(image)) {
+              return Image.findOne(app.services.ProxyEngineService.mergeOptionDefaults({
+                options,
+                where: { src: image }
+              }))
+                .then(resImage => {
+                  if (!resImage && options.reject !== false) {
+                    throw new Errors.FoundError(Error(`Image src ${image} not found`))
+                  }
+                  return resImage || image
+                })
+            }
+            else {
+              if (options.reject !== false) {
+                // TODO create proper error
+                const err = new Error(`Unable to resolve Image ${image}`)
+                return Promise.reject(err)
+              }
+              else {
+                return Promise.resovle(image)
+              }
+            }
           }
         }
       }
