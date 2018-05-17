@@ -1341,4 +1341,60 @@ describe('Admin User ProductController', () => {
         done(err)
       })
   })
+
+
+  // it('It should upload a real world realworld_upload.csv', (done) => {
+  //   adminUser
+  //     .post('/product/uploadCSV')
+  //     .attach('file', 'test/fixtures/realworld_upload.csv')
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.ok(res.body.result.upload_id)
+  //       uploadID = res.body.result.upload_id
+  //       assert.equal(res.body.result.products, 818)
+  //       assert.equal(res.body.result.errors.length, 0)
+  //       done(err)
+  //     })
+  // })
+  //
+  // it('It should process real world upload', (done) => {
+  //   adminUser
+  //     .post(`/product/processUpload/${uploadID}`)
+  //     .send({})
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.equal(res.body.products, 41)
+  //       assert.equal(res.body.variants, 1034)
+  //       assert.equal(res.body.errors.length, 0)
+  //       done(err)
+  //     })
+  // })
+  //
+  // it('It should upload a real world realworld_upload.csv again', (done) => {
+  //   adminUser
+  //     .post('/product/uploadCSV')
+  //     .attach('file', 'test/fixtures/realworld_upload.csv')
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.ok(res.body.result.upload_id)
+  //       uploadID = res.body.result.upload_id
+  //       assert.equal(res.body.result.products, 818)
+  //       assert.equal(res.body.result.errors.length, 0)
+  //       done(err)
+  //     })
+  // })
+  //
+  // it('It should process real world upload again', (done) => {
+  //   adminUser
+  //     .post(`/product/processUpload/${uploadID}`)
+  //     .send({})
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       assert.equal(res.body.products, 41)
+  //       assert.equal(res.body.variants, 1034)
+  //       assert.equal(res.body.errors.length, 0)
+  //       done(err)
+  //     })
+  // })
+
 })

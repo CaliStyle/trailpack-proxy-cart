@@ -1027,7 +1027,8 @@ module.exports = class Product extends Model {
             else {
               return this.getVariants({
                 limit: 500,
-                transaction: options.transaction || null
+                transaction: options.transaction || null,
+                order: [['position', 'ASC']]
               })
                 .then(variants => {
                   variants = variants || []
@@ -1082,7 +1083,10 @@ module.exports = class Product extends Model {
               return Promise.resolve(this)
             }
             else {
-              return this.getAssociations({transaction: options.transaction || null})
+              return this.getAssociations({
+                limit: 100,
+                transaction: options.transaction || null
+              })
                 .then(associations => {
                   associations = associations || []
                   this.associations = associations
@@ -1107,7 +1111,11 @@ module.exports = class Product extends Model {
               return Promise.resolve(this)
             }
             else {
-              return this.getImages({transaction: options.transaction || null})
+              return this.getImages({
+                limit: 50,
+                transaction: options.transaction || null,
+                order: [['position', 'ASC']]
+              })
                 .then(images => {
                   images = images || []
                   this.images = images
@@ -1132,7 +1140,10 @@ module.exports = class Product extends Model {
               return Promise.resolve(this)
             }
             else {
-              return this.getVendors({transaction: options.transaction || null})
+              return this.getVendors({
+                limit: 50,
+                transaction: options.transaction || null
+              })
                 .then(vendors => {
                   vendors = vendors || []
                   this.vendors = vendors
@@ -1184,7 +1195,10 @@ module.exports = class Product extends Model {
               return Promise.resolve(this)
             }
             else {
-              return this.getShops({transaction: options.transaction || null})
+              return this.getShops({
+                limit: 50,
+                transaction: options.transaction || null
+              })
                 .then(shops => {
                   shops = shops || []
                   this.shops = shops
@@ -1210,7 +1224,10 @@ module.exports = class Product extends Model {
               return Promise.resolve(this)
             }
             else {
-              return this.getTags({transaction: options.transaction || null})
+              return this.getTags({
+                limit: 50,
+                transaction: options.transaction || null
+              })
                 .then(tags => {
                   tags = tags || []
                   this.tags = tags
@@ -1260,7 +1277,10 @@ module.exports = class Product extends Model {
               return Promise.resolve(this)
             }
             else {
-              return this.getCollections({transaction: options.transaction || null})
+              return this.getCollections({
+                limit: 50,
+                transaction: options.transaction || null
+              })
                 .then(collections => {
                   collections = collections || []
                   this.collections = collections
@@ -1312,7 +1332,10 @@ module.exports = class Product extends Model {
               return Promise.resolve(this)
             }
             else {
-              return this.getDiscounts({transaction: options.transaction || null})
+              return this.getDiscounts({
+                limit: 10,
+                transaction: options.transaction || null
+              })
                 .then(_discounts => {
                   _discounts = _discounts || []
                   this.discounts = _discounts

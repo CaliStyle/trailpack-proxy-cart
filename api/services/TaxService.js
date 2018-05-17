@@ -1,3 +1,5 @@
+/* eslint no-console: [0] */
+
 'use strict'
 
 const Service = require('trails/service')
@@ -14,6 +16,7 @@ module.exports = class TaxService extends Service {
         return this.app.services.ProxyCartService.resolveSendFromTo(obj, shippingAddress)
       })
       .then(sendFromTo => {
+        console.log('WORKING ON TAXES', sendFromTo)
         if (!sendFromTo) {
           return []
         }
@@ -24,7 +27,9 @@ module.exports = class TaxService extends Service {
         return obj.setTaxLines(taxLines)
       })
   }
+
   getTaxes(sendFromTo) {
+    console.log('WORKING ON TAXES', sendFromTo)
     Promise.resolve([])
   }
 }

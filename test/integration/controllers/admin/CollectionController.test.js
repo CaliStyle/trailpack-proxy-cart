@@ -291,7 +291,7 @@ describe('Admin User CollectionController', () => {
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-limit'])), true)
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-page'])), true)
         assert.equal(_.isNumber(parseInt(res.headers['x-pagination-pages'])), true)
-        console.log('BROKE COLLECTIONS COLLECTIONS', res.body)
+        // console.log('BROKE COLLECTIONS COLLECTIONS', res.body)
         assert.equal(res.body.length, 3)
         done(err)
       })

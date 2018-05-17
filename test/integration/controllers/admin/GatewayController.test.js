@@ -33,13 +33,13 @@ describe('Admin User OrderController', () => {
   it('should exist', () => {
     assert(global.app.api.controllers['GatewayController'])
   })
-  it('should get general stats', (done) => {
+  it('should get gateways public information', (done) => {
     adminUser
       .get('/gateways')
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body)
-        console.log('WORKING ON GATEWAYS', res.body)
+        // console.log('WORKING ON GATEWAYS', res.body)
         done(err)
       })
   })

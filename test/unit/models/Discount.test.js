@@ -297,7 +297,7 @@ describe('Discount Model', () => {
       discount: 1,
       product: [2]
     }])
-    console.log('BROKE TEST', item)
+    // console.log('BROKE TEST', item)
     assert.equal(item.price, 1000)
     assert.equal(item.discounted_lines.length, 0)
     done()

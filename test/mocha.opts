@@ -3,7 +3,7 @@
 --full-trace
 --no-exit
 --slow 50
---timeout 10000
+--timeout 1200000
 --check-leaks
 --globals app,__core-js_shared__
 --fgrep app.js --invert

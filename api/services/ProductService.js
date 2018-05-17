@@ -462,16 +462,34 @@ module.exports = class ProductService extends Service {
         return resProduct.resolveVariants({transaction: options.transaction || null})
       })
       .then(() => {
-        return resProduct.resolveCollections({transaction: options.transaction || null})
+        if (product.collections) {
+          return resProduct.resolveCollections({transaction: options.transaction || null})
+        }
+        return
       })
       .then(() => {
-        return resProduct.resolveImages({transaction: options.transaction || null})
+        if (product.images) {
+          return resProduct.resolveImages({transaction: options.transaction || null})
+        }
+        return
       })
       .then(() => {
-        return resProduct.resolveMetadata({transaction: options.transaction || null})
+        if (product.metadata) {
+          return resProduct.resolveMetadata({transaction: options.transaction || null})
+        }
+        return
       })
       .then(() => {
-        return resProduct.resolveAssociations({transaction: options.transaction || null})
+        if (product.associations) {
+          return resProduct.resolveAssociations({transaction: options.transaction || null})
+        }
+        return
+      })
+      .then(() => {
+        if (product.vendors) {
+          return resProduct.resolveVendors({transaction: options.transaction || null})
+        }
+        return
       })
       .then(() => {
 
@@ -493,6 +511,8 @@ module.exports = class ProductService extends Service {
           tax_code: product.tax_code || resProduct.tax_code,
           options: productOptions
         }
+
+        // console.log('BROKE DEFAULT SKU', resProduct.variants[0].id,  resProduct.variants[0].sku)
 
         // force array of variants
         product.variants = product.variants || []
@@ -518,6 +538,15 @@ module.exports = class ProductService extends Service {
 
         // If the SKU is changing, set the default sku
         if (product.sku) {
+
+          // let variants = [{
+          //   title: product.title,
+          //   sku: product.sku,
+          //   vendors: product.vendors,
+          //   google: product.google,
+          //   amazon: product.amazon
+          // }]
+
           resProduct.variants[0].sku = product.sku
         }
         // if The title is changing, set the default title
@@ -548,6 +577,7 @@ module.exports = class ProductService extends Service {
         if (!product.seo_description && product.body) {
           update.seo_description = this.app.services.ProxyCartService.description(product.body)
         }
+        // console.log('BROKE', resProduct.variants.length, product.variants.length)
 
         // Update Existing Variant
         resProduct.variants = resProduct.variants.map(variant => {
@@ -575,9 +605,9 @@ module.exports = class ProductService extends Service {
           return variant
         })
 
-        // Create a List of new Variants
+        // Create a List of new Variants that will be added
         product.variants = product.variants.filter(
-          variant => !resProduct.variants.find(v => {
+          variant => !variant.id && !resProduct.variants.find(v => {
             return v.id === variant.id || v.sku === variant.sku
           })
         )
@@ -585,6 +615,7 @@ module.exports = class ProductService extends Service {
         product.variants = product.variants.map((variant) => {
           // Set the product id of the variant
           variant.product_id = resProduct.id
+          // console.log('BROKE NEW VARIANT', variant.id, variant.sku)
           // Set the defaults
           variant = this.variantDefaults(variant, resProduct.get({plain: true}))
 
@@ -609,6 +640,8 @@ module.exports = class ProductService extends Service {
           }
           return Variant.build(variant)
         })
+
+        // console.log('BROKE TO BE CREATED VARIANTS', product.variants.length)
 
         // Join all the variants and sort by current positions
         resProduct.variants = _.sortBy(_.concat(resProduct.variants, product.variants), 'position')
@@ -647,7 +680,7 @@ module.exports = class ProductService extends Service {
 
         // Create a List of new Images
         product.images = product.images.filter(
-          image => !resProduct.images.find(i => {
+          image => !image.id && !resProduct.images.find(i => {
             return i.id === image.id || i.src === image.src
           })
         )
@@ -722,7 +755,7 @@ module.exports = class ProductService extends Service {
       .then(vendors => {
         return Product.sequelize.Promise.mapSeries(resProduct.variants, variant => {
           if (variant instanceof Variant) {
-            // console.log('broke saving', variant.id)
+            // console.log('broke saving', variant.id, variant.sku)
             return variant.save({
               transaction: options.transaction || null
             })

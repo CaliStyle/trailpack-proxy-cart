@@ -398,7 +398,7 @@ module.exports = class ProxyCartService extends Service {
 
   /**
    *
-   * @param cart
+   * @param obj
    * @param shippingAddress
    * @param options
    * @returns {Promise}
@@ -417,6 +417,7 @@ module.exports = class ProxyCartService extends Service {
         const err = new Error('Object must be an instance!')
         return reject(err)
       }
+
       Shop.findById(obj.shop_id, {transaction: options.transaction || null})
         .then(shop => {
           if (!shop) {
