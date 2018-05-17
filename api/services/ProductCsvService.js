@@ -286,8 +286,8 @@ module.exports = class ProductCsvService extends Service {
               }
             }
             else {
-              const optionsReg = new RegExp('^((Option \/).([0-9]).(Name|Value))', 'g')
-              const propertyReg = new RegExp('^((Property Pricing \/).([0-9]).(Name|Group|Value|Image|Multi Select))', 'g')
+              const optionsReg = new RegExp('^((Option \/).([0-9]+).(Name|Value))', 'g')
+              const propertyReg = new RegExp('^((Property Pricing \/).([0-9]+).(Name|Group|Value|Image|Multi Select))', 'g')
 
               const matchOptions = optionsReg.exec(key)
               if (

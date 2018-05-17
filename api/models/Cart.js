@@ -1217,6 +1217,22 @@ module.exports = class Cart extends Model {
            * @param options
            * @returns {Promise.<TResult>}
            */
+          calculateTaxes: function(options) {
+            options = options || {}
+            return app.services.TaxService.calculate(this, this.shipping_address, app.orm['Cart'], options)
+              .then(() => {
+                return this
+              })
+              .catch(err => {
+                app.log.error(err)
+                return this
+              })
+          },
+          /**
+           *
+           * @param options
+           * @returns {Promise.<TResult>}
+           */
           recalculate: function(options) {
             options = options || {}
             // Default Values
@@ -1232,11 +1248,14 @@ module.exports = class Cart extends Model {
               //   // Calculate Coupons
               //   return app.services.CouponService.calculate(this, collections, app.orm['Cart'])
               // })
-              .then(coupons => {
+              .then(() => {
+                return this.calculateTaxes({transaction: options.transaction || null})
+              })
+              .then(() => {
                 // Calculate Customer Balance
                 return this.calculatePricingOverrides({transaction: options.transaction || null})
               })
-              .then(accountBalance => {
+              .then(() => {
                 return this.setTotals()
               })
               .catch(err => {

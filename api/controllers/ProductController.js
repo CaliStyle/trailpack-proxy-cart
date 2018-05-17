@@ -1388,6 +1388,9 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   uploadCSV(req, res) {
+    // No Timeout
+    req.setTimeout(0)
+
     const ProductCsvService = this.app.services.ProductCsvService
     const csv = req.file
 
@@ -1414,6 +1417,9 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   processUpload(req, res) {
+    // No Timeout
+    req.setTimeout(0)
+
     const ProductCsvService = this.app.services.ProductCsvService
     ProductCsvService.processProductUpload(req.params.id)
       .then(result => {
@@ -1429,6 +1435,9 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   uploadMetaCSV(req, res) {
+    // No Timeout
+    req.setTimeout(0)
+
     const ProductCsvService = this.app.services.ProductCsvService
     const csv = req.file
 
@@ -1455,6 +1464,9 @@ module.exports = class ProductController extends Controller {
    * @param res
    */
   processMetaUpload(req, res) {
+    // No Timeout
+    req.setTimeout(0)
+
     const ProductCsvService = this.app.services.ProductCsvService
     ProductCsvService.processProductMetaUpload(req.params.id)
       .then(result => {
