@@ -426,36 +426,6 @@ module.exports = class Order extends Model {
 
           /**
            *
-           * @param preNotification
-           * @param options
-           */
-          notifyAdministratorsService: function(preNotification, options) {
-            options = options || {}
-
-            // if (this.customer_id) {
-            //   return this.resolveCustomer({
-            //     attributes: ['id', 'email', 'company', 'first_name', 'last_name', 'full_name'],
-            //     transaction: options.transaction || null,
-            //     reload: options.reload || null
-            //   })
-            //     .then(() => {
-            //       // if (this.Customer && this.Customer instanceof app.orm['Customer']) {
-            //       //   return this.Customer.notifyUsers(preNotification, {transaction: options.transaction || null})
-            //       // }
-            //       // else {
-            //       //   return
-            //       // }
-            //     })
-            //     .then(() => {
-            //       return this
-            //     })
-            // }
-            // else {
-            //   return Promise.resolve(this)
-            // }
-          },
-          /**
-           *
            * @param shipping
            * @param options
            * @returns {Promise.<T>}
@@ -642,6 +612,34 @@ module.exports = class Order extends Model {
               })
               .then(() => {
                 return this.recalculate({transaction: options.transaction || null})
+              })
+          },
+
+          saveShippingAddress: function(address, options) {
+            options = options || {}
+            this.shipping_address = _.extend(this.shipping_address, address)
+            this.shipping_address = app.services.ProxyCartService.validateAddress(this.shipping_address)
+            return app.services.GeolocationGenericService.locate(this.shipping_address)
+              .then(latLng => {
+                this.shipping_address = _.defaults(this.shipping_address, latLng)
+                return this.recalculate({transaction: options.transaction || null})
+              })
+              .catch(err => {
+                return
+              })
+          },
+
+          saveBillingAddress: function(address, options) {
+            options = options || {}
+            this.billing_address = _.extend(this.billing_address, address)
+            this.billing_address = app.services.ProxyCartService.validateAddress(this.billing_address)
+            return app.services.GeolocationGenericService.locate(this.billing_address)
+              .then(latLng => {
+                this.billing_address = _.defaults(this.billing_address, latLng)
+                return this.recalculate({transaction: options.transaction || null})
+              })
+              .catch(err => {
+                return
               })
           },
           /**
@@ -887,7 +885,6 @@ module.exports = class Order extends Model {
           },
           /**
            *
-           * @returns {config}
            */
           setStatus: function () {
             if (

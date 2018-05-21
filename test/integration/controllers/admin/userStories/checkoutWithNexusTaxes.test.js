@@ -25,9 +25,21 @@ describe('Admin User Checkout with Nexus Taxes', () => {
         done(err)
       })
   })
-  it('should create a cart with shipping address in the same province as the store', (done) => {
+  it('should create/init a cart', (done) => {
     adminUser
-      .post('/cart')
+      .post('/cart/init')
+      .send({})
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+        cartID = res.body.id
+        assert.equal(res.body.customer_id, customerID)
+        done(err)
+      })
+  })
+  it('should update the cart with shipping address in the same province as the store', (done) => {
+    adminUser
+      .put('/cart')
       .send({
         shipping_address: {
           first_name: 'Scotty',
@@ -45,7 +57,8 @@ describe('Admin User Checkout with Nexus Taxes', () => {
       .expect(200)
       .end((err, res) => {
         assert.ok(res.body.id)
-        cartID = res.body.id
+        assert.equal(cartID, res.body.id)
+        assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.total_items, 0)
         assert.equal(res.body.shipping_address.first_name, 'Scotty')
         assert.equal(res.body.shipping_address.last_name, 'W')
@@ -58,7 +71,6 @@ describe('Admin User Checkout with Nexus Taxes', () => {
         assert.equal(res.body.shipping_address.province_code, 'CA')
         assert.equal(res.body.shipping_address.country_code, 'US')
         assert.equal(res.body.shipping_address.postal_code, '92083')
-        assert.equal(res.body.customer_id, customerID)
         done(err)
       })
   })

@@ -452,7 +452,8 @@ module.exports = class OrderService extends Service {
         if (order.note) {
           resOrder.note = order.note
         }
-        return resOrder.save({transaction: options.transaction || null})
+        // return resOrder.save({transaction: options.transaction || null})
+        return resOrder.recalculate({transaction: options.transaction || null})
       })
       .then(() => {
         return resOrder.sendUpdatedEmail({transaction: options.transaction || null})
@@ -1374,7 +1375,7 @@ module.exports = class OrderService extends Service {
   /**
    *
    * @param order
-   * @param item
+   * @param items
    * @param options
    * @returns {Promise.<TResult>}
    */
@@ -1383,7 +1384,7 @@ module.exports = class OrderService extends Service {
     if (!items) {
       throw new Errors.FoundError(Error('Item is not defined'))
     }
-    let resOrder, resItems
+    let resOrder, resItems = []
     const Order = this.app.orm['Order']
     const Sequelize = this.app.orm['Product'].sequelize
     return Order.resolve(order, options)

@@ -1342,6 +1342,118 @@ describe('Admin User ProductController', () => {
       })
   })
 
+  it('should make a minimal add product post adminUser', (done) => {
+    adminUser
+      .post('/product')
+      .send(
+      {
+        handle: 'rei-bag',
+        title: 'REI Bag',
+        body: 'REI Bag',
+        vendors: [
+          'REI'
+        ],
+        type: 'REI Bag',
+        price: '10000',
+        published: true,
+        tags: [
+          'equipment',
+          'outdoor'
+        ],
+        sku: 'rei-123',
+        option: { capacity: '28 grams' },
+        weight: 1,
+        weight_unit: 'lb'
+      }
+      )
+      .expect(200)
+      .end((err, res) => {
+        // Product
+        assert.ok(res.body.id)
+        createdProductID = res.body.id
+        assert.equal(res.body.handle, 'rei-bag')
+        assert.equal(res.body.title, 'REI Bag')
+        assert.equal(res.body.seo_title, 'REI Bag')
+        assert.equal(res.body.seo_description, 'REI Bag')
+        assert.notEqual(res.body.vendors.indexOf('REI'), -1)
+        assert.equal(res.body.type, 'REI Bag')
+        assert.notEqual(res.body.options.indexOf('capacity'), -1)
+        // Tags
+        assert.equal(res.body.tags.length, 2)
+        assert.notEqual(res.body.tags.indexOf('equipment'), -1)
+        assert.notEqual(res.body.tags.indexOf('outdoor'), -1)
+
+        // Variants
+        assert.equal(res.body.variants.length, 1)
+        assert.equal(res.body.variants[0].position, 1)
+
+        assert.equal(res.body.variants[0].product_id, res.body.id)
+        assert.equal(res.body.variants[0].sku, 'rei-123')
+        assert.equal(res.body.variants[0].title, res.body.title)
+        assert.equal(res.body.variants[0].price, res.body.price)
+        assert.equal(res.body.variants[0].weight, res.body.weight)
+        assert.equal(res.body.variants[0].weight_unit, res.body.weight_unit)
+        assert.equal(res.body.variants[0].option.capacity, '28 grams')
+        done(err)
+      })
+  })
+
+  it('should make a minimal update product post adminUser', (done) => {
+    adminUser
+      .put(`/product/${createdProductID}`)
+      .send(
+      {
+        handle: 'rei-bag',
+        title: 'REI Bag',
+        body: 'REI Bag',
+        vendors: [
+          'REI'
+        ],
+        type: 'REI Bag',
+        price: '10000',
+        published: true,
+        tags: [
+          'equipment',
+          'outdoor'
+        ],
+        sku: 'rei-123',
+        option: { capacity: '28 grams' },
+        weight: 1,
+        weight_unit: 'lb'
+      }
+      )
+      .expect(200)
+      .end((err, res) => {
+        // Product
+        assert.ok(res.body.id)
+        createdProductID = res.body.id
+        assert.equal(res.body.handle, 'rei-bag')
+        assert.equal(res.body.title, 'REI Bag')
+        assert.equal(res.body.seo_title, 'REI Bag')
+        assert.equal(res.body.seo_description, 'REI Bag')
+        assert.notEqual(res.body.vendors.indexOf('REI'), -1)
+        assert.equal(res.body.type, 'REI Bag')
+        assert.notEqual(res.body.options.indexOf('capacity'), -1)
+        // Tags
+        assert.equal(res.body.tags.length, 2)
+        assert.notEqual(res.body.tags.indexOf('equipment'), -1)
+        assert.notEqual(res.body.tags.indexOf('outdoor'), -1)
+
+        // Variants
+        assert.equal(res.body.variants.length, 1)
+        assert.equal(res.body.variants[0].position, 1)
+
+        assert.equal(res.body.variants[0].product_id, res.body.id)
+        assert.equal(res.body.variants[0].sku, 'rei-123')
+        assert.equal(res.body.variants[0].title, res.body.title)
+        assert.equal(res.body.variants[0].price, res.body.price)
+        assert.equal(res.body.variants[0].weight, res.body.weight)
+        assert.equal(res.body.variants[0].weight_unit, res.body.weight_unit)
+        assert.equal(res.body.variants[0].option.capacity, '28 grams')
+        done(err)
+      })
+  })
+
 
   // it('It should upload a real world realworld_upload.csv', (done) => {
   //   adminUser
