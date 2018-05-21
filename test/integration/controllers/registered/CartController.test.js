@@ -123,6 +123,7 @@ describe('Registered User CartController', () => {
       .end((err, res) => {
         assert.ok(res.body.token)
         assert.equal(res.body.token, cartToken)
+        assert.equal(res.body.customer_id, customerID)
         assert.equal(res.body.total_items, 0)
         assert.equal(res.body.shipping_address.first_name, 'Scottie')
         assert.equal(res.body.shipping_address.last_name, 'W')

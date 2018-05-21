@@ -27,9 +27,13 @@ module.exports = class CartController extends Controller {
       if (!req.body) {
         req.body = {}
       }
-      if (req.customer) {
-        req.body.customer = req.customer.id
+      if (req.customer && !req.body.customer_id) {
+        req.body.customer_id = req.customer.id
       }
+      if (req.user && !req.body.customer_id) {
+        req.body.customer_id = req.user.current_customer_id
+      }
+
       this.app.services.CartService.create(req.body)
         .then(cart => {
           if (!cart) {
@@ -225,6 +229,9 @@ module.exports = class CartController extends Controller {
     if (req.customer && !req.body.customer_id) {
       req.body.customer_id = req.customer.id
     }
+    if (req.user && !req.body.customer_id) {
+      req.body.customer_id = req.user.current_customer_id
+    }
     if (req.user && !req.body.owners) {
       req.body.owners = [req.user]
     }
@@ -306,6 +313,9 @@ module.exports = class CartController extends Controller {
     // If customer logged in and no customer in body, use customer id
     if (req.customer && !req.body.customer_id) {
       req.body.customer_id = req.customer.id
+    }
+    if (req.user && !req.body.customer_id) {
+      req.body.customer_id = req.user.current_customer_id
     }
     // if user logged in and no owners in body add user
     if (req.user && !req.body.owners) {
@@ -641,8 +651,9 @@ module.exports = class CartController extends Controller {
           throw new Error('Unexpected Error while authenticating cart')
         }
         if (customerId) {
-          cart.customer_id = customerId
-          return cart.save()
+          // cart.customer_id = customerId
+          return cart.setCustomer(customerId)
+          // return cart.save()
         }
         return cart
       })
@@ -701,8 +712,8 @@ module.exports = class CartController extends Controller {
       })
       .then(user => {
         req.user.current_cart_id = resCart.id
-        resCart.customer_id = req.user.current_customer_id
-        return resCart.save()
+        // resCart.customer_id = req.user.current_customer_id
+        return resCart.setCustomer(req.user.current_customer_id)
       })
       .then(() => {
         return new Promise((resolve, reject) => {
