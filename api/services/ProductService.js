@@ -468,10 +468,10 @@ module.exports = class ProductService extends Service {
         return
       })
       .then(() => {
-        if (product.images) {
-          return resProduct.resolveImages({transaction: options.transaction || null})
-        }
-        return
+        // if (product.images) {
+        return resProduct.resolveImages({transaction: options.transaction || null})
+        // }
+        // return
       })
       .then(() => {
         if (product.metadata) {
