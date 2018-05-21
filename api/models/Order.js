@@ -1452,11 +1452,32 @@ module.exports = class Order extends Model {
               })
           },
 
+          saveItemsShippingLines: function (items, options) {
+            options = options || {}
+            // Filter any non manual shipping lines
+            let shippingLines = this.shipping_lines.filter(line =>
+              Object.keys(line).indexOf('id') === -1
+              && Object.keys(line).indexOf('line') === -1
+            )
+
+            return app.orm['OrderItem'].sequelize.Promise.mapSeries(items, item => {
+              return item.setItemsShippingLines(items.find(i => i.id === item.id))
+                .save(options)
+            })
+              .then(items => {
+                items.forEach(item => {
+                  shippingLines = [...shippingLines, ...item.shipping_lines]
+                })
+
+                // Add in shipping_lines from items
+                this.shipping_lines = shippingLines
+
+                return this
+              })
+          },
+
           saveItemsTaxLines: function (items, options) {
             options = options || {}
-            // const taxesLines = []
-            // const totalTaxes = 0
-
             // Filter any non manual tax lines
             let taxLines = this.tax_lines.filter(line =>
               Object.keys(line).indexOf('id') === -1
@@ -1895,6 +1916,28 @@ module.exports = class Order extends Model {
                   return this
                 })
             }
+          },
+          /**
+           *
+           * @param options
+           * @returns {Promise.<TResult>}
+           */
+          calculateShipping: function(options) {
+            options = options || {}
+            if (!this.has_shipping) {
+              return Promise.resolve(this)
+            }
+            return this.resolveOrderItems(options)
+              .then(() => {
+                return app.services.ShippingService.calculate(this, this.order_items, this.shipping_address, app.orm['Order'], options)
+              })
+              .then(shippingResult => {
+                return this.saveItemsShippingLines(shippingResult.line_items)
+              })
+              .catch(err => {
+                app.log.error(err)
+                return this
+              })
           },
           /**
            *

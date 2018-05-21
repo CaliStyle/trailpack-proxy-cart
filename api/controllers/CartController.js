@@ -382,6 +382,9 @@ module.exports = class CartController extends Controller {
         if (!customerId && req.customer) {
           req.body.customer = req.customer
         }
+        else if (!customerId && !req.customer && req.user) {
+          req.body.customer.id = req.user.current_customer_id
+        }
         else if (customerId) {
           req.body.customer.id = customerId
         }

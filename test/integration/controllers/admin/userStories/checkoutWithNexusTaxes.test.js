@@ -115,6 +115,167 @@ describe('Admin User Checkout with Nexus Taxes', () => {
         done(err)
       })
   })
+
+  it('should add manual taxes', done => {
+    adminUser
+      .post(`/cart/${cartID}/addTaxes`)
+      .send([
+        {
+          name: 'Test',
+          price: 100
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 7858)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 2)
+        assert.equal(res.body.tax_lines[0].name, 'Test')
+        assert.equal(res.body.tax_lines[0].price, 100)
+        assert.equal(res.body.tax_lines[1].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[1].price, 7758)
+
+
+        assert.equal(res.body.total_due, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.total_line_items_price, shopProducts[13].price + 100)
+        assert.equal(res.body.total_price, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.total_due, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.line_items.length, 1)
+
+        assert.equal(res.body.line_items[0].price, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].calculated_price, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].price_per_unit, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].properties['engraving']['value'], 'CUSTOM Engraving')
+        assert.equal(res.body.line_items[0].properties['engraving']['price'], 100)
+        done(err)
+      })
+  })
+  it('should remove manual taxes', done => {
+    adminUser
+      .post(`/cart/${cartID}/removeTaxes`)
+      .send([
+        {
+          name: 'Test',
+          price: 100
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 7758)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 1)
+        assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[0].price, 7758)
+
+
+        assert.equal(res.body.total_due, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.total_line_items_price, shopProducts[13].price + 100)
+        assert.equal(res.body.total_price, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.total_due, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.line_items.length, 1)
+
+        assert.equal(res.body.line_items[0].price, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].calculated_price, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].price_per_unit, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].properties['engraving']['value'], 'CUSTOM Engraving')
+        assert.equal(res.body.line_items[0].properties['engraving']['price'], 100)
+        done(err)
+      })
+  })
+
+
+  // TODO TEST FOR ADD SHIPPING
+  // it('should add manual shipping', done => {
+  //   adminUser
+  //     .post(`/cart/${cartID}/addShipping`)
+  //     .send([
+  //       {
+  //         name: 'Test',
+  //         price: 100
+  //       }
+  //     ])
+  //     .expect(200)
+  //     .end((err, res) => {
+  //       console.log('WORKING ON Add Shipping', res.body)
+  //       assert.ok(res.body.id)
+  //
+  //       // Shipping
+  //       assert.equal(res.body.total_shipping, 100)
+  //       assert.equal(res.body.shipping_lines.length, 1)
+  //       assert.equal(res.body.shipping_lines[0].name, 'Test')
+  //       assert.equal(res.body.shipping_lines[0].price, 100)
+  //
+  //       // Taxes
+  //       assert.equal(res.body.has_taxes, true)
+  //       assert.equal(res.body.total_tax, 7758)
+  //       assert.equal(res.body.taxes_included, false)
+  //       assert.equal(res.body.tax_lines.length, 1)
+  //       assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+  //       assert.equal(res.body.tax_lines[0].price, 7758)
+  //
+  //       assert.equal(res.body.total_due, res.body.total_tax + shopProducts[13].price + 100)
+  //       assert.equal(res.body.total_line_items_price, shopProducts[13].price + 100)
+  //       assert.equal(res.body.total_price, res.body.total_tax + shopProducts[13].price + 100)
+  //       assert.equal(res.body.total_due, res.body.total_tax + shopProducts[13].price + 100)
+  //       assert.equal(res.body.line_items.length, 1)
+  //
+  //       assert.equal(res.body.line_items[0].price, shopProducts[13].price + 100)
+  //       assert.equal(res.body.line_items[0].calculated_price, shopProducts[13].price + 100)
+  //       assert.equal(res.body.line_items[0].price_per_unit, shopProducts[13].price + 100)
+  //       assert.equal(res.body.line_items[0].properties['engraving']['value'], 'CUSTOM Engraving')
+  //       assert.equal(res.body.line_items[0].properties['engraving']['price'], 100)
+  //       done(err)
+  //     })
+  // })
+  it('should remove manual shipping', done => {
+    adminUser
+      .post(`/cart/${cartID}/removeShipping`)
+      .send([
+        {
+          name: 'Test',
+          price: 100
+        }
+      ])
+      .expect(200)
+      .end((err, res) => {
+        assert.ok(res.body.id)
+
+        // Shipping
+        assert.equal(res.body.total_shipping, 0)
+        assert.equal(res.body.shipping_lines.length, 0)
+
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 7758)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 1)
+        assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[0].price, 7758)
+
+
+        assert.equal(res.body.total_due, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.total_line_items_price, shopProducts[13].price + 100)
+        assert.equal(res.body.total_price, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.total_due, res.body.total_tax + shopProducts[13].price + 100)
+        assert.equal(res.body.line_items.length, 1)
+
+        assert.equal(res.body.line_items[0].price, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].calculated_price, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].price_per_unit, shopProducts[13].price + 100)
+        assert.equal(res.body.line_items[0].properties['engraving']['value'], 'CUSTOM Engraving')
+        assert.equal(res.body.line_items[0].properties['engraving']['price'], 100)
+        done(err)
+      })
+  })
+
   it('should checkout and item', (done) => {
     adminUser
       .post('/cart/checkout')

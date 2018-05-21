@@ -257,6 +257,7 @@ module.exports = class Cart extends Model {
           }
         },
         instanceMethods: {
+
           /**
            * Resets the defaults so they can be recalculated
            * @returns {*}
@@ -549,8 +550,9 @@ module.exports = class Cart extends Model {
            * @param lines
            */
           setShippingLines: function(lines) {
+            lines = lines || []
             this.total_shipping = 0
-            this.shipping_lines = lines || []
+            this.shipping_lines = [...this.shipping_lines, ...lines],
             this.shipping_lines.forEach(line => {
               this.total_shipping = this.total_shipping + line.price
             })
@@ -593,8 +595,9 @@ module.exports = class Cart extends Model {
            * @param lines
            */
           setTaxLines: function(lines) {
+            lines = lines || []
             this.total_tax = 0
-            this.tax_lines = lines || []
+            this.tax_lines = [...this.tax_lines, ...lines]
             this.tax_lines.forEach(line => {
               this.total_tax = this.total_tax + line.price
             })
@@ -869,6 +872,7 @@ module.exports = class Cart extends Model {
               }
             }
             this.shipping_lines = shippingLines
+            // this.setShippingLines(shippingLines)
             return this.save({transaction: options.transaction || null})
           },
           /**
@@ -902,6 +906,7 @@ module.exports = class Cart extends Model {
               }
             }
             this.shipping_lines = shippingLines
+            // this.setShippingLines(shippingLines)
             return this.save({transaction: options.transaction || null})
           },
           /**
@@ -1292,6 +1297,28 @@ module.exports = class Cart extends Model {
            * @param options
            * @returns {Promise.<TResult>}
            */
+          calculateShipping: function(options) {
+            options = options || {}
+            if (!this.has_shipping) {
+              return Promise.resolve(this)
+            }
+            return app.services.ShippingService.calculate(this, this.line_items, this.shipping_address, app.orm['Cart'], options)
+              .then(shippingResult => {
+                // console.log('WORKING ON SHIPPING RESULT', shippingResult.line_items)
+                this.setItemsShippingLines(shippingResult.line_items)
+
+                return this
+              })
+              .catch(err => {
+                app.log.error(err)
+                return this
+              })
+          },
+          /**
+           *
+           * @param options
+           * @returns {Promise.<TResult>}
+           */
           calculateTaxes: function(options) {
             options = options || {}
             if (!this.has_taxes) {
@@ -1329,6 +1356,9 @@ module.exports = class Cart extends Model {
               //   // Calculate Coupons
               //   return app.services.CouponService.calculate(this, collections, app.orm['Cart'])
               // })
+              .then(() => {
+                return this.calculateShipping({transaction: options.transaction || null})
+              })
               .then(() => {
                 return this.calculateTaxes({transaction: options.transaction || null})
               })

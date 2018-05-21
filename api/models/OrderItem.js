@@ -169,6 +169,48 @@ module.exports = class OrderItem extends Model {
             options = options || {}
           },
 
+          setItemsShippingLines: function (shippingedLine) {
+            // console.log('INCOMING ITEM', shippingedLine)
+            // this.shipping_lines = []
+            let shippingesLines = []
+            let totalShippinges = 0
+            // Make this an array if null
+            if (shippingedLine) {
+              // console.log('FOUND SHIPPING LINE', shippingedLine.shipping_lines)
+
+              shippingedLine.shipping_lines = shippingedLine.shipping_lines || []
+              shippingedLine.shipping_lines.map(line => {
+                line.id = this.id
+                return line
+              })
+
+              totalShippinges = shippingedLine.shipping_lines.forEach(line => {
+                totalShippinges = totalShippinges + line.price
+              })
+
+              // console.log('SHIPPINGED LINE', shippingedLine)
+              shippingesLines = [...shippingesLines, ...shippingedLine.shipping_lines]
+            }
+            this.shipping_lines = shippingesLines
+            // console.log('FINAL SHIPPING LINES', this.shipping_lines)
+
+            return this.setShippingLines(shippingesLines)
+          },
+
+          /**
+           *
+           * @param lines
+           */
+          setShippingLines: function(lines) {
+            this.total_shipping = 0
+            this.shipping_lines = lines || []
+            this.shipping_lines.forEach(line => {
+              this.total_shipping = this.total_shipping + line.price
+            })
+            return this
+            // return this.setTotals()
+          },
+
           setItemsTaxLines: function (taxedLine) {
             // console.log('INCOMING ITEM', taxedLine)
             // this.tax_lines = []

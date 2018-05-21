@@ -67,19 +67,6 @@ module.exports = class CartService extends Service {
     })
     return resCart.save({transaction: options.transaction || null})
       .then(() => {
-        return Cart.sequelize.Promise.mapSeries(items, item => {
-          return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
-        })
-      })
-      .then(resolvedItems => {
-        return Cart.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
-          return resCart.addLine(item, items[index].quantity, items[index].properties)
-        })
-      })
-      // .then(() => {
-      //   return resCart.save({transaction: options.transaction || null})
-      // })
-      .then(() => {
         if (cart.shipping_address && !_.isEmpty(cart.shipping_address)) {
           return resCart.updateShippingAddress(
             cart.shipping_address,
@@ -96,6 +83,46 @@ module.exports = class CartService extends Service {
           )
         }
         return
+      })
+      .then(() => {
+        if (resCart.customer_id && !cart.shipping_address) {
+          return resCart.resolveCustomer({transaction: options.transaction || null})
+            .then(() => {
+              if (resCart.Customer && resCart.Customer.shipping_address_id) {
+                return resCart.setShipping_address(
+                  resCart.Customer.shipping_address_id,
+                  {transaction: options.transaction || null}
+                )
+              }
+              return
+            })
+        }
+        return
+      })
+      .then(() => {
+        if (resCart.customer_id && !cart.billing_address) {
+          return resCart.resolveCustomer({transaction: options.transaction || null})
+            .then(() => {
+              if (resCart.Customer && resCart.Customer.billing_address_id) {
+                return resCart.setBilling_address(
+                  resCart.Customer.billing_address_id,
+                  {transaction: options.transaction || null}
+                )
+              }
+              return
+            })
+        }
+        return
+      })
+      .then(() => {
+        return Cart.sequelize.Promise.mapSeries(items, item => {
+          return this.app.services.ProductService.resolveItem(item, {transaction: options.transaction || null})
+        })
+      })
+      .then(resolvedItems => {
+        return Cart.sequelize.Promise.mapSeries(resolvedItems, (item, index) => {
+          return resCart.addLine(item, items[index].quantity, items[index].properties)
+        })
       })
       .then(() => {
         return resCart.save({transaction: options.transaction || null})
@@ -363,7 +390,7 @@ module.exports = class CartService extends Service {
               return paymentDetails
             })
         }
-        else if (resCart.Customer && (req.body.payment_details && req.body.payment_details.length == 0)) {
+        else if (resCart.Customer && (req.body.payment_details && req.body.payment_details.length === 0)) {
           return resCart.Customer.getDefaultSource({ transaction: options.transaction || null})
             .then(source => {
               if (!source) {
