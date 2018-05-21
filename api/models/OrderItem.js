@@ -35,7 +35,7 @@ module.exports = class OrderItem extends Model {
               })
           },
           beforeSave(values, options) {
-            return app.services.OrderService.itemSaveCreate(values, options)
+            return app.services.OrderService.itemBeforeSave(values, options)
               .catch(err => {
                 return Promise.reject(err)
               })
