@@ -279,8 +279,19 @@ module.exports = class Cart extends Model {
             this.has_taxes = false
             this.discounted_lines = []
             this.coupon_lines = []
-            this.shipping_lines = []
-            this.tax_lines = []
+
+            // this.shipping_lines = []
+            // this.tax_lines = []
+
+            // Filter any non manual tax lines
+            this.tax_lines = this.tax_lines.filter(line =>
+              Object.keys(line).indexOf('line') === -1
+            )
+
+            // Filter any non manual shipping lines
+            this.shipping_lines = this.shipping_lines.filter(line =>
+              Object.keys(line).indexOf('line') === -1
+            )
 
             // Reset line items
             this.line_items.map(item => {
@@ -502,6 +513,37 @@ module.exports = class Cart extends Model {
             return this.setTotals()
           },
 
+          setItemsShippingLines: function (items) {
+            let shippingLines = []
+            let totalShipping = 0
+            // Make this an array if null
+            this.line_items = this.line_items || []
+
+            this.line_items = this.line_items.map((item, i) => {
+              const shippedLine = items.find(i => i.sku === item.sku)
+              if (shippedLine) {
+
+                shippedLine.shipping_lines = shippedLine.shipping_lines || []
+                shippedLine.shipping_lines.map(line => {
+                  line.line = i
+                  return line
+                })
+
+                totalShipping = shippedLine.shipping_lines.forEach(line => {
+                  totalShipping = totalShipping + line.price
+                })
+
+                // console.log('SHIPPED LINE', shippedLine)
+                shippingLines = [...shippingLines, ...shippedLine.shipping_lines]
+                item.shipping_lines = shippedLine.shipping_lines
+                item.total_shipping = totalShipping
+              }
+
+              return item
+            })
+            return this.setShippingLines(shippingLines)
+          },
+
           /**
            *
            * @param lines
@@ -513,6 +555,37 @@ module.exports = class Cart extends Model {
               this.total_shipping = this.total_shipping + line.price
             })
             return this.setTotals()
+          },
+
+          setItemsTaxLines: function (items) {
+            let taxesLines = []
+            let totalTaxes = 0
+            // Make this an array if null
+            this.line_items = this.line_items || []
+
+            this.line_items = this.line_items.map((item, i) => {
+              const taxedLine = items.find(i => i.sku === item.sku)
+              if (taxedLine) {
+
+                taxedLine.tax_lines = taxedLine.tax_lines || []
+                taxedLine.tax_lines.map(line => {
+                  line.line = i
+                  return line
+                })
+
+                totalTaxes = taxedLine.tax_lines.forEach(line => {
+                  totalTaxes = totalTaxes + line.price
+                })
+
+                // console.log('TAXED LINE', taxedLine)
+                taxesLines = [...taxesLines, ...taxedLine.tax_lines]
+                item.tax_lines = taxedLine.tax_lines
+                item.total_taxes = totalTaxes
+              }
+
+              return item
+            })
+            return this.setTaxLines(taxesLines)
           },
 
           /**
@@ -613,7 +686,9 @@ module.exports = class Cart extends Model {
               requires_taxes: data.requires_taxes,
               tax_code: data.tax_code,
               tax_lines: [],
+              total_taxes: 0,
               shipping_lines: [],
+              total_shipping: 0,
               discounted_lines: [],
               total_discounts: 0,
               requires_subscription: data.requires_subscription,
@@ -1219,8 +1294,14 @@ module.exports = class Cart extends Model {
            */
           calculateTaxes: function(options) {
             options = options || {}
-            return app.services.TaxService.calculate(this, this.shipping_address, app.orm['Cart'], options)
-              .then(() => {
+            if (!this.has_taxes) {
+              return Promise.resolve(this)
+            }
+            return app.services.TaxService.calculate(this, this.line_items, this.shipping_address, app.orm['Cart'], options)
+              .then(taxesResult => {
+                // console.log('WORKING ON TAXES RESULT', taxesResult.line_items)
+                this.setItemsTaxLines(taxesResult.line_items)
+
                 return this
               })
               .catch(err => {

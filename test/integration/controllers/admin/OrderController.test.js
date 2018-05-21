@@ -112,6 +112,15 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
+
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 7750)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 1)
+        assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[0].price, 7750)
+
         // Transactions
         assert.equal(res.body.transactions.length, 1)
         assert.equal(res.body.transactions[0].order_id, orderID)
@@ -129,9 +138,9 @@ describe('Admin User OrderController', () => {
 
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 100000)
-        assert.equal(res.body.total_price, 100000)
-        assert.equal(res.body.total_authorized, 100000)
-        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_price, 107750)
+        assert.equal(res.body.total_authorized, 107750)
+        assert.equal(res.body.total_due, 107750)
         assert.equal(res.body.total_items, 1)
 
         done(err)
@@ -163,6 +172,14 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
 
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 7750)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 1)
+        assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[0].price, 7750)
+
         // Transactions
         assert.equal(res.body.transactions.length, 1)
         assert.equal(res.body.transactions[0].order_id, orderID)
@@ -176,9 +193,10 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 100000)
-        assert.equal(res.body.total_price, 100000)
-        assert.equal(res.body.total_due, 100000)
-        assert.equal(res.body.total_authorized, 100000)
+        assert.equal(res.body.total_price, 107750)
+        assert.equal(res.body.total_due, 107750)
+        assert.equal(res.body.total_authorized, 107750)
+        assert.equal(res.body.total_tax, 7750)
         assert.equal(res.body.total_items, 1)
 
         done(err)
@@ -199,6 +217,16 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.fulfillment_status, 'pending')
 
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 15500)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 2)
+        assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[0].price, 7750)
+        assert.equal(res.body.tax_lines[1].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[1].price, 7750)
+
         // Transactions
         assert.equal(res.body.transactions.length, 2)
         res.body.transactions.forEach(transaction => {
@@ -214,9 +242,10 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 2)
 
         assert.equal(res.body.subtotal_price, 200000)
-        assert.equal(res.body.total_price, 200000)
-        assert.equal(res.body.total_due, 200000)
-        assert.equal(res.body.total_authorized, 200000)
+        assert.equal(res.body.total_price, 215500)
+        assert.equal(res.body.total_due, 215500)
+        assert.equal(res.body.total_authorized, 215500)
+        assert.equal(res.body.total_tax, 15500)
         assert.equal(res.body.total_items, 2)
         done(err)
       })
@@ -231,8 +260,19 @@ describe('Admin User OrderController', () => {
       })
       .expect(200)
       .end((err, res) => {
+
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 2)
+
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 23250)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 2)
+        assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[0].price, 7750)
+        assert.equal(res.body.tax_lines[1].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[1].price, 15500)
 
         // Transactions
         assert.equal(res.body.transactions.length, 3)
@@ -252,9 +292,10 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 300000)
-        assert.equal(res.body.total_price, 300000)
-        assert.equal(res.body.total_due, 300000)
-        assert.equal(res.body.total_authorized, 300000)
+        assert.equal(res.body.total_price, 323250)
+        assert.equal(res.body.total_due, 323250)
+        assert.equal(res.body.total_authorized, 323250)
+        assert.equal(res.body.total_tax, 23250)
         assert.equal(res.body.total_items, 3)
         done(err)
       })
@@ -288,13 +329,13 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 200000)
-        assert.equal(res.body.total_price, 200000)
-        assert.equal(res.body.total_due, 200000)
-        assert.equal(res.body.total_authorized, 200000)
+        assert.equal(res.body.total_price, 215500)
+        assert.equal(res.body.total_due, 215500)
+        assert.equal(res.body.total_authorized, 215500)
+        assert.equal(res.body.total_tax, 15500)
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 2)
         assert.equal(res.body.total_shipping, 0)
-        assert.equal(res.body.total_tax, 0)
         done(err)
       })
   })
@@ -328,13 +369,13 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 100000)
-        assert.equal(res.body.total_price, 100000)
-        assert.equal(res.body.total_due, 100000)
-        assert.equal(res.body.total_authorized, 100000)
+        assert.equal(res.body.total_price, 107750)
+        assert.equal(res.body.total_due, 107750)
+        assert.equal(res.body.total_authorized, 107750)
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
         assert.equal(res.body.total_shipping, 0)
-        assert.equal(res.body.total_tax, 0)
+        assert.equal(res.body.total_tax, 7750)
         done(err)
       })
   })
@@ -369,13 +410,13 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 100000)
-        assert.equal(res.body.total_price, 100100)
-        assert.equal(res.body.total_due, 100100)
-        assert.equal(res.body.total_authorized, 100100)
+        assert.equal(res.body.total_price, 107850)
+        assert.equal(res.body.total_due, 107850)
+        assert.equal(res.body.total_authorized, 107850)
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
         assert.equal(res.body.total_shipping, 100)
-        assert.equal(res.body.total_tax, 0)
+        assert.equal(res.body.total_tax, 7750)
         done(err)
       })
   })
@@ -408,13 +449,13 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 100000)
-        assert.equal(res.body.total_price, 100000)
-        assert.equal(res.body.total_due, 100000)
-        assert.equal(res.body.total_authorized, 100000)
+        assert.equal(res.body.total_price, 107750)
+        assert.equal(res.body.total_due, 107750)
+        assert.equal(res.body.total_authorized, 107750)
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
         assert.equal(res.body.total_shipping, 0)
-        assert.equal(res.body.total_tax, 0)
+        assert.equal(res.body.total_tax, 7750)
         done(err)
       })
   })
@@ -437,9 +478,13 @@ describe('Admin User OrderController', () => {
         })
 
         // Taxes Lines
-        assert.equal(res.body.tax_lines.length, 1)
-        assert.equal(res.body.tax_lines[0].name, 'Test Taxes')
-        assert.equal(res.body.tax_lines[0].price, 100)
+        assert.equal(res.body.tax_lines.length, 2)
+        res.body.tax_lines.forEach(line => {
+          if (line.name === 'Test Taxes') {
+            assert.equal(line.price, 100)
+          }
+        })
+
 
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
@@ -450,13 +495,13 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 100000)
-        assert.equal(res.body.total_price, 100100)
-        assert.equal(res.body.total_due, 100100)
-        assert.equal(res.body.total_authorized, 100100)
+        assert.equal(res.body.total_price, 107850)
+        assert.equal(res.body.total_due, 107850)
+        assert.equal(res.body.total_authorized, 107850)
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
         assert.equal(res.body.total_shipping, 0)
-        assert.equal(res.body.total_tax, 100)
+        assert.equal(res.body.total_tax, 7850)
         done(err)
       })
   })
@@ -478,7 +523,7 @@ describe('Admin User OrderController', () => {
         })
 
         // Taxes Lines
-        assert.equal(res.body.tax_lines.length, 0)
+        assert.equal(res.body.tax_lines.length, 1)
 
         // Fulfillments
         assert.equal(res.body.fulfillments.length, 1)
@@ -489,12 +534,12 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.fulfillment_status, 'pending')
         assert.equal(res.body.total_pending_fulfillments, 1)
         assert.equal(res.body.subtotal_price, 100000)
-        assert.equal(res.body.total_price, 100000)
-        assert.equal(res.body.total_due, 100000)
-        assert.equal(res.body.total_authorized, 100000)
+        assert.equal(res.body.total_price, 107750)
+        assert.equal(res.body.total_due, 107750)
+        assert.equal(res.body.total_authorized, 107750)
         assert.equal(res.body.total_voided, 0)
         assert.equal(res.body.total_items, 1)
-        assert.equal(res.body.total_tax, 0)
+        assert.equal(res.body.total_tax, 7750)
         assert.equal(res.body.total_shipping, 0)
         done(err)
       })
@@ -526,7 +571,7 @@ describe('Admin User OrderController', () => {
         const transaction = res.body.transactions.find(transaction => transaction.amount > 0)
         transactionID = transaction.id
 
-        assert.equal(res.body.total_captured, 100000)
+        assert.equal(res.body.total_captured, 107750)
         assert.equal(res.body.total_due, 0)
 
         done(err)
@@ -568,7 +613,7 @@ describe('Admin User OrderController', () => {
           assert.equal(transaction.kind, 'capture')
           assert.equal(transaction.status, 'success')
         })
-        assert.equal(res.body.total_captured, 100000)
+        assert.equal(res.body.total_captured, 107750)
         assert.equal(res.body.total_due, 0)
 
         assert.equal(res.body.fulfillments.length, 1)
@@ -615,8 +660,8 @@ describe('Admin User OrderController', () => {
       .end((err, res) => {
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.financial_status, 'refunded')
-        assert.equal(res.body.total_refunds, 100000)
-        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_refunds, 107750)
+        assert.equal(res.body.total_due, 107750)
 
         // Transactions
         assert.equal(res.body.transactions.length, 6)
@@ -838,6 +883,15 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.shipping_address.country, 'United States')
         assert.equal(res.body.shipping_address.postal_code, '95014')
         assert.equal(res.body.total_items, 1)
+
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 7750)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 1)
+        assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[0].price, 7750)
+
         // Transactions
         assert.equal(res.body.transactions.length, 1)
         assert.equal(res.body.transactions[0].order_id, orderID)
@@ -855,9 +909,9 @@ describe('Admin User OrderController', () => {
 
         assert.equal(res.body.financial_status, 'authorized')
         assert.equal(res.body.subtotal_price, 100000)
-        assert.equal(res.body.total_price, 100000)
-        assert.equal(res.body.total_authorized, 100000)
-        assert.equal(res.body.total_due, 100000)
+        assert.equal(res.body.total_price, 107750)
+        assert.equal(res.body.total_authorized, 107750)
+        assert.equal(res.body.total_due, 107750)
         assert.equal(res.body.total_items, 1)
 
         done(err)

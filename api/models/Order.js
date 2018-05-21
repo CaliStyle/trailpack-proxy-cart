@@ -1454,6 +1454,47 @@ module.exports = class Order extends Model {
                 return this
               })
           },
+
+          saveItemsTaxLines: function (items, options) {
+            options = options || {}
+            // const taxesLines = []
+            // const totalTaxes = 0
+
+            // Filter any non manual tax lines
+            let taxLines = this.tax_lines.filter(line =>
+              Object.keys(line).indexOf('id') === -1
+              && Object.keys(line).indexOf('line') === -1
+            )
+
+            return app.orm['OrderItem'].sequelize.Promise.mapSeries(items, item => {
+              return item.setItemsTaxLines(items.find(i => i.id === item.id))
+                .save(options)
+            })
+              .then(items => {
+                items.forEach(item => {
+                  taxLines = [...taxLines, ...item.tax_lines]
+                })
+
+                // Add in tax_lines from items
+                this.tax_lines = taxLines
+
+                return this
+              })
+          },
+
+          /**
+           *
+           * @param lines
+           */
+          // setTaxLines: function(lines) {
+          //   this.total_tax = 0
+          //   this.tax_lines = lines || []
+          //   this.tax_lines.forEach(line => {
+          //     this.total_tax = this.total_tax + line.price
+          //   })
+          //   return this.setTotals()
+          // },
+
           /**
            * Builds obj for Order Item
            * @param item
@@ -1493,8 +1534,11 @@ module.exports = class Order extends Model {
               requires_taxes: item.requires_taxes,
               tax_code: item.tax_code,
               tax_lines: item.tax_lines || [],
+              total_taxes: item.total_taxes,
               shipping_lines: item.shipping_lines || [],
+              total_shipping: item.total_shipping,
               discounted_lines: item.discounted_lines || [],
+              total_discounts: 0,
               coupon_lines: item.coupon_lines || [],
               requires_subscription: item.requires_subscription,
               subscription_interval: item.subscription_interval,
@@ -1505,7 +1549,6 @@ module.exports = class Order extends Model {
               fulfillable_quantity: item.fulfillable_quantity || qty,
               max_quantity: item.max_quantity,
               grams: app.services.ProxyCartService.resolveConversion(item.weight, item.weight_unit) * qty,
-              total_discounts: 0,
               average_shipping: item.Product.average_shipping,
               exclude_payment_types: item.Product.exclude_payment_types,
               vendor_id: item.Product.vendors ? item.Product.vendors[0].id : null,
@@ -1567,7 +1610,7 @@ module.exports = class Order extends Model {
           updateItem: function(orderItem, options) {
             options = options || {}
             if (!this.order_items) {
-              const err = new Error('Order.addItem requires order_items to be populated')
+              const err = new Error('Order.updateItem requires order_items to be populated')
               return Promise.reject(err)
             }
 
@@ -1633,7 +1676,7 @@ module.exports = class Order extends Model {
           removeItem: function(orderItem, options) {
             options = options || {}
             if (!this.order_items) {
-              const err = new Error('Order.addItem requires order_items to be populated')
+              const err = new Error('Order.removeItem requires order_items to be populated')
               return Promise.reject(err)
             }
 
@@ -1858,6 +1901,28 @@ module.exports = class Order extends Model {
           },
           /**
            *
+           * @param options
+           * @returns {Promise.<TResult>}
+           */
+          calculateTaxes: function(options) {
+            options = options || {}
+            if (!this.has_taxes) {
+              return Promise.resolve(this)
+            }
+            return this.resolveOrderItems(options)
+              .then(() => {
+                return app.services.TaxService.calculate(this, this.order_items, this.shipping_address, app.orm['Order'], options)
+              })
+              .then(taxesResult => {
+                return this.saveItemsTaxLines(taxesResult.line_items)
+              })
+              .catch(err => {
+                app.log.error(err)
+                return this
+              })
+          },
+          /**
+           *
            * @returns {Promise.<T>}
            */
           recalculate: function(options) {
@@ -1870,28 +1935,6 @@ module.exports = class Order extends Model {
             let totalCoupons = 0
             let totalOverrides = 0
             let totalItems = 0
-
-            this.tax_lines.forEach(i => {
-              totalTax = totalTax + i.price
-            })
-            this.shipping_lines.forEach(i => {
-              totalShipping = totalShipping + i.price
-            })
-            this.pricing_overrides.forEach(i => {
-              totalOverrides = totalOverrides + i.price
-            })
-            this.discounted_lines.forEach(i => {
-              totalDiscounts = totalDiscounts + i.price
-            })
-            this.coupon_lines.forEach(i => {
-              totalCoupons = totalCoupons + i.price
-            })
-
-            this.total_tax = totalTax
-            this.total_shipping = totalShipping
-            this.total_discounts = totalDiscounts
-            this.total_coupons = totalCoupons
-            this.total_overrides = totalOverrides
 
             return this.resolveOrderItems({ transaction: options.transaction || null })
               .then(() => {
@@ -1909,8 +1952,37 @@ module.exports = class Order extends Model {
                 // Set the Total Line Items Price
                 this.total_line_items_price = totalLineItemsPrice
 
+                this.pricing_overrides.forEach(i => {
+                  totalOverrides = totalOverrides + i.price
+                })
+                this.discounted_lines.forEach(i => {
+                  totalDiscounts = totalDiscounts + i.price
+                })
+                this.coupon_lines.forEach(i => {
+                  totalCoupons = totalCoupons + i.price
+                })
+
+                this.total_discounts = totalDiscounts
+                this.total_coupons = totalCoupons
+                this.total_overrides = totalOverrides
+
                 this.subtotal_price = Math.max(0, this.total_line_items_price)
+
+                return this.calculateTaxes({transactions: options.transaction || null})
+              })
+              .then(() => {
+                this.tax_lines.forEach(i => {
+                  totalTax = totalTax + i.price
+                })
+                this.shipping_lines.forEach(i => {
+                  totalShipping = totalShipping + i.price
+                })
+
+                this.total_tax = totalTax
+                this.total_shipping = totalShipping
+
                 this.total_price = Math.max(0, this.total_line_items_price + this.total_tax + this.total_shipping - this.total_discounts - this.total_coupons - this.total_overrides)
+
                 // resolve current transactions
                 return this.resolveTransactions({ transaction: options.transaction || null })
               })

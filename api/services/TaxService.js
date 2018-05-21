@@ -9,7 +9,7 @@ const Service = require('trails/service')
  * @description Tax Service
  */
 module.exports = class TaxService extends Service {
-  calculate(obj, shippingAddress, resolver, options){
+  calculate(obj, lineItems, shippingAddress, resolver, options){
     options = options || {}
     let resObj
     return resolver.resolve(obj, {transaction: options.transaction || null})
@@ -18,30 +18,35 @@ module.exports = class TaxService extends Service {
           throw new Error('Could not resolve for taxes')
         }
         resObj = _obj
-        return this.app.services.ProxyCartService.resolveSendFromTo(resObj, shippingAddress)
+        return this.app.services.ProxyCartService.resolveItemsFromTo(resObj, lineItems.filter(i => i.requires_taxes), shippingAddress)
       })
-      .then(sendFromTo => {
-        if (!sendFromTo) {
-          return resObj.tax_lines || []
+      .then(resolvedItemsFromTo => {
+        if (!resolvedItemsFromTo) {
+          return resObj
         }
-        return this.getTaxes(resObj, sendFromTo)
+        return this.getTaxes(resObj, lineItems, resolvedItemsFromTo, options)
       })
-      .then(taxLines => {
-        console.log('BROKE LINES', taxLines)
-        // obj.tax_lines = taxLines
-        return resObj.setTaxLines(taxLines || [])
+      .then(taxesResult => {
+        return taxesResult
       })
   }
 
   /**
    *
-   * @param obj
-   * @param sendFromTo
    */
-  getTaxes(obj, sendFromTo) {
-    // console.log('WORKING ON TAXES', obj, sendFromTo)
-    console.log('WORKING ON TAXES', obj.tax_lines)
-    Promise.resolve(obj.tax_lines || [])
+  getTaxes(obj, lineItems, resolvedItemsFromTo, options) {
+    options = options || {}
+    const taxProvider = this.app.config.proxyGenerics[obj.tax_provider]
+      || this.app.config.get('proxyGenerics.tax_provider')
+
+    // console.log('WORKING ON TAXES TAX FOR ORDER', obj, lineItems, sendFromTo)
+    return this.app.services.TaxGenericService.taxForOrder({
+      nexus_addresses: resolvedItemsFromTo.nexus_addresses,
+      to_address: resolvedItemsFromTo.to_address,
+      line_items: lineItems,
+      subtotal_price: obj.subtotal_price,
+      total_shipping: obj.total_shipping
+    }, taxProvider)
   }
 }
 

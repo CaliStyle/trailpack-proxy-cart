@@ -407,34 +407,42 @@ module.exports = class ProxyCartService extends Service {
   resolveSendFromTo(obj, shippingAddress, options) {
     options = options || {}
     return new Promise((resolve, reject) => {
-      const Cart = this.app.orm.Cart
-      const Subscription = this.app.orm.Subscription
-      const Customer = this.app.orm.Customer
-      const Shop = this.app.orm.Shop
-      const Address = this.app.orm.Address
+      const Cart = this.app.orm['Cart']
+      const Subscription = this.app.orm['Subscription']
+      const Customer = this.app.orm['Customer']
+      const Shop = this.app.orm['Shop']
+      const Address = this.app.orm['Address']
 
       if (!(obj instanceof Cart) && !(obj instanceof Subscription)) {
         const err = new Error('Object must be an instance!')
         return reject(err)
       }
 
-      Shop.findById(obj.shop_id, {transaction: options.transaction || null})
+      Shop.findById(obj.shop_id, {
+        include: [
+          {
+            model: Address,
+            as: 'address'
+          },
+        ],
+        transaction: options.transaction || null
+      })
         .then(shop => {
-          if (!shop) {
+          if (!shop && !shop.address) {
             return resolve(null)
           }
           const from = {
             name: shop.name,
-            address_1: shop.address_1,
-            address_2: shop.address_2,
-            address_3: shop.address_3,
-            company: shop.company,
-            city: shop.city,
-            province: shop.province,
-            province_code: shop.province_code,
-            country: shop.country,
-            country_name: shop.country_name,
-            country_code: shop.country_code
+            address_1: shop.address.address_1,
+            address_2: shop.address.address_2,
+            address_3: shop.address.address_3,
+            company: shop.address.company,
+            city: shop.address.city,
+            province: shop.address.province,
+            province_code: shop.address.province_code,
+            country: shop.address.country,
+            country_name: shop.address.country_name,
+            country_code: shop.address.country_code
           }
           // If provided a shipping address
           if (shippingAddress && this.app.services.ProxyCartService.validateAddress(shippingAddress)) {
@@ -443,6 +451,20 @@ module.exports = class ProxyCartService extends Service {
               from: from
             }
             return resolve(res)
+          }
+          else if (obj.shipping_address_id) {
+            Address.findById(obj.shipping_address_id)
+              .then(address => {
+                const to = address.get({plain: true})
+                const res = {
+                  to: to,
+                  from: from
+                }
+                return resolve(res)
+              })
+              .catch(err => {
+                return reject(err)
+              })
           }
           else if (obj.customer_id) {
             Customer.findById(obj.customer_id, {
@@ -486,6 +508,194 @@ module.exports = class ProxyCartService extends Service {
           return reject(err)
         })
     })
+  }
+
+  /**
+   *
+   * @param obj
+   * @param lineItems
+   * @param shippingAddress
+   * @param options
+   * @returns {Promise}
+   */
+  resolveItemsFromTo(obj, lineItems, shippingAddress, options) {
+    options = options || {}
+
+    const Cart = this.app.orm['Cart']
+    const Order = this.app.orm['Order']
+    const Subscription = this.app.orm['Subscription']
+    const Customer = this.app.orm['Customer']
+    const Shop = this.app.orm['Shop']
+    const Address = this.app.orm['Address']
+
+    if (!(obj instanceof Cart) && !(obj instanceof Subscription) && !(obj instanceof Order)) {
+      throw new Error('Object must be an instance of a Cart, Subscription or Order!')
+    }
+
+    let nexuses, to
+
+    return Promise.resolve()
+      .then(() => {
+        // If provided a shipping address
+        if (shippingAddress && this.app.services.ProxyCartService.validateAddress(shippingAddress)) {
+          return shippingAddress
+        }
+        else if (obj.shipping_address_id) {
+          return Address.findById(obj.shipping_address_id)
+            .then(address => {
+              return address.get({plain: true})
+            })
+        }
+        else if (obj.customer_id) {
+          return Customer.findById(obj.customer_id, {
+            attributes: ['id'],
+            include: [
+              {
+                model: Address,
+                as: 'default_address'
+              },
+              {
+                model: Address,
+                as: 'shipping_address'
+              }
+            ],
+            transaction: options.transaction || null
+          })
+            .then(customer => {
+
+              if ( customer.shipping_address instanceof Address) {
+                customer.shipping_address = customer.shipping_address.get({plain: true})
+              }
+              if ( customer.default_address instanceof Address) {
+                customer.default_address = customer.default_address.get({plain: true})
+              }
+              return customer.shipping_address ? customer.shipping_address : customer.default_address
+            })
+        }
+        else {
+          return
+        }
+      })
+      .then(_to => {
+        if (!_to) {
+          return
+        }
+        else {
+          to = _to
+          return Shop.sequelize.Promise.mapSeries(lineItems, item => {
+            return this.resolveItemNexusTo(item, to, {transaction: options.transaction || null})
+          })
+        }
+      })
+      .then(_nexuses => {
+        if (!_nexuses) {
+          return _nexuses
+        }
+        // If nothing came back, but we should attempt to use the default store.
+        else if (_nexuses.filter(n => n).length === 0) {
+          return Shop.findById(obj.shop_id, {
+            attributes: ['id', 'name', 'address_id'],
+            include: [
+              {
+                model: Address,
+                as: 'address'
+              },
+            ],
+            transaction: options.transaction || null
+          })
+            .then(_shop => {
+
+              if (!_shop && !_shop.address) {
+                return null
+              }
+              _nexuses[0] = {
+                name: _shop.name,
+                address_1: _shop.address.address_1,
+                address_2: _shop.address.address_2,
+                address_3: _shop.address.address_3,
+                company: _shop.address.company,
+                city: _shop.address.city,
+                province: _shop.address.province,
+                province_code: _shop.address.province_code,
+                postal_code: _shop.address.postal_code,
+                country: _shop.address.country,
+                country_name: _shop.address.country_name,
+                country_code: _shop.address.country_code
+              }
+              // Filter out all the null nexuses
+              return _nexuses.filter(n => n)
+            })
+            .catch(err => {
+              this.app.log.error(err)
+              return
+            })
+        }
+        else {
+          // Filter out all the null nexuses
+          return _nexuses.filter(n => n)
+        }
+      })
+      .then(_nexuses => {
+        if (_nexuses) {
+          nexuses = _nexuses
+        }
+        if (!nexuses || !to) {
+          return null
+        }
+        else  {
+          return {
+            nexus_addresses: nexuses,
+            to_address: to
+          }
+        }
+      })
+  }
+
+  /**
+   * Resolves what shop address an item is shipping from
+   * @param item
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  resolveItemNexusTo(item, to, options) {
+    options = options || {}
+    const Shop = this.app.orm['Shop']
+    const Address = this.app.orm['Address']
+    if (!item.shop_id) {
+      return Promise.resolve(null)
+    }
+    // Find a nexus from item shop id if present
+    return Shop.findById(item.shop_id, {
+      include: [
+        {
+          model: Address,
+          as: 'address'
+        }
+      ],
+      transaction: options.transaction || null
+    })
+      .then(_shop => {
+        if (!_shop || !_shop.address) {
+          return null
+        }
+
+        return {
+          name: _shop.name,
+          address_1: _shop.address.address_1,
+          address_2: _shop.address.address_2,
+          address_3: _shop.address.address_3,
+          company: _shop.address.company,
+          city: _shop.address.city,
+          province: _shop.address.province,
+          province_code: _shop.address.province_code,
+          country: _shop.address.country,
+          country_name: _shop.address.country_name,
+          country_code: _shop.address.country_code
+        }
+      })
+      .catch(err => {
+        return null
+      })
   }
 
   /**

@@ -60,6 +60,9 @@ module.exports = class Country extends Model {
       tax_name: {
         type: Sequelize.STRING
       },
+      tax_type: {
+        type: Sequelize.STRING
+      },
       tax_rate: {
         type: Sequelize.FLOAT,
         defaultValue: 0.0

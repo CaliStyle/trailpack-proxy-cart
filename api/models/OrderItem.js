@@ -34,6 +34,12 @@ module.exports = class OrderItem extends Model {
                 return Promise.reject(err)
               })
           },
+          beforeSave(values, options) {
+            return app.services.OrderService.itemSaveCreate(values, options)
+              .catch(err => {
+                return Promise.reject(err)
+              })
+          },
           beforeUpdate(values, options) {
             return app.services.OrderService.itemBeforeUpdate(values, options)
               .catch(err => {
@@ -162,6 +168,83 @@ module.exports = class OrderItem extends Model {
           removeShipping: function(shipping, options){
             options = options || {}
           },
+
+          setItemsTaxLines: function (taxedLine) {
+            // console.log('INCOMING ITEM', taxedLine)
+            // this.tax_lines = []
+            let taxesLines = []
+            let totalTaxes = 0
+            // Make this an array if null
+            if (taxedLine) {
+              // console.log('FOUND TAX LINE', taxedLine.tax_lines)
+
+              taxedLine.tax_lines = taxedLine.tax_lines || []
+              taxedLine.tax_lines.map(line => {
+                line.id = this.id
+                return line
+              })
+
+              totalTaxes = taxedLine.tax_lines.forEach(line => {
+                totalTaxes = totalTaxes + line.price
+              })
+
+              // console.log('TAXED LINE', taxedLine)
+              taxesLines = [...taxesLines, ...taxedLine.tax_lines]
+            }
+            this.tax_lines = taxesLines
+            // console.log('FINAL TAX LINES', this.tax_lines)
+
+            return this.setTaxLines(taxesLines)
+          },
+
+          /**
+           *
+           * @param lines
+           */
+          setTaxLines: function(lines) {
+            this.total_tax = 0
+            this.tax_lines = lines || []
+            this.tax_lines.forEach(line => {
+              this.total_tax = this.total_tax + line.price
+            })
+            return this
+            // return this.setTotals()
+          },
+
+          setProperties: (prev) => {
+            if (this.properties) {
+              // Remove any old property pricing
+              for (const l in prev.properties){
+                if (prev.properties.hasOwnProperty(l)) {
+                  this.price = this.price - prev.properties[l].price
+                  this.price_per_unit = this.price_per_unit - prev.properties[l].price
+                }
+              }
+              // and then add the new properties in
+              for (const l in this.properties){
+                if (this.properties.hasOwnProperty(l)) {
+                  this.price = this.price + this.properties[l].price
+                  this.price_per_unit = this.price_per_unit + this.properties[l].price
+                }
+              }
+            }
+            return this
+          },
+
+          /**
+           *
+           */
+          setTotals: function() {
+            // Set Cart values
+            // this.total_price = Math.max(0,
+            //   this.total_tax
+            //   + this.total_shipping
+            //   + this.subtotal_price
+            // )
+
+            return this
+          },
+
           /**
            *
            * @param options
@@ -171,38 +254,60 @@ module.exports = class OrderItem extends Model {
             options = options || {}
             if (
               this.changed('price')
+              || this.changed('properties')
               || this.changed('discounted_lines')
               || this.changed('coupon_lines')
               || this.changed('tax_lines')
               || this.changed('coupon_lines')
             ) {
+              app.log.debug('ORDER ITEM CHANGED')
 
               let totalDiscounts = 0 // this.total_discounts
               let totalShipping = 0
               let totalTaxes = 0
               let totalCoupons = 0
 
+              if (this.changed('properties')) {
+                this.setProperties(this.previous('properties'))
+              }
+
               this.discounted_lines = this.discounted_lines || []
               this.discounted_lines.map(line => {
                 totalDiscounts = totalDiscounts + (line.price || 0)
+                return line
               })
 
               this.shipping_lines = this.shipping_lines || []
               this.shipping_lines.map(line => {
                 totalShipping = totalShipping + (line.price || 0)
+                if (line.line) {
+                  delete line.line
+                  line.id = this.id
+                }
+                return line
               })
 
               this.tax_lines = this.tax_lines || []
               this.tax_lines.map(line => {
                 totalTaxes = totalTaxes + (line.price || 0)
+                if (line.line) {
+                  delete line.line
+                  line.id = this.id
+                }
+                return line
               })
 
               this.coupon_lines = this.coupon_lines || []
               this.coupon_lines.map(line => {
                 totalCoupons = totalCoupons + (line.price || 0)
+                if (line.line) {
+                  line.line = this.id
+                }
+                return line
               })
 
-              const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
+              const calculatedPrice = Math.max(0, (this.price_per_unit * this.quantity) - totalDiscounts - totalCoupons)
+              // const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
 
               this.calculated_price = calculatedPrice
               this.total_discounts = totalDiscounts

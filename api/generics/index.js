@@ -1,5 +1,5 @@
-exports.shippingProvider = require('./shippingProvider')
 exports.fulfillmentProvider = require('./fulfillmentProvider')
-exports.imageProvider = require('./imageProvider')
-exports.taxProvider = require('./taxProvider')
 exports.geolocationProvider = require('./geolocationProvider')
+exports.imageProvider = require('./imageProvider')
+exports.shippingProvider = require('./shippingProvider')
+exports.taxProvider = require('./taxProvider')

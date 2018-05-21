@@ -2181,6 +2181,21 @@ module.exports = class OrderService extends Service {
       })
 //    return Promise.resolve(item)
   }
+
+  /**
+   *
+   * @param item
+   * @param options
+   * @returns {Promise.<T>}
+   */
+  itemBeforeSave(item, options){
+    options = options || {}
+    return item.recalculate({transaction: options.transaction || null})
+      .then(() => {
+        return item
+      })
+//    return Promise.resolve(item)
+  }
   /**
    *
    * @param item

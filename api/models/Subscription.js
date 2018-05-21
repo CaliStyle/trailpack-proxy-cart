@@ -706,6 +706,37 @@ module.exports = class Subscription extends Model {
             return this.setTotals()
           },
 
+          setItemsShippingLines: function (items) {
+            let shippingLines = []
+            let totalShipping = 0
+            // Make this an array if null
+            this.line_items = this.line_items || []
+
+            this.line_items = this.line_items.map((item, i) => {
+              const shippedLine = items.find(i => i.sku === item.sku)
+              if (shippedLine) {
+
+                shippedLine.shipping_lines = shippedLine.shipping_lines || []
+                shippedLine.shipping_lines.map(line => {
+                  line.line = i
+                  return line
+                })
+
+                totalShipping = shippedLine.shipping_lines.forEach(line => {
+                  totalShipping = totalShipping + line.price
+                })
+
+                // console.log('SHIPPED LINE', shippedLine)
+                shippingLines = [...shippingLines, ...shippedLine.shipping_lines]
+                item.shipping_lines = shippedLine.shipping_lines
+                item.total_shipping = totalShipping
+              }
+
+              return item
+            })
+            return this.setShippingLines(shippingLines)
+          },
+
           /**
            *
            * @param lines
@@ -717,6 +748,37 @@ module.exports = class Subscription extends Model {
               this.total_shipping = this.total_shipping + line.price
             })
             return this.setTotals()
+          },
+
+          setItemsTaxLines: function (items) {
+            let taxesLines = []
+            let totalTaxes = 0
+            // Make this an array if null
+            this.line_items = this.line_items || []
+
+            this.line_items = this.line_items.map((item, i) => {
+              const taxedLine = items.find(i => i.sku === item.sku)
+              if (taxedLine) {
+
+                taxedLine.tax_lines = taxedLine.tax_lines || []
+                taxedLine.tax_lines.map(line => {
+                  line.line = i
+                  return line
+                })
+
+                totalTaxes = taxedLine.tax_lines.forEach(line => {
+                  totalTaxes = totalTaxes + line.price
+                })
+
+                // console.log('TAXED LINE', taxedLine)
+                taxesLines = [...taxesLines, ...taxedLine.tax_lines]
+                item.tax_lines = taxedLine.tax_lines
+                item.total_taxes = totalTaxes
+              }
+
+              return item
+            })
+            return this.setTaxLines(taxesLines)
           },
 
           /**
@@ -802,8 +864,12 @@ module.exports = class Subscription extends Model {
               requires_taxes: data.requires_taxes,
               tax_code: data.tax_code,
               tax_lines: [],
+              total_taxes: 0,
               shipping_lines: [],
+              total_shipping: 0,
               discounted_lines: [],
+              // TODO handle disocunts
+              total_discounts: 0,
               weight: data.weight * data.quantity,
               weight_unit: data.weight_unit,
               images: data.images.length > 0 ? data.images : data.Product.images,
@@ -811,8 +877,6 @@ module.exports = class Subscription extends Model {
               fulfillable_quantity: data.fulfillable_quantity,
               max_quantity: data.max_quantity,
               grams: app.services.ProxyCartService.resolveConversion(data.weight, data.weight_unit) * data.quantity,
-              // TODO handle discounts
-              total_discounts: 0,
               average_shipping: data.Product.average_shipping,
               exclude_payment_types: data.Product.exclude_payment_types,
               vendor: data.Product.vendor ? data.Product.vendor.name || data.Product.vendor : data.Product.vendor,
@@ -1360,6 +1424,28 @@ module.exports = class Subscription extends Model {
           },
           /**
            *
+           * @param options
+           * @returns {Promise.<TResult>}
+           */
+          calculateTaxes: function(options) {
+            options = options || {}
+            if (!this.has_taxes) {
+              return Promise.resolve(this)
+            }
+            return app.services.TaxService.calculate(this, this.line_items, this.shipping_address, app.orm['Subscription'], options)
+              .then(taxesResult => {
+                // console.log('WORKING ON TAXES RESULT', taxesResult.line_items)
+                this.setItemsTaxLines(taxesResult.line_items)
+
+                return this
+              })
+              .catch(err => {
+                app.log.error(err)
+                return this
+              })
+          },
+          /**
+           *
            * @returns {Promise.<T>}
            */
           recalculate: function(options) {
@@ -1426,6 +1512,9 @@ module.exports = class Subscription extends Model {
             return Promise.resolve()
               .then(() => {
                 return this.calculateDiscounts({transaction: options.transaction || null})
+              })
+              .then(() => {
+                return this.calculateTaxes({transaction: options.transaction || null})
               })
               .then(() => {
                 return this.setTotals()
