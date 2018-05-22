@@ -296,6 +296,7 @@ module.exports = class OrderItem extends Model {
             options = options || {}
             if (
               this.changed('price')
+              || this.changed('quantity')
               || this.changed('properties')
               || this.changed('discounted_lines')
               || this.changed('coupon_lines')
@@ -319,6 +320,15 @@ module.exports = class OrderItem extends Model {
                 return line
               })
 
+              this.coupon_lines = this.coupon_lines || []
+              this.coupon_lines.map(line => {
+                totalCoupons = totalCoupons + (line.price || 0)
+                if (line.line) {
+                  line.line = this.id
+                }
+                return line
+              })
+
               this.shipping_lines = this.shipping_lines || []
               this.shipping_lines.map(line => {
                 totalShipping = totalShipping + (line.price || 0)
@@ -339,18 +349,12 @@ module.exports = class OrderItem extends Model {
                 return line
               })
 
-              this.coupon_lines = this.coupon_lines || []
-              this.coupon_lines.map(line => {
-                totalCoupons = totalCoupons + (line.price || 0)
-                if (line.line) {
-                  line.line = this.id
-                }
-                return line
-              })
-
               const calculatedPrice = Math.max(0, (this.price_per_unit * this.quantity) - totalDiscounts - totalCoupons)
               // const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
+              // const totalPrice = Math.max(0, (this.price_per_unit * this.quantity))
+              // const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
 
+              // this.price = totalPrice
               this.calculated_price = calculatedPrice
               this.total_discounts = totalDiscounts
               this.total_shipping = totalShipping

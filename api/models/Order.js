@@ -1541,9 +1541,9 @@ module.exports = class Order extends Model {
               properties: properties,
               option: item.option,
               barcode: item.barcode,
-              price: item.price,
+              price: item.price * qty,
               calculated_price: item.price * qty,
-              compare_at_price: item.compare_at_price * qty,
+              compare_at_price: (item.compare_at_price || item.price) * qty,
               price_per_unit: item.price,
               currency: item.currency,
               fulfillment_service: item.fulfillment_service,
@@ -1579,7 +1579,7 @@ module.exports = class Order extends Model {
            * @param options
            * @returns {*}
            */
-          // TODO add new tax_lines shipping_lines coupon_lines discount_lines to parent order
+          // TODO shipping_lines coupon_lines discount_lines to parent order
           addItem: function(orderItem, options) {
             options = options || {}
             if (!this.order_items) {
@@ -1598,16 +1598,25 @@ module.exports = class Order extends Model {
                     })
                 }
                 else {
+                  // prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
+                  // prevOrderItem.fufillable_quantity = prevOrderItem.fufillable_quantity + orderItem.fulfillable_quantity
+                  // prevOrderItem.price = prevOrderItem.price + orderItem.price
+                  // prevOrderItem.calculated_price = prevOrderItem.calculated_price + prevOrderItem.calculated_price
+                  // prevOrderItem.weight = prevOrderItem.weight + prevOrderItem.weight
+                  // prevOrderItem.total_weight = prevOrderItem.total_weight + prevOrderItem.total_weight
+
                   prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
                   prevOrderItem.fufillable_quantity = prevOrderItem.fufillable_quantity + orderItem.fulfillable_quantity
                   prevOrderItem.price = prevOrderItem.price + orderItem.price
-                  prevOrderItem.calculated_price = prevOrderItem.calculated_price + orderItem.calculated_price
-                  prevOrderItem.weight = prevOrderItem.weight + orderItem.weight
-                  prevOrderItem.total_weight = prevOrderItem.total_weight + orderItem.total_weight
+                  prevOrderItem.calculated_price = prevOrderItem.calculated_price + prevOrderItem.calculated_price
+                  prevOrderItem.compare_at_price = prevOrderItem.compare_at_price + orderItem.compare_at_price
+                  prevOrderItem.weight = prevOrderItem.weight + prevOrderItem.weight
+                  prevOrderItem.total_weight = prevOrderItem.total_weight + prevOrderItem.total_weight
 
                   if (orderItem.properties) {
                     prevOrderItem.properties = orderItem.properties
                   }
+                  // console.log('BREAKING', prevOrderItem)
                   return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })
                     .then(() =>{
                       return prevOrderItem.save({transaction: options.transaction || null})
@@ -1624,7 +1633,7 @@ module.exports = class Order extends Model {
            * @param options
            * @returns {*}
            */
-          // TODO add new tax_lines shipping_lines coupon_lines discount_lines to parent order
+          // TODO add shipping_lines coupon_lines discount_lines to parent order
           updateItem: function(orderItem, options) {
             options = options || {}
             if (!this.order_items) {
@@ -1643,22 +1652,36 @@ module.exports = class Order extends Model {
 
                 if (options.add) {
                   prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
+                  prevOrderItem.fulfillable_quantity = prevOrderItem.fulfillable_quantity + orderItem.fulfillable_quantity
                   prevOrderItem.price = prevOrderItem.price + orderItem.price
                   prevOrderItem.calculated_price = prevOrderItem.calculated_price + orderItem.calculated_price
+                  prevOrderItem.compare_at_price = prevOrderItem.compare_at_price + orderItem.compare_at_price
                   prevOrderItem.weight = prevOrderItem.weight + orderItem.weight
                   prevOrderItem.total_weight = prevOrderItem.total_weight + orderItem.total_weight
                 }
                 else if (options.remove) {
                   prevOrderItem.quantity = prevOrderItem.quantity - orderItem.quantity
+                  prevOrderItem.fulfillable_quantity = prevOrderItem.fulfillable_quantity - orderItem.fulfillable_quantity
                   prevOrderItem.price = prevOrderItem.price - orderItem.price
                   prevOrderItem.calculated_price = prevOrderItem.calculated_price - orderItem.calculated_price
+                  prevOrderItem.compare_at_price = prevOrderItem.compare_at_price - orderItem.compare_at_price
                   prevOrderItem.weight = prevOrderItem.weight - orderItem.weight
                   prevOrderItem.total_weight = prevOrderItem.total_weight - orderItem.total_weight
                 }
                 else {
+                  // prevOrderItem.quantity = prevOrderItem.quantity + orderItem.quantity
+                  // prevOrderItem.fulfillable_quantity = prevOrderItem.fulfillable_quantity + orderItem.fulfillable_quantity
+                  // prevOrderItem.price = prevOrderItem.price + orderItem.price
+                  // prevOrderItem.calculated_price = prevOrderItem.calculated_price + orderItem.calculated_price
+                  // prevOrderItem.compare_at_price = prevOrderItem.compare_at_price + orderItem.compare_at_price
+                  // prevOrderItem.weight = prevOrderItem.weight + orderItem.weight
+                  // prevOrderItem.total_weight = prevOrderItem.total_weight + orderItem.total_weight
+
                   prevOrderItem.quantity = orderItem.quantity
-                  prevOrderItem.price = orderItem.price * orderItem.quantity
-                  prevOrderItem.calculated_price = orderItem.calculated_price * orderItem.quantity
+                  prevOrderItem.fulfillable_quantity = orderItem.fulfillable_quantity
+                  prevOrderItem.price = orderItem.price
+                  prevOrderItem.calculated_price = orderItem.calculated_price
+                  prevOrderItem.compare_at_price = orderItem.compare_at_price
                   prevOrderItem.weight = orderItem.weight
                   prevOrderItem.total_weight = orderItem.total_weight
                 }
@@ -1666,6 +1689,8 @@ module.exports = class Order extends Model {
                 if (orderItem.properties) {
                   prevOrderItem.properties = orderItem.properties
                 }
+
+                // console.log('BREAKING update', prevOrderItem)
 
                 if (prevOrderItem.quantity <= 0) {
                   return prevOrderItem.reconcileFulfillment({ transaction: options.transaction || null })

@@ -1404,12 +1404,27 @@ module.exports = class OrderService extends Service {
         return this.app.services.ProductService.resolveItems(items, { transaction: options.transaction || null })
       })
       .then(_items => {
-        if (!_items) {
-          throw new Error('Could not resolve product and variant')
+        if (!_items || _items.length === 0) {
+          throw new Error('Could not resolve products and variants')
         }
+        _items = _items.map(item => {
+          const newItem = items.find(i =>
+            i.id === item.id
+            || i.id === item.variant_id
+            || i.id === item.product_variant_id
+            || i.product_id === item.product_id
+          )
+          if (newItem.quantity) {
+            item.quantity = newItem.quantity
+          }
+          if (newItem.properties) {
+            item.properties = newItem.properties
+          }
+          return item
+        })
         // Setup Transaction
         return Sequelize.transaction(t => {
-          return Sequelize.Promise.mapSeries(items, item => {
+          return Sequelize.Promise.mapSeries(_items, item => {
             // Build the item
             const resItem = resOrder.buildOrderItem(item, item.quantity, item.properties)
             resItems.push(resItem)

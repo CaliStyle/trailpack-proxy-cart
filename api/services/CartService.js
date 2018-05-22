@@ -176,7 +176,13 @@ module.exports = class CartService extends Service {
         return resCart.save({transaction: options.transaction || null})
       })
       .then(() => {
-        return resCart
+        return resCart.resolveCustomer({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resCart.resolveShippingAddress({transaction: options.transaction || null})
+      })
+      .then(() => {
+        return resCart.resolveBillingAddress({transaction: options.transaction || null})
       })
   }
 
