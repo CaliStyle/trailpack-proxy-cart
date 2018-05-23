@@ -350,11 +350,7 @@ module.exports = class OrderItem extends Model {
               })
 
               const calculatedPrice = Math.max(0, (this.price_per_unit * this.quantity) - totalDiscounts - totalCoupons)
-              // const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
-              // const totalPrice = Math.max(0, (this.price_per_unit * this.quantity))
-              // const calculatedPrice = Math.max(0, this.price + totalShipping + totalTaxes - totalDiscounts - totalCoupons)
 
-              // this.price = totalPrice
               this.calculated_price = calculatedPrice
               this.total_discounts = totalDiscounts
               this.total_shipping = totalShipping
@@ -374,7 +370,7 @@ module.exports = class OrderItem extends Model {
           reconcileFulfillment: function(options) {
             options = options || {}
             if (this.isNewRecord && !this.fulfillment_id) {
-              // console.log('RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
+              // console.log('reconcileFulfillment: RECONCILE WILL CREATE OR ATTACH FULFILLMENT', this)
               return this.save({transaction: options.transaction || null})
                 .then(() => {
                   return app.services.FulfillmentService.addOrCreateFulfillmentItem(
@@ -387,7 +383,7 @@ module.exports = class OrderItem extends Model {
                 })
             }
             else if (!this.isNewRecord && this.quantity === 0) {
-              // console.log('RECONCILE WILL REMOVE', this)
+              // console.log('reconcileFulfillment: RECONCILE WILL REMOVE', this)
               return this.save({transaction: options.transaction || null})
                 .then(() => {
                   return app.services.FulfillmentService.removeFulfillmentItem(
@@ -400,7 +396,7 @@ module.exports = class OrderItem extends Model {
                 })
             }
             else if (!this.isNewRecord && this.changed('quantity') && (this.quantity > this.previous('quantity'))) {
-              // console.log('RECONCILE WILL UPDATE UP QUANTITY', this)
+              // console.log('reconcileFulfillment: RECONCILE WILL UPDATE UP QUANTITY', this)
               return this.save({transaction: options.transaction || null})
                 .then(() => {
                   return app.services.FulfillmentService.updateFulfillmentItem(
@@ -413,7 +409,7 @@ module.exports = class OrderItem extends Model {
                 })
             }
             else if (!this.isNewRecord && this.changed('quantity') && (this.quantity < this.previous('quantity'))) {
-              // console.log('RECONCILE WILL UPDATE DOWN QUANTITY', this)
+              // console.log('reconcileFulfillment: RECONCILE WILL UPDATE DOWN QUANTITY', this)
               return this.save({transaction: options.transaction || null})
                 .then(() => {
                   return app.services.FulfillmentService.removeFulfillmentItem(
@@ -426,6 +422,7 @@ module.exports = class OrderItem extends Model {
                 })
             }
             else {
+              // console.log('reconcileFulfillment: UNHANDLED')
               // Unhandled Case
               return this.save({transaction: options.transaction || null})
             }

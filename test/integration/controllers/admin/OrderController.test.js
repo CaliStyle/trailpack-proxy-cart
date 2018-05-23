@@ -466,6 +466,93 @@ describe('Admin User OrderController', () => {
         done(err)
       })
   })
+  it('should add new items to order', (done) => {
+    adminUser
+      .post(`/order/${orderID}/addItems`)
+      .send([{
+        product_id: shopProducts[3].id,
+        quantity: 1
+      }])
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.order_items.length, 2)
+        assert.equal(res.body.financial_status, 'authorized')
+        assert.equal(res.body.fulfillment_status, 'pending')
+
+        // Taxes
+        assert.equal(res.body.has_taxes, true)
+        assert.equal(res.body.total_tax, 15500)
+        assert.equal(res.body.taxes_included, false)
+        assert.equal(res.body.tax_lines.length, 2)
+        assert.equal(res.body.tax_lines[0].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[0].price, 7750)
+        assert.equal(res.body.tax_lines[1].name, 'California Sales Tax')
+        assert.equal(res.body.tax_lines[1].price, 7750)
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 5)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'pending')
+        assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 2)
+
+        assert.equal(res.body.subtotal_price, 200000)
+        assert.equal(res.body.total_price, 215500)
+        assert.equal(res.body.total_due, 215500)
+        assert.equal(res.body.total_authorized, 215500)
+        assert.equal(res.body.total_tax, 15500)
+        assert.equal(res.body.total_items, 2)
+        done(err)
+      })
+  })
+  it('should completely remove an item from order again', (done) => {
+    adminUser
+      .post(`/order/${orderID}/removeItem`)
+      .send({
+        product_id: shopProducts[3].id,
+        quantity: 1
+      })
+      .expect(200)
+      .end((err, res) => {
+        assert.equal(res.body.id, orderID)
+        assert.equal(res.body.order_items.length, 1)
+
+        // Transactions
+        assert.equal(res.body.transactions.length, 5)
+        res.body.transactions.forEach(transaction => {
+          assert.equal(transaction.order_id, orderID)
+          assert.equal(transaction.kind, 'authorize')
+          assert.equal(transaction.status, 'success')
+        })
+
+        // Fulfillments
+        assert.equal(res.body.fulfillments.length, 1)
+        assert.equal(res.body.fulfillments[0].order_id, orderID)
+        assert.equal(res.body.fulfillments[0].status, 'pending')
+        assert.equal(res.body.fulfillments[0].total_pending_fulfillments, 1)
+
+        assert.equal(res.body.financial_status, 'authorized')
+        assert.equal(res.body.fulfillment_status, 'pending')
+        assert.equal(res.body.total_pending_fulfillments, 1)
+        assert.equal(res.body.subtotal_price, 100000)
+        assert.equal(res.body.total_price, 107750)
+        assert.equal(res.body.total_due, 107750)
+        assert.equal(res.body.total_authorized, 107750)
+        assert.equal(res.body.total_voided, 0)
+        assert.equal(res.body.total_items, 1)
+        assert.equal(res.body.total_shipping, 0)
+        assert.equal(res.body.total_tax, 7750)
+        done(err)
+      })
+  })
   it('should add shipping to order', (done) => {
     adminUser
       .post(`/order/${orderID}/addShipping`)
@@ -476,7 +563,7 @@ describe('Admin User OrderController', () => {
       .expect(200)
       .end((err, res) => {
         // Transactions
-        assert.equal(res.body.transactions.length, 5)
+        assert.equal(res.body.transactions.length, 6)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'authorize')
@@ -517,7 +604,7 @@ describe('Admin User OrderController', () => {
       .expect(200)
       .end((err, res) => {
         // Transactions
-        assert.equal(res.body.transactions.length, 5)
+        assert.equal(res.body.transactions.length, 6)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'authorize')
@@ -557,7 +644,7 @@ describe('Admin User OrderController', () => {
       .expect(200)
       .end((err, res) => {
         // Transactions
-        assert.equal(res.body.transactions.length, 6)
+        assert.equal(res.body.transactions.length, 7)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'authorize')
@@ -602,7 +689,7 @@ describe('Admin User OrderController', () => {
       .expect(200)
       .end((err, res) => {
         // Transactions
-        assert.equal(res.body.transactions.length, 6)
+        assert.equal(res.body.transactions.length, 7)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'authorize')
@@ -648,7 +735,7 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.financial_status, 'paid')
 
         // Transactions
-        assert.equal(res.body.transactions.length, 6)
+        assert.equal(res.body.transactions.length, 7)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'capture')
@@ -694,7 +781,7 @@ describe('Admin User OrderController', () => {
         })
 
         // Transactions
-        assert.equal(res.body.transactions.length, 6)
+        assert.equal(res.body.transactions.length, 7)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'capture')
@@ -721,7 +808,7 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.id, orderID)
 
         // Transactions
-        assert.equal(res.body.transactions.length, 7)
+        assert.equal(res.body.transactions.length, 8)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.status, 'success')
@@ -751,14 +838,14 @@ describe('Admin User OrderController', () => {
         assert.equal(res.body.total_due, 107750)
 
         // Transactions
-        assert.equal(res.body.transactions.length, 7)
+        assert.equal(res.body.transactions.length, 8)
         res.body.transactions.forEach(transaction => {
           assert.equal(transaction.order_id, orderID)
           assert.equal(transaction.kind, 'refund')
           assert.equal(transaction.status, 'success')
         })
 
-        assert.equal(res.body.refunds.length, 7)
+        assert.equal(res.body.refunds.length, 8)
         res.body.refunds.forEach(refund => {
           assert.equal(refund.order_id, orderID)
         })

@@ -250,11 +250,12 @@ module.exports = class FulfillmentService extends Service {
             })
         }
         else {
-          // TODO process to send
           resFulfillment = Fulfillment.build({
             order_id: resOrderItem.order_id,
             service: resOrderItem.fulfillment_service,
-            order_items: [resOrderItem]
+            // order_items: [
+            //   resOrderItem
+            // ]
           }, {
             include: [
               {
@@ -262,13 +263,31 @@ module.exports = class FulfillmentService extends Service {
                 as: 'order_items'
               }
             ]})
+          // console.log('addOrCreateFulfillment Creating...', resOrderItem, resFulfillment)
           return resFulfillment.save({transaction: options.transaction || null})
             .then(() => {
-              return resFulfillment.reload({transaction: options.transaction || null})
+              return resFulfillment.addOrder_item(resOrderItem, {
+                hooks: false,
+                individualHooks: false,
+                returning: false,
+                transaction: options.transaction || null
+              })
+                .then(() => {
+                  return resFulfillment.reload({transaction: options.transaction || null})
+                    .then(() => {
+                      return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
+                    })
+                })
+                .then(() => {
+                  return this.updateFulfillment(resFulfillment, {transaction: options.transaction || null})
+                })
             })
-            .then(() => {
-              return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
-            })
+            // .then(() => {
+            //   return resFulfillment.reload({transaction: options.transaction || null})
+            // })
+            // .then(() => {
+            //   return resFulfillment.saveFulfillmentStatus({transaction: options.transaction || null})
+            // })
         }
       })
       .then(() => {
