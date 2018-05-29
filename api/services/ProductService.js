@@ -372,7 +372,20 @@ module.exports = class ProductService extends Service {
       })
       .then(collections => {
         if (collections && collections.length > 0) {
-          return resProduct.setCollections(collections.map(c => c.id), {transaction: options.transaction || null})
+          return Product.sequelize.Promise.mapSeries(collections, collection => {
+            // console.log('WORKING ON ADDING', collection)
+            const through = collection.product_position ? {position: collection.product_position} : {}
+            return resProduct.addCollection(collection.id, {
+              through: through,
+              transaction: options.transaction || null
+            })
+          })
+          // return resProduct.setCollections(collections.map(c => c.id), {
+          //   through: {
+          //     positions: collections.map(c => c.position || 0)
+          //   },
+          //   transaction: options.transaction || null
+          // })
         }
         return
       })
@@ -727,7 +740,15 @@ module.exports = class ProductService extends Service {
       .then(collections => {
         // Set the collections
         if (collections && collections.length > 0) {
-          return resProduct.setCollections(collections.map(c => c.id), {transaction: options.transaction || null})
+          return Product.sequelize.Promise.mapSeries(collections, collection => {
+            // console.log('WORKING ON ADDING', collection)
+            const through = collection.product_position ? {position: collection.product_position} : {}
+            return resProduct.addCollection(collection.id, {
+              through: through,
+              transaction: options.transaction || null
+            })
+          })
+          // return resProduct.setCollections(collections.map(c => c.id), {transaction: options.transaction || null})
         }
         return
       })
@@ -1635,7 +1656,9 @@ module.exports = class ProductService extends Service {
       })
       .then(hasCollection => {
         if (!hasCollection) {
-          return resProduct.addCollection(resCollection.id, {transaction: options.transaction || null})
+          return resProduct.addCollection(resCollection.id, {
+            transaction: options.transaction || null
+          })
         }
         return resProduct
       })

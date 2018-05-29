@@ -419,7 +419,7 @@ module.exports = class ProductCsvService extends Service {
             return {
               handle: this.app.services.ProxyCartService.handle(collection),
               title: collection,
-              position: position
+              product_position: position
             }
           }
         })

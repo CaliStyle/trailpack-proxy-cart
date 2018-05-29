@@ -343,10 +343,17 @@ module.exports = class Collection extends Model {
                     return app.services.CollectionService.create(collection, {
                       transaction: options.transaction || null
                     })
+                      .then(createdCollection => {
+                        return _.extend(createdCollection, collection)
+                      })
                   }
                 })
             })
           },
+          /**
+           *
+           * @param collections
+           */
           reverseTransformCollections: (collections) => {
             collections = collections || []
             collections.map(collection => {

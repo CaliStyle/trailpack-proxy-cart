@@ -948,6 +948,7 @@ module.exports = class Product extends Model {
            * Converts vendors to array of strings
            */
           toJSON: function() {
+            const position = this.position
             // Make JSON
             const resp = this instanceof app.orm['Product'] ? this.get({ plain: true }) : this
             // Set Defaults
@@ -1008,6 +1009,9 @@ module.exports = class Product extends Model {
               })
             }
 
+            if (position) {
+              resp.position = position
+            }
             return resp
           },
           /**

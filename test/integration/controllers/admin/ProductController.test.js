@@ -349,7 +349,7 @@ describe('Admin User ProductController', () => {
           metadata: {
             test: 'new value'
           },
-          // Alters collections
+          // Add new collections
           collections: [
             'free-shipping'
           ],
@@ -395,9 +395,10 @@ describe('Admin User ProductController', () => {
         // Metadata
         assert.equal(res.body[0].metadata.test, 'new value')
         // Collections
-        assert.equal(res.body[0].collections.length, 1)
-        assert.equal(res.body[0].collections[0].title, 'free-shipping')
-        assert.equal(res.body[0].collections[0].handle, 'free-shipping')
+        assert.equal(res.body[0].collections.length, 2)
+        assert.equal(res.body[0].collections.map(c => c.handle).indexOf('free-shipping') > -1, true)
+        // assert.equal(res.body[0].collections[0].title, 'free-shipping')
+        // assert.equal(res.body[0].collections[0].handle, 'free-shipping')
         // Variants
         assert.equal(res.body[0].variants.length, 3)
         let variantPos = 1
@@ -464,9 +465,10 @@ describe('Admin User ProductController', () => {
         })
 
         // Collections
-        assert.equal(res.body.collections.length, 1)
-        assert.equal(res.body.collections[0].title, 'free-shipping')
-        assert.equal(res.body.collections[0].handle, 'free-shipping')
+        assert.equal(res.body.collections.length, 2)
+        assert.equal(res.body.collections.map(c => c.handle).indexOf('free-shipping') > -1, true)
+        // assert.equal(res.body.collections[0].title, 'free-shipping')
+        // assert.equal(res.body.collections[0].handle, 'free-shipping')
 
         done(err)
       })
@@ -1228,6 +1230,7 @@ describe('Admin User ProductController', () => {
         assert.equal(res.headers['x-pagination-page'], '2')
         assert.equal(res.headers['x-pagination-pages'], '2')
 
+        //let productPos = 0
         res.body.forEach(product => {
           let imagePos = 0
           product.images.forEach(image => {

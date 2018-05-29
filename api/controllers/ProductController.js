@@ -284,7 +284,7 @@ module.exports = class ProductController extends Controller {
 
     const limit = Math.max(0,req.query.limit || 10)
     const offset = Math.max(0, req.query.offset || 0)
-    const sort = req.query.sort || [['created_at', 'DESC']]
+    const sort = req.query.sort || [['position', 'ASC']]
     // const query = {
     //   distinct: true,
     //   // subQuery: false,
@@ -340,7 +340,7 @@ module.exports = class ProductController extends Controller {
     //   })
     const Collection = this.app.orm['Collection']
     const ItemCollection = this.app.orm['ItemCollection']
-    let collectionId, count = 0
+    let collectionId, count = 0, models = []
     Collection.findOne({
       where: {
         handle: req.params.handle
@@ -358,14 +358,16 @@ module.exports = class ProductController extends Controller {
             collection_id: collectionId,
             model: 'product'
           },
-          attributes: ['model_id'],
+          attributes: ['model_id','position'],
+          order: sort,
           limit: limit,
           offset: offset
         })
       })
       .then(arr => {
         count = arr.count
-        const productIds = arr.rows.map(model => model.model_id)
+        models = _.orderBy(arr.rows, ['position'], ['asc'])
+        const productIds = models.map(model => model.model_id)
         return Product.findAllDefault({
           where: {
             id: productIds
@@ -374,6 +376,11 @@ module.exports = class ProductController extends Controller {
         })
       })
       .then(products => {
+        products = products.map(product => {
+          return _.extend(product, {position: models.find(m => m.model_id === product.id).position})
+        })
+        products = _.orderBy(products, ['position'], ['asc'])
+        // console.log('working on models', products)
         // Paginate
         this.app.services.ProxyEngineService.paginate(res, count, limit, offset, sort)
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, products)

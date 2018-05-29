@@ -170,7 +170,7 @@ module.exports = class CollectionService extends Service {
       return Promise.reject(err)
     }
 
-    const update = _.omit(collection,['id','created_at','updated_at','collections','images', 'tags'])
+    const update = _.omit(collection,['id','created_at','updated_at','collections','images','tags'])
 
     let resCollection
     return Collection.resolve(collection, {transaction: options.transaction || null})
@@ -393,9 +393,19 @@ module.exports = class CollectionService extends Service {
         return resCollection.hasProduct(resProduct.id, {transaction: options.transaction || null})
       })
       .then(hasCollection => {
-        if (!hasCollection) {
-          return resCollection.addProduct(resProduct.id, {transaction: options.transaction || null})
-        }
+        const through = product.product_position ? {position: product.product_position} : {}
+        // if (!hasCollection) {
+          return resCollection.addProduct(resProduct.id, {
+            through: through,
+            transaction: options.transaction || null
+          })
+        // }
+        // else if (product.product_position) {
+        //   return resCollection.updateProduct(resProduct.id, {
+        //     through: through,
+        //     transaction: options.transaction || null
+        //   })
+        // }
         return resCollection
       })
       .then(collection => {
