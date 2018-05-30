@@ -395,10 +395,10 @@ module.exports = class CollectionService extends Service {
       .then(hasCollection => {
         const through = product.product_position ? {position: product.product_position} : {}
         // if (!hasCollection) {
-          return resCollection.addProduct(resProduct.id, {
-            through: through,
-            transaction: options.transaction || null
-          })
+        return resCollection.addProduct(resProduct.id, {
+          through: through,
+          transaction: options.transaction || null
+        })
         // }
         // else if (product.product_position) {
         //   return resCollection.updateProduct(resProduct.id, {
@@ -406,7 +406,7 @@ module.exports = class CollectionService extends Service {
         //     transaction: options.transaction || null
         //   })
         // }
-        return resCollection
+        // return resCollection
       })
       .then(collection => {
         return resProduct

@@ -180,6 +180,12 @@ module.exports = class User extends Model {
         // },
         allowNull: true
       },
+      first_name: {
+        type: Sequelize.STRING
+      },
+      last_name: {
+        type: Sequelize.STRING
+      },
       phone: {
         type: Sequelize.STRING
       },

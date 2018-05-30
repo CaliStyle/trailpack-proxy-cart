@@ -738,6 +738,8 @@ module.exports = class ProxyCartService extends Service {
       id: user.current_customer_id,
       email: user.email,
       phone: user.phone,
+      first_name: user.first_name,
+      last_name: user.last_name,
       accepts_marketing: user.accepts_marketing,
       users: [user]
     }, {
@@ -821,7 +823,7 @@ module.exports = class ProxyCartService extends Service {
    * @param next
    */
   serializeCustomer(customer, next) {
-    if (typeof next != 'function') {
+    if (typeof next !== 'function') {
       throw new Error('instance#serializeCustomer requires a callback function')
     }
     next(null, customer.id)
@@ -835,7 +837,7 @@ module.exports = class ProxyCartService extends Service {
    */
   deserializeCustomer(id, options, next) {
     options = options || {}
-    if (typeof next != 'function') {
+    if (typeof next !== 'function') {
       throw new Error('instance#deserializeCustomer requires a callback function')
     }
     this.app.orm['Customer'].findById(id, {transaction: options.transaction || null})
