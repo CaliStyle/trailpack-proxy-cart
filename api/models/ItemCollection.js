@@ -9,10 +9,13 @@ const _ = require('lodash')
  */
 module.exports = class ItemCollection extends Model {
 
-  static config (app,Sequelize) {
+  static config (app, Sequelize) {
     return {
       options: {
         underscored: true,
+        // underscoredAll: true,
+        // createdAt: 'created_at',
+        // updatedAt: 'updated_at',
         enums: {
           COLLECTION_MODELS: COLLECTION_MODELS
         },

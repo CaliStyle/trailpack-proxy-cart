@@ -69,6 +69,7 @@ describe('DiscountService', () => {
 
     Discount.bulkCreate(discountsToCreate)
       .then(discounts => {
+        // console.log('WORKING ON DISCOUNTS', discounts)
         return DiscountService.expireThisHour()
           .then(expires => {
             assert.equal(expires.discounts, 21)

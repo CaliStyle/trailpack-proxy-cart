@@ -285,18 +285,25 @@ module.exports = class CollectionService extends Service {
           throw new Errors.FoundError(Error('Sub Collection not found'))
         }
         resSubCollection = _subCollection
-        return resCollection.hasCollection(resSubCollection.id, {transaction: options.transaction || null})
-      })
-      .then(hasCollection => {
-        if (!hasCollection) {
+      //   return resCollection.hasCollection(resSubCollection.id, {transaction: options.transaction || null})
+      // })
+      // .then(hasCollection => {
+        // if (!hasCollection) {
           // return ItemCollection.create({
           //   collection_id: resCollection.id,
           //   model_id: resSubCollection.id,
           //   model: 'collection'
           // }, {transaction: options.transaction || null})
-          return resCollection.addCollection(resSubCollection.id, {transaction: options.transaction || null})
-        }
-        return
+        const through = subCollection.collection_position ? { position: subCollection.collection_position } : {}
+        return resCollection.addCollection(resSubCollection.id, {
+          through: through,
+          hooks: false,
+          individualHooks: false,
+          returning: false,
+          transaction: options.transaction || null
+        })
+        // }
+        // return
       })
       .then(() => {
         return resSubCollection

@@ -153,7 +153,7 @@ describe('Admin User Edit Order Split Fulfillment', () => {
       })
       .expect(200)
       .end((err, res) => {
-        console.log('WORKING ON ORDERS', res.body)
+        // console.log('WORKING ON ORDERS', res.body)
         assert.equal(res.body.id, orderID)
         assert.equal(res.body.order_items.length, 1)
         assert.equal(res.body.total_items, 1)

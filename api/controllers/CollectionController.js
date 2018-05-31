@@ -252,7 +252,15 @@ module.exports = class CollectionController extends Controller {
   addCollection(req, res) {
     const CollectionService = this.app.services.CollectionService
 
-    CollectionService.addCollection(req.params.id, req.params.collection)
+    const collection = req.body || {}
+    if (_.isString(req.params.collection)) {
+      collection.handle = req.params.collection
+    }
+    else {
+      collection.id = req.params.collection
+    }
+
+    CollectionService.addCollection(req.params.id, collection)
       .then(collection => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, collection)
       })

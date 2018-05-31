@@ -745,6 +745,9 @@ module.exports = class ProductService extends Service {
             const through = collection.product_position ? {position: collection.product_position} : {}
             return resProduct.addCollection(collection.id, {
               through: through,
+              hooks: false,
+              individualHooks: false,
+              returning: false,
               transaction: options.transaction || null
             })
           })
@@ -1652,18 +1655,25 @@ module.exports = class ProductService extends Service {
           throw new Errors.FoundError(Error('Collection not found'))
         }
         resCollection = _collection
-        return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
-      })
-      .then(hasCollection => {
-        if (!hasCollection) {
-          return resProduct.addCollection(resCollection.id, {
-            transaction: options.transaction || null
-          })
-        }
-        return resProduct
+      //   return resProduct.hasCollection(resCollection.id, {transaction: options.transaction || null})
+      // })
+      // .then(hasCollection => {
+        const through = collection.product_position ? {position: collection.product_position} : {}
+      //   if (!hasCollection) {
+
+        return resProduct.addCollection(resCollection.id, {
+          through: through,
+          hooks: false,
+          individualHooks: false,
+          returning: false,
+          transaction: options.transaction || null
+        })
+        // }
+        // return
       })
       .then(collection => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return resCollection
+        // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
 
@@ -1701,7 +1711,8 @@ module.exports = class ProductService extends Service {
         return resProduct
       })
       .then(collection => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return resCollection
+        // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
 
@@ -1738,7 +1749,8 @@ module.exports = class ProductService extends Service {
         return resProduct
       })
       .then(shop => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return resShop
+        // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
 
@@ -1775,7 +1787,8 @@ module.exports = class ProductService extends Service {
         return resProduct
       })
       .then(shop => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return resShop
+        // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
 
@@ -1813,7 +1826,8 @@ module.exports = class ProductService extends Service {
         return resProduct
       })
       .then(vendor => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return resVendor
+        // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
 
@@ -1851,7 +1865,8 @@ module.exports = class ProductService extends Service {
         return resProduct
       })
       .then(vendor => {
-        return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
+        return resVendor
+        // return Product.findByIdDefault(resProduct.id, {transaction: options.transaction || null})
       })
   }
 

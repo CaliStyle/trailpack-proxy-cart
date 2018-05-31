@@ -868,7 +868,16 @@ module.exports = class ProductController extends Controller {
    */
   addCollection(req, res){
     const ProductService = this.app.services.ProductService
-    ProductService.addCollection(req.params.id, req.params.collection)
+
+    const collection = req.body || {}
+    if (_.isString(req.params.collection)) {
+      collection.handle = req.params.collection
+    }
+    else {
+      collection.id = req.params.collection
+    }
+
+    ProductService.addCollection(req.params.id, collection)
       .then(product => {
         return this.app.services.ProxyPermissionsService.sanitizeResult(req, product)
       })
